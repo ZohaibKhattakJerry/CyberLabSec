@@ -37,12 +37,7 @@ export default async function CareersPage() {
 
     return <CareersJobBoard postings={serialized} />;
   } catch (error: any) {
-    return (
-      <div className="p-10 text-red-500 font-mono">
-        <h1 className="text-2xl font-bold mb-4">Server Error</h1>
-        <pre>{error?.message || String(error)}</pre>
-        <pre className="mt-4">{error?.stack}</pre>
-      </div>
-    );
+    console.error("Failed to load postings:", error);
+    return <CareersJobBoard postings={[]} />;
   }
 }

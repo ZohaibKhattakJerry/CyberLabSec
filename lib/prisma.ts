@@ -1,38 +1,28 @@
 import { PrismaClient } from "@prisma/client";
-import { Pool, neonConfig } from "@neondatabase/serverless";
-import { PrismaNeon } from "@prisma/adapter-neon";
-import ws from "ws";
-
-neonConfig.webSocketConstructor = ws;
+import { Pool } from "pg";
+import { PrismaPg } from "@prisma/adapter-pg";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-// Hide from Webpack static analysis
-const getEnv = (name: string) => {
-  if (typeof process !== "undefined" && process.env) {
-    return process.env[name];
-  }
-  return undefined;
-};
-
 const createPrismaClient = () => {
-  const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
-  
-  if (!connectionString) {
-    console.error("CRITICAL ERROR: Database connection string is undefined at runtime!");
+  const url = process.env.DATABASE_URL;
+
+  if (url?.startsWith("prisma://")) {
+    return new PrismaClient({
+      accelerateUrl: url,
+      log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
+    });
   }
-  
-  const pool = new Pool({ connectionString });
-  const adapter = new PrismaNeon(pool);
-  
+
+  // Use pg adapter for standard postgres:// URLs or as a dummy fallback to prevent build crashes
+  const pool = new Pool({ connectionString: url || "postgres://dummy:dummy@localhost:5432/dummy" });
+  const adapter = new PrismaPg(pool);
+
   return new PrismaClient({
     adapter,
-    log:
-      process.env.NODE_ENV === "development"
-        ? ["error", "warn"]
-        : ["error"],
+    log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
   });
 };
 

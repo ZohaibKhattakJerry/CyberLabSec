@@ -288,7 +288,7 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
             }}
           >
             <Shield size={48} style={{ margin: "0 auto 16px", opacity: 0.3 }} />
-            <p style={{ fontSize: 16, marginBottom: 8 }}>No positions found</p>
+            <p style={{ fontSize: 16, marginBottom: 8 }}>No open positions available right now.</p>
             <p style={{ fontSize: 14 }}>Check back soon — we move fast.</p>
           </motion.div>
         ) : (
