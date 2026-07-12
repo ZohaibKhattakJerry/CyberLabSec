@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "seed": "ts-node --project tsconfig.node.json prisma/seed.ts",
-    "backup": "node scripts/backup.js"
+    "backup": "node scripts/backup.js",
+    "postinstall": "prisma generate"
   },
   "prisma": {
     "seed": "ts-node --project tsconfig.node.json prisma/seed.ts"
