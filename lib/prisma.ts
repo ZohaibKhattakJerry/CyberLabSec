@@ -18,7 +18,7 @@ const getEnv = (name: string) => {
 };
 
 const createPrismaClient = () => {
-  const connectionString = getEnv("DATABASE_URL") || getEnv("POSTGRES_URL");
+  const connectionString = process.env.DATABASE_URL;
   
   if (!connectionString) {
     console.error("CRITICAL ERROR: Database connection string is undefined at runtime!");
@@ -30,7 +30,7 @@ const createPrismaClient = () => {
   return new PrismaClient({
     adapter,
     log:
-      getEnv("NODE_ENV") === "development"
+      process.env.NODE_ENV === "development"
         ? ["error", "warn"]
         : ["error"],
   });
@@ -45,4 +45,4 @@ export const prisma = new Proxy({} as PrismaClient, {
   }
 });
 
-if (getEnv("NODE_ENV") !== "production") globalForPrisma.prisma = prisma;
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
