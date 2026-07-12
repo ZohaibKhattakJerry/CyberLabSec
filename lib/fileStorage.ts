@@ -44,51 +44,54 @@ export async function saveFile(
   namespace: string,
   category: UploadCategory
 ): Promise<string> {
-  const dir = path.join(UPLOAD_BASE, namespace, category);
-  fs.mkdirSync(dir, { recursive: true });
-
-  const ext = path.extname(file.name) || `.${file.type.split("/")[1]}`;
-  const filename = `${crypto.randomBytes(16).toString("hex")}${ext}`;
-  const filepath = path.join(dir, filename);
-
   const bytes = await file.arrayBuffer();
-  fs.writeFileSync(filepath, Buffer.from(bytes));
-
-  // Return relative path (never the full server path)
-  return `${namespace}/${category}/${filename}`;
+  const buffer = Buffer.from(bytes);
+  const base64 = buffer.toString("base64");
+  
+  // Return a data URI (bypasses Vercel's read-only file system)
+  return `data:${file.type};base64,${base64}`;
 }
 
 export function getFilePath(relativePath: string): string {
-  // Sanitize to prevent path traversal
+  if (relativePath.startsWith("data:")) return relativePath;
   const normalized = path.normalize(relativePath).replace(/^(\.\.(\/|\\|$))+/, "");
   return path.join(UPLOAD_BASE, normalized);
 }
 
 export function fileExists(relativePath: string): boolean {
+  if (relativePath.startsWith("data:")) return true;
   return fs.existsSync(getFilePath(relativePath));
 }
 
 export function deleteFile(relativePath: string): void {
+  if (relativePath.startsWith("data:")) return; // Nothing to delete from disk
   const fp = getFilePath(relativePath);
   if (fs.existsSync(fp)) fs.unlinkSync(fp);
 }
 
 /**
- * Extract text from a PDF file (basic - reads as buffer, returns text if possible)
- * For richer extraction, use pdf-parse in a separate worker
+ * Extract text from a PDF file
  */
-export async function extractPdfText(relativePath: string): Promise<string> {
-  const fp = getFilePath(relativePath);
-  if (!fs.existsSync(fp)) return "";
+export async function extractPdfText(fileUrl: string): Promise<string> {
+  let buffer: Buffer;
+
+  if (fileUrl.startsWith("data:")) {
+    const base64Data = fileUrl.split(",")[1];
+    if (!base64Data) return "";
+    buffer = Buffer.from(base64Data, "base64");
+  } else {
+    const fp = getFilePath(fileUrl);
+    if (!fs.existsSync(fp)) return "";
+    buffer = fs.readFileSync(fp);
+  }
   
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const pdfParse = require("pdf-parse") as (buf: Buffer) => Promise<{ text: string }>;
-    const buffer = fs.readFileSync(fp);
     const data = await pdfParse(buffer);
     return data.text || "";
   } catch {
-    // Fallback: return empty string — screening will note lack of parseable CV
     return "[CV text could not be extracted — please review the file manually]";
   }
 }
+

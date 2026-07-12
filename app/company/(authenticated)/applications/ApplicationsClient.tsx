@@ -65,6 +65,19 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
     startTransition(() => { router.refresh(); setSelected(null); });
   };
 
+  const deleteApplicant = async (applicantId: string) => {
+    if (!confirm("Are you sure you want to completely delete this application? This action cannot be undone and will delete all associated data including interview sessions.")) return;
+    setActionLoading(true); setActionMsg("");
+    const res = await fetch(`/api/company/applications/${applicantId}`, {
+      method: "DELETE",
+    });
+    const data = await res.json();
+    setActionLoading(false);
+    if (!res.ok) { setActionMsg(data.error || "Failed to delete applicant"); return; }
+    setSelected(null);
+    startTransition(() => { router.refresh(); });
+  };
+
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
@@ -216,6 +229,9 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
               <a href={`/api/files/${selected.id}/cv`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm">
                 <FileText size={13} /> View CV
               </a>
+              <button className="btn btn-danger btn-sm" onClick={() => deleteApplicant(selected.id)} disabled={actionLoading} style={{ marginLeft: "auto", background: "rgba(220, 38, 38, 0.1)", border: "1px solid rgba(220, 38, 38, 0.3)", color: "#fca5a5" }}>
+                <X size={13} /> Delete Application
+              </button>
             </div>
           </div>
         </div>

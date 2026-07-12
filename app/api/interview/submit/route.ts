@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { gradeOpenAnswer } from "@/lib/gemini";
+import { gradeOpenAnswer, screenApplicant } from "@/lib/gemini";
+import { extractPdfText } from "@/lib/fileStorage";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -19,12 +20,6 @@ export async function POST(req: NextRequest) {
   if (session.tokenUsed) {
     return NextResponse.json({ error: "Already submitted" }, { status: 409 });
   }
-
-  // Mark as used immediately to prevent double-submission
-  await prisma.interviewSession.update({
-    where: { id: sessionId },
-    data: { tokenUsed: true, startedAt: session.startedAt || new Date(), completedAt: new Date() },
-  });
 
   const questions = JSON.parse(session.questions as string);
   const perQuestionScore: Array<{ questionId: string; score: number; maxPoints: number; aiLikelihood?: number }> = [];
@@ -52,7 +47,6 @@ export async function POST(req: NextRequest) {
         openAnswerCount++;
         perQuestionScore.push({ questionId: q.id, score: grade.score, maxPoints: q.points, aiLikelihood: grade.aiLikelihood });
       } catch {
-        // Fallback: 0 score if grading fails
         perQuestionScore.push({ questionId: q.id, score: 0, maxPoints: q.points });
       }
     }
@@ -60,11 +54,8 @@ export async function POST(req: NextRequest) {
 
   // Normalize score to 100
   const normalizedScore = maxPossibleScore > 0 ? Math.round((totalScore / maxPossibleScore) * 100) : 0;
-
-  // Calculate average AI likelihood for open answers
   const avgAiLikelihood = openAnswerCount > 0 ? aiLikelihoodTotal / openAnswerCount : 0;
 
-  // Combined suspicion score
   const suspicionScore =
     (cheatingSignals.pasteAttempts * 30) +
     (cheatingSignals.tabBlurCount * 20) +
@@ -73,30 +64,59 @@ export async function POST(req: NextRequest) {
 
   const terminated = suspicionScore >= 60;
   const passMark = session.applicant.jobPosting.passMark;
+  
+  const isFail = terminated || normalizedScore < passMark;
+  const newAttempts = session.attempts + 1;
+  const hasMoreAttempts = isFail && newAttempts < session.maxAttempts;
 
-  let result: string;
-  if (terminated) {
-    result = "Cheating";
-  } else if (normalizedScore >= passMark) {
-    result = "Passed";
-  } else {
-    result = "Failed";
+  if (isFail && hasMoreAttempts) {
+    // Generate new questions for the next attempt
+    const cvText = await extractPdfText(session.applicant.cvFileUrl);
+    const screening = await screenApplicant(
+      cvText,
+      session.applicant.fullName,
+      session.applicant.jobPosting.title,
+      session.applicant.jobPosting.description,
+      session.applicant.jobPosting.requirements,
+      session.applicant.jobPosting.type as "Job" | "Internship"
+    );
+
+    await prisma.interviewSession.update({
+      where: { id: sessionId },
+      data: {
+        attempts: newAttempts,
+        tokenUsed: false,
+        answers: "[]",
+        questions: JSON.stringify(screening.questions),
+        perQuestionScore: "[]",
+        cheatingSignals: "{}",
+        result: null,
+        totalScore: null,
+        startedAt: null,
+      },
+    });
+
+    return NextResponse.json({ result: "Retry", score: normalizedScore, terminated });
   }
 
-  // Update session
+  // Final submission (Passed, or Failed out of attempts)
+  const result = terminated ? "Cheating" : normalizedScore >= passMark ? "Passed" : "Failed";
+
   await prisma.interviewSession.update({
     where: { id: sessionId },
     data: {
+      attempts: newAttempts,
+      tokenUsed: true,
       answers: JSON.stringify(answers),
       perQuestionScore: JSON.stringify(perQuestionScore),
       cheatingSignals: JSON.stringify({ ...cheatingSignals, avgAiLikelihood, suspicionScore }),
       totalScore: normalizedScore,
       result,
+      completedAt: new Date(),
     },
   });
 
-  // Update applicant status
-  const newStatus = terminated ? "Failed" : result === "Passed" ? "Passed" : "Failed";
+  const newStatus = result === "Passed" ? "Passed" : "Failed";
   await prisma.applicant.update({
     where: { id: session.applicantId },
     data: { status: newStatus },
@@ -104,3 +124,4 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ result, score: normalizedScore, terminated });
 }
+

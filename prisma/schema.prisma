@@ -61,6 +61,8 @@ model InterviewSession {
   answers          String    @default("[]")
   perQuestionScore String    @default("[]")
   cheatingSignals  String    @default("{}")
+  attempts         Int       @default(0)
+  maxAttempts      Int       @default(3)
   totalScore       Int?
   result           String?
   startedAt        DateTime?

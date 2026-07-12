@@ -50,6 +50,8 @@ export async function sendInterviewInvite(
             <p style="color: #94a3b8; margin: 0; font-size: 14px; line-height: 1.6;">
               This unique interview link will expire in <strong>${expiryHours} hours</strong>. 
               The assessment is proctored by our AI and cannot be paused once started. Please ensure you have a stable internet connection.
+              <br/><br/>
+              <strong style="color: #f8fafc;">Note:</strong> You have a maximum of <strong>3 attempts</strong> to pass this technical screening. Any irregular activity or use of unauthorized tools will immediately consume an attempt and flag your application.
             </p>
           </div>
           

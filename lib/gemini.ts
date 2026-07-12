@@ -185,7 +185,9 @@ For aiLikelihood:
 - 0.0 = clearly genuine human answer with natural imperfections
 - 0.5 = ambiguous
 - 1.0 = near-certain AI-generated or directly copied text
-Consider: vocabulary sophistication vs. apparent background, perfectly structured paragraphs, lack of personal framing, implausibly comprehensive coverage for the question specificity.`;
+Consider: vocabulary sophistication vs. apparent background, perfectly structured paragraphs, lack of personal framing, implausibly comprehensive coverage for the question specificity.
+
+CRITICAL RULE: If the answer contains abusive language, swear words, or blatant trolling (e.g., "fuck", "shit", fake nonsense), you MUST assign a score of 0, regardless of any other content.`;
 
   try {
     const response = await model.generateContent({

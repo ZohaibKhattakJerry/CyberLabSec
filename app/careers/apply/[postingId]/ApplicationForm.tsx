@@ -123,7 +123,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
           setStatus("done");
           setStatusMsg("reviewed");
         } else if (data.status === "Reviewing") {
-          setStatusMsg("AI is analyzing your CV and generating your interview questions...");
+          setStatusMsg("We are currently processing your application and evaluating your profile...");
         }
       } catch { /* keep polling */ }
     }, 3000);
@@ -151,15 +151,16 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
     <div style={{ minHeight: "100vh", background: "var(--bg-primary)" }}>
       {/* Nav */}
       <nav style={{ borderBottom: "1px solid var(--border)", padding: "0 24px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(10,10,15,0.9)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 50 }}>
-        <Link href="/careers" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", color: "var(--text-secondary)", fontSize: 14 }}>
+        <Link href="/careers" style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, textDecoration: "none", color: "var(--text-secondary)", fontSize: 14 }}>
           <ChevronLeft size={16} /> Back to Careers
         </Link>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, flex: 1 }}>
           <div style={{ width: 28, height: 28, background: "var(--purple)", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
             <Shield size={16} color="#fff" />
           </div>
           <span style={{ fontWeight: 800, fontSize: 16 }}>CyberLab</span>
         </div>
+        <div style={{ flex: 1 }}></div>
       </nav>
 
       <div style={{ maxWidth: 680, margin: "0 auto", padding: "40px 24px" }}>
@@ -327,13 +328,13 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                   <label style={{ display: "flex", gap: 12, alignItems: "flex-start", cursor: "pointer" }}>
                     <input type="checkbox" checked={form.consentInterview} onChange={(e) => set("consentInterview", e.target.checked)} style={{ marginTop: 2, accentColor: "var(--purple)", width: 16, height: 16, flexShrink: 0 }} />
                     <span style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6 }}>
-                      I understand that if shortlisted, I will participate in an AI-powered automated interview. I acknowledge that anti-cheating measures are in place, and that the use of AI assistance or copy-pasting during the interview will result in automatic disqualification and a permanent block on future applications.
+                      I understand that shortlisted candidates will undergo an automated technical assessment. I agree to complete this assessment independently. I acknowledge that any use of unauthorized assistance or automated tools will result in disqualification.
                     </span>
                   </label>
                 </div>
 
-                <div style={{ background: "rgba(168,85,247,0.06)", border: "1px solid rgba(168,85,247,0.15)", borderRadius: 8, padding: "12px 16px", fontSize: 13, color: "#fca5a5", marginBottom: 24 }}>
-                  ⚠️ Submitting a duplicate application with the same CNIC as a previously rejected/failed application is not permitted and will be automatically blocked.
+                <div style={{ background: "rgba(168,85,247,0.06)", border: "1px solid rgba(168,85,247,0.15)", borderRadius: 8, padding: "12px 16px", fontSize: 13, color: "var(--text-secondary)", marginBottom: 24 }}>
+                  Please note: Multiple applications for the same role using identical credentials will be automatically flagged and may affect your candidacy.
                 </div>
 
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
@@ -376,7 +377,7 @@ function ScreeningScreen({ status, message, posting }: { status: ScreeningStatus
         </div>
 
         <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 12 }}>
-          {status === "uploading" ? "Uploading..." : isDone ? (isShortlisted ? "Shortlisted! 🎉" : "Application Received") : "AI Screening in Progress"}
+          {status === "uploading" ? "Uploading..." : isDone ? (isShortlisted ? "Shortlisted! 🎉" : "Application Received") : "Review in Progress"}
         </h2>
 
         <p style={{ color: "var(--text-secondary)", fontSize: 15, lineHeight: 1.7, marginBottom: 24 }}>
@@ -389,7 +390,7 @@ function ScreeningScreen({ status, message, posting }: { status: ScreeningStatus
 
         {!isDone && (
           <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 12, color: "var(--text-muted)" }}>
-            {["Receiving your application...", "Extracting CV content...", "Running AI fit analysis...", "Generating interview questions..."].map((step, i) => (
+            {["Receiving your application...", "Processing documents...", "Evaluating profile fit...", "Finalizing review..."].map((step, i) => (
               <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <div className="spinner" style={{ width: 12, height: 12, opacity: 0.5 }} />
                 {step}

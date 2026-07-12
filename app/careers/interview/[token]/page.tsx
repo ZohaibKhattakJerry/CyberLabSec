@@ -45,6 +45,8 @@ export default async function InterviewPage({
       questions={questions}
       passMark={session.applicant.jobPosting.passMark}
       emailVerified={session.emailVerified}
+      attempts={session.attempts}
+      maxAttempts={session.maxAttempts}
     />
   );
 }

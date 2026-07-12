@@ -12,11 +12,12 @@ interface Question {
 interface Props {
   sessionId: string; token: string; applicantName: string; applicantEmail: string;
   jobTitle: string; questions: Question[]; passMark: number; emailVerified: boolean;
+  attempts: number; maxAttempts: number;
 }
 
 type Phase = "verify" | "intro" | "interview" | "submitting" | "done" | "terminated";
 
-export default function InterviewClient({ sessionId, token, applicantName, applicantEmail, jobTitle, questions, passMark, emailVerified }: Props) {
+export default function InterviewClient({ sessionId, token, applicantName, applicantEmail, jobTitle, questions, passMark, emailVerified, attempts, maxAttempts }: Props) {
   const [phase, setPhase] = useState<Phase>(emailVerified ? "intro" : "verify");
   const [verifyEmail, setVerifyEmail] = useState("");
   const [verifyCnic, setVerifyCnic] = useState("");
@@ -210,8 +211,8 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
               ["📋", `${questions.length} questions total — ${questions.filter(q => q.type === "open").length} written, ${questions.filter(q => q.type === "mcq").length} multiple choice`],
               ["⏱️", "Each question has its own timer — open questions: 3 min, MCQ: 1 min"],
               ["🚫", "Do not paste text or switch tabs — these are recorded as signals"],
-              ["🤖", "Your answers will be reviewed for originality by our AI system"],
-              ["🔒", "The interview can only be taken once. This link is now consumed."],
+              ["🤖", "Your answers will be evaluated based on technical depth and accuracy"],
+              ["🔄", `Attempt ${attempts + 1} of ${maxAttempts} available. Use them wisely.`],
             ].map(([icon, text]) => (
               <div key={text as string} style={{ display: "flex", gap: 12, fontSize: 14, color: "var(--text-secondary)" }}>
                 <span>{icon}</span><span>{text}</span>
@@ -339,9 +340,9 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
       <Layout>
         <div className="card" style={{ maxWidth: 520, width: "100%", padding: 48, textAlign: "center", borderColor: "var(--border-accent)" }}>
           <AlertTriangle size={48} color="var(--purple)" style={{ margin: "0 auto 20px" }} />
-          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: "var(--purple)" }}>Interview Terminated</h2>
+          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: "var(--purple)" }}>Attempt Failed</h2>
           <p style={{ color: "var(--text-secondary)", lineHeight: 1.7 }}>
-            Irregular activity was detected — your submission shows signs of an AI-generated or copied answer, so this test has been marked failed. Your CNIC has been blocked from future applications.
+            Irregular activity was detected — your submission shows signs of an AI-generated or copied answer. This attempt has been recorded as failed. You have {maxAttempts - attempts - 1} attempts remaining.
           </p>
         </div>
       </Layout>
