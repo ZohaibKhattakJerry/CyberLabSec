@@ -239,6 +239,19 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
 
   // ── INTERVIEW PHASE ──
   if (phase === "interview") {
+    if (!questions || questions.length === 0) {
+      return (
+        <Layout>
+          <div className="card" style={{ maxWidth: 520, width: "100%", padding: 48, textAlign: "center" }}>
+            <AlertTriangle size={48} color="var(--amber)" style={{ margin: "0 auto 20px" }} />
+            <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12 }}>Interview Unavailable</h2>
+            <p style={{ color: "var(--text-secondary)", lineHeight: 1.7, marginBottom: 24 }}>
+              The AI screening could not generate valid questions for your profile. Please contact support.
+            </p>
+          </div>
+        </Layout>
+      );
+    }
     const q = questions[currentQ];
     const progress = ((currentQ) / questions.length) * 100;
     const timePercent = (timeLeft / (q.type === "open" ? 180 : 60)) * 100;

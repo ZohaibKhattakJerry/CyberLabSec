@@ -13,8 +13,31 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "title, department and deadline are required" }, { status: 400 });
   }
 
+  // Generate slug from title
+  const generateSlug = (text: string) => {
+    return text
+      .toString()
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, "-")        // Replace spaces with -
+      .replace(/[^\w\-]+/g, "")    // Remove all non-word chars
+      .replace(/\-\-+/g, "-")      // Replace multiple - with single -
+      .replace(/^-+/, "")          // Trim - from start of text
+      .replace(/-+$/, "");         // Trim - from end of text
+  };
+
+  const baseSlug = generateSlug(title);
+  let slug = baseSlug;
+  
+  // Basic conflict resolution
+  const existing = await prisma.jobPosting.findUnique({ where: { id: slug } });
+  if (existing) {
+    slug = `${baseSlug}-${Math.random().toString(36).substring(2, 6)}`;
+  }
+
   const posting = await prisma.jobPosting.create({
     data: {
+      id: slug,
       title: title.trim(),
       type: type || "Job",
       department: department.trim(),

@@ -66,29 +66,26 @@ Evaluate this candidate for the role. Return ONLY valid JSON (no markdown, no ex
   ]
 }
 
-Rules:
+- Rules:
 - fitScore: 0 = completely unqualified, 100 = perfect match
 - Generate exactly 8 questions: 5 open-ended, 3 MCQ
 - For Internship postings: questions should be foundational (concepts, basic tools)
 - For Job postings: questions should be advanced (real exploits, tool configs, pentest methodology)
-- Scale difficulty FURTHER based on the strength of this specific CV — a strong CV earns harder questions
+- Do not be excessively strict. Evaluate the candidate fairly based on their actual background. Do not reject a candidate purely because they lack experience if applying for an internship.
 - MCQ correctOption is the index (0-based) of the correct option in the options array
 - Questions must be highly specific to cybersecurity and to THIS candidate's background
 - Never generate generic interview questions
-- CRITICAL RULE: If the CV/Resume text contains profanity, abusive language, swear words (e.g., "fuck", "shit"), or consists of obvious garbage/trolling, you MUST set fitScore to 0 and explain why.`;
+- CRITICAL RULE: If the CV/Resume text contains profanity, abusive language, swear words (e.g., "fuck", "shit"), or consists of obvious garbage/trolling, you MUST set fitScore to 0 and explain why in the reasoning. However, YOU MUST STILL always generate exactly 8 valid questions based on the job requirements so the system does not crash.`;
 
   try {
     const response = await model.generateContent({
       model: "gemini-2.0-flash",
       contents: [{ role: "user", parts: [{ text: prompt }] }],
+      config: { responseMimeType: "application/json" }
     });
 
-    const text = response.text || "";
-    
-    // Strip markdown code blocks if present
-    const jsonStr = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-    
-    return JSON.parse(jsonStr) as ScreeningResult;
+    const text = response.text || "{}";
+    return JSON.parse(text) as ScreeningResult;
   } catch (error) {
     console.error("Gemini API Error (screenApplicant):", error);
     // If the API fails (e.g., due to safety filters triggered by profanity), reject by default
@@ -135,11 +132,11 @@ CRITICAL RULE: If the answer contains abusive language, swear words, or blatant 
     const response = await model.generateContent({
       model: "gemini-2.0-flash",
       contents: [{ role: "user", parts: [{ text: prompt }] }],
+      config: { responseMimeType: "application/json" }
     });
 
-    const text = response.text || "";
-    const jsonStr = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-    return JSON.parse(jsonStr);
+    const text = response.text || "{}";
+    return JSON.parse(text);
   } catch (error) {
     console.error("Gemini API Error (gradeOpenAnswer):", error);
     return {

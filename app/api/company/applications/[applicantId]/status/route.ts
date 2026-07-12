@@ -18,7 +18,13 @@ export async function PATCH(
   const updated = await prisma.applicant.update({
     where: { id: applicantId },
     data: { status },
+    include: { jobPosting: true }
   });
+
+  if (status === "Rejected") {
+    const { sendDeclineEmail } = await import("@/lib/email");
+    await sendDeclineEmail(updated.email, updated.fullName, updated.jobPosting.title).catch(console.error);
+  }
 
   return NextResponse.json({ success: true, status: updated.status });
 }
