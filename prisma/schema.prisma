@@ -291,3 +291,10 @@ model QuestionBank {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
+
+model TalentPool {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
+

@@ -34,6 +34,7 @@ export default async function InterviewPage({
   }
 
   const questions = JSON.parse(session.questions as string);
+  const initialAnswers = JSON.parse(session.answers as string || "{}");
 
   return (
     <InterviewClient
@@ -43,6 +44,7 @@ export default async function InterviewPage({
       applicantEmail={session.applicant.email}
       jobTitle={session.applicant.jobPosting.title}
       questions={questions}
+      initialAnswers={initialAnswers}
       passMark={session.applicant.jobPosting.passMark}
       emailVerified={session.emailVerified}
       attempts={session.attempts}

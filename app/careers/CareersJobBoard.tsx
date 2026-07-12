@@ -64,11 +64,19 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
   const [talentEmail, setTalentEmail] = useState("");
   const [talentSubmitted, setTalentSubmitted] = useState(false);
 
-  const handleTalentSubmit = (e: React.FormEvent) => {
+  const handleTalentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!talentEmail) return;
-    // In a real app we'd POST to an endpoint, mocking for now
-    setTimeout(() => setTalentSubmitted(true), 500);
+    try {
+      const res = await fetch("/api/talent-pool", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: talentEmail }),
+      });
+      if (res.ok) setTalentSubmitted(true);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (

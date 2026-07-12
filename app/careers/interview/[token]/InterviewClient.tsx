@@ -11,19 +11,24 @@ interface Question {
 
 interface Props {
   sessionId: string; token: string; applicantName: string; applicantEmail: string;
-  jobTitle: string; questions: Question[]; passMark: number; emailVerified: boolean;
+  jobTitle: string; questions: Question[]; initialAnswers?: Record<string, string>; passMark: number; emailVerified: boolean;
   attempts: number; maxAttempts: number;
 }
 
 type Phase = "verify" | "intro" | "interview" | "submitting" | "done" | "terminated" | "failed_retry" | "terminated_final";
 
-export default function InterviewClient({ sessionId, token, applicantName, applicantEmail, jobTitle, questions, passMark, emailVerified, attempts, maxAttempts }: Props) {
+export default function InterviewClient({ sessionId, token, applicantName, applicantEmail, jobTitle, questions, initialAnswers = {}, passMark, emailVerified, attempts, maxAttempts }: Props) {
   const [phase, setPhase] = useState<Phase>(emailVerified ? "intro" : "verify");
   const [verifyEmail, setVerifyEmail] = useState("");
   const [verifyCnic, setVerifyCnic] = useState("");
   const [verifyError, setVerifyError] = useState("");
-  const [currentQ, setCurrentQ] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  
+  // Calculate starting question index based on existing answers
+  const initialQIndex = questions.findIndex(q => !initialAnswers[q.id]);
+  const startQ = initialQIndex === -1 ? Math.max(0, questions.length - 1) : initialQIndex;
+  
+  const [currentQ, setCurrentQ] = useState(startQ);
+  const [answers, setAnswers] = useState<Record<string, string>>(initialAnswers);
   const [timeLeft, setTimeLeft] = useState(120); // 2 min per question
   const [totalTime, setTotalTime] = useState(0);
 
