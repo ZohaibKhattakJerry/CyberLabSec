@@ -127,9 +127,11 @@ export async function POST(req: NextRequest) {
     });
 
     // Run AI screening asynchronously (don't block the response)
-    runScreening(applicant.id, cvUrl, { fullName, email, posting }).catch(console.error);
+    // Actually, we must await it on Vercel so the serverless function is not killed
+    // before the screening and email sending completes.
+    await runScreening(applicant.id, cvUrl, { fullName, email, posting });
 
-    return NextResponse.json({ applicationId: applicant.id, message: "Application received" }, { status: 201 });
+    return NextResponse.json({ applicationId: applicant.id, message: "Application received and screened" }, { status: 201 });
   } catch (error) {
     console.error("Database or processing error during application submission:", error);
     return NextResponse.json({ error: "Service temporarily unavailable. Please try again later." }, { status: 503 });

@@ -88,6 +88,12 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
       if (cvFile) fd.append("cv", cvFile);
       if (photoFile) fd.append("photo", photoFile);
 
+      // Show screening animation while waiting for response since the backend now awaits the screening
+      setTimeout(() => {
+        setStatus("screening");
+        setStatusMsg("Received — our AI is reviewing your profile...");
+      }, 1500);
+
       const res = await fetch("/api/applications/submit", { method: "POST", body: fd });
       const data = await res.json();
 
@@ -98,10 +104,8 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
       }
 
       setApplicationId(data.applicationId);
-      setStatus("screening");
-      setStatusMsg("Received — our AI is reviewing your profile...");
-
-      // Poll for screening result
+      
+      // Immediately check the status since screening is already done
       pollScreening(data.applicationId);
     } catch {
       setStatus("error");
