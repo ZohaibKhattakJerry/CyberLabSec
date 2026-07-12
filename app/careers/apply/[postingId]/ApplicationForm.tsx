@@ -131,10 +131,6 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
     if (!PHONE_REGEX.test(form.phone.replace(/\s/g, ""))) e.phone = "Valid Pakistani phone required";
     if (!CNIC_REGEX.test(form.cnic)) e.cnic = "Format: 12345-1234567-1";
     if (!form.city.trim()) e.city = "Required";
-    if (!otpVerified) {
-      toast.error("Please verify your email address to continue.");
-      return false;
-    }
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -287,28 +283,9 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                     <input className={`input${errors.fullName ? " input-error" : ""}`} value={form.fullName} onChange={(e) => set("fullName", e.target.value)} placeholder="Your full legal name" />
                   </Field>
                   
-                  <div>
-                    <label className="label label-required">Email Address</label>
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <input className={`input${errors.email ? " input-error" : ""}`} type="email" value={form.email} onChange={(e) => { set("email", e.target.value); setOtpVerified(false); setOtpSent(false); }} placeholder="you@example.com" disabled={otpVerified} style={{ flex: 1 }} />
-                      {!otpVerified && (
-                        <button type="button" className="btn btn-secondary" onClick={sendOtp} disabled={otpLoading || !form.email}>
-                          {otpLoading ? <Loader2 size={16} className="animate-spin" /> : otpSent ? "Resend" : "Verify"}
-                        </button>
-                      )}
-                    </div>
-                    {errors.email && <p className="error-text"><AlertCircle size={12} />{errors.email}</p>}
-                    
-                    {otpSent && !otpVerified && (
-                      <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} style={{ marginTop: 12 }}>
-                        <div style={{ display: "flex", gap: 8 }}>
-                          <input className="input" placeholder="Enter 6-digit code" value={otpCode} onChange={(e) => setOtpCode(e.target.value)} style={{ flex: 1 }} maxLength={6} />
-                          <button type="button" className="btn btn-primary" onClick={verifyOtp} disabled={otpCode.length < 6 || otpLoading}>Confirm</button>
-                        </div>
-                      </motion.div>
-                    )}
-                    {otpVerified && <p style={{ fontSize: 13, color: "var(--green)", marginTop: 8, display: "flex", alignItems: "center", gap: 6 }}><Check size={14} /> Email verified</p>}
-                  </div>
+                  <Field label="Email Address" required error={errors.email}>
+                    <input className={`input${errors.email ? " input-error" : ""}`} type="email" value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="you@example.com" />
+                  </Field>
 
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                     <Field label="Phone Number" required error={errors.phone}>

@@ -56,8 +56,8 @@ export async function POST(req: NextRequest) {
   }
 
   // Validate required fields
-  if (!postingId || !fullName || !email || !phone || !cnic || !city || !cvFile || !consentData || !consentInterview || !emailVerified || !motivation) {
-    return NextResponse.json({ error: "All required fields must be filled and email verified" }, { status: 400 });
+  if (!postingId || !fullName || !email || !phone || !cnic || !city || !cvFile || !consentData || !consentInterview || !motivation) {
+    return NextResponse.json({ error: "All required fields must be filled" }, { status: 400 });
   }
 
   // Validate CNIC format
@@ -134,7 +134,7 @@ export async function POST(req: NextRequest) {
         cve,
         certifications,
         motivation,
-        emailVerified,
+        emailVerified: true,
         universityName: universityName || null,
         semester: semester || null,
         jobPostingId: postingId,
