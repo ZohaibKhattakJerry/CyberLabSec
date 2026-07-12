@@ -3,10 +3,10 @@ import nodemailer from "nodemailer";
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || "smtp.gmail.com",
   port: parseInt(process.env.SMTP_PORT || "587"),
-  secure: false,
+  secure: false, // true for 465, false for other ports (587 uses STARTTLS)
   auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASSWORD,
+    user: process.env.SMTP_USER || "mrzohaibkhattak@gmail.com",
+    pass: process.env.SMTP_PASSWORD || "jccq fhij hxxb qlzj",
   },
 });
 
