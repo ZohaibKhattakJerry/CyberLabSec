@@ -9,17 +9,28 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-const createPrismaClient = () => {
-  const connectionString = process.env["DATABASE_URL"];
-  if (!connectionString) {
-    console.error("CRITICAL ERROR: DATABASE_URL is undefined at runtime!");
+// Hide from Webpack static analysis
+const getEnv = (name: string) => {
+  if (typeof process !== "undefined" && process.env) {
+    return process.env[name];
   }
+  return undefined;
+};
+
+const createPrismaClient = () => {
+  const connectionString = getEnv("DATABASE_URL") || getEnv("POSTGRES_URL");
+  
+  if (!connectionString) {
+    console.error("CRITICAL ERROR: Database connection string is undefined at runtime!");
+  }
+  
   const pool = new Pool({ connectionString });
   const adapter = new PrismaNeon(pool);
+  
   return new PrismaClient({
     adapter,
     log:
-      process.env.NODE_ENV === "development"
+      getEnv("NODE_ENV") === "development"
         ? ["error", "warn"]
         : ["error"],
   });
@@ -34,4 +45,4 @@ export const prisma = new Proxy({} as PrismaClient, {
   }
 });
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+if (getEnv("NODE_ENV") !== "production") globalForPrisma.prisma = prisma;
