@@ -6,10 +6,12 @@ async function main() {
   console.log("🌱 Seeding CyberLabSec database...");
 
   // Create admin employee
-  const adminHash = await bcrypt.hash("ZohaibKhattak", 12);
+  const adminHash = await bcrypt.hash("ZohaibSadiq", 12);
   await prisma.employee.upsert({
     where: { employeeCode: "CyberLabSec" },
-    update: {},
+    update: {
+      passwordHash: adminHash,
+    },
     create: {
       employeeCode: "CyberLabSec",
       name: "Zohaib Khattak",
@@ -111,7 +113,7 @@ By acknowledging this policy, you agree to abide by all terms outlined above.`,
   console.log("✅ Seed complete!");
   console.log("\nAdmin credentials:");
   console.log("  Employee Code: CyberLabSec");
-  console.log("  Password: ZohaibKhattak");
+  console.log("  Password: ZohaibSadiq");
   console.log("\n⚠️  CHANGE THE ADMIN PASSWORD IMMEDIATELY after first login!");
 }
 

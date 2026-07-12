@@ -95,7 +95,7 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
               Main Site
             </Link>
             <Link
-              href="/portal/login"
+              href="/employee/login"
               className="btn btn-secondary btn-sm"
             >
               Employee Login

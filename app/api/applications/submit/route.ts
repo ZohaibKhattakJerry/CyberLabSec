@@ -180,7 +180,7 @@ async function runScreening(
         },
       });
 
-      const interviewLink = `${process.env.NEXTAUTH_URL}/careers/interview/${token}`;
+      const interviewLink = `https://cyberlabsec.tech/careers/interview/${token}`;
       await sendInterviewInvite(ctx.email, ctx.fullName, ctx.posting.title, interviewLink, 48);
 
       await prisma.applicant.update({

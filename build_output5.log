@@ -1,0 +1,83 @@
+
+> cyberlabsec-platform@0.1.0 build
+> next build
+
+▲ Next.js 16.2.10 (Turbopack)
+- Environments: .env
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 45s
+  Skipping validation of types
+  Finished TypeScript config validation in 118ms ...
+  Collecting page data using 3 workers ...
+  Generating static pages using 3 workers (0/30) ...
+  Generating static pages using 3 workers (7/30) 
+  Generating static pages using 3 workers (14/30) 
+  Generating static pages using 3 workers (22/30) 
+✓ Generating static pages using 3 workers (30/30) in 942ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /admin
+├ ƒ /admin/announcements
+├ ƒ /admin/applications
+├ ƒ /admin/ceo-review
+├ ƒ /admin/dashboard
+├ ƒ /admin/employees
+├ ○ /admin/login
+├ ƒ /admin/postings
+├ ƒ /admin/settings
+├ ƒ /admin/tasks
+├ ƒ /admin/tasks/[taskId]
+├ ƒ /admin/teams
+├ ƒ /api/admin/announcements
+├ ƒ /api/admin/applications/[applicantId]/hire
+├ ƒ /api/admin/applications/[applicantId]/offer
+├ ƒ /api/admin/applications/[applicantId]/status
+├ ƒ /api/admin/employees/[employeeId]
+├ ƒ /api/admin/employees/[employeeId]/report
+├ ƒ /api/admin/postings
+├ ƒ /api/admin/postings/[postingId]
+├ ƒ /api/admin/settings
+├ ƒ /api/admin/tasks
+├ ƒ /api/admin/tasks/[taskId]/bulk-download
+├ ƒ /api/admin/tasks/ai-summary
+├ ƒ /api/admin/tasks/review
+├ ƒ /api/admin/teams
+├ ƒ /api/admin/teams/[teamId]
+├ ƒ /api/applications/[applicantId]/status
+├ ƒ /api/applications/submit
+├ ƒ /api/auth/admin-login
+├ ƒ /api/auth/login
+├ ƒ /api/auth/logout
+├ ƒ /api/employee/onboarding
+├ ƒ /api/files/[applicantId]/[type]
+├ ƒ /api/files/offer-letter/[id]
+├ ƒ /api/interview/submit
+├ ƒ /api/interview/verify
+├ ƒ /api/notifications
+├ ƒ /api/notifications/[id]/read
+├ ƒ /api/notifications/read-all
+├ ƒ /api/portal/profile/password
+├ ƒ /api/portal/profile/social
+├ ƒ /api/portal/tasks/submit
+├ ƒ /careers
+├ ƒ /careers/apply/[postingId]
+├ ƒ /careers/interview/[token]
+├ ƒ /portal/announcements
+├ ƒ /portal/dashboard
+├ ○ /portal/login
+├ ƒ /portal/profile
+├ ○ /portal/reset-password
+├ ƒ /portal/tasks
+├ ƒ /portal/tasks/[taskId]
+└ ƒ /portal/team
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

@@ -1,0 +1,15 @@
+
+> cyberlabsec-platform@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.10 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://100.115.92.204:3000
+- Environments: .env
+✓ Ready in 1973ms
+⚠ Slow filesystem detected. The benchmark took 1189ms. If /home/jerry/CyberLabSec/cyberlabsec-platform/.next/dev is a network drive, consider moving it to a local folder.
+See more: https://nextjs.org/docs/app/guides/local-development
+○ Compiling proxy ...
+
+○ Compiling /careers ...
+[?25h

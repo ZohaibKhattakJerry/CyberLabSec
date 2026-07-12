@@ -1,14 +1,17 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  async redirects() {
-    return [
-      {
-        source: '/employee/:path*',
-        destination: '/portal/:path*',
-        permanent: true,
-      },
-    ];
+  async rewrites() {
+    return {
+      beforeFiles: [],
+      afterFiles: [],
+      fallback: [
+        {
+          source: '/:path*',
+          destination: 'https://cyberlabs.framer.ai/:path*',
+        },
+      ],
+    };
   },
   typescript: {
     ignoreBuildErrors: true,
