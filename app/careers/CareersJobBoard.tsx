@@ -79,7 +79,7 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
           }}
         >
           <Link href="https://cyberlabsec.tech" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
-            <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 32, objectFit: "contain" }} />
+            <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 48, objectFit: "contain" }} />
           </Link>
 
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>

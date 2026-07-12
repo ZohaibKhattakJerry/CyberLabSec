@@ -178,8 +178,8 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
     return (
       <Layout>
         <motion.div className="card" style={{ maxWidth: 480, width: "100%", padding: 40 }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", marginBottom: 24 }}>
-            <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 32, objectFit: "contain" }} />
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
+            <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 48, objectFit: "contain" }} />
           </div>
           <p style={{ color: "var(--text-secondary)", fontSize: 14, marginBottom: 24 }}>
             Before starting your interview for <strong>{jobTitle}</strong>, please verify your identity.
@@ -261,7 +261,7 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
         {/* Interview header */}
         <div style={{ borderBottom: "1px solid var(--border)", padding: "0 24px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--bg-secondary)", position: "sticky", top: 0, zIndex: 50 }}>
           <div style={{ display: "flex", alignItems: "center" }}>
-            <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 24, objectFit: "contain" }} />
+            <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 32, objectFit: "contain" }} />
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             <span style={{ fontSize: 13, color: "var(--text-muted)" }}>Q{currentQ + 1} of {questions.length}</span>

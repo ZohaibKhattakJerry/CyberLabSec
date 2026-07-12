@@ -40,8 +40,9 @@ export async function POST(req: NextRequest) {
       perQuestionScore.push({ questionId: q.id, score, maxPoints: q.points });
     } else {
       // Open-ended — grade with Gemini
+      const passMark = session.applicant.jobPosting.passMark;
       try {
-        const grade = await gradeOpenAnswer(q.prompt, q.rubric || "", answer, q.points);
+        const grade = await gradeOpenAnswer(q.prompt, q.rubric || "", answer, q.points, passMark);
         totalScore += grade.score;
         aiLikelihoodTotal += grade.aiLikelihood;
         openAnswerCount++;

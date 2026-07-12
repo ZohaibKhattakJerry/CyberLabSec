@@ -159,7 +159,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
           <ChevronLeft size={16} /> Back to Careers
         </Link>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, flex: 1 }}>
-          <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 28, objectFit: "contain" }} />
+          <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 48, objectFit: "contain", margin: "0 auto" }} />
         </div>
         <div style={{ flex: 1 }}></div>
       </nav>

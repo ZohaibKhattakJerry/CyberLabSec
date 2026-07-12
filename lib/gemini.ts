@@ -68,14 +68,14 @@ Evaluate this candidate for the role. Return ONLY valid JSON (no markdown, no ex
 
 - Rules:
 - fitScore: 0 = completely unqualified, 100 = perfect match
-- Generate exactly 8 questions: 5 open-ended, 3 MCQ
+- Generate exactly 10 questions: 3 open-ended, 7 MCQ
 - For Internship postings: questions should be foundational (concepts, basic tools)
 - For Job postings: questions should be advanced (real exploits, tool configs, pentest methodology)
 - Do not be excessively strict. Evaluate the candidate fairly based on their actual background. Do not reject a candidate purely because they lack experience if applying for an internship.
 - MCQ correctOption is the index (0-based) of the correct option in the options array
 - Questions must be highly specific to cybersecurity and to THIS candidate's background
 - Never generate generic interview questions
-- CRITICAL RULE: If the CV/Resume text contains profanity, abusive language, swear words (e.g., "fuck", "shit"), or consists of obvious garbage/trolling, you MUST set fitScore to 0 and explain why in the reasoning. However, YOU MUST STILL always generate exactly 8 valid questions based on the job requirements so the system does not crash.`;
+- CRITICAL RULE: If the CV/Resume text contains profanity, abusive language, swear words (e.g., "fuck", "shit"), or consists of obvious garbage/trolling, you MUST set fitScore to 0 and explain why in the reasoning. However, YOU MUST STILL always generate exactly 10 valid questions based on the job requirements so the system does not crash.`;
 
   try {
     const response = await model.generateContent({
@@ -98,11 +98,13 @@ Evaluate this candidate for the role. Return ONLY valid JSON (no markdown, no ex
     };
   }
 }
+
 export async function gradeOpenAnswer(
   question: string,
   rubric: string,
   answer: string,
-  maxPoints: number
+  maxPoints: number,
+  passMark: number
 ): Promise<{ score: number; feedback: string; aiLikelihood: number }> {
   const model = genai.models;
 
@@ -112,6 +114,9 @@ QUESTION: ${question}
 GRADING RUBRIC: ${rubric}
 MAX POINTS: ${maxPoints}
 CANDIDATE ANSWER: ${answer}
+
+The required strictness (Interview Pass Mark) for this job is ${passMark}%.
+Use this to calibrate your grading. If the passMark is high (e.g., 80-100), be extremely strict and critical of vague answers. If it is lower (e.g., 40-60), be more lenient with minor mistakes.
 
 Return ONLY valid JSON:
 {
