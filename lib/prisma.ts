@@ -10,7 +10,11 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 const createPrismaClient = () => {
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  const connectionString = process.env["DATABASE_URL"];
+  if (!connectionString) {
+    console.error("CRITICAL ERROR: DATABASE_URL is undefined at runtime!");
+  }
+  const pool = new Pool({ connectionString });
   const adapter = new PrismaNeon(pool);
   return new PrismaClient({
     adapter,
