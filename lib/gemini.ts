@@ -76,28 +76,29 @@ export async function screenApplicant(
   const poolOpen = shuffle(questionBank.filter(q => q.type === "open"));
   const poolMcq = shuffle(questionBank.filter(q => q.type === "mcq"));
 
-  // Pick 3 Open
+  // Pick 5 Open
   for (const cat of topCategories) {
-    if (openQuestions.length >= 3) break;
+    if (openQuestions.length >= 5) break;
     const qs = poolOpen.filter(q => q.category === cat && !openQuestions.includes(q));
     if (qs.length > 0) openQuestions.push(qs[0]);
   }
   for (const q of poolOpen) {
-    if (openQuestions.length >= 3) break;
+    if (openQuestions.length >= 5) break;
     if (!openQuestions.includes(q)) openQuestions.push(q);
   }
 
-  // Pick 7 MCQ
+  // Pick 15 MCQ
   for (const cat of topCategories) {
-    if (mcqQuestions.length >= 7) break;
+    if (mcqQuestions.length >= 15) break;
     const qs = poolMcq.filter(q => q.category === cat && !mcqQuestions.includes(q));
     if (qs.length > 0) {
       mcqQuestions.push(qs[0]);
-      if (qs[1] && mcqQuestions.length < 7) mcqQuestions.push(qs[1]);
+      if (qs[1] && mcqQuestions.length < 15) mcqQuestions.push(qs[1]);
+      if (qs[2] && mcqQuestions.length < 15) mcqQuestions.push(qs[2]);
     }
   }
   for (const q of poolMcq) {
-    if (mcqQuestions.length >= 7) break;
+    if (mcqQuestions.length >= 15) break;
     if (!mcqQuestions.includes(q)) mcqQuestions.push(q);
   }
 
