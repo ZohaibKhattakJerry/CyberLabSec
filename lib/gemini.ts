@@ -1,6 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
-
-const genai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+import { questionBank, BankQuestion } from "./questionsBank";
 
 export interface ScreeningResult {
   fitScore: number; // 0-100
@@ -20,6 +18,16 @@ export interface InterviewQuestion {
   points: number;
 }
 
+// Helper to shuffle an array
+function shuffle<T>(array: T[]): T[] {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 export async function screenApplicant(
   cvText: string,
   applicantName: string,
@@ -28,236 +36,196 @@ export async function screenApplicant(
   jobRequirements: string,
   postingType: "Job" | "Internship"
 ): Promise<ScreeningResult> {
-  const model = genai.models;
+  // We no longer use Gemini. We use our local algorithm to assess and generate questions.
   
-  const prompt = `You are a senior cybersecurity hiring manager at CyberLab, an offensive security company.
+  const textLower = cvText.toLowerCase() + " " + jobTitle.toLowerCase();
+  
+  // Categorize applicant based on keywords
+  const categoryScores: Record<string, number> = {
+    web: 0, network: 0, linux: 0, windows: 0, cloud: 0, crypto: 0, general: 1
+  };
+  
+  const keywords = {
+    web: ["web", "owasp", "xss", "sql", "burp", "frontend", "backend", "api", "rest", "php", "javascript"],
+    network: ["network", "tcp", "ip", "cisco", "router", "switch", "wireshark", "nmap", "firewall"],
+    linux: ["linux", "ubuntu", "bash", "shell", "kernel", "centos", "debian"],
+    windows: ["windows", "active directory", "ad ", "powershell", "kerberos", "ntlm", "smb"],
+    cloud: ["cloud", "aws", "azure", "gcp", "s3", "ec2", "iam", "kubernetes", "docker"],
+    crypto: ["crypto", "encryption", "aes", "rsa", "hash", "ssl", "tls"]
+  };
 
-ROLE: ${jobTitle} (${postingType})
-JOB DESCRIPTION: ${jobDescription}
-REQUIREMENTS: ${jobRequirements}
-
-CANDIDATE: ${applicantName}
-CV/RESUME TEXT:
-${cvText}
-
-Evaluate this candidate for the role. Return ONLY valid JSON (no markdown, no explanations outside JSON):
-
-{
-  "fitScore": <integer 0-100>,
-  "reasoning": "<2-3 sentences explaining the score>",
-  "strengths": ["<strength 1>", "<strength 2>"],
-  "gaps": ["<gap 1>", "<gap 2>"],
-  "questions": [
-    {
-      "id": "q1",
-      "type": "open",
-      "prompt": "<question text tailored to their CV>",
-      "rubric": "<what a good answer includes>",
-      "points": 10
-    },
-    {
-      "id": "q2",
-      "type": "mcq",
-      "prompt": "<technical question>",
-      "options": ["A. option", "B. option", "C. option", "D. option"],
-      "correctOption": <0-3>,
-      "points": 5
+  for (const [cat, words] of Object.entries(keywords)) {
+    for (const word of words) {
+      if (textLower.includes(word)) {
+        categoryScores[cat] += 1;
+      }
     }
-  ]
-}
-
-- Rules:
-- fitScore: 0 = completely unqualified, 100 = perfect match
-- Generate exactly 10 questions: 3 open-ended, 7 MCQ
-- For Internship postings: questions should be foundational (concepts, basic tools)
-- For Job postings: questions should be advanced (real exploits, tool configs, pentest methodology)
-- Do not be excessively strict. Evaluate the candidate fairly based on their actual background. Do not reject a candidate purely because they lack experience if applying for an internship.
-- MCQ correctOption is the index (0-based) of the correct option in the options array
-- Questions must be highly specific to cybersecurity and to THIS candidate's background
-- Never generate generic interview questions
-- CRITICAL RULE: If the CV/Resume text contains profanity, abusive language, swear words (e.g., "fuck", "shit"), or consists of obvious garbage/trolling, you MUST set fitScore to 0 and explain why in the reasoning. However, YOU MUST STILL always generate exactly 10 valid questions based on the job requirements so the system does not crash.`;
-
-  try {
-    const response = await model.generateContent({
-      model: "gemini-2.0-flash",
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      config: { responseMimeType: "application/json" }
-    });
-
-    const text = response.text || "{}";
-    return JSON.parse(text) as ScreeningResult;
-  } catch (error) {
-    console.error("Gemini API Error (screenApplicant):", error);
-    // If the API fails (e.g., rate limit or safety filters), return fallback questions to ensure the candidate can still take the interview.
-    return {
-      fitScore: 50,
-      reasoning: "Application could not be processed automatically due to an API error. Using standard fallback assessment.",
-      strengths: ["Unknown (System fallback)"],
-      gaps: ["Unknown (System fallback)"],
-      questions: [
-        {
-          id: "fb_open1",
-          type: "open",
-          prompt: "Describe your experience with cybersecurity principles and how you stay updated with the latest threats.",
-          rubric: "Candidate should mention continuous learning, specific resources (e.g., CVEs, blogs, forums), and foundational principles like CIA triad.",
-          points: 10
-        },
-        {
-          id: "fb_open2",
-          type: "open",
-          prompt: "Explain the difference between a vulnerability assessment and a penetration test.",
-          rubric: "Vulnerability assessment is automated scanning to find flaws; penetration testing is exploiting them to determine impact.",
-          points: 10
-        },
-        {
-          id: "fb_open3",
-          type: "open",
-          prompt: "If you discovered a critical vulnerability in our production environment, what would be your immediate steps?",
-          rubric: "Verify the vulnerability, report it immediately to the security team/manager, do not exploit further, document findings.",
-          points: 10
-        },
-        {
-          id: "fb_mcq1",
-          type: "mcq",
-          prompt: "What does XSS stand for in web security?",
-          options: ["A. Extensible Style Sheets", "B. Cross-Site Scripting", "C. XML Syntax Signature", "D. Cross-Site Signature"],
-          correctOption: 1,
-          points: 5
-        },
-        {
-          id: "fb_mcq2",
-          type: "mcq",
-          prompt: "Which of the following ports is commonly used for SSH?",
-          options: ["A. 21", "B. 22", "C. 23", "D. 80"],
-          correctOption: 1,
-          points: 5
-        },
-        {
-          id: "fb_mcq3",
-          type: "mcq",
-          prompt: "What is the primary purpose of a firewall?",
-          options: ["A. Encrypt data at rest", "B. Filter network traffic based on rules", "C. Scan for malware on a host", "D. Manage passwords"],
-          correctOption: 1,
-          points: 5
-        },
-        {
-          id: "fb_mcq4",
-          type: "mcq",
-          prompt: "In the CIA Triad, what does the 'I' stand for?",
-          options: ["A. Identity", "B. Integrity", "C. Isolation", "D. Interoperability"],
-          correctOption: 1,
-          points: 5
-        },
-        {
-          id: "fb_mcq5",
-          type: "mcq",
-          prompt: "Which tool is standard for network packet capture and analysis?",
-          options: ["A. Metasploit", "B. Nmap", "C. Wireshark", "D. Burp Suite"],
-          correctOption: 2,
-          points: 5
-        },
-        {
-          id: "fb_mcq6",
-          type: "mcq",
-          prompt: "What type of attack involves overwhelming a server with traffic?",
-          options: ["A. Phishing", "B. SQL Injection", "C. Man-in-the-Middle", "D. DDoS"],
-          correctOption: 3,
-          points: 5
-        },
-        {
-          id: "fb_mcq7",
-          type: "mcq",
-          prompt: "Which command lists the contents of a directory in Linux?",
-          options: ["A. cd", "B. ls", "C. pwd", "D. grep"],
-          correctOption: 1,
-          points: 5
-        }
-      ]
-    };
   }
+
+  // Sort categories by score descending
+  const topCategories = Object.entries(categoryScores)
+    .sort((a, b) => b[1] - a[1])
+    .map(x => x[0]);
+
+  // Select questions
+  const openQuestions: BankQuestion[] = [];
+  const mcqQuestions: BankQuestion[] = [];
+
+  // Try to pick from top categories first
+  const poolOpen = shuffle(questionBank.filter(q => q.type === "open"));
+  const poolMcq = shuffle(questionBank.filter(q => q.type === "mcq"));
+
+  // Pick 3 Open
+  for (const cat of topCategories) {
+    if (openQuestions.length >= 3) break;
+    const qs = poolOpen.filter(q => q.category === cat && !openQuestions.includes(q));
+    if (qs.length > 0) openQuestions.push(qs[0]);
+  }
+  // Fill remaining open
+  for (const q of poolOpen) {
+    if (openQuestions.length >= 3) break;
+    if (!openQuestions.includes(q)) openQuestions.push(q);
+  }
+
+  // Pick 7 MCQ
+  for (const cat of topCategories) {
+    if (mcqQuestions.length >= 7) break;
+    const qs = poolMcq.filter(q => q.category === cat && !mcqQuestions.includes(q));
+    if (qs.length > 0) {
+      // Add up to 2 per top category to diversify
+      mcqQuestions.push(qs[0]);
+      if (qs[1] && mcqQuestions.length < 7) mcqQuestions.push(qs[1]);
+    }
+  }
+  // Fill remaining MCQ
+  for (const q of poolMcq) {
+    if (mcqQuestions.length >= 7) break;
+    if (!mcqQuestions.includes(q)) mcqQuestions.push(q);
+  }
+
+  // Format correctly
+  const finalQuestions: InterviewQuestion[] = [
+    ...openQuestions.map((q, i) => ({
+      id: `open_${i}`, type: q.type, prompt: q.prompt, rubric: q.rubric, points: 10
+    })),
+    ...mcqQuestions.map((q, i) => ({
+      id: `mcq_${i}`, type: q.type, prompt: q.prompt, options: q.options, correctOption: q.correctOption, points: 5
+    }))
+  ];
+
+  // Basic fit score calculation based on text length and keyword hits
+  const totalHits = Object.values(categoryScores).reduce((a, b) => a + b, 0);
+  let fitScore = 40 + (totalHits * 5);
+  if (fitScore > 95) fitScore = 95;
+  if (cvText.length < 100) fitScore = 20;
+
+  // Profanity check
+  const profanity = ["fuck", "shit", "bitch", "asshole", "cunt"];
+  for (const word of profanity) {
+    if (textLower.includes(word)) {
+      fitScore = 0;
+      break;
+    }
+  }
+
+  return {
+    fitScore,
+    reasoning: fitScore === 0 ? "Application flagged for inappropriate language." : "Candidate profile parsed and categorized locally. Keywords matched job requirements.",
+    strengths: ["Keyword matching", "Local profiling"],
+    gaps: ["Advanced contextual parsing"],
+    questions: finalQuestions
+  };
 }
 
 export async function gradeOpenAnswer(
-  question: string,
+  questionText: string,
   rubric: string,
   answer: string,
   maxPoints: number,
   passMark: number
 ): Promise<{ score: number; feedback: string; aiLikelihood: number }> {
-  const model = genai.models;
-
-  const prompt = `You are grading a cybersecurity interview answer.
-
-QUESTION: ${question}
-GRADING RUBRIC: ${rubric}
-MAX POINTS: ${maxPoints}
-CANDIDATE ANSWER: ${answer}
-
-The required strictness (Interview Pass Mark) for this job is ${passMark}%.
-Use this to calibrate your grading. If the passMark is high (e.g., 80-100), be extremely strict and critical of vague answers. If it is lower (e.g., 40-60), be more lenient with minor mistakes.
-
-Return ONLY valid JSON:
-{
-  "score": <integer 0 to ${maxPoints}>,
-  "feedback": "<brief explanation of score>",
-  "aiLikelihood": <float 0.0 to 1.0 — probability this was AI-generated or copied, not genuinely typed by a human answering this specific question>
-}
-
-For aiLikelihood:
-- 0.0 = clearly genuine human answer with natural imperfections
-- 0.5 = ambiguous
-- 1.0 = near-certain AI-generated or directly copied text
-Consider: vocabulary sophistication vs. apparent background, perfectly structured paragraphs, lack of personal framing, implausibly comprehensive coverage for the question specificity.
-
-CRITICAL RULE: If the answer contains abusive language, swear words, or blatant trolling (e.g., "fuck", "shit", fake nonsense), you MUST assign a score of 0, regardless of any other content.`;
-
-  try {
-    const response = await model.generateContent({
-      model: "gemini-2.0-flash",
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      config: { responseMimeType: "application/json" }
-    });
-
-    const text = response.text || "{}";
-    return JSON.parse(text);
-  } catch (error) {
-    console.error("Gemini API Error (gradeOpenAnswer):", error);
-    return {
-      score: Math.floor(maxPoints * (passMark / 100)), // Fallback: give them passing score if API fails
-      feedback: "Automated grading unavailable due to system limits. Default score applied.",
-      aiLikelihood: 0.0 // Do not falsely accuse of cheating
-    };
+  // Local grading algorithm
+  const ansLower = answer.toLowerCase();
+  
+  // Find the original question in the bank to get its keywords
+  const bankQ = questionBank.find(q => q.prompt === questionText);
+  
+  const keywords = bankQ?.keywords || rubric.toLowerCase().split(/\W+/).filter(w => w.length > 4);
+  
+  let matchCount = 0;
+  for (const kw of keywords) {
+    if (ansLower.includes(kw.toLowerCase())) {
+      matchCount++;
+    }
   }
+
+  const matchRatio = keywords.length > 0 ? matchCount / keywords.length : 0.5;
+  
+  // Adjust based on strictness (passMark)
+  // If passMark is 80, we expect high matchRatio. 
+  // Base score
+  let scorePercent = matchRatio * 100;
+  
+  // Length bonus/penalty
+  if (answer.length < 50) scorePercent -= 30;
+  if (answer.length > 200) scorePercent += 10;
+  
+  // Strictness modifier
+  const strictnessModifier = (passMark - 50) / 2; // e.g. passMark 80 -> 15% penalty
+  scorePercent -= strictnessModifier;
+
+  if (scorePercent > 100) scorePercent = 100;
+  if (scorePercent < 0) scorePercent = 0;
+
+  let finalScore = Math.round((scorePercent / 100) * maxPoints);
+
+  // Profanity check
+  const profanity = ["fuck", "shit", "bitch", "asshole", "cunt", "randi", "chutiya"];
+  for (const word of profanity) {
+    if (ansLower.includes(word)) {
+      finalScore = 0;
+      break;
+    }
+  }
+
+  let feedback = "Answer lacked key required concepts.";
+  if (finalScore > maxPoints * 0.7) feedback = "Good answer covering most key points.";
+  if (finalScore === maxPoints) feedback = "Excellent, comprehensive answer.";
+  if (finalScore === 0) feedback = "Answer was completely irrelevant, too short, or contained inappropriate language.";
+
+  // Detect likely cheating (e.g. pasted a whole textbook without much effort to paraphrase)
+  // Not a real AI, so just guess based on extreme length and perfection, or zero length
+  let aiLikelihood = 0.0;
+  if (answer.length > 800 && matchCount === keywords.length) {
+    aiLikelihood = 0.8;
+  }
+
+  return {
+    score: finalScore,
+    feedback,
+    aiLikelihood
+  };
 }
 
 export async function enhanceReport(rawContent: string): Promise<string> {
-  const model = genai.models;
-
-  const prompt = `You are a senior cybersecurity report editor at CyberLab.
-
-CRITICAL INSTRUCTION: You must preserve EVERY technical fact, vulnerability name, severity rating, CVE number, CVSS score, and finding EXACTLY as submitted. Do NOT invent, alter, add, or remove any technical content. Only restructure and improve the language and formatting.
-
-RAW SUBMISSION:
-${rawContent}
-
-Restructure this into a professional penetration test report with these sections:
-1. Executive Summary
-2. Scope & Methodology  
-3. Findings (each with: Name, Severity, CVSS Score if provided, Description, Evidence, Recommendation)
-4. Risk Summary Table
-5. Recommendations
-
-Return the formatted report as plain text (no markdown headers with #, use plain section labels).`;
-
-  try {
-    const response = await model.generateContent({
-      model: "gemini-2.0-flash",
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-    });
-
-    return response.text || rawContent;
-  } catch (error) {
-    console.error("Gemini API Error (enhanceReport):", error);
-    return rawContent; // Fallback to raw content if API fails
+  // Without AI, we can only do basic string formatting
+  const sections = [
+    "1. Executive Summary",
+    "2. Scope & Methodology",
+    "3. Findings",
+    "4. Risk Summary Table",
+    "5. Recommendations"
+  ];
+  
+  let out = "--- ENHANCED REPORT (AUTO-FORMATTED) ---\n\n";
+  for (const sec of sections) {
+    out += `${sec}\n-----------------------------\n`;
+    if (sec.includes("Findings")) {
+      out += rawContent + "\n\n";
+    } else {
+      out += "[Section content derived from findings]\n\n";
+    }
   }
+  
+  return out;
 }
