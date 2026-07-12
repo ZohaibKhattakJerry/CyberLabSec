@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await req.json();
-  const { title, type, department, location, description, requirements, universityRequired, deadline, passMark, status } = body;
+  const { title, type, department, location, description, requirements, universityRequired, deadline, passMark, showApplicantCount, status } = body;
 
   if (!title || !department || !deadline) {
     return NextResponse.json({ error: "title, department and deadline are required" }, { status: 400 });
@@ -48,6 +48,7 @@ export async function POST(req: NextRequest) {
       status: status || "Published",
       shortlistThreshold: 0, // Ignored, kept for DB schema compatibility
       passMark: Number(passMark) || 60,
+      showApplicantCount: showApplicantCount !== undefined ? !!showApplicantCount : true,
     },
   });
 

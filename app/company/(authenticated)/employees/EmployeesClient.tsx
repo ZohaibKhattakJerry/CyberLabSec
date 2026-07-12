@@ -33,7 +33,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
   // Direct Hire State
   const [showDirectHire, setShowDirectHire] = useState(false);
   const [dhData, setDhData] = useState({
-    name: "", email: "", designation: "", teamId: "", tier: "Standard", employmentType: "Employee", startDate: new Date().toISOString().split('T')[0]
+    name: "", email: "", designation: "", teamId: "", tier: "Standard", employmentType: "Employee", startDate: new Date().toISOString().split('T')[0], offerLetterBase64: ""
   });
 
   // Terminate State
@@ -89,8 +89,23 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
     setTimeout(() => {
       setShowDirectHire(false);
       startTransition(() => router.refresh());
-      setDhData({ name: "", email: "", designation: "", teamId: "", tier: "Standard", employmentType: "Employee", startDate: new Date().toISOString().split('T')[0] });
+      setDhData({ name: "", email: "", designation: "", teamId: "", tier: "Standard", employmentType: "Employee", startDate: new Date().toISOString().split('T')[0], offerLetterBase64: "" });
     }, 1500);
+  };
+
+  const handleOfferLetterUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.type !== "application/pdf") {
+      setMsg("Offer letter must be a PDF file.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setDhData({ ...dhData, offerLetterBase64: event.target?.result as string });
+      setMsg("");
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleTerminationFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -378,6 +393,12 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
                 </select>
               </div>
 
+              <div>
+                <label className="label">Offer Letter (PDF, Optional)</label>
+                <input type="file" accept="application/pdf" className="input" onChange={handleOfferLetterUpload} />
+                {dhData.offerLetterBase64 && <p style={{ fontSize: 13, color: "var(--green)", marginTop: 8, display: "flex", alignItems: "center", gap: 6 }}><CheckCircle size={14} /> Offer Letter attached</p>}
+              </div>
+
               {msg && <div style={{ padding: 12, background: "rgba(147,51,234,0.1)", color: "var(--purple)", borderRadius: 8, fontSize: 13 }}>{msg}</div>}
 
               <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
@@ -456,8 +477,40 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
 
             {generatedReport && (
               <div style={{ background: "rgba(168,85,247,0.05)", border: "1px solid rgba(168,85,247,0.2)", borderRadius: 12, padding: 16 }}>
-                <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, color: "var(--purple)" }}>AI Assessment Report</h3>
-                <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                  <h3 style={{ fontSize: 14, fontWeight: 600, margin: 0, color: "var(--purple)" }}>AI Assessment Report</h3>
+                  <button 
+                    className="btn btn-secondary btn-sm" 
+                    onClick={() => {
+                      const printWindow = window.open('', '_blank');
+                      if (printWindow) {
+                        printWindow.document.write(`
+                          <html>
+                            <head>
+                              <title>Performance Report - ${analyticsEmployee.name}</title>
+                              <style>
+                                body { font-family: sans-serif; padding: 40px; color: #111; line-height: 1.6; }
+                                h1 { color: #581c87; margin-bottom: 4px; }
+                                p.subtitle { color: #555; margin-bottom: 40px; }
+                                pre { white-space: pre-wrap; font-family: inherit; font-size: 14px; background: #f9fafb; padding: 20px; border-left: 4px solid #9333ea; }
+                              </style>
+                            </head>
+                            <body>
+                              <h1>CyberLabSec AI Performance Analytics</h1>
+                              <p class="subtitle">Employee: ${analyticsEmployee.name} (${analyticsEmployee.employeeCode})<br/>Date: ${new Date().toLocaleDateString()}</p>
+                              <pre>${generatedReport}</pre>
+                              <script>window.print(); window.onafterprint = () => window.close();</script>
+                            </body>
+                          </html>
+                        `);
+                        printWindow.document.close();
+                      }
+                    }}
+                  >
+                    Print / Download PDF
+                  </button>
+                </div>
+                <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6, whiteSpace: "pre-wrap", margin: 0 }}>
                   {generatedReport}
                 </p>
               </div>

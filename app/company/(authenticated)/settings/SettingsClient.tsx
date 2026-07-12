@@ -88,15 +88,22 @@ export default function SettingsClient() {
         
         <div style={{ display: "grid", gap: 20, maxWidth: 600 }}>
           <div>
-            <label className="label">Company Name</label>
+            <label className="label" style={{ display: "flex", justifyContent: "space-between" }}>
+              <span>Company Name</span>
+              <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: "normal" }}>Used in emails and public pages</span>
+            </label>
             <input 
               className="input" 
               value={data.companyName || ""} 
               onChange={e => setData({ ...data, companyName: e.target.value })} 
+              style={{ fontSize: 15 }}
             />
           </div>
           <div>
-            <label className="label">Default Assessment Pass Mark (%)</label>
+            <label className="label" style={{ display: "flex", justifyContent: "space-between" }}>
+              <span>Default Assessment Pass Mark (%)</span>
+              <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: "normal" }}>Threshold for candidate auto-scoring</span>
+            </label>
             <input 
               className="input" 
               type="number" 

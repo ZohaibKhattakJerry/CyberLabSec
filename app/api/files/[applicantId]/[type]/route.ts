@@ -22,14 +22,27 @@ export async function GET(
   const relativePath = type === "cv" ? applicant.cvFileUrl : applicant.photoUrl;
   if (!relativePath) return new NextResponse("File not found", { status: 404 });
 
-  const absPath = getFilePath(relativePath);
-  if (!fs.existsSync(absPath)) return new NextResponse("File missing on disk", { status: 404 });
+  let buffer: Buffer;
+  let contentType = "application/octet-stream";
+  let ext = ".pdf";
 
-  const ext = path.extname(absPath);
-  const contentType = mime.contentType(ext) || "application/octet-stream";
-  
-  // Read file as buffer
-  const buffer = fs.readFileSync(absPath);
+  if (relativePath.startsWith("data:")) {
+    const parts = relativePath.split(",");
+    const meta = parts[0];
+    contentType = meta.split(":")[1].split(";")[0];
+    const base64Data = parts[1];
+    buffer = Buffer.from(base64Data, "base64");
+    if (contentType === "image/jpeg") ext = ".jpg";
+    else if (contentType === "image/png") ext = ".png";
+    else if (contentType === "application/msword") ext = ".doc";
+    else if (contentType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") ext = ".docx";
+  } else {
+    const absPath = getFilePath(relativePath);
+    if (!fs.existsSync(absPath)) return new NextResponse("File missing on disk", { status: 404 });
+    ext = path.extname(absPath);
+    contentType = mime.contentType(ext) || "application/octet-stream";
+    buffer = fs.readFileSync(absPath);
+  }
 
   return new NextResponse(buffer, {
     headers: {

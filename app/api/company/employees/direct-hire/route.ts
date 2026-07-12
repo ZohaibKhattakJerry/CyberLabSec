@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   const auth = await getAuthFromCookies();
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const { name, email, designation, teamId, tier, employmentType, startDate } = await req.json();
+  const { name, email, designation, teamId, tier, employmentType, startDate, offerLetterBase64 } = await req.json();
 
   if (!name || !email || !designation || !startDate) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -48,13 +48,19 @@ export async function POST(req: NextRequest) {
     },
   });
 
+  let base64Pdf = undefined;
+  if (offerLetterBase64 && offerLetterBase64.startsWith("data:application/pdf;base64,")) {
+    base64Pdf = offerLetterBase64.split(",")[1];
+  }
+
   const portalUrl = `https://cyberlabsec.tech/employee/login`;
   await sendEmployeeCredentials(
     email, 
     name, 
     employeeCode, 
     tempPassword, 
-    portalUrl
+    portalUrl,
+    base64Pdf
   ).catch(console.error);
 
   await prisma.activityLog.create({

@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
   const auth = await getAuthFromCookies();
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const { teamId, title, brief, deadline, createdBy } = await req.json();
+  const { teamId, title, brief, deadline, createdBy, attachments } = await req.json();
   if (!teamId || !title || !deadline) {
     return NextResponse.json({ error: "teamId, title, and deadline are required" }, { status: 400 });
   }
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       brief: brief?.trim() || "",
       deadline: new Date(deadline),
       createdBy: createdBy || auth.sub,
-      attachments: "[]",
+      attachments: attachments ? JSON.stringify(attachments) : "[]",
     },
   });
 

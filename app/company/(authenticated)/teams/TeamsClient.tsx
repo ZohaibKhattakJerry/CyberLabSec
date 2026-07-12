@@ -24,6 +24,7 @@ export default function TeamsClient({ teams, employees }: { teams: Team[]; emplo
   const [taskTitle, setTaskTitle] = useState("");
   const [taskBrief, setTaskBrief] = useState("");
   const [taskDeadline, setTaskDeadline] = useState("");
+  const [taskAttachments, setTaskAttachments] = useState<{name: string, data: string}[]>([]);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
 
@@ -50,18 +51,29 @@ export default function TeamsClient({ teams, employees }: { teams: Team[]; emplo
     startTransition(() => router.refresh());
   };
 
+  const setTeamLead = async (teamId: string, leadEmployeeId: string) => {
+    setLoading(true);
+    await fetch(`/api/company/teams/${teamId}/lead`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ leadEmployeeId: leadEmployeeId || null }),
+    });
+    setLoading(false);
+    startTransition(() => router.refresh());
+  };
+
   const addTask = async () => {
     if (!showAddTask || !taskTitle || !taskDeadline) return;
     setLoading(true); setMsg("");
     const res = await fetch("/api/company/tasks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ teamId: showAddTask.id, title: taskTitle, brief: taskBrief, deadline: taskDeadline, createdBy: "Admin" }),
+      body: JSON.stringify({ teamId: showAddTask.id, title: taskTitle, brief: taskBrief, deadline: taskDeadline, createdBy: "Admin", attachments: taskAttachments }),
     });
     const data = await res.json();
     setLoading(false);
     if (!res.ok) { setMsg(data.error || "Failed"); return; }
-    setTaskTitle(""); setTaskBrief(""); setTaskDeadline(""); setShowAddTask(null);
+    setTaskTitle(""); setTaskBrief(""); setTaskDeadline(""); setTaskAttachments([]); setShowAddTask(null);
     startTransition(() => router.refresh());
   };
 
@@ -99,11 +111,26 @@ export default function TeamsClient({ teams, employees }: { teams: Team[]; emplo
 
               {team.members.length > 0 ? (
                 <div style={{ marginBottom: 14 }}>
-                  <p style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>Members</p>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                    <p style={{ fontSize: 11, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", margin: 0 }}>Members</p>
+                    <select 
+                      className="input" 
+                      style={{ padding: "4px 8px", fontSize: 11, height: "auto", width: "auto" }} 
+                      value={team.leadEmployeeId || ""} 
+                      onChange={e => setTeamLead(team.id, e.target.value)}
+                      disabled={loading}
+                    >
+                      <option value="">No Lead Assigned</option>
+                      {team.members.map((m: any) => (
+                        <option key={m.id} value={m.id}>{m.name}</option>
+                      ))}
+                    </select>
+                  </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                     {team.members.map((m: any) => (
-                      <span key={m.id} style={{ fontSize: 12, padding: "4px 10px", background: "rgba(255,255,255,0.04)", borderRadius: 999, border: "1px solid var(--border)", color: "var(--text-secondary)" }}>
+                      <span key={m.id} style={{ fontSize: 12, padding: "4px 10px", background: "rgba(255,255,255,0.04)", borderRadius: 999, border: "1px solid var(--border)", color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: 4 }}>
                         {m.name}
+                        {team.leadEmployeeId === m.id && <span style={{ color: "var(--purple)", fontSize: 10, fontWeight: 700 }}>(Lead)</span>}
                       </span>
                     ))}
                   </div>
@@ -172,6 +199,31 @@ export default function TeamsClient({ teams, employees }: { teams: Team[]; emplo
               <div>
                 <label className="label label-required">Deadline</label>
                 <input className="input" type="datetime-local" value={taskDeadline} onChange={e => setTaskDeadline(e.target.value)} />
+              </div>
+              <div>
+                <label className="label">Attachments (Optional)</label>
+                <input type="file" multiple className="input" onChange={e => {
+                  if (!e.target.files) return;
+                  Array.from(e.target.files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                      setTaskAttachments(prev => [...prev, { name: file.name, data: event.target?.result as string }]);
+                    };
+                    reader.readAsDataURL(file);
+                  });
+                }} />
+                {taskAttachments.length > 0 && (
+                  <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {taskAttachments.map((att, i) => (
+                      <span key={i} className="badge badge-gray">
+                        {att.name}
+                        <button type="button" onClick={() => setTaskAttachments(prev => prev.filter((_, idx) => idx !== i))} style={{ background: "none", border: "none", marginLeft: 4, cursor: "pointer", color: "var(--red)" }}>
+                          <X size={10} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
               {msg && <p style={{ fontSize: 13, color: "var(--purple-light)" }}>{msg}</p>}
               <div style={{ display: "flex", gap: 10 }}>

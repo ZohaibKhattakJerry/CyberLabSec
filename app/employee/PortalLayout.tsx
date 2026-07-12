@@ -36,7 +36,7 @@ export default function PortalLayout({ children, employee }: { children: React.R
   };
 
   const sidebarContent = (
-    <aside className="sidebar">
+    <aside className={`sidebar ${mobileOpen ? "mobile-open" : ""}`}>
       {/* Brand */}
       <div style={{ padding: "20px 20px 16px", borderBottom: "1px solid var(--border)" }}>
         <Link href="/employee/dashboard" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
@@ -67,7 +67,7 @@ export default function PortalLayout({ children, employee }: { children: React.R
         {NAV.map(({ href, label, icon: Icon }) => {
           const active = pathname.startsWith(href);
           return (
-            <Link key={href} href={href} style={{ textDecoration: "none" }}>
+            <Link key={href} href={href} style={{ textDecoration: "none" }} onClick={() => setMobileOpen(false)}>
               <div 
                 className="nav-link-hover"
                 style={{

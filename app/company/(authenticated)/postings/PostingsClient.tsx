@@ -15,7 +15,7 @@ type Posting = {
 const EMPTY_FORM = {
   title: "", type: "Job", department: "", location: "Remote",
   description: "", requirements: "", universityRequired: false,
-  deadline: "", passMark: 60, status: "Draft"
+  deadline: "", passMark: 60, showApplicantCount: true, status: "Draft"
 };
 
 export default function PostingsClient({ postings }: { postings: Posting[] }) {
@@ -34,7 +34,7 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
       title: p.title, type: p.type, department: p.department, location: p.location,
       description: p.description, requirements: p.requirements,
       universityRequired: p.universityRequired, deadline: p.deadline.slice(0, 16),
-      passMark: p.passMark, status: p.status,
+      passMark: p.passMark, showApplicantCount: p.showApplicantCount ?? true, status: p.status,
     });
     setMsg(""); setShowForm(true);
   };
@@ -129,15 +129,19 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
               <h2 style={{ fontSize: 16, fontWeight: 700 }}>{editPosting ? "Edit Posting" : "New Job Posting"}</h2>
               <button onClick={() => setShowForm(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}><X size={18} /></button>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+              <div style={{ gridColumn: "1/-1" }}>
+                <h3 style={{ fontSize: 14, fontWeight: 600, color: "var(--purple)", marginBottom: 12, borderBottom: "1px solid var(--border)", paddingBottom: 8 }}>Basic Information</h3>
+              </div>
               <div style={{ gridColumn: "1/-1" }}>
                 <label className="label label-required">Job Title</label>
-                <input className="input" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="e.g. Junior Penetration Tester" />
+                <input className="input" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="e.g. Senior Red Team Operator" />
               </div>
               <div>
-                <label className="label label-required">Type</label>
+                <label className="label label-required">Position Type</label>
                 <select className="input" value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
-                  <option value="Job">Job</option>
+                  <option value="Job">Full-time Job</option>
+                  <option value="Contract">Contract</option>
                   <option value="Internship">Internship</option>
                 </select>
               </div>
@@ -147,30 +151,44 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
               </div>
               <div>
                 <label className="label label-required">Location</label>
-                <input className="input" value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} placeholder="e.g. Remote / Karachi" />
+                <input className="input" value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} placeholder="e.g. Remote / Global" />
               </div>
               <div>
                 <label className="label label-required">Application Deadline</label>
                 <input className="input" type="datetime-local" value={form.deadline} onChange={e => setForm(f => ({ ...f, deadline: e.target.value }))} />
               </div>
+              
+              <div style={{ gridColumn: "1/-1", marginTop: 12 }}>
+                <h3 style={{ fontSize: 14, fontWeight: 600, color: "var(--purple)", marginBottom: 12, borderBottom: "1px solid var(--border)", paddingBottom: 8 }}>Role Details</h3>
+              </div>
+              <div style={{ gridColumn: "1/-1" }}>
+                <label className="label label-required">Job Description & Responsibilities</label>
+                <textarea className="input" rows={5} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Provide a detailed overview of the role, daily responsibilities, and team culture..." />
+              </div>
+              <div style={{ gridColumn: "1/-1" }}>
+                <label className="label label-required">Requirements & Qualifications</label>
+                <textarea className="input" rows={5} value={form.requirements} onChange={e => setForm(f => ({ ...f, requirements: e.target.value }))} placeholder="List required skills, minimum experience, desired certifications (OSCP, OSEP, etc.)..." />
+              </div>
+              
+              <div style={{ gridColumn: "1/-1", marginTop: 12 }}>
+                <h3 style={{ fontSize: 14, fontWeight: 600, color: "var(--purple)", marginBottom: 12, borderBottom: "1px solid var(--border)", paddingBottom: 8 }}>Configuration & Settings</h3>
+              </div>
               <div>
-                <label className="label">Interview Pass Mark (%)</label>
+                <label className="label" style={{ display: "flex", gap: 4, alignItems: "center" }}>Interview Pass Mark (%) <span className="tooltip"><span className="badge badge-gray" style={{ fontSize: 10, padding: "0 4px" }}>?</span><span className="tooltip-content">Minimum score required in technical interview</span></span></label>
                 <input className="input" type="number" min={0} max={100} value={form.passMark} onChange={e => setForm(f => ({ ...f, passMark: Number(e.target.value) }))} />
               </div>
-              <div style={{ gridColumn: "1/-1" }}>
-                <label className="label label-required">Job Description</label>
-                <textarea className="input" rows={4} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Describe the role, responsibilities..." />
-              </div>
-              <div style={{ gridColumn: "1/-1" }}>
-                <label className="label label-required">Requirements</label>
-                <textarea className="input" rows={4} value={form.requirements} onChange={e => setForm(f => ({ ...f, requirements: e.target.value }))} placeholder="List required skills, experience..." />
-              </div>
-              <div style={{ gridColumn: "1/-1", display: "flex", alignItems: "center", gap: 10 }}>
-                <input type="checkbox" id="uniReq" checked={form.universityRequired} onChange={e => setForm(f => ({ ...f, universityRequired: e.target.checked }))} />
-                <label htmlFor="uniReq" style={{ fontSize: 14, cursor: "pointer" }}>University enrollment required (for internships)</label>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12, justifyContent: "center", paddingTop: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <input type="checkbox" id="uniReq" checked={form.universityRequired} onChange={e => setForm(f => ({ ...f, universityRequired: e.target.checked }))} style={{ width: 16, height: 16, accentColor: "var(--purple)" }} />
+                  <label htmlFor="uniReq" style={{ fontSize: 14, cursor: "pointer", color: "var(--text-secondary)" }}>University enrollment required (for internships)</label>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <input type="checkbox" id="showCount" checked={form.showApplicantCount} onChange={e => setForm(f => ({ ...f, showApplicantCount: e.target.checked }))} style={{ width: 16, height: 16, accentColor: "var(--purple)" }} />
+                  <label htmlFor="showCount" style={{ fontSize: 14, cursor: "pointer", color: "var(--text-secondary)" }}>Show applicant count publicly</label>
+                </div>
               </div>
             </div>
-            {msg && <p style={{ fontSize: 13, color: "var(--purple-light)", marginTop: 14 }}>{msg}</p>}
+            {msg && <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444", padding: "10px 14px", borderRadius: 8, marginTop: 20, fontSize: 14 }}>{msg}</div>}
             <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
               <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => handleSave(true)} disabled={loading}>
                 {loading && form.status === "Draft" ? <Loader2 size={14} className="spin" /> : "Save Draft"}

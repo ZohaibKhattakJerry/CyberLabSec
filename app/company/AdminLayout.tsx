@@ -30,7 +30,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   const sidebarContent = (
-    <aside className="sidebar" style={{ background: "#0a0a0f" }}>
+    <aside className={`sidebar ${mobileOpen ? "mobile-open" : ""}`} style={{ background: "#0a0a0f" }}>
       <div style={{ padding: "24px 20px 20px", borderBottom: "1px solid var(--border)" }}>
         <Link href="/company/dashboard" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
           <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 32, objectFit: "contain" }} />
@@ -41,7 +41,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {NAV.map(({ href, label, icon: Icon }) => {
           const active = pathname.startsWith(href);
           return (
-            <Link key={href} href={href} style={{ textDecoration: "none" }}>
+            <Link key={href} href={href} style={{ textDecoration: "none" }} onClick={() => setMobileOpen(false)}>
               <div 
                 className="nav-link-hover"
                 style={{

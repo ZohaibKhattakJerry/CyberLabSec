@@ -60,7 +60,6 @@ export default function FinalApprovalClient({ reviews }: { reviews: Review[] }) 
   return (
     <div>
       <div style={{ marginBottom: 24, display: "flex", alignItems: "center", gap: 12 }}>
-        <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 40, objectFit: "contain" }} />
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 4 }}>Final Approval Console</h1>
           <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>Final approval for hires and executive decisions.</p>

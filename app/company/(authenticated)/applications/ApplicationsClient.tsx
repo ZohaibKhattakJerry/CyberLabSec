@@ -37,6 +37,35 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
   const [selected, setSelected] = useState<Applicant | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionMsg, setActionMsg] = useState("");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+  const selectAll = () => {
+    if (selectedIds.length === filtered.length) setSelectedIds([]);
+    else setSelectedIds(filtered.map(a => a.id));
+  };
+
+  const handleBulkAction = async (action: "reject" | "delete") => {
+    if (selectedIds.length === 0) return;
+    if (action === "delete" && !confirm(`Are you sure you want to completely delete ${selectedIds.length} application(s)? This cannot be undone.`)) return;
+    if (action === "reject" && !confirm(`Are you sure you want to reject ${selectedIds.length} application(s)? They will receive a rejection email.`)) return;
+    
+    setActionLoading(true); setActionMsg("");
+    const res = await fetch("/api/company/applications/bulk", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action, applicantIds: selectedIds }),
+    });
+    const data = await res.json();
+    setActionLoading(false);
+    if (!res.ok) { setActionMsg(data.error || "Failed"); return; }
+    
+    setActionMsg(`Successfully ${action === "reject" ? "rejected" : "deleted"} ${selectedIds.length} application(s).`);
+    setSelectedIds([]);
+    startTransition(() => { router.refresh(); });
+  };
 
   const filtered = applicants.filter(a => {
     const q = search.toLowerCase();
@@ -95,8 +124,14 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                 <div style={{ padding: 20, textAlign: "center", color: "var(--text-muted)", fontSize: 13, background: "rgba(0,0,0,0.2)", borderRadius: 8 }}>No candidates</div>
               ) : (
                 items.map(a => (
-                  <div key={a.id} className="card" style={{ padding: 16, cursor: "pointer", transition: "transform 0.1s" }} onClick={() => setSelected(a)}>
-                    <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4 }}>{a.fullName}</div>
+                  <div key={a.id} className={`card ${selectedIds.includes(a.id) ? 'selected' : ''}`} style={{ padding: 16, cursor: "pointer", transition: "transform 0.1s", position: "relative", border: selectedIds.includes(a.id) ? "1px solid var(--purple)" : "1px solid var(--border)" }} onClick={(e) => {
+                    if ((e.target as HTMLElement).closest('.checkbox-container')) return;
+                    setSelected(a);
+                  }}>
+                    <div className="checkbox-container" style={{ position: "absolute", top: 12, right: 12 }}>
+                      <input type="checkbox" checked={selectedIds.includes(a.id)} onChange={() => toggleSelect(a.id)} style={{ width: 16, height: 16, accentColor: "var(--purple)", cursor: "pointer" }} />
+                    </div>
+                    <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4, paddingRight: 24 }}>{a.fullName}</div>
                     <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 12 }}>{a.jobPosting.title}</div>
                     
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -124,6 +159,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
         <table>
           <thead>
             <tr>
+              <th style={{ width: 40 }}><input type="checkbox" checked={filtered.length > 0 && selectedIds.length === filtered.length} onChange={selectAll} style={{ accentColor: "var(--purple)" }} /></th>
               <th>Applicant</th>
               <th>Position</th>
               <th>AI Score</th>
@@ -134,7 +170,8 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
           </thead>
           <tbody>
             {filtered.map((a: Applicant) => (
-              <tr key={a.id}>
+              <tr key={a.id} style={{ background: selectedIds.includes(a.id) ? "rgba(168,85,247,0.05)" : undefined }}>
+                <td data-label="Select"><input type="checkbox" checked={selectedIds.includes(a.id)} onChange={() => toggleSelect(a.id)} style={{ accentColor: "var(--purple)" }} /></td>
                 <td data-label="Applicant">
                   <div style={{ fontWeight: 600, fontSize: 13 }}>{a.fullName}</div>
                   <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{a.email}</div>
@@ -187,6 +224,25 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
       </div>
 
       {viewMode === "kanban" ? renderKanban() : renderList()}
+
+      {selectedIds.length > 0 && (
+        <div style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", background: "var(--bg-elevated)", border: "1px solid var(--purple)", borderRadius: 12, padding: "12px 24px", display: "flex", alignItems: "center", gap: 24, boxShadow: "0 10px 40px rgba(0,0,0,0.5)", zIndex: 100 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontWeight: 600, color: "var(--purple)" }}>{selectedIds.length}</span>
+            <span style={{ fontSize: 14, color: "var(--text-secondary)" }}>selected</span>
+          </div>
+          <div style={{ width: 1, height: 24, background: "var(--border)" }} />
+          <div style={{ display: "flex", gap: 12 }}>
+            <button className="btn btn-secondary btn-sm" onClick={() => handleBulkAction("reject")} disabled={actionLoading} style={{ color: "var(--amber)", borderColor: "var(--amber)" }}>
+              {actionLoading ? <Loader2 size={14} className="spin" /> : "Bulk Reject"}
+            </button>
+            <button className="btn btn-danger btn-sm" onClick={() => handleBulkAction("delete")} disabled={actionLoading}>
+              {actionLoading ? <Loader2 size={14} className="spin" /> : "Bulk Delete"}
+            </button>
+            <button className="btn btn-ghost btn-sm" onClick={() => setSelectedIds([])} disabled={actionLoading}>Cancel</button>
+          </div>
+        </div>
+      )}
 
       {/* Detail Modal */}
       {selected && (
@@ -323,6 +379,18 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
               <a href={`/api/files/${selected.id}/cv`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
                 <FileText size={14} /> View CV
               </a>
+              <button 
+                className="btn btn-danger" 
+                style={{ marginLeft: "auto" }}
+                onClick={() => {
+                  setSelectedIds([selected.id]);
+                  handleBulkAction("delete");
+                  setSelected(null);
+                }}
+                disabled={actionLoading}
+              >
+                Delete Application
+              </button>
             </div>
           </div>
         </div>

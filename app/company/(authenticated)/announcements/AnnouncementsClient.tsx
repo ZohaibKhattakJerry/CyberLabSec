@@ -20,6 +20,7 @@ export default function AnnouncementsClient({ announcements, teams, employees }:
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [showCreate, setShowCreate] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [scope, setScope] = useState("Company");
   const [teamId, setTeamId] = useState("");
   const [employeeId, setEmployeeId] = useState("");
@@ -57,6 +58,36 @@ export default function AnnouncementsClient({ announcements, teams, employees }:
     startTransition(() => router.refresh());
   };
 
+  const deleteAnnouncement = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this announcement?")) return;
+    setLoading(true);
+    await fetch(`/api/company/announcements/${id}`, { method: "DELETE" });
+    setLoading(false);
+    startTransition(() => router.refresh());
+  };
+
+  const handleEditSave = async () => {
+    if (!editingId || !message.trim()) return;
+    setLoading(true); setMsg("");
+    const res = await fetch(`/api/company/announcements/${editingId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message, isPinned, expiresAt: expiresAt || null }),
+    });
+    setLoading(false);
+    if (!res.ok) { setMsg("Failed to update"); return; }
+    setEditingId(null); setMessage(""); setIsPinned(false); setExpiresAt(""); setShowCreate(false);
+    startTransition(() => router.refresh());
+  };
+
+  const startEdit = (a: Announcement) => {
+    setEditingId(a.id);
+    setMessage(a.message);
+    setIsPinned(a.isPinned);
+    setExpiresAt(a.expiresAt ? new Date(a.expiresAt).toISOString().slice(0,16) : "");
+    setShowCreate(true);
+  };
+
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
@@ -64,7 +95,7 @@ export default function AnnouncementsClient({ announcements, teams, employees }:
           <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 4 }}>Announcements</h1>
           <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>Broadcast messages to employees</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowCreate(true)}><Plus size={16} /> New Announcement</button>
+        <button className="btn btn-primary" onClick={() => { setEditingId(null); setMessage(""); setIsPinned(false); setExpiresAt(""); setShowCreate(true); }}><Plus size={16} /> New Announcement</button>
       </div>
 
       {announcements.length === 0 ? (
@@ -88,6 +119,10 @@ export default function AnnouncementsClient({ announcements, teams, employees }:
                 <div style={{ fontSize: 11, color: "var(--text-muted)", textAlign: "right" }}>
                   <div>Sent by {a.sentBy.name}</div>
                   <div>{format(new Date(a.sentAt), "MMM d, yyyy h:mm a")}</div>
+                  <div style={{ marginTop: 8, display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                    <button className="btn btn-ghost btn-sm" onClick={() => startEdit(a)} disabled={loading}>Edit</button>
+                    <button className="btn btn-danger btn-sm" onClick={() => deleteAnnouncement(a.id)} disabled={loading}>Delete</button>
+                  </div>
                 </div>
               </div>
               <div style={{ fontSize: 14, color: "var(--text-secondary)", lineHeight: 1.7, whiteSpace: "pre-wrap", borderLeft: "3px solid var(--border-accent)", paddingLeft: 16 }}>
@@ -103,69 +138,66 @@ export default function AnnouncementsClient({ announcements, teams, employees }:
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
           <div className="card" style={{ maxWidth: 540, width: "100%", padding: 32 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-              <h2 style={{ fontSize: 16, fontWeight: 700 }}>New Announcement</h2>
-              <button onClick={() => setShowCreate(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}><X size={18} /></button>
+              <h2 style={{ fontSize: 16, fontWeight: 700 }}>{editingId ? "Edit Announcement" : "Create Announcement"}</h2>
+              <button onClick={() => { setShowCreate(false); setEditingId(null); }} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}><X size={18} /></button>
             </div>
-            
-            <div style={{ display: "grid", gap: 16 }}>
-              <div style={{ display: "flex", gap: 16 }}>
-                <div style={{ flex: 1 }}>
-                  <label className="label label-required">Scope</label>
+            <div style={{ display: "grid", gap: 14 }}>
+              {!editingId && (
+                <div>
+                  <label className="label">Target Scope</label>
                   <select className="input" value={scope} onChange={e => setScope(e.target.value)}>
-                    <option value="Company">Company-wide</option>
+                    <option value="Company">Company-wide (All Employees)</option>
                     <option value="Team">Specific Team</option>
-                    <option value="Individual">Individual Employee</option>
+                    <option value="Individual">Specific Employee</option>
                   </select>
                 </div>
-                {scope === "Team" && (
-                  <div style={{ flex: 1 }}>
-                    <label className="label label-required">Select Team</label>
-                    <select className="input" value={teamId} onChange={e => setTeamId(e.target.value)}>
-                      <option value="">-- Choose Team --</option>
-                      {teams.map((t: any) => <option key={t.id} value={t.id}>{t.name}</option>)}
-                    </select>
-                  </div>
-                )}
-                {scope === "Individual" && (
-                  <div style={{ flex: 1 }}>
-                    <label className="label label-required">Select Employee</label>
-                    <select className="input" value={employeeId} onChange={e => setEmployeeId(e.target.value)}>
-                      <option value="">-- Choose Employee --</option>
-                      {employees.map((e: any) => <option key={e.id} value={e.id}>{e.name} ({e.employeeCode})</option>)}
-                    </select>
-                  </div>
-                )}
-              </div>
+              )}
+                {!editingId && scope === "Team" && (
+                <div>
+                  <label className="label">Select Team</label>
+                  <select className="input" value={teamId} onChange={e => setTeamId(e.target.value)}>
+                    <option value="">-- Choose Team --</option>
+                    {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                  </select>
+                </div>
+              )}
+              {!editingId && scope === "Individual" && (
+                <div>
+                  <label className="label">Select Employee</label>
+                  <select className="input" value={employeeId} onChange={e => setEmployeeId(e.target.value)}>
+                    <option value="">-- Choose Employee --</option>
+                    {employees.map(e => <option key={e.id} value={e.id}>{e.name} ({e.employeeCode})</option>)}
+                  </select>
+                </div>
+              )}
               
               <div style={{ display: "flex", gap: 16 }}>
                 <div style={{ flex: 1 }}>
                   <label className="label">Expiry Date (Optional)</label>
                   <input type="datetime-local" className="input" value={expiresAt} onChange={e => setExpiresAt(e.target.value)} />
                 </div>
-                <div style={{ flex: 1, display: "flex", alignItems: "center", paddingTop: 24 }}>
-                  <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
-                    <input type="checkbox" checked={isPinned} onChange={e => setIsPinned(e.target.checked)} />
-                    <span style={{ fontSize: 14 }}>Pin this announcement</span>
-                  </label>
-                </div>
               </div>
               
               <div>
-                <label className="label label-required">Message</label>
+                <label className="label">Message</label>
                 <textarea className="input" value={message} onChange={e => setMessage(e.target.value)} rows={6} placeholder="Type announcement here..." />
               </div>
               
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <input type="checkbox" id="sendEmail" checked={sendEmail} onChange={e => setSendEmail(e.target.checked)} />
-                <label htmlFor="sendEmail" style={{ fontSize: 14, cursor: "pointer" }}>Also send via email to all recipients</label>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <input type="checkbox" id="pinned" checked={isPinned} onChange={e => setIsPinned(e.target.checked)} />
+                <label htmlFor="pinned" style={{ fontSize: 13 }}>Pin to top of employee dashboard</label>
               </div>
-
-              {msg && <p style={{ fontSize: 13, color: "var(--purple-light)" }}>{msg}</p>}
-              
-              <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
-                <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setShowCreate(false)} disabled={loading}>Cancel</button>
-                <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleSend} disabled={loading}>
-                  {loading ? <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> : "Send Announcement"}
+              {!editingId && (
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <input type="checkbox" id="email" checked={sendEmail} onChange={e => setSendEmail(e.target.checked)} />
+                  <label htmlFor="email" style={{ fontSize: 13 }}>Also send via Email</label>
+                </div>
+              )}
+              {msg && <p style={{ fontSize: 13, color: "var(--red)" }}>{msg}</p>}
+              <div style={{ display: "flex", gap: 10 }}>
+                <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => { setShowCreate(false); setEditingId(null); }} disabled={loading}>Cancel</button>
+                <button className="btn btn-primary" style={{ flex: 1 }} onClick={editingId ? handleEditSave : handleSend} disabled={loading}>
+                  {loading ? <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> : editingId ? "Save Changes" : "Send Announcement"}
                 </button>
               </div>
             </div>

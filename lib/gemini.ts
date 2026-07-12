@@ -1,4 +1,7 @@
 import { prisma } from "@/lib/prisma";
+import { GoogleGenAI, Type } from "@google/genai";
+
+const genai = process.env.GEMINI_API_KEY ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY }) : null;
 
 export interface ScreeningResult {
   fitScore: number; // 0-100
@@ -105,14 +108,71 @@ export async function screenApplicant(
   }
 
   // Format correctly
-  let finalQuestions: InterviewQuestion[] = [
-    ...openQuestions.map((q, i) => ({
-      id: q.id, type: q.type as "open", prompt: q.prompt, rubric: q.rubric || "", points: q.points
-    })),
-    ...mcqQuestions.map((q, i) => ({
+  let finalQuestions: InterviewQuestion[] = [];
+
+  if (genai) {
+    try {
+      const response = await genai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: `You are an expert technical interviewer at an offensive cybersecurity company.
+Generate 5 targeted, open-ended technical interview questions based on the candidate's CV.
+The questions should test the specific skills, experiences, and technologies mentioned in their resume, tailored for the role of ${jobTitle}.
+Do not ask generic behavioral questions. Ask deep technical questions.
+For each question, provide a brief rubric (keywords or concepts expected in a good answer).
+
+Candidate CV:
+${cvText.substring(0, 3000)}
+
+Respond ONLY with a valid JSON array of objects, where each object has:
+- id (a unique string)
+- type (must be "open")
+- prompt (the question text)
+- rubric (the grading rubric/expected concepts)
+- points (integer, typically 10)
+`,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                id: { type: Type.STRING },
+                type: { type: Type.STRING },
+                prompt: { type: Type.STRING },
+                rubric: { type: Type.STRING },
+                points: { type: Type.INTEGER },
+              },
+            },
+          },
+        },
+      });
+
+      const generated = JSON.parse(response.text || "[]");
+      if (Array.isArray(generated) && generated.length > 0) {
+        finalQuestions = generated;
+      }
+    } catch (e) {
+      console.error("Failed to generate AI questions:", e);
+    }
+  }
+
+  // Fallback to database questions if AI generation failed or is disabled
+  if (finalQuestions.length === 0) {
+    finalQuestions = [
+      ...openQuestions.map((q, i) => ({
+        id: q.id, type: q.type as "open", prompt: q.prompt, rubric: q.rubric || "", points: q.points
+      })),
+      ...mcqQuestions.map((q, i) => ({
+        id: q.id, type: q.type as "mcq", prompt: q.prompt, options: JSON.parse(q.options), correctOption: q.correctOption || 0, points: q.points
+      }))
+    ];
+  } else {
+    // If AI generation succeeded, append MCQs from the database pool
+    finalQuestions.push(...mcqQuestions.map((q, i) => ({
       id: q.id, type: q.type as "mcq", prompt: q.prompt, options: JSON.parse(q.options), correctOption: q.correctOption || 0, points: q.points
-    }))
-  ];
+    })));
+  }
 
   // FALLBACK: If database is completely empty, use hardcoded defaults
   if (finalQuestions.length === 0) {

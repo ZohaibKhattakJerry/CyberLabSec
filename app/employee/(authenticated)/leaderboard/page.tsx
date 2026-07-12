@@ -17,7 +17,7 @@ export default async function EmployeeLeaderboardPage() {
     name: e.name,
     designation: e.designation,
     teamName: e.team?.name || "Unassigned",
-    score: e.submissions.length * 100, // 100 pts per approved submission
+    score: e.submissions.length * 10, // 10 pts per approved submission
     submissionsCount: e.submissions.length,
     photoUrl: e.photoUrl,
     tier: e.tier

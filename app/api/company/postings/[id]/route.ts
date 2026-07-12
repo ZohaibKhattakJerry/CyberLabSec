@@ -20,6 +20,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (body.deadline !== undefined) dataToUpdate.deadline = new Date(body.deadline);
   if (body.status !== undefined) dataToUpdate.status = body.status;
   if (body.passMark !== undefined) dataToUpdate.passMark = Number(body.passMark) || 60;
+  if (body.showApplicantCount !== undefined) dataToUpdate.showApplicantCount = !!body.showApplicantCount;
 
   try {
     const posting = await prisma.jobPosting.update({
