@@ -69,6 +69,15 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
     startTransition(() => router.refresh());
   };
 
+  const deleteEmployee = async (id: string) => {
+    if (!confirm("Are you ABSOLUTELY sure you want to permanently delete this employee? All their activity, messages, and task submissions will be deleted forever. This cannot be undone.")) return;
+    setLoading(true);
+    const res = await fetch(`/api/company/employees/${id}`, { method: "DELETE" });
+    setLoading(false);
+    if (!res.ok) alert("Failed to delete employee data.");
+    startTransition(() => router.refresh());
+  };
+
   const generateReport = async (e: Employee) => {
     setReportGenerating(true);
     setGeneratedReport(null);
@@ -155,6 +164,15 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
                     >
                       {e.status === "Active" ? <UserX size={13} /> : <UserCheck size={13} />}
                     </button>
+                    {e.status === "Terminated" && (
+                      <button
+                        className="btn btn-sm btn-danger"
+                        onClick={() => deleteEmployee(e.id)} disabled={loading}
+                        title="Delete Permanently"
+                      >
+                        <X size={13} />
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>

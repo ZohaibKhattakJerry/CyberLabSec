@@ -13,10 +13,10 @@ export const maxDuration = 120;
 export async function POST(req: NextRequest) {
   const ip = getIpFromRequest(req);
 
-  // Rate limit: 5 submissions per hour per IP
-  const { blocked } = await checkRateLimit(`apply-ip:${ip}`, 5, 60);
+  // Rate limit: 4 submissions per 5 minutes per IP
+  const { blocked } = await checkRateLimit(`apply-ip:${ip}`, 4, 5);
   if (blocked) {
-    return NextResponse.json({ error: "Too many applications from this IP. Please try again later." }, { status: 429 });
+    return NextResponse.json({ error: "Too many attempts from this IP. Please wait 5 minutes." }, { status: 429 });
   }
 
   let formData: FormData;
