@@ -44,9 +44,21 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   const resolvedParams = await params;
 
   try {
-    const posting = await prisma.jobPosting.findUnique({ where: { id: resolvedParams.id }, include: { _count: { select: { applicants: true } } } });
+    const posting = await prisma.jobPosting.findUnique({ where: { id: resolvedParams.id } });
     if (!posting) return NextResponse.json({ error: "Not found" }, { status: 404 });
-    if (posting._count.applicants > 0) return NextResponse.json({ error: "Cannot delete posting with applicants" }, { status: 400 });
+
+    const applicants = await prisma.applicant.findMany({ where: { jobPostingId: resolvedParams.id }, select: { id: true } });
+    const applicantIds = applicants.map(a => a.id);
+    if (applicantIds.length > 0) {
+      await prisma.interviewSession.deleteMany({ where: { applicantId: { in: applicantIds } } });
+      await prisma.cEOReview.deleteMany({ where: { applicantId: { in: applicantIds } } });
+      // Remove link from any employees just in case
+      await prisma.employee.updateMany({
+        where: { applicantId: { in: applicantIds } },
+        data: { applicantId: null }
+      });
+      await prisma.applicant.deleteMany({ where: { jobPostingId: resolvedParams.id } });
+    }
 
     await prisma.jobPosting.delete({ where: { id: resolvedParams.id } });
 

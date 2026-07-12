@@ -83,8 +83,8 @@ export async function POST(req: NextRequest) {
       }, { status: 409 });
     }
 
-    // Verify posting is open
-    const posting = await prisma.jobPosting.findUnique({ where: { id: postingId, status: "Open" } });
+    // Verify posting is published
+    const posting = await prisma.jobPosting.findUnique({ where: { id: postingId, status: "Published" } });
     if (!posting) {
       return NextResponse.json({ error: "This position is no longer accepting applications." }, { status: 404 });
     }

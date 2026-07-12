@@ -114,7 +114,7 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
                   </button>
                 )}
                 <button className="btn btn-ghost btn-sm" onClick={() => openEdit(p)}><Edit2 size={13} /></button>
-                <button className="btn btn-danger btn-sm" onClick={() => deletePosting(p.id, p.title)} disabled={p._count.applicants > 0}><Trash2 size={13} /></button>
+                <button className="btn btn-danger btn-sm" onClick={() => deletePosting(p.id, p.title)}><Trash2 size={13} /></button>
               </div>
             </div>
           ))}
