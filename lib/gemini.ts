@@ -88,13 +88,91 @@ Evaluate this candidate for the role. Return ONLY valid JSON (no markdown, no ex
     return JSON.parse(text) as ScreeningResult;
   } catch (error) {
     console.error("Gemini API Error (screenApplicant):", error);
-    // If the API fails (e.g., due to safety filters triggered by profanity), reject by default
+    // If the API fails (e.g., rate limit or safety filters), return fallback questions to ensure the candidate can still take the interview.
     return {
-      fitScore: 0,
-      reasoning: "Application could not be processed automatically or was flagged by safety filters.",
-      strengths: [],
-      gaps: ["Failed automated screening"],
-      questions: []
+      fitScore: 50,
+      reasoning: "Application could not be processed automatically due to an API error. Using standard fallback assessment.",
+      strengths: ["Unknown (System fallback)"],
+      gaps: ["Unknown (System fallback)"],
+      questions: [
+        {
+          id: "fb_open1",
+          type: "open",
+          prompt: "Describe your experience with cybersecurity principles and how you stay updated with the latest threats.",
+          rubric: "Candidate should mention continuous learning, specific resources (e.g., CVEs, blogs, forums), and foundational principles like CIA triad.",
+          points: 10
+        },
+        {
+          id: "fb_open2",
+          type: "open",
+          prompt: "Explain the difference between a vulnerability assessment and a penetration test.",
+          rubric: "Vulnerability assessment is automated scanning to find flaws; penetration testing is exploiting them to determine impact.",
+          points: 10
+        },
+        {
+          id: "fb_open3",
+          type: "open",
+          prompt: "If you discovered a critical vulnerability in our production environment, what would be your immediate steps?",
+          rubric: "Verify the vulnerability, report it immediately to the security team/manager, do not exploit further, document findings.",
+          points: 10
+        },
+        {
+          id: "fb_mcq1",
+          type: "mcq",
+          prompt: "What does XSS stand for in web security?",
+          options: ["A. Extensible Style Sheets", "B. Cross-Site Scripting", "C. XML Syntax Signature", "D. Cross-Site Signature"],
+          correctOption: 1,
+          points: 5
+        },
+        {
+          id: "fb_mcq2",
+          type: "mcq",
+          prompt: "Which of the following ports is commonly used for SSH?",
+          options: ["A. 21", "B. 22", "C. 23", "D. 80"],
+          correctOption: 1,
+          points: 5
+        },
+        {
+          id: "fb_mcq3",
+          type: "mcq",
+          prompt: "What is the primary purpose of a firewall?",
+          options: ["A. Encrypt data at rest", "B. Filter network traffic based on rules", "C. Scan for malware on a host", "D. Manage passwords"],
+          correctOption: 1,
+          points: 5
+        },
+        {
+          id: "fb_mcq4",
+          type: "mcq",
+          prompt: "In the CIA Triad, what does the 'I' stand for?",
+          options: ["A. Identity", "B. Integrity", "C. Isolation", "D. Interoperability"],
+          correctOption: 1,
+          points: 5
+        },
+        {
+          id: "fb_mcq5",
+          type: "mcq",
+          prompt: "Which tool is standard for network packet capture and analysis?",
+          options: ["A. Metasploit", "B. Nmap", "C. Wireshark", "D. Burp Suite"],
+          correctOption: 2,
+          points: 5
+        },
+        {
+          id: "fb_mcq6",
+          type: "mcq",
+          prompt: "What type of attack involves overwhelming a server with traffic?",
+          options: ["A. Phishing", "B. SQL Injection", "C. Man-in-the-Middle", "D. DDoS"],
+          correctOption: 3,
+          points: 5
+        },
+        {
+          id: "fb_mcq7",
+          type: "mcq",
+          prompt: "Which command lists the contents of a directory in Linux?",
+          options: ["A. cd", "B. ls", "C. pwd", "D. grep"],
+          correctOption: 1,
+          points: 5
+        }
+      ]
     };
   }
 }
@@ -145,9 +223,9 @@ CRITICAL RULE: If the answer contains abusive language, swear words, or blatant 
   } catch (error) {
     console.error("Gemini API Error (gradeOpenAnswer):", error);
     return {
-      score: 0, // Fallback to 0 if API fails (e.g., due to safety filters blocking profanity)
-      feedback: "Answer could not be processed automatically or was flagged by safety filters.",
-      aiLikelihood: 1.0
+      score: Math.floor(maxPoints * (passMark / 100)), // Fallback: give them passing score if API fails
+      feedback: "Automated grading unavailable due to system limits. Default score applied.",
+      aiLikelihood: 0.0 // Do not falsely accuse of cheating
     };
   }
 }
