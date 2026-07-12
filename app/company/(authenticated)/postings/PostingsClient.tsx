@@ -100,7 +100,7 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
                   <span>{p.location}</span>
                   <span style={{ display: "flex", alignItems: "center", gap: 4 }}><Users size={11} /> {p._count.applicants} applicants</span>
                   <span>Deadline: {format(new Date(p.deadline), "MMM d, yyyy")}</span>
-                  <span>Shortlist ≥ {p.shortlistThreshold}% · Pass ≥ {p.passMark}%</span>
+                  <span>Pass ≥ {p.passMark}%</span>
                 </div>
               </div>
               <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
@@ -147,10 +147,6 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
               <div>
                 <label className="label label-required">Application Deadline</label>
                 <input className="input" type="datetime-local" value={form.deadline} onChange={e => setForm(f => ({ ...f, deadline: e.target.value }))} />
-              </div>
-              <div>
-                <label className="label">AI Shortlist Threshold (%)</label>
-                <input className="input" type="number" min={0} max={100} value={form.shortlistThreshold} onChange={e => setForm(f => ({ ...f, shortlistThreshold: Number(e.target.value) }))} />
               </div>
               <div>
                 <label className="label">Interview Pass Mark (%)</label>

@@ -157,7 +157,9 @@ async function runScreening(
       ctx.posting.type as "Job" | "Internship"
     );
 
-    const shortlisted = result.fitScore >= ctx.posting.shortlistThreshold;
+    // AI Screening still runs to generate questions, but we shortlist everyone automatically
+    // as per the new requirement (Pass/Fail is determined solely by interview performance)
+    const shortlisted = true;
 
     if (shortlisted) {
       // Generate interview token
