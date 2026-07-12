@@ -21,23 +21,8 @@ export const config = {
 
 export async function proxy(req: NextRequest) {
   const url = req.nextUrl.clone();
-  const hostname = req.headers.get('host') || '';
-
-  // 1. Get the specific subdomain (e.g., 'careers', 'employee', 'company')
-  const currentHost = hostname.replace(`.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'cyberlabsec.tech'}`, '');
-
-  // 2. Perform subdomain rewrites
-  if (currentHost.startsWith('careers')) {
-    url.pathname = `/careers${url.pathname === '/' ? '' : url.pathname}`;
-  } else if (currentHost.startsWith('employee')) {
-    url.pathname = `/portal${url.pathname === '/' ? '' : url.pathname}`;
-  } else if (currentHost.startsWith('company') || currentHost.startsWith('admin')) {
-    url.pathname = `/admin${url.pathname === '/' ? '' : url.pathname}`;
-  }
-
-  // 3. Security Headers & Auth Checks (formerly in proxy.ts)
-  const response = NextResponse.rewrite(url);
   const { pathname } = url;
+  const response = NextResponse.next();
 
   // Admin routes — require admin role
   if (pathname.startsWith("/admin") && pathname !== "/admin/login") {

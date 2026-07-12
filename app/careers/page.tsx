@@ -12,27 +12,37 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function CareersPage() {
-  const postings = await prisma.jobPosting.findMany({
-    where: { status: "Open" },
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      title: true,
-      type: true,
-      department: true,
-      location: true,
-      description: true,
-      requirements: true,
-      universityRequired: true,
-      deadline: true,
-      _count: { select: { applicants: true } },
-    },
-  });
+  try {
+    const postings = await prisma.jobPosting.findMany({
+      where: { status: "Open" },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        title: true,
+        type: true,
+        department: true,
+        location: true,
+        description: true,
+        requirements: true,
+        universityRequired: true,
+        deadline: true,
+        _count: { select: { applicants: true } },
+      },
+    });
 
-  const serialized = postings.map((p) => ({
-    ...p,
-    deadline: p.deadline.toISOString(),
-  }));
+    const serialized = postings.map((p) => ({
+      ...p,
+      deadline: p.deadline.toISOString(),
+    }));
 
-  return <CareersJobBoard postings={serialized} />;
+    return <CareersJobBoard postings={serialized} />;
+  } catch (error: any) {
+    return (
+      <div className="p-10 text-red-500 font-mono">
+        <h1 className="text-2xl font-bold mb-4">Server Error</h1>
+        <pre>{error?.message || String(error)}</pre>
+        <pre className="mt-4">{error?.stack}</pre>
+      </div>
+    );
+  }
 }
