@@ -108,33 +108,33 @@ export async function sendEmployeeCredentials(
   await transporter.sendMail({
     from: FROM,
     to: toEmail,
-    subject: \`🎉 Welcome to CyberLabSec — Your Portal Access\`,
-    html: \`
-      <div style="\${BASE_STYLE}">
-        <div style="\${CONTAINER_STYLE}">
-          <h1 style="\${HEADER_STYLE}">Welcome Aboard!</h1>
-          <p style="\${SUBHEADER_STYLE}">CyberLabSec Internal Systems</p>
+    subject: `🎉 Welcome to CyberLabSec — Your Portal Access`,
+    html: `
+      <div style="${BASE_STYLE}">
+        <div style="${CONTAINER_STYLE}">
+          <h1 style="${HEADER_STYLE}">Welcome Aboard!</h1>
+          <p style="${SUBHEADER_STYLE}">CyberLabSec Internal Systems</p>
           
-          <p style="\${TEXT_STYLE}">Hi <strong style="color: #09090b;">\${employeeName}</strong>,</p>
-          <p style="\${TEXT_STYLE}">Congratulations! Your offer has been officially approved. We are thrilled to welcome you to the CyberLabSec team.</p>
+          <p style="${TEXT_STYLE}">Hi <strong style="color: #09090b;">${employeeName}</strong>,</p>
+          <p style="${TEXT_STYLE}">Congratulations! Your offer has been officially approved. We are thrilled to welcome you to the CyberLabSec team.</p>
           
-          \${customMessage ? \`
+          ${customMessage ? `
             <div style="background-color: #f8fafc; border-left: 4px solid #a855f7; padding: 16px; margin: 24px 0; border-radius: 4px;">
-              <p style="color: #3f3f46; font-size: 15px; line-height: 1.6; margin: 0; white-space: pre-wrap;">\${customMessage}</p>
+              <p style="color: #3f3f46; font-size: 15px; line-height: 1.6; margin: 0; white-space: pre-wrap;">${customMessage}</p>
             </div>
-          \` : ''}
+          ` : ''}
           
-          <p style="\${TEXT_STYLE}">Below are your exclusive credentials to access the Employee Operations Portal:</p>
+          <p style="${TEXT_STYLE}">Below are your exclusive credentials to access the Employee Operations Portal:</p>
           
-          <div style="\${CARD_STYLE}">
+          <div style="${CARD_STYLE}">
             <table style="width: 100%; border-collapse: collapse;">
               <tr>
                 <td style="padding: 8px 0; color: #52525b; font-size: 14px; width: 140px;">Employee ID:</td>
-                <td style="padding: 8px 0;"><code style="background: rgba(0,0,0,0.05); padding: 4px 8px; border-radius: 4px; color: #c084fc; font-size: 16px;">\${employeeCode}</code></td>
+                <td style="padding: 8px 0;"><code style="background: rgba(0,0,0,0.05); padding: 4px 8px; border-radius: 4px; color: #c084fc; font-size: 16px;">${employeeCode}</code></td>
               </tr>
               <tr>
                 <td style="padding: 8px 0; color: #52525b; font-size: 14px;">Temporary Pass:</td>
-                <td style="padding: 8px 0;"><code style="background: rgba(0,0,0,0.05); padding: 4px 8px; border-radius: 4px; color: #c084fc; font-size: 16px;">\${temporaryPassword}</code></td>
+                <td style="padding: 8px 0;"><code style="background: rgba(0,0,0,0.05); padding: 4px 8px; border-radius: 4px; color: #c084fc; font-size: 16px;">${temporaryPassword}</code></td>
               </tr>
             </table>
           </div>
@@ -144,16 +144,16 @@ export async function sendEmployeeCredentials(
           </p>
           
           <div style="text-align: center;">
-            <a href="\${portalUrl}" style="\${BUTTON_STYLE}">Access Secure Portal →</a>
+            <a href="${portalUrl}" style="${BUTTON_STYLE}">Access Secure Portal →</a>
           </div>
           
-          <p style="\${FOOTER_STYLE}">
-            \${offerLetterPdfBase64 ? 'Please find your official offer letter attached to this email.<br/><br/>' : ''}
+          <p style="${FOOTER_STYLE}">
+            ${offerLetterPdfBase64 ? 'Please find your official offer letter attached to this email.<br/><br/>' : ''}
             CyberLabSec IT & Operations
           </p>
         </div>
       </div>
-    \`,
+    `,
     attachments: offerLetterPdfBase64
       ? [
           {

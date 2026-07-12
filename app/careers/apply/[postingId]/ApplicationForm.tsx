@@ -207,10 +207,10 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                   </div>
                   <Field label="CNIC Number" required error={errors.cnic}>
                     <input 
-                      className={\`input\${errors.cnic ? " input-error" : ""}\`} 
+                      className={`input${errors.cnic ? " input-error" : ""}`} 
                       value={form.cnic} 
                       onChange={(e) => {
-                        let val = e.target.value.replace(/\\D/g, "");
+                        let val = e.target.value.replace(/\D/g, "");
                         if (val.length > 5) val = val.substring(0, 5) + "-" + val.substring(5);
                         if (val.length > 13) val = val.substring(0, 13) + "-" + val.substring(13, 14);
                         set("cnic", val);

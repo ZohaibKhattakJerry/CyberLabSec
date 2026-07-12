@@ -65,7 +65,7 @@ export async function POST(
     data: { status: "Hired" },
   });
 
-  const portalUrl = \`https://cyberlabsec.tech/employee/login\`;
+  const portalUrl = `https://cyberlabsec.tech/employee/login`;
   await sendEmployeeCredentials(
     applicant.email, 
     applicant.fullName, 

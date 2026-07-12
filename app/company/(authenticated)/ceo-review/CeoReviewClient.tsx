@@ -44,7 +44,7 @@ export default function CeoReviewClient({ applicants }: { applicants: Applicant[
       return;
     }
     setActionLoading(true); setActionMsg("");
-    const res = await fetch(\`/api/company/applications/\${applicantId}/hire\`, {
+    const res = await fetch(`/api/company/applications/${applicantId}/hire`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ customMessage, offerLetterFileBase64 }),
@@ -53,7 +53,7 @@ export default function CeoReviewClient({ applicants }: { applicants: Applicant[
     setActionLoading(false);
     if (!res.ok) { setActionMsg(data.error || "Failed to create employee record"); return; }
     
-    setActionMsg(\`Employee created: \${data.employeeCode}\`);
+    setActionMsg(`Employee created: ${data.employeeCode}`);
     startTransition(() => { router.refresh(); setSelected(null); });
   };
 
@@ -68,7 +68,7 @@ export default function CeoReviewClient({ applicants }: { applicants: Applicant[
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 20 }}>
-        {applicants.map((a: any) => (
+        {applicants.map((a: Applicant) => (
           <div key={a.id} className="card" style={{ padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
             <div>
               <h3 style={{ fontSize: 16, fontWeight: 700 }}>{a.fullName}</h3>

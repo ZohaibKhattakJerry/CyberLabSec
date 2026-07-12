@@ -165,13 +165,13 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
         </div>
         <select className="input" style={{ width: 160 }} value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
           <option value="All">All Statuses</option>
-          {["Applied","Reviewing","Shortlisted","InterviewInvited","Passed","Failed","Rejected","Hired","Blocked"].map((s: any) => (
+          {["Applied","Reviewing","Shortlisted","InterviewInvited","Passed","Failed","Rejected","Hired","Blocked"].map((s: string) => (
             <option key={s} value={s}>{s}</option>
           ))}
         </select>
         <select className="input" style={{ width: 200 }} value={filterPosting} onChange={e => setFilterPosting(e.target.value)}>
           <option value="All">All Positions</option>
-          {postings.map((p: any) => <option key={p.id} value={p.id}>{p.title}</option>)}
+          {postings.map((p: Posting) => <option key={p.id} value={p.id}>{p.title}</option>)}
         </select>
         <div className="badge badge-gray" style={{ alignSelf: "center", padding: "6px 12px" }}>{filtered.length} results</div>
       </div>
@@ -199,7 +199,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
             </tr>
           </thead>
           <tbody>
-            {filtered.map((a: any) => (
+            {filtered.map((a: Applicant) => (
               <tr key={a.id} style={{ background: selectedIds.has(a.id) ? "rgba(147, 51, 234, 0.05)" : undefined }}>
                 <td>
                   <input 
@@ -236,7 +236,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                     </div>
                   ) : <span style={{ color: "var(--text-muted)", fontSize: 12 }}>—</span>}
                 </td>
-                <td><span className={\`badge \${STATUS_COLORS[a.status] || "badge-gray"}\`}>{a.status}</span></td>
+                <td><span className={`badge ${STATUS_COLORS[a.status] || "badge-gray"}`}>{a.status}</span></td>
                 <td style={{ fontSize: 12, color: "var(--text-muted)" }}>{format(new Date(a.createdAt), "MMM d, yyyy")}</td>
                 <td>
                   <button className="btn btn-ghost btn-sm" onClick={() => setSelected(a)} style={{ gap: 6 }}>
@@ -270,11 +270,11 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
               {[
                 { l: "Position", v: selected.jobPosting.title },
                 { l: "Type", v: selected.jobPosting.type },
-                { l: "Status", v: <span className={\`badge \${STATUS_COLORS[selected.status]}\`}>{selected.status}</span> },
-                { l: "AI Fit Score", v: selected.fitScore !== null ? \`\${selected.fitScore}%\` : "—" },
+                { l: "Status", v: <span className={`badge ${STATUS_COLORS[selected.status]}`}>{selected.status}</span> },
+                { l: "AI Fit Score", v: selected.fitScore !== null ? `${selected.fitScore}%` : "—" },
                 { l: "Applied", v: format(new Date(selected.createdAt), "MMM d, yyyy h:mm a") },
-                { l: "Interview Score", v: selected.interviewSession?.totalScore !== null && selected.interviewSession?.totalScore !== undefined ? \`\${selected.interviewSession.totalScore}%\` : "—" },
-              ].map((r: any) => (
+                { l: "Interview Score", v: selected.interviewSession?.totalScore !== null && selected.interviewSession?.totalScore !== undefined ? `${selected.interviewSession.totalScore}%` : "—" },
+              ].map((r: { l: string; v: React.ReactNode }) => (
                 <div key={r.l} style={{ padding: "10px 12px", background: "rgba(255,255,255,0.02)", borderRadius: 8 }}>
                   <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 3 }}>{r.l}</div>
                   <div style={{ fontSize: 14, fontWeight: 500 }}>{r.v}</div>
@@ -314,7 +314,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                   Shortlist Manually
                 </button>
               )}
-              <a href={\`/api/files/\${selected.id}/cv\`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm">
+              <a href={`/api/files/${selected.id}/cv`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm">
                 <FileText size={13} /> View CV
               </a>
               <button className="btn btn-danger btn-sm" onClick={() => deleteApplicant(selected.id)} disabled={actionLoading} style={{ marginLeft: "auto", background: "rgba(220, 38, 38, 0.1)", border: "1px solid rgba(220, 38, 38, 0.3)", color: "#fca5a5" }}>
