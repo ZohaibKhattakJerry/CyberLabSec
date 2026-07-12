@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { Shield, Upload, X, CheckCircle, Loader2, AlertCircle, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { Shield, Upload, X, CheckCircle, Loader2, AlertCircle, ChevronLeft, ChevronRight, Check } from "lucide-react";
 
 interface Posting {
   id: string; title: string; type: string; department: string;
@@ -14,10 +14,20 @@ interface Posting {
 }
 
 interface FormData {
-  fullName: string; email: string; phone: string; cnic: string;
+  fullName: string; email: string; phone: string; cnic: string; city: string;
   universityName: string; semester: string;
-  portfolioLinks: string; consentData: boolean; consentInterview: boolean;
+  linkedIn: string; github: string; tryHackMe: string; hackTheBox: string;
+  portfolio: string; cve: string; certifications: string; motivation: string;
+  consentData: boolean; consentInterview: boolean;
 }
+
+const initialForm: FormData = {
+  fullName: "", email: "", phone: "", cnic: "", city: "",
+  universityName: "", semester: "",
+  linkedIn: "", github: "", tryHackMe: "", hackTheBox: "",
+  portfolio: "", cve: "", certifications: "", motivation: "",
+  consentData: false, consentInterview: false,
+};
 
 type ScreeningStatus = "idle" | "uploading" | "screening" | "done" | "error";
 
@@ -27,40 +37,124 @@ const PHONE_REGEX = /^(\+92|0)[0-9]{10}$/;
 export default function ApplicationForm({ posting }: { posting: Posting }) {
   const router = useRouter();
   const [step, setStep] = useState(1);
-  const [form, setForm] = useState<FormData>({
-    fullName: "", email: "", phone: "", cnic: "",
-    universityName: "", semester: "",
-    portfolioLinks: "", consentData: false, consentInterview: false,
-  });
+  const [form, setForm] = useState<FormData>(initialForm);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
+  
+  // File state
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [cvDrag, setCvDrag] = useState(false);
   const [photoDrag, setPhotoDrag] = useState(false);
-  const [status, setStatus] = useState<ScreeningStatus>("idle");
-  const [statusMsg, setStatusMsg] = useState("");
-  const [applicationId, setApplicationId] = useState("");
   const cvRef = useRef<HTMLInputElement>(null);
   const photoRef = useRef<HTMLInputElement>(null);
 
-  const set = (k: keyof FormData, v: string | boolean) =>
-    setForm((f) => ({ ...f, [k]: v }));
+  // OTP state
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
+  const [otpLoading, setOtpLoading] = useState(false);
+
+  // Status state
+  const [status, setStatus] = useState<ScreeningStatus>("idle");
+  const [statusMsg, setStatusMsg] = useState("");
+  const [applicationId, setApplicationId] = useState("");
+  const [referenceId, setReferenceId] = useState("");
+
+  const set = (k: keyof FormData, v: string | boolean) => {
+    setForm((f) => {
+      const nf = { ...f, [k]: v };
+      localStorage.setItem(`draft_${posting.id}`, JSON.stringify(nf));
+      return nf;
+    });
+  };
+
+  useEffect(() => {
+    const draft = localStorage.getItem(`draft_${posting.id}`);
+    if (draft) {
+      try {
+        setForm({ ...initialForm, ...JSON.parse(draft) });
+      } catch (e) { }
+    }
+    setIsLoaded(true);
+  }, [posting.id]);
+
+  const sendOtp = async () => {
+    if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      toast.error("Please enter a valid email address first.");
+      return;
+    }
+    setOtpLoading(true);
+    try {
+      const res = await fetch("/api/applications/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: form.email })
+      });
+      if (res.ok) {
+        setOtpSent(true);
+        toast.success("Verification code sent to your email");
+      } else {
+        toast.error("Failed to send code. Try again.");
+      }
+    } catch {
+      toast.error("Network error");
+    }
+    setOtpLoading(false);
+  };
+
+  const verifyOtp = async () => {
+    if (!otpCode || otpCode.length < 6) return;
+    setOtpLoading(true);
+    try {
+      const res = await fetch("/api/applications/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: form.email, code: otpCode })
+      });
+      if (res.ok) {
+        setOtpVerified(true);
+        toast.success("Email verified successfully!");
+      } else {
+        toast.error("Invalid or expired code");
+      }
+    } catch {
+      toast.error("Network error");
+    }
+    setOtpLoading(false);
+  };
 
   const validateStep1 = () => {
     const e: typeof errors = {};
-    if (!form.fullName.trim()) e.fullName = "Full name is required";
+    if (!form.fullName.trim()) e.fullName = "Required";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = "Valid email required";
-    if (!PHONE_REGEX.test(form.phone.replace(/\s/g, ""))) e.phone = "Valid Pakistani phone number required";
-    if (!CNIC_REGEX.test(form.cnic)) e.cnic = "CNIC format: 12345-1234567-1";
+    if (!PHONE_REGEX.test(form.phone.replace(/\s/g, ""))) e.phone = "Valid Pakistani phone required";
+    if (!CNIC_REGEX.test(form.cnic)) e.cnic = "Format: 12345-1234567-1";
+    if (!form.city.trim()) e.city = "Required";
+    if (!otpVerified) {
+      toast.error("Please verify your email address to continue.");
+      return false;
+    }
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
   const validateStep2 = () => {
     const e: typeof errors = {};
-    if (!cvFile) e.fullName = "CV is required";
-    if (posting.universityRequired && !form.universityName.trim()) e.universityName = "University name is required";
-    if (posting.universityRequired && !form.semester.trim()) e.semester = "Semester is required";
+    if (posting.universityRequired && !form.universityName.trim()) e.universityName = "Required";
+    if (posting.universityRequired && !form.semester.trim()) e.semester = "Required";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const validateStep3 = () => {
+    const e: typeof errors = {};
+    if (!cvFile) e.fullName = "CV is required"; // overload fullName error for generic toast or just toast
+    if (!cvFile) {
+      toast.error("Please upload your CV before continuing.");
+      return false;
+    }
+    if (!form.motivation.trim() || form.motivation.length < 50) e.motivation = "Please provide at least 50 characters";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -76,19 +170,12 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
     try {
       const fd = new FormData();
       fd.append("postingId", posting.id);
-      fd.append("fullName", form.fullName);
-      fd.append("email", form.email);
-      fd.append("phone", form.phone);
-      fd.append("cnic", form.cnic);
-      fd.append("universityName", form.universityName);
-      fd.append("semester", form.semester);
-      fd.append("portfolioLinks", form.portfolioLinks);
-      fd.append("consentData", String(form.consentData));
-      fd.append("consentInterview", String(form.consentInterview));
+      fd.append("emailVerified", "true");
+      Object.entries(form).forEach(([k, v]) => fd.append(k, String(v)));
+      
       if (cvFile) fd.append("cv", cvFile);
       if (photoFile) fd.append("photo", photoFile);
 
-      // Show screening animation while waiting for response since the backend now awaits the screening
       setTimeout(() => {
         setStatus("screening");
         setStatusMsg("Received — our AI is reviewing your profile...");
@@ -104,8 +191,8 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
       }
 
       setApplicationId(data.applicationId);
-      
-      // Immediately check the status since screening is already done
+      setReferenceId(data.referenceId);
+      localStorage.removeItem(`draft_${posting.id}`); // Clear draft
       pollScreening(data.applicationId);
     } catch {
       setStatus("error");
@@ -134,8 +221,10 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
     setTimeout(() => { clearInterval(interval); if (status === "screening") { setStatus("done"); setStatusMsg("reviewed"); } }, 120000);
   };
 
+  if (!isLoaded) return <div style={{ minHeight: "100vh", background: "var(--bg-primary)" }} />;
+
   if (status === "screening" || (status === "done") || status === "uploading") {
-    return <ScreeningScreen status={status} message={statusMsg} posting={posting} />;
+    return <ScreeningScreen status={status} message={statusMsg} referenceId={referenceId} />;
   }
 
   if (status === "error") {
@@ -177,14 +266,14 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
 
         {/* Step indicator */}
         <div style={{ display: "flex", gap: 8, marginBottom: 32, alignItems: "center" }}>
-          {[1, 2, 3].map((s) => (
+          {[1, 2, 3, 4].map((s) => (
             <div key={s} style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <div style={{ width: 28, height: 28, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, background: s <= step ? "var(--purple)" : "rgba(255,255,255,0.06)", color: s <= step ? "#fff" : "var(--text-muted)", transition: "all 0.3s" }}>{s}</div>
-              {s < 3 && <div style={{ width: 40, height: 2, background: s < step ? "var(--purple)" : "rgba(255,255,255,0.06)", transition: "all 0.3s" }} />}
+              {s < 4 && <div style={{ width: 30, height: 2, background: s < step ? "var(--purple)" : "rgba(255,255,255,0.06)", transition: "all 0.3s" }} />}
             </div>
           ))}
-          <span style={{ marginLeft: 8, fontSize: 13, color: "var(--text-muted)" }}>
-            {step === 1 ? "Personal Info" : step === 2 ? "Documents" : "Review & Consent"}
+          <span style={{ marginLeft: 8, fontSize: 13, color: "var(--text-muted)", whiteSpace: "nowrap" }}>
+            {step === 1 ? "Personal Info" : step === 2 ? "Links & Profile" : step === 3 ? "Documents" : "Review & Consent"}
           </span>
         </div>
 
@@ -197,14 +286,39 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                   <Field label="Full Name" required error={errors.fullName}>
                     <input className={`input${errors.fullName ? " input-error" : ""}`} value={form.fullName} onChange={(e) => set("fullName", e.target.value)} placeholder="Your full legal name" />
                   </Field>
+                  
+                  <div>
+                    <label className="label label-required">Email Address</label>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <input className={`input${errors.email ? " input-error" : ""}`} type="email" value={form.email} onChange={(e) => { set("email", e.target.value); setOtpVerified(false); setOtpSent(false); }} placeholder="you@example.com" disabled={otpVerified} style={{ flex: 1 }} />
+                      {!otpVerified && (
+                        <button type="button" className="btn btn-secondary" onClick={sendOtp} disabled={otpLoading || !form.email}>
+                          {otpLoading ? <Loader2 size={16} className="animate-spin" /> : otpSent ? "Resend" : "Verify"}
+                        </button>
+                      )}
+                    </div>
+                    {errors.email && <p className="error-text"><AlertCircle size={12} />{errors.email}</p>}
+                    
+                    {otpSent && !otpVerified && (
+                      <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} style={{ marginTop: 12 }}>
+                        <div style={{ display: "flex", gap: 8 }}>
+                          <input className="input" placeholder="Enter 6-digit code" value={otpCode} onChange={(e) => setOtpCode(e.target.value)} style={{ flex: 1 }} maxLength={6} />
+                          <button type="button" className="btn btn-primary" onClick={verifyOtp} disabled={otpCode.length < 6 || otpLoading}>Confirm</button>
+                        </div>
+                      </motion.div>
+                    )}
+                    {otpVerified && <p style={{ fontSize: 13, color: "var(--green)", marginTop: 8, display: "flex", alignItems: "center", gap: 6 }}><Check size={14} /> Email verified</p>}
+                  </div>
+
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                    <Field label="Email Address" required error={errors.email}>
-                      <input className={`input${errors.email ? " input-error" : ""}`} type="email" value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="you@example.com" />
-                    </Field>
                     <Field label="Phone Number" required error={errors.phone}>
                       <input className={`input${errors.phone ? " input-error" : ""}`} value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="03XX-XXXXXXX" />
                     </Field>
+                    <Field label="City" required error={errors.city}>
+                      <input className={`input${errors.city ? " input-error" : ""}`} value={form.city} onChange={(e) => set("city", e.target.value)} placeholder="E.g., Lahore" />
+                    </Field>
                   </div>
+                  
                   <Field label="CNIC Number" required error={errors.cnic}>
                     <input 
                       className={`input${errors.cnic ? " input-error" : ""}`} 
@@ -218,10 +332,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                       placeholder="12345-1234567-1" 
                       maxLength={15} 
                     />
-                    <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4 }}>Your CNIC is encrypted and used to prevent duplicate applications.</p>
-                  </Field>
-                  <Field label="Portfolio Links (Optional)">
-                    <textarea className="input" rows={3} value={form.portfolioLinks} onChange={(e) => set("portfolioLinks", e.target.value)} placeholder="HackerOne, Bugcrowd, GitHub, LinkedIn — one per line" />
+                    <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4 }}>Used to prevent duplicate applications. Encrypted at rest.</p>
                   </Field>
                 </div>
                 <div style={{ marginTop: 28, display: "flex", justifyContent: "flex-end" }}>
@@ -234,8 +345,61 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
           {step === 2 && (
             <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }}>
               <div className="card" style={{ padding: 28 }}>
-                <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 24 }}>Documents & Details</h2>
+                <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 24 }}>Links & Profile</h2>
                 <div style={{ display: "grid", gap: 20 }}>
+                  
+                  {posting.universityRequired && (
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                      <Field label="University Name" required error={errors.universityName}>
+                        <input className={`input${errors.universityName ? " input-error" : ""}`} value={form.universityName} onChange={(e) => set("universityName", e.target.value)} placeholder="University name" />
+                      </Field>
+                      <Field label="Current Semester" required error={errors.semester}>
+                        <select className={`input${errors.semester ? " input-error" : ""}`} value={form.semester} onChange={(e) => set("semester", e.target.value)}>
+                          <option value="">Select semester</option>
+                          {[1,2,3,4,5,6,7,8].map((s: any) => <option key={s} value={String(s)}>Semester {s}</option>)}
+                        </select>
+                      </Field>
+                    </div>
+                  )}
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                    <Field label="LinkedIn">
+                      <input className="input" value={form.linkedIn} onChange={(e) => set("linkedIn", e.target.value)} placeholder="https://linkedin.com/in/..." />
+                    </Field>
+                    <Field label="GitHub">
+                      <input className="input" value={form.github} onChange={(e) => set("github", e.target.value)} placeholder="https://github.com/..." />
+                    </Field>
+                    <Field label="TryHackMe">
+                      <input className="input" value={form.tryHackMe} onChange={(e) => set("tryHackMe", e.target.value)} placeholder="Profile URL or Username" />
+                    </Field>
+                    <Field label="HackTheBox">
+                      <input className="input" value={form.hackTheBox} onChange={(e) => set("hackTheBox", e.target.value)} placeholder="Profile URL or Username" />
+                    </Field>
+                  </div>
+                  
+                  <Field label="Personal Portfolio / Website">
+                    <input className="input" value={form.portfolio} onChange={(e) => set("portfolio", e.target.value)} placeholder="https://..." />
+                  </Field>
+                  
+                  <Field label="CVEs / Certifications">
+                    <input className="input" value={form.cve} onChange={(e) => set("cve", e.target.value)} placeholder="e.g. CVE-2024-XXXX, OSCP, eCPPT" />
+                  </Field>
+
+                </div>
+                <div style={{ marginTop: 28, display: "flex", justifyContent: "space-between" }}>
+                  <button className="btn btn-secondary" onClick={() => setStep(1)}><ChevronLeft size={16} /> Back</button>
+                  <button className="btn btn-primary" onClick={() => { if (validateStep2()) setStep(3); }}>Continue <ChevronRight size={16} /></button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {step === 3 && (
+            <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }}>
+              <div className="card" style={{ padding: 28 }}>
+                <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 24 }}>Documents & Motivation</h2>
+                <div style={{ display: "grid", gap: 20 }}>
+                  
                   {/* CV Upload */}
                   <Field label="CV / Resume" required error={errors.fullName}>
                     <div
@@ -260,6 +424,17 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                       )}
                     </div>
                     <input ref={cvRef} type="file" hidden accept=".pdf,.doc,.docx" onChange={(e) => { const f = e.target.files?.[0]; if (f) setCvFile(f); }} />
+                  </Field>
+
+                  <Field label="Why CyberLabSec?" required error={errors.motivation}>
+                    <textarea 
+                      className={`input${errors.motivation ? " input-error" : ""}`} 
+                      rows={5} 
+                      value={form.motivation} 
+                      onChange={(e) => set("motivation", e.target.value)} 
+                      placeholder="Tell us what drives you. Why offensive security? Why here?" 
+                      style={{ resize: "vertical" }}
+                    />
                   </Field>
 
                   {/* Photo Upload */}
@@ -287,30 +462,17 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                     <input ref={photoRef} type="file" hidden accept=".jpg,.jpeg,.png,.webp" onChange={(e) => { const f = e.target.files?.[0]; if (f) setPhotoFile(f); }} />
                   </Field>
 
-                  {posting.universityRequired && (
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                      <Field label="University Name" required error={errors.universityName}>
-                        <input className={`input${errors.universityName ? " input-error" : ""}`} value={form.universityName} onChange={(e) => set("universityName", e.target.value)} placeholder="University name" />
-                      </Field>
-                      <Field label="Current Semester" required error={errors.semester}>
-                        <select className={`input${errors.semester ? " input-error" : ""}`} value={form.semester} onChange={(e) => set("semester", e.target.value)}>
-                          <option value="">Select semester</option>
-                          {[1,2,3,4,5,6,7,8].map((s: any) => <option key={s} value={String(s)}>Semester {s}</option>)}
-                        </select>
-                      </Field>
-                    </div>
-                  )}
                 </div>
                 <div style={{ marginTop: 28, display: "flex", justifyContent: "space-between" }}>
-                  <button className="btn btn-secondary" onClick={() => setStep(1)}><ChevronLeft size={16} /> Back</button>
-                  <button className="btn btn-primary" onClick={() => { if (validateStep2()) setStep(3); }}>Continue <ChevronRight size={16} /></button>
+                  <button className="btn btn-secondary" onClick={() => setStep(2)}><ChevronLeft size={16} /> Back</button>
+                  <button className="btn btn-primary" onClick={() => { if (validateStep3()) setStep(4); }}>Continue <ChevronRight size={16} /></button>
                 </div>
               </div>
             </motion.div>
           )}
 
-          {step === 3 && (
-            <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }}>
+          {step === 4 && (
+            <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }}>
               <div className="card" style={{ padding: 28 }}>
                 <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Review & Consent</h2>
                 <p style={{ color: "var(--text-secondary)", fontSize: 14, marginBottom: 24 }}>Please review your details and accept the required consents before submitting.</p>
@@ -334,7 +496,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                   <label style={{ display: "flex", gap: 12, alignItems: "flex-start", cursor: "pointer" }}>
                     <input type="checkbox" checked={form.consentData} onChange={(e) => set("consentData", e.target.checked)} style={{ marginTop: 2, accentColor: "var(--purple)", width: 16, height: 16, flexShrink: 0 }} />
                     <span style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6 }}>
-                      I consent to CyberLab processing my personal data (including CV, contact details, and government ID) for recruitment purposes, in accordance with applicable data protection laws. My data will be stored securely and not shared with third parties.
+                      I consent to CyberLabSec processing my personal data (including CV, contact details, and government ID) for recruitment purposes, in accordance with applicable data protection laws. My data will be stored securely and not shared with third parties.
                     </span>
                   </label>
                   <label style={{ display: "flex", gap: 12, alignItems: "flex-start", cursor: "pointer" }}>
@@ -350,7 +512,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                 </div>
 
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <button className="btn btn-secondary" onClick={() => setStep(2)}><ChevronLeft size={16} /> Back</button>
+                  <button className="btn btn-secondary" onClick={() => setStep(3)}><ChevronLeft size={16} /> Back</button>
                   <button className="btn btn-primary btn-lg" onClick={handleSubmit} disabled={!form.consentData || !form.consentInterview}>
                     Submit Application
                     <ChevronRight size={16} />
@@ -377,7 +539,7 @@ function Field({ label, required, error, children }: { label: string; required?:
   );
 }
 
-function ScreeningScreen({ status, message, posting }: { status: ScreeningStatus; message: string; posting: Posting }) {
+function ScreeningScreen({ status, message, referenceId }: { status: ScreeningStatus; message: string; referenceId?: string; }) {
   const isDone = status === "done";
   const isShortlisted = message === "shortlisted";
 
@@ -399,6 +561,16 @@ function ScreeningScreen({ status, message, posting }: { status: ScreeningStatus
               : "Thank you for applying. We've reviewed your application and will be in touch if there's a match for future opportunities."
             : message}
         </p>
+
+        {isDone && referenceId && (
+          <div style={{ background: "rgba(168,85,247,0.08)", border: "1px solid rgba(168,85,247,0.2)", borderRadius: 12, padding: 16, marginBottom: 24 }}>
+            <p style={{ fontSize: 12, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>Application Reference ID</p>
+            <p style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)", fontFamily: "monospace" }}>{referenceId}</p>
+            <p style={{ fontSize: 13, color: "var(--text-secondary)", marginTop: 8 }}>
+              You can track your status anytime at <Link href="/careers/status" style={{ color: "var(--purple)" }}>/careers/status</Link> using this ID.
+            </p>
+          </div>
+        )}
 
         {!isDone && (
           <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 12, color: "var(--text-muted)" }}>

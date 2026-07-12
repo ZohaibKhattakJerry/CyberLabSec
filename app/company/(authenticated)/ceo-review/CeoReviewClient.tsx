@@ -62,7 +62,7 @@ export default function CeoReviewClient({ reviews }: { reviews: Review[] }) {
       <div style={{ marginBottom: 24, display: "flex", alignItems: "center", gap: 12 }}>
         <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 40, objectFit: "contain" }} />
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 4 }}>CEO Review Console</h1>
+          <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 4 }}>Final Approval Console</h1>
           <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>Final approval for hires and executive decisions.</p>
         </div>
       </div>
@@ -95,7 +95,7 @@ export default function CeoReviewClient({ reviews }: { reviews: Review[] }) {
         ))}
         {reviews.length === 0 && (
           <div style={{ gridColumn: "1 / -1", padding: 40, textAlign: "center", color: "var(--text-muted)", fontSize: 14 }}>
-            No requests pending CEO review.
+            No requests pending final approval.
           </div>
         )}
       </div>

@@ -12,21 +12,32 @@ model Applicant {
   fullName         String
   email            String
   phone            String
+  city             String?
   cnicEncrypted    String
   cnicHash         String            @unique
   cvFileUrl        String
   photoUrl         String?
+  linkedIn         String?
+  github           String?
+  tryHackMe        String?
+  hackTheBox       String?
+  portfolio        String?
+  cve              String?
+  certifications   String?
+  motivation       String?
   portfolioLinks   String            @default("[]")
   universityName   String?
   semester         String?
   jobPostingId     String
-  status           String            @default("Applied") // Applied, Screening, Interview, Offer, Hired, Rejected, Withdrawn
+  status           String            @default("Applied") // Applied, Screening, Interview, Final Approval, Offer, Hired, Rejected, Withdrawn
   fitScore         Int?
   fitReasoning     String?
   internalRating   Int?
   privateNotes     String?
   consentData      String            @default("{}")
   ipAddress        String?
+  emailVerified    Boolean           @default(false)
+  referenceId      String?           @unique
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   jobPosting       JobPosting        @relation(fields: [jobPostingId], references: [id])
@@ -48,30 +59,35 @@ model JobPosting {
   status             String      @default("Draft") // Draft, Published, Paused, Closed
   shortlistThreshold Int         @default(50)
   passMark           Int         @default(60)
+  showApplicantCount Boolean     @default(false)
+  publishedDate      DateTime?
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
   applicants         Applicant[]
 }
 
 model InterviewSession {
-  id               String    @id @default(cuid())
-  applicantId      String    @unique
-  token            String    @unique
-  tokenExpiry      DateTime
-  tokenUsed        Boolean   @default(false)
-  emailVerified    Boolean   @default(false)
-  questions        String    @default("[]")
-  answers          String    @default("[]")
-  perQuestionScore String    @default("[]")
-  cheatingSignals  String    @default("{}")
-  attempts         Int       @default(0)
-  maxAttempts      Int       @default(3)
-  totalScore       Int?
-  result           String?
-  startedAt        DateTime?
-  completedAt      DateTime?
-  createdAt        DateTime  @default(now())
-  applicant        Applicant @relation(fields: [applicantId], references: [id])
+  id                  String    @id @default(cuid())
+  applicantId         String    @unique
+  token               String    @unique
+  tokenExpiry         DateTime
+  tokenUsed           Boolean   @default(false)
+  emailVerified       Boolean   @default(false)
+  questions           String    @default("[]")
+  answers             String    @default("[]")
+  perQuestionScore    String    @default("[]")
+  cheatingSignals     String    @default("{}")
+  integrityViolations String    @default("[]")
+  attempts            Int       @default(0)
+  maxAttempts         Int       @default(3)
+  totalScore          Int?
+  autoScore           Int?
+  reviewerNotes       String?
+  result              String?
+  startedAt           DateTime?
+  completedAt         DateTime?
+  createdAt           DateTime  @default(now())
+  applicant           Applicant @relation(fields: [applicantId], references: [id])
 }
 
 model Employee {
@@ -89,6 +105,7 @@ model Employee {
   teamId               String?
   passwordHash         String
   mustResetPassword    Boolean                   @default(true)
+  forcePasswordChange  Boolean                   @default(true)
   resetToken           String?                   @unique
   resetTokenExpiry     DateTime?
   policyAcknowledgedAt DateTime?
@@ -201,6 +218,7 @@ model ActivityLog {
   actorType String
   action    String
   metadata  String    @default("{}")
+  ipAddress String?
   timestamp DateTime  @default(now())
   employee  Employee? @relation(fields: [actorId], references: [id])
 }
@@ -248,4 +266,28 @@ model Notification {
   link      String?
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+
+model EmailVerification {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  otp       String
+  expiresAt DateTime
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model QuestionBank {
+  id            String   @id @default(cuid())
+  category      String
+  difficulty    String
+  type          String   // "mcq" or "open"
+  prompt        String
+  options       String   @default("[]")
+  correctOption Int?
+  rubric        String?
+  keywords      String   @default("[]")
+  points        Int      @default(10)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }

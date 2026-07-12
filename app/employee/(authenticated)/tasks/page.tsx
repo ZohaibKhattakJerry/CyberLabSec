@@ -34,6 +34,58 @@ export default async function TasksPage() {
     }
   });
 
+  const getStatus = (task: any) => {
+    if (task.submissions.length === 0) {
+      const daysLeft = differenceInDays(task.deadline, new Date());
+      return daysLeft < 0 ? "Overdue" : "Pending";
+    }
+    const status = task.submissions[0].status;
+    if (status === "Approved") return "Done";
+    if (status === "Needs Revision") return "Needs Revision";
+    return "In Review";
+  };
+
+  const pendingTasks = tasks.filter(t => getStatus(t) === "Pending" || getStatus(t) === "Overdue");
+  const inReviewTasks = tasks.filter(t => getStatus(t) === "In Review");
+  const revisionTasks = tasks.filter(t => getStatus(t) === "Needs Revision");
+  const doneTasks = tasks.filter(t => getStatus(t) === "Done");
+
+  const renderColumn = (title: string, columnTasks: any[], badgeColor: string) => (
+    <div style={{ flex: 1, minWidth: 300, background: "rgba(255,255,255,0.02)", borderRadius: 12, padding: 16, border: "1px solid var(--border-subtle)", display: "flex", flexDirection: "column", gap: 12 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+        <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>{title}</h3>
+        <span className={`badge ${badgeColor}`}>{columnTasks.length}</span>
+      </div>
+      
+      {columnTasks.length === 0 ? (
+        <div style={{ padding: 20, textAlign: "center", color: "var(--text-muted)", fontSize: 13, background: "rgba(0,0,0,0.2)", borderRadius: 8 }}>No tasks</div>
+      ) : (
+        columnTasks.map(task => {
+          const daysLeft = differenceInDays(task.deadline, new Date());
+          const statusStr = getStatus(task);
+          return (
+            <Link key={task.id} href={`/employee/tasks/${task.id}`} style={{ textDecoration: "none" }}>
+              <div className="card card-hover" style={{ padding: 16, cursor: "pointer", transition: "transform 0.1s" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+                  <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text-primary)" }}>{task.title}</div>
+                  {statusStr === "Overdue" && <span className="badge badge-red" style={{ fontSize: 10 }}>Overdue</span>}
+                </div>
+                <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 12 }}>{task.brief.slice(0, 80)}...</div>
+                
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ display: "flex", gap: 4, fontSize: 11, color: statusStr === "Overdue" ? "var(--red)" : "var(--text-muted)", alignItems: "center" }}>
+                    <Clock size={12} />
+                    {statusStr === "Done" ? format(task.submissions[0].submittedAt, "MMM d, yyyy") : format(task.deadline, "MMM d, yyyy")}
+                  </div>
+                </div>
+              </div>
+            </Link>
+          );
+        })
+      )}
+    </div>
+  );
+
   return (
     <div>
       <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 24 }}>My Tasks</h1>
@@ -44,37 +96,11 @@ export default async function TasksPage() {
           <p style={{ color: "var(--text-secondary)" }}>No tasks currently assigned to your team.</p>
         </div>
       ) : (
-        <div style={{ display: "grid", gap: 16 }}>
-          {tasks.map((task) => {
-            const isSubmitted = task.submissions.length > 0;
-            const daysLeft = differenceInDays(task.deadline, new Date());
-            const isOverdue = daysLeft < 0 && !isSubmitted;
-
-            return (
-              <Link key={task.id} href={`/employee/tasks/${task.id}`} style={{ textDecoration: "none" }}>
-                <div className="card card-hover" style={{ padding: 20, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <div>
-                    <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 6 }}>
-                      <h3 style={{ fontSize: 16, fontWeight: 600, color: "var(--text-primary)", margin: 0 }}>{task.title}</h3>
-                      {isSubmitted ? (
-                        <span className="badge badge-green">Submitted</span>
-                      ) : isOverdue ? (
-                        <span className="badge badge-purple">Overdue</span>
-                      ) : (
-                        <span className="badge badge-amber">Pending</span>
-                      )}
-                    </div>
-                    <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 12 }}>{task.brief.slice(0, 100)}...</p>
-                    <div style={{ display: "flex", gap: 6, fontSize: 12, color: isOverdue ? "var(--purple)" : "var(--text-muted)", alignItems: "center" }}>
-                      <Clock size={12} />
-                      Due: {format(task.deadline, "MMM d, yyyy")} ({daysLeft > 0 ? `${daysLeft} days left` : isOverdue ? 'Late' : 'Due today'})
-                    </div>
-                  </div>
-                  <ChevronRight color="var(--text-muted)" />
-                </div>
-              </Link>
-            );
-          })}
+        <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingBottom: 16, minHeight: 600 }}>
+          {renderColumn("To-Do", pendingTasks, "badge-gray")}
+          {renderColumn("In Review", inReviewTasks, "badge-amber")}
+          {renderColumn("Needs Revision", revisionTasks, "badge-red")}
+          {renderColumn("Done", doneTasks, "badge-green")}
         </div>
       )}
     </div>

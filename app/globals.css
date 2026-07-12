@@ -542,6 +542,43 @@ tbody td {
     height: 100vh;
     width: 280px;
   }
+
+  table, thead, tbody, th, td, tr {
+    display: block;
+  }
+  thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+  tbody tr {
+    margin-bottom: 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 12px;
+  }
+  tbody td {
+    border: none;
+    position: relative;
+    padding: 8px 0;
+    padding-left: 45%;
+    text-align: right;
+  }
+  tbody td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 0;
+    top: 8px;
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 12px;
+    text-transform: uppercase;
+  }
+  
+  .btn, .input {
+    min-height: 44px;
+  }
 }
 
 /* Tooltip */

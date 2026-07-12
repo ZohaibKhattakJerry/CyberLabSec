@@ -10,7 +10,7 @@ const NAV = [
   { href: "/company/dashboard", label: "Overview", icon: LayoutDashboard },
   { href: "/company/postings", label: "Recruiting", icon: Briefcase },
   { href: "/company/applications", label: "Applications", icon: FileText },
-  { href: "/company/ceo-review", label: "CEO Review", icon: Shield },
+  { href: "/company/ceo-review", label: "Final Approval", icon: Shield },
   { href: "/company/employees", label: "Employees", icon: Users },
   { href: "/company/teams", label: "Teams", icon: Users },
   { href: "/company/leaderboard", label: "Leaderboard", icon: Trophy },

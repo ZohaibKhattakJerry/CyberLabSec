@@ -32,13 +32,14 @@ interface Posting {
   requirements: string;
   universityRequired: boolean;
   deadline: string;
+  showApplicantCount: boolean;
+  publishedDate: string;
   _count: { applicants: number };
 }
 
 export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<"All" | "Job" | "Internship">("All");
-  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const filtered = postings.filter((p) => {
     const matchSearch =
@@ -52,6 +53,22 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
     // eslint-disable-next-line react-hooks/purity
     const diff = new Date(deadline).getTime() - Date.now();
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
+  };
+
+  const daysSincePublished = (pubDate: string) => {
+    // eslint-disable-next-line react-hooks/purity
+    const diff = Date.now() - new Date(pubDate).getTime();
+    return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+  };
+
+  const [talentEmail, setTalentEmail] = useState("");
+  const [talentSubmitted, setTalentSubmitted] = useState(false);
+
+  const handleTalentSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!talentEmail) return;
+    // In a real app we'd POST to an endpoint, mocking for now
+    setTimeout(() => setTalentSubmitted(true), 500);
   };
 
   return (
@@ -228,53 +245,95 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
           </motion.div>
         </div>
       </section>
+      {/* WHY WORK HERE */}
+      <section style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 60px" }}>
+        <div style={{ textAlign: "center", marginBottom: 40 }}>
+          <h2 style={{ fontSize: 24, fontWeight: 700, color: "var(--text-primary)" }}>Why Work Here?</h2>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24 }}>
+          {[
+            {
+              title: "Tackle the Hardest Problems",
+              desc: "From zero-day research to full-scope red teaming, you'll be challenged daily to outsmart the best defenses in the world.",
+              icon: <Terminal size={24} color="var(--purple)" />
+            },
+            {
+              title: "Learn from the Elite",
+              desc: "Work alongside some of the brightest minds in offensive security. We prioritize knowledge sharing and continuous learning.",
+              icon: <Users size={24} color="var(--purple)" />
+            },
+            {
+              title: "Meritocracy Above All",
+              desc: "We don't care about your pedigree. We care about what you can do. Our AI screening ensures everyone gets a fair shot based on skill alone.",
+              icon: <Briefcase size={24} color="var(--purple)" />
+            }
+          ].map((item, i) => (
+            <motion.div
+              key={item.title}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 + (i * 0.1) }}
+              className="card"
+              style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}
+            >
+              <div style={{ width: 48, height: 48, borderRadius: 12, background: "rgba(168,85,247,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {item.icon}
+              </div>
+              <h3 style={{ fontSize: 18, fontWeight: 600, color: "var(--text-primary)" }}>{item.title}</h3>
+              <p style={{ color: "var(--text-secondary)", lineHeight: 1.6, fontSize: 14 }}>{item.desc}</p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
 
       {/* FILTERS */}
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 32px" }}>
-        <div
-          style={{
-            display: "flex",
-            gap: 12,
-            flexWrap: "wrap",
-            alignItems: "center",
-            marginBottom: 32,
-          }}
-        >
-          {/* Search */}
-          <div style={{ position: "relative", flex: 1, minWidth: 240 }}>
-            <Search
-              size={16}
-              style={{
-                position: "absolute",
-                left: 12,
-                top: "50%",
-                transform: "translateY(-50%)",
-                color: "var(--text-muted)",
-              }}
-            />
-            <input
-              className="input"
-              style={{ paddingLeft: 36 }}
-              placeholder="Search positions..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
+        {postings.length > 3 && (
+          <div
+            style={{
+              display: "flex",
+              gap: 12,
+              flexWrap: "wrap",
+              alignItems: "center",
+              marginBottom: 32,
+            }}
+          >
+            {/* Search */}
+            <div style={{ position: "relative", flex: 1, minWidth: 240 }}>
+              <Search
+                size={16}
+                style={{
+                  position: "absolute",
+                  left: 12,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  color: "var(--text-muted)",
+                }}
+              />
+              <input
+                className="input"
+                style={{ paddingLeft: 36 }}
+                placeholder="Search positions..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
 
-          {/* Type filter */}
-          <div style={{ display: "flex", gap: 8 }}>
-            {(["All", "Job", "Internship"] as const).map((t) => (
-              <button
-                key={t}
-                onClick={() => setTypeFilter(t)}
-                className={typeFilter === t ? "btn btn-primary btn-sm" : "btn btn-secondary btn-sm"}
-              >
-                {t === "Internship" ? <GraduationCap size={14} /> : <Filter size={14} />}
-                {t}
-              </button>
-            ))}
+            {/* Type filter */}
+            <div style={{ display: "flex", gap: 8 }}>
+              {(["All", "Job", "Internship"] as const).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTypeFilter(t)}
+                  className={typeFilter === t ? "btn btn-primary btn-sm" : "btn btn-secondary btn-sm"}
+                >
+                  {t === "Internship" ? <GraduationCap size={14} /> : <Filter size={14} />}
+                  {t}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Job listings */}
         {filtered.length === 0 ? (
@@ -285,39 +344,60 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
               textAlign: "center",
               padding: "80px 24px",
               color: "var(--text-muted)",
+              background: "rgba(168,85,247,0.02)",
+              borderRadius: 16,
+              border: "1px dashed rgba(168,85,247,0.2)",
             }}
           >
             <Shield size={48} style={{ margin: "0 auto 16px", opacity: 0.3 }} />
-            <p style={{ fontSize: 16, marginBottom: 8 }}>No open positions available right now.</p>
-            <p style={{ fontSize: 14 }}>Check back soon — we move fast.</p>
+            <p style={{ fontSize: 16, marginBottom: 8, color: "var(--text-primary)" }}>No open positions right now.</p>
+            <p style={{ fontSize: 14, marginBottom: 24 }}>Leave your email and we'll notify you when we're hiring.</p>
+            
+            {talentSubmitted ? (
+              <div style={{ display: "inline-block", background: "rgba(34,197,94,0.1)", color: "var(--green)", padding: "10px 20px", borderRadius: 8, fontSize: 14 }}>
+                Added to Talent Pool. We'll be in touch!
+              </div>
+            ) : (
+              <form onSubmit={handleTalentSubmit} style={{ display: "flex", gap: 8, maxWidth: 360, margin: "0 auto" }}>
+                <input 
+                  type="email" 
+                  className="input" 
+                  placeholder="name@example.com" 
+                  required 
+                  value={talentEmail}
+                  onChange={(e) => setTalentEmail(e.target.value)}
+                  style={{ flex: 1 }}
+                />
+                <button type="submit" className="btn btn-primary">Join</button>
+              </form>
+            )}
           </motion.div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {filtered.map((posting, i) => {
               const days = daysUntilDeadline(posting.deadline);
-              const isExpanded = expandedId === posting.id;
+              const postedDays = daysSincePublished(posting.publishedDate);
               const isUrgent = days <= 7;
 
               return (
-                <motion.article
-                  key={posting.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: i * 0.05 }}
-                  className="card card-hover"
-                  style={{ cursor: "pointer" }}
-                  onClick={() => setExpandedId(isExpanded ? null : posting.id)}
-                >
-                  <div style={{ padding: "20px 24px" }}>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "flex-start",
-                        gap: 16,
-                        flexWrap: "wrap",
-                      }}
-                    >
+                <Link key={posting.id} href={`/careers/${posting.id}`} style={{ textDecoration: 'none' }}>
+                  <motion.article
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: i * 0.05 }}
+                    className="card card-hover"
+                    style={{ cursor: "pointer" }}
+                  >
+                    <div style={{ padding: "20px 24px" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "flex-start",
+                          gap: 16,
+                          flexWrap: "wrap",
+                        }}
+                      >
                       {/* Left: Info */}
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div
@@ -401,152 +481,26 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
                             }}
                           >
                             <Clock size={12} />
-                            {days > 0 ? `${days}d left` : "Closing soon"}
+                            {days > 0 ? `Closes in ${days} days` : "Closing soon"}
                           </div>
                           <div style={{ color: "var(--text-muted)", fontSize: 12 }}>
-                            {posting._count.applicants} applicant
-                            {posting._count.applicants !== 1 ? "s" : ""}
+                            {postedDays === 0 ? "Posted today" : `Posted ${postedDays} days ago`}
+                            {posting.showApplicantCount && (
+                              <span> • {posting._count.applicants} applicant{posting._count.applicants !== 1 ? "s" : ""}</span>
+                            )}
                           </div>
                         </div>
                         <ChevronRight
                           size={18}
                           style={{
                             color: "var(--text-muted)",
-                            transform: isExpanded ? "rotate(90deg)" : "none",
-                            transition: "transform 0.2s",
                           }}
                         />
                       </div>
                     </div>
-
-                    {/* Expanded details */}
-                    <AnimatePresence>
-                      {isExpanded && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.25 }}
-                          style={{ overflow: "hidden" }}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <div
-                            style={{
-                              borderTop: "1px solid var(--border)",
-                              marginTop: 16,
-                              paddingTop: 20,
-                            }}
-                          >
-                            <div
-                              style={{
-                                display: "grid",
-                                gridTemplateColumns: "1fr 1fr",
-                                gap: 24,
-                                marginBottom: 24,
-                              }}
-                            >
-                              <div>
-                                <h3
-                                  style={{
-                                    fontSize: 13,
-                                    fontWeight: 600,
-                                    color: "var(--text-muted)",
-                                    textTransform: "uppercase",
-                                    letterSpacing: "0.05em",
-                                    marginBottom: 8,
-                                  }}
-                                >
-                                  About This Role
-                                </h3>
-                                <p
-                                  style={{
-                                    fontSize: 14,
-                                    color: "var(--text-secondary)",
-                                    lineHeight: 1.7,
-                                    whiteSpace: "pre-wrap",
-                                  }}
-                                >
-                                  {posting.description}
-                                </p>
-                              </div>
-                              <div>
-                                <h3
-                                  style={{
-                                    fontSize: 13,
-                                    fontWeight: 600,
-                                    color: "var(--text-muted)",
-                                    textTransform: "uppercase",
-                                    letterSpacing: "0.05em",
-                                    marginBottom: 8,
-                                  }}
-                                >
-                                  Requirements
-                                </h3>
-                                <p
-                                  style={{
-                                    fontSize: 14,
-                                    color: "var(--text-secondary)",
-                                    lineHeight: 1.7,
-                                    whiteSpace: "pre-wrap",
-                                  }}
-                                >
-                                  {posting.requirements}
-                                </p>
-                              </div>
-                            </div>
-
-                            {posting.universityRequired && (
-                              <div
-                                style={{
-                                  background: "rgba(168,85,247,0.06)",
-                                  border: "1px solid rgba(168,85,247,0.15)",
-                                  borderRadius: 8,
-                                  padding: "12px 16px",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: 10,
-                                  marginBottom: 20,
-                                  fontSize: 13,
-                                  color: "#c084fc",
-                                }}
-                              >
-                                <GraduationCap size={16} />
-                                This is an internship position. University enrollment may be required.
-                              </div>
-                            )}
-
-                            <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                              <Link
-                                href={`/careers/apply/${posting.id}`}
-                                className="btn btn-primary"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                Apply Now
-                                <ChevronRight size={16} />
-                              </Link>
-                              <div
-                                style={{
-                                  background: "rgba(168,85,247,0.08)",
-                                  border: "1px solid rgba(168,85,247,0.15)",
-                                  borderRadius: 8,
-                                  padding: "8px 14px",
-                                  fontSize: 12,
-                                  color: "#c084fc",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: 6,
-                                }}
-                              >
-                                <Shield size={13} />
-                                AI-powered screening — results in minutes
-                              </div>
-                            </div>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
                   </div>
                 </motion.article>
+              </Link>
               );
             })}
           </div>

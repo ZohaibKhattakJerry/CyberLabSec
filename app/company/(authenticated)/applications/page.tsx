@@ -13,7 +13,7 @@ export default async function ApplicationsPage() {
     orderBy: { createdAt: "desc" },
     include: {
       jobPosting: { select: { id: true, title: true, type: true } },
-      interviewSession: { select: { id: true, totalScore: true, result: true, completedAt: true } },
+      interviewSession: { select: { id: true, totalScore: true, result: true, startedAt: true, completedAt: true, cheatingSignals: true, integrityViolations: true } },
     },
   });
 
@@ -24,6 +24,7 @@ export default async function ApplicationsPage() {
     jobPosting: a.jobPosting,
     interviewSession: a.interviewSession ? {
       ...a.interviewSession,
+      startedAt: a.interviewSession.startedAt?.toISOString() ?? null,
       completedAt: a.interviewSession.completedAt?.toISOString() ?? null,
     } : null,
   }));

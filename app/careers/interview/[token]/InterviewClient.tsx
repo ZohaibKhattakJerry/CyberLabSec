@@ -58,6 +58,19 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
     return () => clearInterval(interval);
   }, [phase, currentQ]);
 
+  // Autosave answers every 30s
+  useEffect(() => {
+    if (phase !== "interview") return;
+    const interval = setInterval(() => {
+      fetch("/api/interview/autosave", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId, answers })
+      }).catch(console.error);
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [phase, sessionId, answers]);
+
   // Anti-cheating & Tab blur detection
   useEffect(() => {
     if (phase !== "interview") return;
@@ -205,35 +218,11 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
 
   // ── INTRO PHASE ──
   if (phase === "intro") {
+    // We add local state for consent in this phase scope, or we can just use a local component or add to main state. 
+    // Since we can't easily add a hook here without breaking rules of hooks (if we conditionally render), we need to lift it.
+    // Let's add it properly.
     return (
-      <Layout>
-        <motion.div className="card" style={{ maxWidth: 620, width: "100%", padding: 40 }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 8 }}>Hi {applicantName.split(" ")[0]}! 👋</h1>
-          <p style={{ color: "var(--text-secondary)", marginBottom: 28 }}>Welcome to your CyberLab interview for <strong style={{ color: "var(--text-primary)" }}>{jobTitle}</strong>.</p>
-          
-          <div style={{ display: "grid", gap: 12, marginBottom: 28 }}>
-            {[
-              ["📋", `${questions.length} questions total — ${questions.filter(q => q.type === "open").length} written, ${questions.filter(q => q.type === "mcq").length} multiple choice`],
-              ["⏱️", "Each question has its own timer — open questions: 3 min, MCQ: 1 min"],
-              ["🚫", "Do not paste text or switch tabs — these are recorded as signals"],
-              ["🤖", "Your answers will be evaluated based on technical depth and accuracy"],
-              ["🔄", `Attempt ${attempts + 1} of ${maxAttempts} available. Use them wisely.`],
-            ].map(([icon, text]) => (
-              <div key={text as string} style={{ display: "flex", gap: 12, fontSize: 14, color: "var(--text-secondary)" }}>
-                <span>{icon}</span><span>{text}</span>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ background: "rgba(168,85,247,0.06)", border: "1px solid rgba(168,85,247,0.15)", borderRadius: 8, padding: 14, fontSize: 13, color: "#fca5a5", marginBottom: 28 }}>
-            ⚠️ Irregular activity (paste, tab-switch, AI-generated answers) detected above a threshold will immediately terminate the interview and permanently block your CNIC from future applications.
-          </div>
-
-          <button className="btn btn-primary btn-lg" style={{ width: "100%" }} onClick={() => setPhase("interview")}>
-            Start Interview <ChevronRight size={16} />
-          </button>
-        </motion.div>
-      </Layout>
+      <IntroPhase applicantName={applicantName} jobTitle={jobTitle} questions={questions} attempts={attempts} maxAttempts={maxAttempts} onStart={() => setPhase("interview")} />
     );
   }
 
@@ -412,6 +401,48 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
           Thank you, {applicantName.split(" ")[0]}. Your responses are being reviewed by our team. We&apos;ll be in touch via email with your results.
         </p>
         <p style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 16 }}>You may now close this window.</p>
+      </motion.div>
+    </Layout>
+  );
+}
+
+function IntroPhase({ applicantName, jobTitle, questions, attempts, maxAttempts, onStart }: { applicantName: string; jobTitle: string; questions: Question[]; attempts: number; maxAttempts: number; onStart: () => void }) {
+  const [consent, setConsent] = useState(false);
+  
+  return (
+    <Layout>
+      <motion.div className="card" style={{ maxWidth: 620, width: "100%", padding: 40 }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 8 }}>Hi {applicantName.split(" ")[0]}! 👋</h1>
+        <p style={{ color: "var(--text-secondary)", marginBottom: 28 }}>Welcome to your CyberLabSec interview for <strong style={{ color: "var(--text-primary)" }}>{jobTitle}</strong>.</p>
+        
+        <div style={{ display: "grid", gap: 12, marginBottom: 24 }}>
+          {[
+            ["📋", `${questions.length} questions total — ${questions.filter((q: any) => q.type === "open").length} written, ${questions.filter((q: any) => q.type === "mcq").length} multiple choice`],
+            ["⏱️", "Each question has its own timer — open questions: 3 min, MCQ: 1 min"],
+            ["🚫", "Do not paste text or switch tabs — these are recorded as signals"],
+            ["🤖", "Your answers will be evaluated based on technical depth and accuracy"],
+            ["🔄", `Attempt ${attempts + 1} of ${maxAttempts} available. Use them wisely.`],
+          ].map(([icon, text]) => (
+            <div key={text as string} style={{ display: "flex", gap: 12, fontSize: 14, color: "var(--text-secondary)" }}>
+              <span>{icon}</span><span>{text}</span>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ background: "rgba(168,85,247,0.06)", border: "1px solid rgba(168,85,247,0.15)", borderRadius: 8, padding: 14, fontSize: 13, color: "var(--text-secondary)", marginBottom: 20 }}>
+          <strong>Integrity Notice:</strong> This assessment is monitored for integrity. Copy-pasting, switching tabs, or AI-generated answers are automatically flagged. Significant violations may end the session and affect your eligibility for future openings. Please complete the interview independently — we're evaluating <em>your</em> thinking.
+        </div>
+
+        <label style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 28, cursor: "pointer" }}>
+          <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} style={{ marginTop: 4, width: 16, height: 16, accentColor: "var(--purple)" }} />
+          <span style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>
+            I understand this session monitors paste events and tab switching for integrity purposes, and I agree to complete this assessment independently.
+          </span>
+        </label>
+
+        <button className="btn btn-primary btn-lg" style={{ width: "100%" }} onClick={onStart} disabled={!consent}>
+          Start Interview <ChevronRight size={16} />
+        </button>
       </motion.div>
     </Layout>
   );

@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 export default async function CareersPage() {
   try {
     const postings = await prisma.jobPosting.findMany({
-      where: { status: "Open" },
+      where: { status: "Published" },
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
@@ -26,6 +26,8 @@ export default async function CareersPage() {
         requirements: true,
         universityRequired: true,
         deadline: true,
+        showApplicantCount: true,
+        publishedDate: true,
         _count: { select: { applicants: true } },
       },
     });
@@ -33,6 +35,7 @@ export default async function CareersPage() {
     const serialized = postings.map((p) => ({
       ...p,
       deadline: p.deadline.toISOString(),
+      publishedDate: p.publishedDate ? p.publishedDate.toISOString() : new Date().toISOString(),
     }));
 
     return <CareersJobBoard postings={serialized} />;

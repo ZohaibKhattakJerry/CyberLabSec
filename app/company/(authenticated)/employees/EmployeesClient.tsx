@@ -10,6 +10,7 @@ type Employee = {
   employeeCode: string; employmentType: string; status: string;
   startDate: string; endDate: string | null; teamId: string | null;
   mustResetPassword: boolean; photoUrl: string | null; tier: string;
+  onboardingCompleted: boolean;
   team: { id: string; name: string } | null;
   _count: { submissions: number };
 };
@@ -21,6 +22,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
   const [isPending, startTransition] = useTransition();
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
+  const [filterTeam, setFilterTeam] = useState("All");
   
   // Edit State
   const [editEmployee, setEditEmployee] = useState<Employee | null>(null);
@@ -49,7 +51,8 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
     const q = search.toLowerCase();
     const matchSearch = !q || e.name.toLowerCase().includes(q) || e.email.toLowerCase().includes(q) || e.employeeCode.toLowerCase().includes(q);
     const matchStatus = filterStatus === "All" || e.status === filterStatus;
-    return matchSearch && matchStatus;
+    const matchTeam = filterTeam === "All" || e.teamId === filterTeam;
+    return matchSearch && matchStatus && matchTeam;
   });
 
   const openEdit = (e: Employee) => {
@@ -198,6 +201,10 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
           <option value="Active">Active</option>
           <option value="Terminated">Terminated</option>
         </select>
+        <select className="input" style={{ width: 160 }} value={filterTeam} onChange={e => setFilterTeam(e.target.value)}>
+          <option value="All">All Teams</option>
+          {teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+        </select>
         <div className="badge badge-gray" style={{ alignSelf: "center", padding: "6px 12px" }}>{filtered.length} results</div>
       </div>
 
@@ -210,6 +217,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
               <th>Tier</th>
               <th>Team</th>
               <th>Type</th>
+              <th>Onboarding</th>
               <th>Start Date</th>
               <th>Status</th>
               <th>Actions</th>
@@ -218,29 +226,32 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
           <tbody>
             {filtered.map((e: any) => (
               <tr key={e.id}>
-                <td>
+                <td data-label="Employee">
                   <div style={{ fontWeight: 600, fontSize: 13, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 6 }}>
                     {e.name}
                     {e.mustResetPassword && <span className="badge badge-amber" style={{ fontSize: 9 }}>Must Reset PW</span>}
                   </div>
                   <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{e.employeeCode} · {e.email}</div>
                 </td>
-                <td style={{ fontSize: 13 }}>{e.designation}</td>
-                <td style={{ fontSize: 13 }}>
+                <td data-label="Role" style={{ fontSize: 13 }}>{e.designation}</td>
+                <td data-label="Tier" style={{ fontSize: 13 }}>
                   <span className={`badge ${e.tier === "Executive" ? "badge-amber" : e.tier === "Lead" ? "badge-blue" : "badge-gray"}`}>{e.tier || "Standard"}</span>
                 </td>
-                <td style={{ fontSize: 13 }}>{e.team?.name || <span style={{ color: "var(--text-muted)" }}>Unassigned</span>}</td>
-                <td>
+                <td data-label="Team" style={{ fontSize: 13 }}>{e.team?.name || <span style={{ color: "var(--text-muted)" }}>Unassigned</span>}</td>
+                <td data-label="Type">
                   <span className={`badge ${e.employmentType === "Employee" ? "badge-blue" : "badge-purple"}`}>
                     {e.employmentType === "Employee" ? <Shield size={10} /> : <Award size={10} />}
                     {e.employmentType}
                   </span>
                 </td>
-                <td style={{ fontSize: 12, color: "var(--text-muted)" }}>{format(new Date(e.startDate), "MMM d, yyyy")}</td>
-                <td>
+                <td data-label="Onboarding" style={{ fontSize: 13 }}>
+                  {e.onboardingCompleted ? <span style={{ color: "var(--green)", display: "flex", alignItems: "center", gap: 4 }}><CheckCircle size={12} /> Done</span> : <span style={{ color: "var(--amber)" }}>Pending</span>}
+                </td>
+                <td data-label="Start Date" style={{ fontSize: 12, color: "var(--text-muted)" }}>{format(new Date(e.startDate), "MMM d, yyyy")}</td>
+                <td data-label="Status">
                   <span className={`badge ${e.status === "Active" ? "badge-green" : "badge-purple"}`}>{e.status}</span>
                 </td>
-                <td>
+                <td data-label="Actions">
                   <div style={{ display: "flex", gap: 6 }}>
                     <button className="btn btn-ghost btn-sm" onClick={() => { setAnalyticsEmployee(e); setGeneratedReport(null); }} title="Performance Analytics"><Award size={13} /></button>
                     <button className="btn btn-ghost btn-sm" onClick={() => openEdit(e)} title="Edit"><Edit2 size={13} /></button>

@@ -1,4 +1,4 @@
-import { questionBank, BankQuestion } from "./questionsBank";
+import { prisma } from "@/lib/prisma";
 
 export interface ScreeningResult {
   fitScore: number; // 0-100
@@ -69,28 +69,30 @@ export async function screenApplicant(
     .sort((a, b) => b[1] - a[1])
     .map(x => x[0]);
 
-  // Select questions
-  const openQuestions: BankQuestion[] = [];
-  const mcqQuestions: BankQuestion[] = [];
+  // Select questions from DB
+  const dbQuestions = await prisma.questionBank.findMany();
+  
+  const poolOpen = shuffle(dbQuestions.filter(q => q.type === "open"));
+  const poolMcq = shuffle(dbQuestions.filter(q => q.type === "mcq"));
 
-  const poolOpen = shuffle(questionBank.filter(q => q.type === "open"));
-  const poolMcq = shuffle(questionBank.filter(q => q.type === "mcq"));
+  const openQuestions = [];
+  const mcqQuestions = [];
 
   // Pick 5 Open
   for (const cat of topCategories) {
     if (openQuestions.length >= 5) break;
-    const qs = poolOpen.filter(q => q.category === cat && !openQuestions.includes(q));
+    const qs = poolOpen.filter(q => q.category.toLowerCase() === cat && !openQuestions.find(o => o.id === q.id));
     if (qs.length > 0) openQuestions.push(qs[0]);
   }
   for (const q of poolOpen) {
     if (openQuestions.length >= 5) break;
-    if (!openQuestions.includes(q)) openQuestions.push(q);
+    if (!openQuestions.find(o => o.id === q.id)) openQuestions.push(q);
   }
 
   // Pick 15 MCQ
   for (const cat of topCategories) {
     if (mcqQuestions.length >= 15) break;
-    const qs = poolMcq.filter(q => q.category === cat && !mcqQuestions.includes(q));
+    const qs = poolMcq.filter(q => q.category.toLowerCase() === cat && !mcqQuestions.find(m => m.id === q.id));
     if (qs.length > 0) {
       mcqQuestions.push(qs[0]);
       if (qs[1] && mcqQuestions.length < 15) mcqQuestions.push(qs[1]);
@@ -99,16 +101,16 @@ export async function screenApplicant(
   }
   for (const q of poolMcq) {
     if (mcqQuestions.length >= 15) break;
-    if (!mcqQuestions.includes(q)) mcqQuestions.push(q);
+    if (!mcqQuestions.find(m => m.id === q.id)) mcqQuestions.push(q);
   }
 
   // Format correctly
   const finalQuestions: InterviewQuestion[] = [
     ...openQuestions.map((q, i) => ({
-      id: `open_${i}`, type: q.type, prompt: q.prompt, rubric: q.rubric, points: 10
+      id: q.id, type: q.type as "open", prompt: q.prompt, rubric: q.rubric || "", points: q.points
     })),
     ...mcqQuestions.map((q, i) => ({
-      id: `mcq_${i}`, type: q.type, prompt: q.prompt, options: q.options, correctOption: q.correctOption, points: 5
+      id: q.id, type: q.type as "mcq", prompt: q.prompt, options: JSON.parse(q.options), correctOption: q.correctOption || 0, points: q.points
     }))
   ];
 
@@ -153,8 +155,8 @@ export async function gradeOpenAnswer(
 ): Promise<{ score: number; feedback: string; aiLikelihood: number }> {
   const ansLower = answer.toLowerCase();
   
-  const bankQ = questionBank.find(q => q.prompt === questionText);
-  let keywords = bankQ?.keywords || rubric.toLowerCase().split(/\W+/).filter(w => w.length > 4);
+  const dbQuestion = await prisma.questionBank.findFirst({ where: { prompt: questionText } });
+  let keywords = dbQuestion && dbQuestion.keywords ? JSON.parse(dbQuestion.keywords) : rubric.toLowerCase().split(/\W+/).filter(w => w.length > 4);
   
   let matchCount = 0;
   for (const kw of keywords) {

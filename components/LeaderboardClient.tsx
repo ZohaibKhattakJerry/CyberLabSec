@@ -56,18 +56,18 @@ export default function LeaderboardClient({ employees }: { employees: Leaderboar
 
               return (
                 <tr key={e.id} style={{ background: rank <= 3 ? "rgba(255,255,255,0.02)" : "transparent" }}>
-                  <td style={{ textAlign: "center", fontWeight: 800, fontSize: 16, color: rank <= 3 ? "var(--text-primary)" : "var(--text-muted)" }}>
+                  <td data-label="Rank" style={{ textAlign: "center", fontWeight: 800, fontSize: 16, color: rank <= 3 ? "var(--text-primary)" : "var(--text-muted)" }}>
                     {RankIcon ? <div style={{ display: "flex", justifyContent: "center" }}>{RankIcon}</div> : `#${rank}`}
                   </td>
-                  <td>
+                  <td data-label="Employee">
                     <div style={{ fontWeight: 600, fontSize: 14 }}>{e.name}</div>
                     {e.tier === "Executive" && <div style={{ fontSize: 11, color: "var(--amber)" }}>Executive</div>}
                     {e.tier === "Lead" && <div style={{ fontSize: 11, color: "var(--blue)" }}>Team Lead</div>}
                   </td>
-                  <td style={{ fontSize: 13, color: "var(--text-secondary)" }}>{e.designation}</td>
-                  <td><span className="badge badge-gray">{e.teamName}</span></td>
-                  <td style={{ textAlign: "right", fontSize: 14, fontWeight: 500 }}>{e.submissionsCount}</td>
-                  <td style={{ textAlign: "right", paddingRight: 24, fontSize: 16, fontWeight: 700, color: "var(--purple)" }}>{e.score.toLocaleString()}</td>
+                  <td data-label="Role" style={{ fontSize: 13, color: "var(--text-secondary)" }}>{e.designation}</td>
+                  <td data-label="Team"><span className="badge badge-gray">{e.teamName}</span></td>
+                  <td data-label="Approved Tasks" style={{ textAlign: "right", fontSize: 14, fontWeight: 500 }}>{e.submissionsCount}</td>
+                  <td data-label="Score" style={{ textAlign: "right", paddingRight: 24, fontSize: 16, fontWeight: 700, color: "var(--purple)" }}>{e.score.toLocaleString()}</td>
                 </tr>
               );
             })}

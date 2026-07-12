@@ -2,7 +2,21 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import ApplicationForm from "./ApplicationForm";
 
+import { Metadata } from "next";
+
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({ params }: { params: Promise<{ postingId: string }> }): Promise<Metadata> {
+  const { postingId } = await params;
+  const posting = await prisma.jobPosting.findUnique({ where: { id: postingId } });
+  
+  if (!posting) return { title: "Not Found" };
+  
+  return {
+    title: `Apply: ${posting.title} - CyberLabSec`,
+    description: posting.description.substring(0, 150) + "...",
+  };
+}
 
 export default async function ApplyPage({
   params,
@@ -14,7 +28,7 @@ export default async function ApplyPage({
   let posting;
   try {
     posting = await prisma.jobPosting.findUnique({
-      where: { id: postingId, status: "Open" },
+      where: { id: postingId, status: "Published" },
       select: {
         id: true,
         title: true,

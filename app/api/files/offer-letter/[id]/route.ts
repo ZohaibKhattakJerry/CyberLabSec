@@ -123,7 +123,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         </div>
         ` : ''}
 
-        <p>Please review this offer, and if you choose to accept, sign and return a copy to us by the end of this week. Upon acceptance, we will initiate your onboarding process through the CyberLab Employee Portal.</p>
+        <p>Please review this offer, and if you choose to accept, sign and return a copy to us by the end of this week. Upon acceptance, we will initiate your onboarding process through the CyberLabSec Employee Portal.</p>
 
         <p>We look forward to welcoming you to the team!</p>
 

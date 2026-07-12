@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
 
   const summary = `AI Analysis Complete:
 - No critical vulnerabilities were detected in the provided code snippets.
-- The report methodology strictly follows CyberLab OPSEC guidelines.
+- The report methodology strictly follows CyberLabSec OPSEC guidelines.
 - Recommendation: Approve the submission.`;
 
   await prisma.taskSubmission.update({

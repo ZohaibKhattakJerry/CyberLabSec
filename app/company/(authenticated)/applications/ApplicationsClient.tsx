@@ -3,15 +3,21 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { Search, Filter, X, Eye, UserCheck, UserX, Loader2, FileText, ChevronRight, Check } from "lucide-react";
+import { Search, Filter, X, Eye, UserCheck, UserX, Loader2, FileText, ChevronRight, Check, AlertTriangle, Clock } from "lucide-react";
 
 type Applicant = {
   id: string; fullName: string; email: string; phone: string;
+  city: string | null; linkedIn: string | null; github: string | null;
+  portfolio: string | null; universityName: string | null; cve: string | null;
   status: string; fitScore: number | null; fitReasoning: string | null;
   createdAt: string; jobPostingId: string;
   internalRating: number | null; privateNotes: string | null;
   jobPosting: { id: string; title: string; type: string };
-  interviewSession: { id: string; totalScore: number | null; result: string | null; completedAt: string | null } | null;
+  interviewSession: { 
+    id: string; totalScore: number | null; result: string | null; 
+    startedAt: string | null; completedAt: string | null;
+    cheatingSignals: string; integrityViolations: string;
+  } | null;
 };
 
 type Posting = { id: string; title: string };
@@ -129,23 +135,23 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
           <tbody>
             {filtered.map((a: Applicant) => (
               <tr key={a.id}>
-                <td>
+                <td data-label="Applicant">
                   <div style={{ fontWeight: 600, fontSize: 13 }}>{a.fullName}</div>
                   <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{a.email}</div>
                 </td>
-                <td>
+                <td data-label="Position">
                   <div style={{ fontSize: 13 }}>{a.jobPosting.title}</div>
                 </td>
-                <td>
+                <td data-label="AI Score">
                   {a.fitScore !== null ? (
                     <span style={{ fontWeight: 700, color: a.fitScore >= 70 ? "var(--green)" : a.fitScore >= 50 ? "var(--amber)" : "var(--purple)" }}>
                       {a.fitScore}%
                     </span>
                   ) : <span style={{ color: "var(--text-muted)" }}>—</span>}
                 </td>
-                <td><span className={`badge ${STATUS_COLORS[a.status] || "badge-gray"}`}>{a.status}</span></td>
-                <td style={{ fontSize: 12, color: "var(--text-muted)" }}>{format(new Date(a.createdAt), "MMM d, yyyy")}</td>
-                <td>
+                <td data-label="Stage"><span className={`badge ${STATUS_COLORS[a.status] || "badge-gray"}`}>{a.status}</span></td>
+                <td data-label="Applied" style={{ fontSize: 12, color: "var(--text-muted)" }}>{format(new Date(a.createdAt), "MMM d, yyyy")}</td>
+                <td data-label="Actions">
                   <button className="btn btn-ghost btn-sm" onClick={() => setSelected(a)}><Eye size={13} /> View</button>
                 </td>
               </tr>
@@ -226,6 +232,71 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                 <div style={{ fontSize: 14, fontWeight: 500 }}>{format(new Date(selected.createdAt), "MMM d, yyyy")}</div>
               </div>
             </div>
+
+            <div style={{ marginBottom: 24, padding: "16px", background: "rgba(255,255,255,0.02)", borderRadius: 8, border: "1px solid var(--border-subtle)" }}>
+              <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, color: "var(--text-muted)", textTransform: "uppercase" }}>Candidate Profile</h3>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, fontSize: 13, color: "var(--text-secondary)" }}>
+                {selected.city && <div><strong>City:</strong> {selected.city}</div>}
+                {selected.universityName && <div><strong>University:</strong> {selected.universityName}</div>}
+                {selected.linkedIn && <div><strong>LinkedIn:</strong> <a href={selected.linkedIn} target="_blank" rel="noopener noreferrer" style={{ color: "var(--purple)" }}>View Profile</a></div>}
+                {selected.github && <div><strong>GitHub:</strong> <a href={selected.github} target="_blank" rel="noopener noreferrer" style={{ color: "var(--purple)" }}>View GitHub</a></div>}
+                {selected.portfolio && <div><strong>Portfolio:</strong> <a href={selected.portfolio} target="_blank" rel="noopener noreferrer" style={{ color: "var(--purple)" }}>View Portfolio</a></div>}
+                {selected.cve && <div><strong>CVEs:</strong> {selected.cve}</div>}
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 24 }}>
+              <div style={{ padding: "12px", background: "rgba(255,255,255,0.02)", borderRadius: 8 }}>
+                <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 4 }}>AI Screening Score</div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: selected.fitScore !== null && selected.fitScore >= 70 ? "var(--green)" : "var(--amber)" }}>{selected.fitScore ?? "—"}%</div>
+              </div>
+              <div style={{ padding: "12px", background: "rgba(255,255,255,0.02)", borderRadius: 8 }}>
+                <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 4 }}>Interview Score</div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: "var(--purple)" }}>{selected.interviewSession?.totalScore ?? "—"}%</div>
+              </div>
+            </div>
+
+            {selected.interviewSession && (
+              <div style={{ marginBottom: 24, padding: "16px", background: "rgba(255,255,255,0.02)", borderRadius: 8, border: "1px solid var(--border-subtle)" }}>
+                <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, color: "var(--text-muted)", textTransform: "uppercase" }}>Interview Details</h3>
+                
+                <div style={{ display: "flex", gap: 24, marginBottom: 16 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--text-secondary)", fontSize: 13 }}>
+                    <Clock size={16} />
+                    {selected.interviewSession.startedAt && selected.interviewSession.completedAt ? (
+                      `${Math.round((new Date(selected.interviewSession.completedAt).getTime() - new Date(selected.interviewSession.startedAt).getTime()) / 60000)} mins spent`
+                    ) : "Time unknown"}
+                  </div>
+                </div>
+
+                {(() => {
+                  try {
+                    const signals = JSON.parse(selected.interviewSession.cheatingSignals);
+                    const violations = JSON.parse(selected.interviewSession.integrityViolations);
+                    const hasViolations = violations.length > 0 || (signals && (signals.pasteAttempts > 0 || signals.tabBlurCount > 0));
+                    
+                    if (!hasViolations) {
+                      return <div style={{ fontSize: 13, color: "var(--green)" }}><Check size={14} style={{ display: "inline", marginRight: 4 }} /> No integrity violations detected.</div>;
+                    }
+
+                    return (
+                      <div>
+                        <div style={{ fontSize: 13, color: "var(--amber)", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
+                          <AlertTriangle size={14} /> <strong>Integrity Flags Detected</strong>
+                        </div>
+                        <ul style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0, paddingLeft: 20 }}>
+                          {signals?.pasteAttempts > 0 && <li>{signals.pasteAttempts} paste attempts</li>}
+                          {signals?.tabBlurCount > 0 && <li>{signals.tabBlurCount} tab switches</li>}
+                          {violations.map((v: string, i: number) => <li key={i}>{v}</li>)}
+                        </ul>
+                      </div>
+                    );
+                  } catch (e) {
+                    return null;
+                  }
+                })()}
+              </div>
+            )}
 
             {selected.fitReasoning && (
               <div style={{ marginBottom: 24 }}>

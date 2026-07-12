@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuthFromCookies } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { Users, Mail, Shield } from "lucide-react";
+import TeamChatClient from "./TeamChatClient";
 
 export default async function TeamPage() {
   const auth = await getAuthFromCookies();
@@ -26,11 +27,23 @@ export default async function TeamPage() {
     include: {
       members: {
         select: { id: true, name: true, designation: true, email: true, photoUrl: true, employeeCode: true }
+      },
+      messages: {
+        orderBy: { createdAt: "desc" },
+        take: 50,
+        include: {
+          employee: { select: { id: true, name: true, photoUrl: true } }
+        }
       }
     }
   });
 
   if (!team) return <div>Team not found</div>;
+
+  const serializedMessages = team.messages.map(m => ({
+    ...m,
+    createdAt: m.createdAt.toISOString()
+  }));
 
   return (
     <div>
@@ -64,6 +77,10 @@ export default async function TeamPage() {
             </div>
           </div>
         ))}
+      </div>
+
+      <div style={{ marginTop: 40 }}>
+        <TeamChatClient messages={serializedMessages} currentUserId={auth.sub} />
       </div>
     </div>
   );

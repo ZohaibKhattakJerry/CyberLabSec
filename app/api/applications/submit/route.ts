@@ -31,9 +31,20 @@ export async function POST(req: NextRequest) {
   const email = formData.get("email") as string;
   const phone = formData.get("phone") as string;
   const cnic = formData.get("cnic") as string;
+  const city = (formData.get("city") as string) || "";
   const universityName = (formData.get("universityName") as string) || "";
   const semester = (formData.get("semester") as string) || "";
-  const portfolioLinks = (formData.get("portfolioLinks") as string) || "";
+  
+  const linkedIn = (formData.get("linkedIn") as string) || "";
+  const github = (formData.get("github") as string) || "";
+  const tryHackMe = (formData.get("tryHackMe") as string) || "";
+  const hackTheBox = (formData.get("hackTheBox") as string) || "";
+  const portfolio = (formData.get("portfolio") as string) || "";
+  const cve = (formData.get("cve") as string) || "";
+  const certifications = (formData.get("certifications") as string) || "";
+  const motivation = (formData.get("motivation") as string) || "";
+  const emailVerified = formData.get("emailVerified") === "true";
+
   const consentData = formData.get("consentData") === "true";
   const consentInterview = formData.get("consentInterview") === "true";
   const cvFile = formData.get("cv") as File | null;
@@ -45,8 +56,8 @@ export async function POST(req: NextRequest) {
   }
 
   // Validate required fields
-  if (!postingId || !fullName || !email || !phone || !cnic || !cvFile || !consentData || !consentInterview) {
-    return NextResponse.json({ error: "All required fields must be filled" }, { status: 400 });
+  if (!postingId || !fullName || !email || !phone || !cnic || !city || !cvFile || !consentData || !consentInterview || !emailVerified || !motivation) {
+    return NextResponse.json({ error: "All required fields must be filled and email verified" }, { status: 400 });
   }
 
   // Validate CNIC format
@@ -101,17 +112,29 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const referenceId = `APP-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
+
     // Create applicant record
     const applicant = await prisma.applicant.create({
       data: {
+        referenceId,
         fullName,
         email,
         phone,
         cnicEncrypted: encryptCNIC(cnic),
         cnicHash,
+        city,
         cvFileUrl: cvUrl,
         photoUrl,
-        portfolioLinks: JSON.stringify(portfolioLinks.split("\n").map((l: any) => l.trim()).filter(Boolean)),
+        linkedIn,
+        github,
+        tryHackMe,
+        hackTheBox,
+        portfolio,
+        cve,
+        certifications,
+        motivation,
+        emailVerified,
         universityName: universityName || null,
         semester: semester || null,
         jobPostingId: postingId,
@@ -131,7 +154,7 @@ export async function POST(req: NextRequest) {
     // before the screening and email sending completes.
     await runScreening(applicant.id, cvUrl, { fullName, email, posting });
 
-    return NextResponse.json({ applicationId: applicant.id, message: "Application received and screened" }, { status: 201 });
+    return NextResponse.json({ applicationId: applicant.id, referenceId: applicant.referenceId, message: "Application received and screened" }, { status: 201 });
   } catch (error) {
     console.error("Database or processing error during application submission:", error);
     return NextResponse.json({ error: "Service temporarily unavailable. Please try again later." }, { status: 503 });

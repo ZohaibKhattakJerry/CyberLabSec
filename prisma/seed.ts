@@ -32,8 +32,8 @@ async function main() {
     update: {},
     create: {
       id: "default-policy",
-      title: "CyberLab Employee Code of Conduct & Confidentiality Policy",
-      body: `# CyberLab — Code of Conduct & Confidentiality
+      title: "CyberLabSec Employee Code of Conduct & Confidentiality Policy",
+      body: `# CyberLabSec — Code of Conduct & Confidentiality
 
 ## 1. Confidentiality
 All work performed at CyberLab, including client names, vulnerabilities discovered, penetration test results, methodologies, and internal communications, is strictly confidential. You must never share this information with anyone outside the company.
