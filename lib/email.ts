@@ -232,3 +232,19 @@ export async function sendAnnouncement(
     `,
   });
 }
+
+export async function sendEmail({ to, subject, html, attachments }: { to: string; subject: string; html: string; attachments?: any[] }) {
+  await transporter.sendMail({
+    from: FROM,
+    to,
+    subject,
+    html: `
+      <div style="${BASE_STYLE}">
+        <div style="${CONTAINER_STYLE}">
+          ${html}
+        </div>
+      </div>
+    `,
+    attachments,
+  });
+}

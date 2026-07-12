@@ -70,14 +70,22 @@ export default async function TaskDetailsPage({ params }: { params: Promise<{ ta
         <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 20, display: "flex", alignItems: "center", gap: 8 }}>
           <UploadCloud size={20} color="var(--purple)" /> Report Submission
         </h2>
-        {submission ? (
+        {submission && submission.status !== "Needs Revision" ? (
           <div style={{ textAlign: "center", padding: 40, border: "1px dashed var(--border-success)", borderRadius: 12, background: "rgba(34, 197, 94, 0.05)" }}>
             <CheckCircle size={40} color="var(--green)" style={{ margin: "0 auto 16px" }} />
-            <h3 style={{ fontSize: 18, fontWeight: 600, color: "var(--green)", marginBottom: 8 }}>Submission Received</h3>
+            <h3 style={{ fontSize: 18, fontWeight: 600, color: "var(--green)", marginBottom: 8 }}>{submission.status === "Approved" ? "Submission Approved" : "Submission Received"}</h3>
             <p style={{ color: "var(--text-secondary)" }}>Your report was securely submitted on {format(submission.submittedAt, "PPP 'at' p")}.</p>
           </div>
         ) : (
-          <TaskSubmitClient taskId={task.id} />
+          <div>
+            {submission?.status === "Needs Revision" && (
+              <div style={{ padding: 16, background: "rgba(220,38,38,0.1)", borderRadius: 8, marginBottom: 20, borderLeft: "3px solid var(--red)" }}>
+                <h4 style={{ color: "var(--red)", fontWeight: 700, fontSize: 14, marginBottom: 4 }}>Revision Needed</h4>
+                <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>{submission.reviewerFeedback}</p>
+              </div>
+            )}
+            <TaskSubmitClient taskId={task.id} deliverableType={task.deliverableType} />
+          </div>
         )}
       </div>
     </div>

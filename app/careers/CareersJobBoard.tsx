@@ -175,7 +175,7 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
             }}
           >
             Hack for a Living.{" "}
-            <span style={{ color: "var(--purple)", display: "block" }}>Join CyberLab.</span>
+            <span style={{ color: "var(--purple)", display: "block" }}>Join CyberLabSec.</span>
           </motion.h1>
 
           <motion.p
@@ -565,7 +565,7 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
         }}
       >
         <p>
-          &copy; 2025 CyberLab. All rights reserved.{" "}
+          &copy; 2025 CyberLabSec. All rights reserved.{" "}
           <Link
             href="https://cyberlabsec.tech"
             style={{ color: "var(--purple)", textDecoration: "none" }}

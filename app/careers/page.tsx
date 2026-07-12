@@ -4,7 +4,7 @@ import { Metadata } from "next";
 import CareersJobBoard from "./CareersJobBoard";
 
 export const metadata: Metadata = {
-  title: "Careers at CyberLab",
+  title: "Careers at CyberLabSec",
   description: "Join CyberLab's offensive security team. Open positions in penetration testing, red teaming, and security research.",
   robots: { index: true, follow: true },
 };

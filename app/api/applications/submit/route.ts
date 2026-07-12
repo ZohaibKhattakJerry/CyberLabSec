@@ -57,18 +57,18 @@ export async function POST(req: NextRequest) {
   const cnicHash = hashCNIC(cnic);
 
   try {
-    // Check for duplicate CNIC with failed/rejected status
-    const existing = await prisma.applicant.findUnique({ where: { cnicHash } });
+    // Check for duplicate CNIC with failed/rejected status for THIS posting
+    const existing = await prisma.applicant.findFirst({ where: { cnicHash, jobPostingId: postingId } });
     if (existing) {
       const blockedStatuses = ["Failed", "Rejected", "Blocked"];
       if (blockedStatuses.includes(existing.status)) {
         return NextResponse.json({
-          error: `A previous application with this CNIC was marked "${existing.status}". You are not eligible to re-apply. If you believe this is an error, please contact us directly.`,
+          error: `A previous application with this CNIC for this role was marked "${existing.status}". You are not eligible to re-apply for this specific role.`,
         }, { status: 403 });
       }
       // Already has active application
       return NextResponse.json({
-        error: "An application with this CNIC already exists. You cannot apply multiple times.",
+        error: "An application with this CNIC already exists for this position. You cannot apply multiple times.",
       }, { status: 409 });
     }
 

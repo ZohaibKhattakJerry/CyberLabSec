@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthFromCookies } from "@/lib/auth";
+import { sendEmail } from "@/lib/email";
 
 export async function PATCH(
   req: NextRequest,
@@ -11,15 +12,43 @@ export async function PATCH(
 
   const { employeeId } = await params;
   const body = await req.json();
-  const { teamId, designation, status } = body;
+  const { teamId, designation, status, customMessage, terminationFileBase64 } = body;
 
   const updateData: Record<string, unknown> = {};
   if (teamId !== undefined) updateData.teamId = teamId || null;
   if (designation !== undefined) updateData.designation = designation;
+  
+  const emp = await prisma.employee.findUnique({ where: { id: employeeId } });
+  if (!emp) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
   if (status !== undefined) {
     if (!["Active", "Terminated"].includes(status)) return NextResponse.json({ error: "Invalid status" }, { status: 400 });
     updateData.status = status;
-    if (status === "Terminated") updateData.endDate = new Date();
+    if (status === "Terminated") {
+      updateData.endDate = new Date();
+      
+      const emailHtml = `
+        <h2>Notice of Employment Termination</h2>
+        <p>Dear ${emp.name},</p>
+        <p>This email serves as official notice that your employment with CyberLabSec has been terminated, effective immediately.</p>
+        ${customMessage ? `<blockquote>${customMessage}</blockquote>` : ""}
+        <p>Please find your official termination letter attached for your records.</p>
+        <p>Your access to company portals and resources has been revoked.</p>
+      `;
+
+      try {
+        await sendEmail({
+          to: emp.email,
+          subject: "Important Notice: Employment Termination",
+          html: emailHtml,
+          attachments: terminationFileBase64 ? [
+            { filename: "CyberLabSec_Termination_Letter.pdf", content: terminationFileBase64, encoding: "base64" }
+          ] : undefined
+        });
+      } catch (e) {
+        console.error("Failed to send termination email:", e);
+      }
+    }
   }
 
   const updated = await prisma.employee.update({
@@ -53,6 +82,8 @@ export async function DELETE(
       prisma.announcement.deleteMany({ where: { OR: [{ employeeId }, { sentById: employeeId }] } }),
       prisma.taskSubmission.deleteMany({ where: { employeeId } }),
       prisma.teamMessage.deleteMany({ where: { employeeId } }),
+      prisma.notification.deleteMany({ where: { userId: employeeId } }),
+      prisma.cEOReview.deleteMany({ where: { submitterId: employeeId } }),
       prisma.employee.delete({ where: { id: employeeId } }),
     ]);
 

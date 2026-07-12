@@ -4,23 +4,33 @@ import CeoReviewClient from "./CeoReviewClient";
 export const dynamic = "force-dynamic";
 
 export default async function CeoReviewPage() {
-  const applicants = await prisma.applicant.findMany({
-    where: { status: "Passed" },
+  const reviews = await prisma.cEOReview.findMany({
+    where: { status: "Pending" },
     include: {
-      jobPosting: { select: { id: true, title: true, type: true } },
-      interviewSession: true,
+      submitter: { select: { name: true, designation: true } },
+      applicant: {
+        include: {
+          jobPosting: { select: { id: true, title: true, type: true } },
+          interviewSession: true,
+        },
+      }
     },
     orderBy: { createdAt: "desc" },
   });
 
-  const serializedApplicants = applicants.map((a: any) => ({
-    ...a,
-    createdAt: a.createdAt.toISOString(),
-    interviewSession: a.interviewSession ? {
-      ...a.interviewSession,
-      completedAt: a.interviewSession.completedAt?.toISOString() || null,
+  const serializedReviews = reviews.map((r: any) => ({
+    ...r,
+    createdAt: r.createdAt.toISOString(),
+    updatedAt: r.updatedAt.toISOString(),
+    applicant: r.applicant ? {
+      ...r.applicant,
+      createdAt: r.applicant.createdAt.toISOString(),
+      interviewSession: r.applicant.interviewSession ? {
+        ...r.applicant.interviewSession,
+        completedAt: r.applicant.interviewSession.completedAt?.toISOString() || null,
+      } : null
     } : null
   }));
 
-  return <CeoReviewClient applicants={serializedApplicants} />;
+  return <CeoReviewClient reviews={serializedReviews} />;
 }

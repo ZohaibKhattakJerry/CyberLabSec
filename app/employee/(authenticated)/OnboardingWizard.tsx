@@ -83,7 +83,7 @@ export default function OnboardingWizard({ employee }: { employee: Employee }) {
             </div>
             <h1 style={{ fontSize: 36, fontWeight: 800, marginBottom: 16 }}>Welcome, {employee.name}!</h1>
             <p style={{ fontSize: 18, color: "var(--text-secondary)", maxWidth: 600, margin: "0 auto 40px" }}>
-              We are thrilled to have you join CyberLab as our new <span style={{ color: "var(--purple)", fontWeight: 600 }}>{employee.designation}</span>.
+              We are thrilled to have you join CyberLabSec as our new <span style={{ color: "var(--purple)", fontWeight: 600 }}>{employee.designation}</span>.
               This wizard will guide you through our core principles, platform tools, and security policies.
             </p>
           </div>
@@ -120,12 +120,12 @@ export default function OnboardingWizard({ employee }: { employee: Employee }) {
             <div className="card" style={{ padding: 32, marginBottom: 24 }}>
               <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 12 }}>Our Mission</h3>
               <p style={{ color: "var(--text-secondary)", marginBottom: 24 }}>
-                At CyberLab, our mission is to proactively identify and neutralize digital threats before they can be exploited. 
+                At CyberLabSec, our mission is to proactively identify and neutralize digital threats before they can be exploited. 
                 We act as the ultimate line of defense for critical infrastructures worldwide.
               </p>
               <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 12 }}>Your Role</h3>
               <p style={{ color: "var(--text-secondary)" }}>
-                As part of the <strong>{employee.team?.name || "CyberLab Team"}</strong>, you will be expected to maintain the highest standards of operational security (OPSEC) while executing your assigned tasks.
+                As part of the <strong>{employee.team?.name || "CyberLabSec Team"}</strong>, you will be expected to maintain the highest standards of operational security (OPSEC) while executing your assigned tasks.
               </p>
             </div>
           </div>
@@ -151,7 +151,7 @@ export default function OnboardingWizard({ employee }: { employee: Employee }) {
               </div>
               <div className="card" style={{ padding: 24 }}>
                 <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>🔔 Announcements</h3>
-                <p style={{ color: "var(--text-muted)", fontSize: 14 }}>Real-time updates from CyberLab Command regarding global intel and system events.</p>
+                <p style={{ color: "var(--text-muted)", fontSize: 14 }}>Real-time updates from CyberLabSec Command regarding global intel and system events.</p>
               </div>
             </div>
           </div>
@@ -235,7 +235,7 @@ export default function OnboardingWizard({ employee }: { employee: Employee }) {
             </div>
             <h1 style={{ fontSize: 32, fontWeight: 800, marginBottom: 16 }}>You are all set!</h1>
             <p style={{ fontSize: 18, color: "var(--text-secondary)", maxWidth: 500, margin: "0 auto 40px" }}>
-              Your workspace is ready. Click the button below to enter the CyberLab Employee Portal and view your dashboard.
+              Your workspace is ready. Click the button below to enter the CyberLabSec Employee Portal and view your dashboard.
             </p>
           </div>
         );

@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Careers — CyberLab",
-  description: "Join CyberLab — offensive security careers and internships. Work on real penetration tests, vulnerability research, and red team operations.",
+  title: "Careers — CyberLabSec",
+  description: "Join CyberLabSec — offensive security careers and internships. Work on real penetration tests, vulnerability research, and red team operations.",
   robots: {
     index: true,
     follow: true,
   },
   openGraph: {
-    title: "Careers at CyberLab",
+    title: "Careers at CyberLabSec",
     description: "Join our offensive security team. Real pentests. Real impact.",
     type: "website",
   },

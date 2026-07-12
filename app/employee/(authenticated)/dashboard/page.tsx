@@ -58,6 +58,11 @@ export default async function Dashboard() {
     return a.isPinned ? -1 : 1;
   });
 
+  const isExecutive = employee.tier === "Executive" || auth.role === "admin";
+  const displayTeamName = employee.team?.name || (isExecutive ? "Command Level" : "Unassigned");
+  const displayRole = isExecutive ? employee.designation : employee.employmentType;
+  const displaySubRole = isExecutive ? "Executive Leadership" : employee.designation;
+
   return (
     <div>
       {/* Welcome */}
@@ -70,9 +75,9 @@ export default async function Dashboard() {
 
       {/* Status cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16, marginBottom: 28 }}>
-        <StatCard icon={<Briefcase size={18} color="var(--purple)" />} label="Role" value={employee.employmentType} sub={employee.designation} />
+        <StatCard icon={<Briefcase size={18} color="var(--purple)" />} label="Role" value={displayRole} sub={displaySubRole} />
         <StatCard icon={<Clock size={18} color="var(--amber)" />} label="Start Date" value={format(employee.startDate, "MMM d, yyyy")} sub={employee.employmentType === "Intern" ? (daysRemaining !== null ? `${daysRemaining} days remaining` : "—") : "Full-time"} />
-        <StatCard icon={<Users size={18} color="var(--blue)" />} label="Team" value={employee.team?.name || "Unassigned"} sub={`${employee.team?.members.length || 0} members`} />
+        <StatCard icon={<Users size={18} color="var(--blue)" />} label="Team" value={displayTeamName} sub={`${employee.team?.members.length || 0} members`} />
         <StatCard icon={<CheckSquare size={18} color="var(--green)" />} label="Active Tasks" value={String(employee.team?.tasks.length || 0)} sub="assigned to your team" />
       </div>
 
@@ -80,11 +85,13 @@ export default async function Dashboard() {
         {/* Tasks */}
         <div className="card" style={{ padding: 24 }}>
           <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Upcoming Tasks</h2>
-          {employee.team?.tasks.length === 0 ? (
+          {!employee.team ? (
+            <p style={{ color: "var(--text-muted)", fontSize: 14 }}>{isExecutive ? "You oversee all teams. Tasks are assigned at the team level." : "You are not assigned to a team yet."}</p>
+          ) : employee.team.tasks.length === 0 ? (
             <p style={{ color: "var(--text-muted)", fontSize: 14 }}>No upcoming tasks.</p>
           ) : (
             <div style={{ display: "grid", gap: 10 }}>
-              {employee.team?.tasks.map((task) => {
+              {employee.team.tasks.map((task) => {
                 const submitted = task.submissions.length > 0;
                 const days = differenceInDays(task.deadline, new Date());
                 return (

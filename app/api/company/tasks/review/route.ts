@@ -6,25 +6,51 @@ export async function POST(req: NextRequest) {
   const auth = await getAuthFromCookies();
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const { submissionId, status } = await req.json();
-  if (!submissionId || !status) return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+  const { submissionId, status, feedback } = await req.json();
 
-  const submission = await prisma.taskSubmission.update({
+  const submission = await prisma.taskSubmission.findUnique({
     where: { id: submissionId },
-    data: { status },
-    include: { task: true, employee: true },
+    include: { employee: true, task: true },
   });
 
-  // Create notification for employee
-  await prisma.notification.create({
-    data: {
-      userId: submission.employeeId,
-      title: "Submission Reviewed",
-      message: `Your submission for "${submission.task.title}" has been marked as ${status}.`,
-      type: "Task",
-      link: `/employee/tasks/${submission.taskId}`,
+  if (!submission) return NextResponse.json({ error: "Submission not found" }, { status: 404 });
+
+  await prisma.taskSubmission.update({
+    where: { id: submissionId },
+    data: { 
+      status,
+      reviewerFeedback: feedback || submission.reviewerFeedback,
     },
   });
 
-  return NextResponse.json({ success: true, status });
+  await prisma.activityLog.create({
+    data: {
+      actorId: auth.sub, actorType: "Admin", action: "TASK_REVIEWED",
+      metadata: JSON.stringify({ submissionId, status }),
+    },
+  }).catch(() => {});
+
+  if (status === "Approved") {
+    await prisma.notification.create({
+      data: {
+        userId: submission.employeeId,
+        title: "Task Approved",
+        message: `Your submission for "${submission.task.title}" was approved.`,
+        type: "Task",
+        link: `/employee/tasks/${submission.taskId}`,
+      }
+    });
+  } else if (status === "Needs Revision") {
+    await prisma.notification.create({
+      data: {
+        userId: submission.employeeId,
+        title: "Task Revision Requested",
+        message: `Your submission for "${submission.task.title}" requires revisions.`,
+        type: "Task",
+        link: `/employee/tasks/${submission.taskId}`,
+      }
+    });
+  }
+
+  return NextResponse.json({ success: true });
 }

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Shield, LayoutDashboard, Briefcase, Users, ClipboardList, Bell, Settings, LogOut, Menu, X, ChevronRight, FileText } from "lucide-react";
+import { Shield, LayoutDashboard, Briefcase, Users, ClipboardList, Bell, Settings, LogOut, Menu, X, ChevronRight, FileText, Trophy } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 
 const NAV = [
@@ -13,6 +13,7 @@ const NAV = [
   { href: "/company/ceo-review", label: "CEO Review", icon: Shield },
   { href: "/company/employees", label: "Employees", icon: Users },
   { href: "/company/teams", label: "Teams", icon: Users },
+  { href: "/company/leaderboard", label: "Leaderboard", icon: Trophy },
   { href: "/company/tasks", label: "Tasks", icon: ClipboardList },
   { href: "/company/announcements", label: "Announcements", icon: Bell },
   { href: "/company/settings", label: "Settings", icon: Settings },

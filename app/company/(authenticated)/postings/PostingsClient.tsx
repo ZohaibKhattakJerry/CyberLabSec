@@ -8,14 +8,14 @@ import { Plus, X, Loader2, Briefcase, ToggleLeft, ToggleRight, Edit2, Trash2, Us
 type Posting = {
   id: string; title: string; type: string; department: string; location: string;
   description: string; requirements: string; universityRequired: boolean;
-  deadline: string; status: string; shortlistThreshold: number; passMark: number;
+  deadline: string; status: string; passMark: number;
   createdAt: string; _count: { applicants: number };
 };
 
 const EMPTY_FORM = {
   title: "", type: "Job", department: "", location: "Remote",
   description: "", requirements: "", universityRequired: false,
-  deadline: "", shortlistThreshold: 50, passMark: 60,
+  deadline: "", passMark: 60, status: "Draft"
 };
 
 export default function PostingsClient({ postings }: { postings: Posting[] }) {
@@ -34,19 +34,22 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
       title: p.title, type: p.type, department: p.department, location: p.location,
       description: p.description, requirements: p.requirements,
       universityRequired: p.universityRequired, deadline: p.deadline.slice(0, 16),
-      shortlistThreshold: p.shortlistThreshold, passMark: p.passMark,
+      passMark: p.passMark, status: p.status,
     });
     setMsg(""); setShowForm(true);
   };
 
-  const handleSave = async () => {
+  const handleSave = async (saveAsDraft = false) => {
     if (!form.title || !form.department || !form.deadline) { setMsg("Title, department and deadline are required."); return; }
     setLoading(true); setMsg("");
+    
+    const payload = { ...form, status: saveAsDraft ? "Draft" : (form.status === "Draft" ? "Published" : form.status) };
+    
     const url = editPosting ? `/api/company/postings/${editPosting.id}` : "/api/company/postings";
     const method = editPosting ? "PATCH" : "POST";
     const res = await fetch(url, {
       method, headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify(payload),
     });
     const data = await res.json();
     setLoading(false);
@@ -56,7 +59,7 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
   };
 
   const toggleStatus = async (p: Posting) => {
-    const newStatus = p.status === "Open" ? "Closed" : "Open";
+    const newStatus = p.status === "Published" ? "Closed" : "Published";
     await fetch(`/api/company/postings/${p.id}`, {
       method: "PATCH", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: newStatus }),
@@ -92,7 +95,7 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
               <div style={{ flex: 1 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
                   <h3 style={{ fontSize: 15, fontWeight: 700 }}>{p.title}</h3>
-                  <span className={`badge ${p.status === "Open" ? "badge-green" : "badge-gray"}`}>{p.status}</span>
+                  <span className={`badge ${p.status === "Published" ? "badge-green" : p.status === "Draft" ? "badge-gray" : "badge-amber"}`}>{p.status}</span>
                   <span className={`badge ${p.type === "Job" ? "badge-blue" : "badge-purple"}`}>{p.type}</span>
                 </div>
                 <div style={{ fontSize: 12, color: "var(--text-muted)", display: "flex", gap: 16 }}>
@@ -104,10 +107,12 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
                 </div>
               </div>
               <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-                <button className="btn btn-ghost btn-sm" onClick={() => toggleStatus(p)} title={p.status === "Open" ? "Close" : "Open"} style={{ color: p.status === "Open" ? "var(--amber)" : "var(--green)" }}>
-                  {p.status === "Open" ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
-                  {p.status === "Open" ? "Close" : "Open"}
-                </button>
+                {p.status !== "Draft" && (
+                  <button className="btn btn-ghost btn-sm" onClick={() => toggleStatus(p)} title={p.status === "Published" ? "Close" : "Publish"} style={{ color: p.status === "Published" ? "var(--amber)" : "var(--green)" }}>
+                    {p.status === "Published" ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
+                    {p.status === "Published" ? "Close" : "Publish"}
+                  </button>
+                )}
                 <button className="btn btn-ghost btn-sm" onClick={() => openEdit(p)}><Edit2 size={13} /></button>
                 <button className="btn btn-danger btn-sm" onClick={() => deletePosting(p.id, p.title)} disabled={p._count.applicants > 0}><Trash2 size={13} /></button>
               </div>
@@ -167,9 +172,11 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
             </div>
             {msg && <p style={{ fontSize: 13, color: "var(--purple-light)", marginTop: 14 }}>{msg}</p>}
             <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
-              <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setShowForm(false)} disabled={loading}>Cancel</button>
-              <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleSave} disabled={loading}>
-                {loading ? <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> : editPosting ? "Save Changes" : "Publish Posting"}
+              <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => handleSave(true)} disabled={loading}>
+                {loading && form.status === "Draft" ? <Loader2 size={14} className="spin" /> : "Save Draft"}
+              </button>
+              <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => handleSave(false)} disabled={loading}>
+                {loading && form.status !== "Draft" ? <Loader2 size={14} className="spin" /> : editPosting && form.status !== "Draft" ? "Save Changes" : "Publish Posting"}
               </button>
             </div>
           </div>

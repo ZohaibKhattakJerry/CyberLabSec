@@ -14,10 +14,13 @@ export async function POST(req: NextRequest) {
   catch { return NextResponse.json({ error: "Invalid form data" }, { status: 400 }); }
 
   const taskId = formData.get("taskId") as string;
+  const action = formData.get("action") as string;
+  const textResponse = formData.get("textResponse") as string;
+  const linkResponse = formData.get("linkResponse") as string;
+  
   if (!taskId) return NextResponse.json({ error: "Task ID required" }, { status: 400 });
 
   const files = formData.getAll("files") as File[];
-  if (!files || files.length === 0) return NextResponse.json({ error: "At least one file is required" }, { status: 400 });
 
   // Verify task belongs to employee's team
   const employee = await prisma.employee.findUnique({
@@ -35,10 +38,12 @@ export async function POST(req: NextRequest) {
   const existing = await prisma.taskSubmission.findUnique({
     where: { taskId_employeeId: { taskId, employeeId: auth.sub } },
   });
-  if (existing) return NextResponse.json({ error: "You have already submitted this task" }, { status: 409 });
+  if (existing && ["Pending", "Under Review", "Approved"].includes(existing.status) && action !== "Draft") {
+    return NextResponse.json({ error: "You have already submitted this task" }, { status: 409 });
+  }
 
   // Save files
-  const savedPaths: string[] = [];
+  const savedPaths: string[] = existing ? JSON.parse(existing.files) : [];
   for (const file of files) {
     if (file.size > 50 * 1024 * 1024) {
       return NextResponse.json({ error: `File "${file.name}" exceeds 50MB limit` }, { status: 400 });
@@ -47,27 +52,46 @@ export async function POST(req: NextRequest) {
     savedPaths.push(path);
   }
 
-  await prisma.taskSubmission.create({
-    data: {
-      taskId,
-      employeeId: auth.sub,
-      files: JSON.stringify(savedPaths),
-    },
-  });
+  const finalStatus = action === "Draft" ? "Draft" : "Pending";
+
+  if (existing) {
+    await prisma.taskSubmission.update({
+      where: { id: existing.id },
+      data: {
+        textResponse: textResponse || existing.textResponse,
+        linkResponse: linkResponse || existing.linkResponse,
+        files: JSON.stringify(savedPaths),
+        status: finalStatus,
+      }
+    });
+  } else {
+    await prisma.taskSubmission.create({
+      data: {
+        taskId,
+        employeeId: auth.sub,
+        textResponse: textResponse || null,
+        linkResponse: linkResponse || null,
+        files: JSON.stringify(savedPaths),
+        status: finalStatus,
+      },
+    });
+  }
 
   await prisma.activityLog.create({
-    data: { actorId: auth.sub, actorType: "Employee", action: "TASK_SUBMIT", metadata: JSON.stringify({ taskId, taskTitle: task.title }) },
+    data: { actorId: auth.sub, actorType: "Employee", action: "TASK_SUBMIT", metadata: JSON.stringify({ taskId, taskTitle: task.title, finalStatus }) },
   }).catch(() => {});
 
-  await prisma.notification.create({
-    data: {
-      userId: "admin",
-      title: "New Task Submission",
-      message: `${employee.name || "An employee"} submitted a report for "${task.title}".`,
-      type: "Task",
-      link: `/company/tasks/${taskId}`,
-    },
-  });
+  if (finalStatus === "Pending") {
+    await prisma.notification.create({
+      data: {
+        userId: "admin",
+        title: "New Task Submission",
+        message: `${employee.name || "An employee"} submitted a report for "${task.title}".`,
+        type: "Task",
+        link: `/company/tasks/${taskId}`,
+      },
+    });
+  }
 
   return NextResponse.json({ success: true });
 }

@@ -20,9 +20,11 @@ model Applicant {
   universityName   String?
   semester         String?
   jobPostingId     String
-  status           String            @default("Applied")
+  status           String            @default("Applied") // Applied, Screening, Interview, Offer, Hired, Rejected, Withdrawn
   fitScore         Int?
   fitReasoning     String?
+  internalRating   Int?
+  privateNotes     String?
   consentData      String            @default("{}")
   ipAddress        String?
   createdAt        DateTime          @default(now())
@@ -30,6 +32,7 @@ model Applicant {
   jobPosting       JobPosting        @relation(fields: [jobPostingId], references: [id])
   employeeRecord   Employee?
   interviewSession InterviewSession?
+  ceoReviews       CEOReview[]
 }
 
 model JobPosting {
@@ -42,7 +45,7 @@ model JobPosting {
   requirements       String
   universityRequired Boolean     @default(false)
   deadline           DateTime
-  status             String      @default("Open")
+  status             String      @default("Draft") // Draft, Published, Paused, Closed
   shortlistThreshold Int         @default(50)
   passMark           Int         @default(60)
   createdAt          DateTime    @default(now())
@@ -72,33 +75,38 @@ model InterviewSession {
 }
 
 model Employee {
-  id                   String           @id @default(cuid())
-  employeeCode         String           @unique
+  id                   String                    @id @default(cuid())
+  employeeCode         String                    @unique
   name                 String
-  email                String           @unique
+  email                String                    @unique
   photoUrl             String?
   designation          String
   employmentType       String
+  tier                 String                    @default("Standard") // Standard, Lead, Executive
   startDate            DateTime
   endDate              DateTime?
-  status               String           @default("Active")
+  status               String                    @default("Active")
   teamId               String?
   passwordHash         String
-  mustResetPassword    Boolean          @default(true)
+  mustResetPassword    Boolean                   @default(true)
+  resetToken           String?                   @unique
+  resetTokenExpiry     DateTime?
   policyAcknowledgedAt DateTime?
-  onboardingCompleted  Boolean          @default(false)
+  onboardingCompleted  Boolean                   @default(false)
   githubUrl            String?
   linkedinUrl          String?
-  applicantId          String?          @unique
-  createdAt            DateTime         @default(now())
-  updatedAt            DateTime         @updatedAt
+  applicantId          String?                   @unique
+  createdAt            DateTime                  @default(now())
+  updatedAt            DateTime                  @updatedAt
   activityLogs         ActivityLog[]
-  announcementsRecv    Announcement[]   @relation("ReceivedAnnouncements")
-  announcementsSent    Announcement[]   @relation("SentBy")
-  applicant            Applicant?       @relation(fields: [applicantId], references: [id])
-  team                 Team?            @relation(fields: [teamId], references: [id])
+  announcementsRecv    Announcement[]            @relation("ReceivedAnnouncements")
+  announcementsSent    Announcement[]            @relation("SentBy")
+  applicant            Applicant?                @relation(fields: [applicantId], references: [id])
+  team                 Team?                     @relation(fields: [teamId], references: [id])
   submissions          TaskSubmission[]
   messages             TeamMessage[]
+  submittedReviews     CEOReview[]               @relation("ReviewSubmitter")
+  announcementReads    AnnouncementReadReceipt[]
 }
 
 model Team {
@@ -114,46 +122,77 @@ model Team {
 }
 
 model Task {
-  id          String           @id @default(cuid())
-  teamId      String
-  title       String
-  brief       String
-  attachments String           @default("[]")
-  deadline    DateTime
-  createdBy   String
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  team        Team             @relation(fields: [teamId], references: [id])
-  submissions TaskSubmission[]
+  id              String           @id @default(cuid())
+  teamId          String
+  title           String
+  brief           String
+  category        String           @default("General")
+  deliverableType String           @default("Any") // File, Text, Link, Any
+  attachments     String           @default("[]")
+  deadline        DateTime
+  createdBy       String
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  team            Team             @relation(fields: [teamId], references: [id])
+  submissions     TaskSubmission[]
 }
 
 model TaskSubmission {
-  id          String   @id @default(cuid())
-  taskId      String
-  employeeId  String
-  files       String   @default("[]")
-  status      String   @default("Pending")
-  aiSummary   String?
-  submittedAt DateTime @default(now())
-  employee    Employee @relation(fields: [employeeId], references: [id])
-  task        Task     @relation(fields: [taskId], references: [id])
+  id               String   @id @default(cuid())
+  taskId           String
+  employeeId       String
+  textResponse     String?
+  linkResponse     String?
+  files            String   @default("[]")
+  status           String   @default("Pending") // Pending, Under Review, Needs Revision, Approved
+  reviewerFeedback String?
+  reviewerScore    Int?
+  aiSummary        String?
+  submittedAt      DateTime @default(now())
+  employee         Employee @relation(fields: [employeeId], references: [id])
+  task             Task     @relation(fields: [taskId], references: [id])
 
   @@unique([taskId, employeeId])
 }
 
 model Announcement {
-  id         String    @id @default(cuid())
+  id         String                    @id @default(cuid())
   scope      String
   teamId     String?
   employeeId String?
   message    String
-  isPinned   Boolean   @default(false)
+  isPinned   Boolean                   @default(false)
   expiresAt  DateTime?
   sentById   String
-  sentAt     DateTime  @default(now())
-  employee   Employee? @relation("ReceivedAnnouncements", fields: [employeeId], references: [id])
-  sentBy     Employee  @relation("SentBy", fields: [sentById], references: [id])
-  team       Team?     @relation(fields: [teamId], references: [id])
+  sentAt     DateTime                  @default(now())
+  employee   Employee?                 @relation("ReceivedAnnouncements", fields: [employeeId], references: [id])
+  sentBy     Employee                  @relation("SentBy", fields: [sentById], references: [id])
+  team       Team?                     @relation(fields: [teamId], references: [id])
+  reads      AnnouncementReadReceipt[]
+}
+
+model AnnouncementReadReceipt {
+  id             String       @id @default(cuid())
+  announcementId String
+  employeeId     String
+  readAt         DateTime     @default(now())
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  employee       Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([announcementId, employeeId])
+}
+
+model CEOReview {
+  id          String     @id @default(cuid())
+  type        String // e.g. Hire, Promotion
+  submitterId String
+  applicantId String?
+  status      String     @default("Pending") // Pending, Approved, Rejected, More Info
+  comments    String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  submitter   Employee   @relation("ReviewSubmitter", fields: [submitterId], references: [id])
+  applicant   Applicant? @relation(fields: [applicantId], references: [id])
 }
 
 model ActivityLog {

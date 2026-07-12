@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await req.json();
-  const { title, type, department, location, description, requirements, universityRequired, deadline, shortlistThreshold, passMark } = body;
+  const { title, type, department, location, description, requirements, universityRequired, deadline, passMark, status } = body;
 
   if (!title || !department || !deadline) {
     return NextResponse.json({ error: "title, department and deadline are required" }, { status: 400 });
@@ -19,17 +19,16 @@ export async function POST(req: NextRequest) {
       .toString()
       .toLowerCase()
       .trim()
-      .replace(/\s+/g, "-")        // Replace spaces with -
-      .replace(/[^\w\-]+/g, "")    // Remove all non-word chars
-      .replace(/\-\-+/g, "-")      // Replace multiple - with single -
-      .replace(/^-+/, "")          // Trim - from start of text
-      .replace(/-+$/, "");         // Trim - from end of text
+      .replace(/\s+/g, "-")
+      .replace(/[^\w\-]+/g, "")
+      .replace(/\-\-+/g, "-")
+      .replace(/^-+/, "")
+      .replace(/-+$/, "");
   };
 
   const baseSlug = generateSlug(title);
   let slug = baseSlug;
   
-  // Basic conflict resolution
   const existing = await prisma.jobPosting.findUnique({ where: { id: slug } });
   if (existing) {
     slug = `${baseSlug}-${Math.random().toString(36).substring(2, 6)}`;
@@ -46,14 +45,14 @@ export async function POST(req: NextRequest) {
       requirements: requirements?.trim() || "",
       universityRequired: !!universityRequired,
       deadline: new Date(deadline),
-      status: "Open",
-      shortlistThreshold: Number(shortlistThreshold) || 50,
+      status: status || "Published",
+      shortlistThreshold: 0, // Ignored, kept for DB schema compatibility
       passMark: Number(passMark) || 60,
     },
   });
 
   await prisma.activityLog.create({
-    data: { actorId: auth.sub, actorType: "Admin", action: "POSTING_CREATED", metadata: JSON.stringify({ postingId: posting.id, title }) },
+    data: { actorId: auth.sub, actorType: "Admin", action: "POSTING_CREATED", metadata: JSON.stringify({ postingId: posting.id, title, status }) },
   }).catch(() => {});
 
   return NextResponse.json({ success: true, posting }, { status: 201 });

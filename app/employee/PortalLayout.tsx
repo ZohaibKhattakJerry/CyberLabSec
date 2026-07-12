@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Shield, LayoutDashboard, ClipboardList, Users, Bell, User, LogOut,
-  Menu, X, ChevronRight,
+  Menu, X, ChevronRight, Trophy
 } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 
@@ -20,6 +20,7 @@ const NAV = [
   { href: "/employee/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/employee/tasks", label: "Tasks", icon: ClipboardList },
   { href: "/employee/team", label: "My Team", icon: Users },
+  { href: "/employee/leaderboard", label: "Leaderboard", icon: Trophy },
   { href: "/employee/announcements", label: "Announcements", icon: Bell },
   { href: "/employee/profile", label: "Profile", icon: User },
 ];

@@ -4,10 +4,10 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "CyberLab — Ops Platform",
-    template: "%s | CyberLab",
+    default: "CyberLabSec — Ops Platform",
+    template: "%s | CyberLabSec",
   },
-  description: "CyberLab internal operations platform — Career Portal, Employee Portal, and Admin Dashboard.",
+  description: "CyberLabSec internal operations platform — Career Portal, Employee Portal, and Admin Dashboard.",
   robots: {
     index: false,
     follow: false,
