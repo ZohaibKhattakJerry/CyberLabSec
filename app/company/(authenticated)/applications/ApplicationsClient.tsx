@@ -31,6 +31,8 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
   const [actionLoading, setActionLoading] = useState(false);
   const [actionMsg, setActionMsg] = useState("");
 
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
   const filtered = applicants.filter(a => {
     const q = search.toLowerCase();
     const matchSearch = !q || a.fullName.toLowerCase().includes(q) || a.email.toLowerCase().includes(q);
@@ -38,6 +40,59 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
     const matchPosting = filterPosting === "All" || a.jobPostingId === filterPosting;
     return matchSearch && matchStatus && matchPosting;
   });
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filtered.length && filtered.length > 0) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map(a => a.id)));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedIds(next);
+  };
+
+  const bulkReject = async () => {
+    if (!confirm(`Are you sure you want to reject ${selectedIds.size} applications?`)) return;
+    setActionLoading(true); setActionMsg("Rejecting applications...");
+    
+    await Promise.all(
+      Array.from(selectedIds).map(id => 
+        fetch(`/api/company/applications/${id}/status`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "Rejected" }),
+        })
+      )
+    );
+    
+    setActionLoading(false);
+    setActionMsg(`Successfully rejected ${selectedIds.size} applications.`);
+    setSelectedIds(new Set());
+    startTransition(() => { router.refresh(); });
+  };
+
+  const bulkDelete = async () => {
+    if (!confirm(`Are you sure you want to permanently delete ${selectedIds.size} applications? This cannot be undone.`)) return;
+    setActionLoading(true); setActionMsg("Deleting applications...");
+    
+    await Promise.all(
+      Array.from(selectedIds).map(id => 
+        fetch(`/api/company/applications/${id}`, {
+          method: "DELETE",
+        })
+      )
+    );
+    
+    setActionLoading(false);
+    setActionMsg(`Successfully deleted ${selectedIds.size} applications.`);
+    setSelectedIds(new Set());
+    startTransition(() => { router.refresh(); });
+  };
 
   const updateStatus = async (applicantId: string, status: string) => {
     setActionLoading(true); setActionMsg("");
@@ -80,10 +135,27 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
 
   return (
     <div>
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 4 }}>Applications</h1>
-        <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>{applicants.length} total applications</p>
+      <div style={{ marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div>
+          <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 4 }}>Applications</h1>
+          <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>{applicants.length} total applications</p>
+        </div>
+        
+        {selectedIds.size > 0 && (
+          <div style={{ display: "flex", alignItems: "center", gap: 12, background: "rgba(147, 51, 234, 0.1)", padding: "8px 16px", borderRadius: 8, border: "1px solid rgba(147, 51, 234, 0.2)" }}>
+            <span style={{ fontSize: 14, fontWeight: 600, color: "var(--purple)" }}>{selectedIds.size} Selected</span>
+            <div style={{ width: 1, height: 20, background: "rgba(147, 51, 234, 0.2)" }} />
+            <button className="btn btn-danger btn-sm" onClick={bulkReject} disabled={actionLoading}>Bulk Reject</button>
+            <button className="btn btn-danger btn-sm" onClick={bulkDelete} disabled={actionLoading} style={{ background: "rgba(220, 38, 38, 0.1)", color: "#fca5a5" }}>Bulk Delete</button>
+          </div>
+        )}
       </div>
+
+      {actionMsg && !selected && (
+        <div style={{ marginBottom: 20, padding: "12px", background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 8, fontSize: 13, color: "var(--green)" }}>
+          {actionMsg}
+        </div>
+      )}
 
       {/* Filters */}
       <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
@@ -109,6 +181,14 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
         <table>
           <thead>
             <tr>
+              <th style={{ width: 40 }}>
+                <input 
+                  type="checkbox" 
+                  checked={filtered.length > 0 && selectedIds.size === filtered.length}
+                  onChange={toggleSelectAll}
+                  style={{ cursor: "pointer" }}
+                />
+              </th>
               <th>Applicant</th>
               <th>Position</th>
               <th>AI Score</th>
@@ -120,7 +200,15 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
           </thead>
           <tbody>
             {filtered.map((a: any) => (
-              <tr key={a.id}>
+              <tr key={a.id} style={{ background: selectedIds.has(a.id) ? "rgba(147, 51, 234, 0.05)" : undefined }}>
+                <td>
+                  <input 
+                    type="checkbox" 
+                    checked={selectedIds.has(a.id)}
+                    onChange={() => toggleSelect(a.id)}
+                    style={{ cursor: "pointer" }}
+                  />
+                </td>
                 <td>
                   <div style={{ fontWeight: 600, fontSize: 13, color: "var(--text-primary)" }}>{a.fullName}</div>
                   <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{a.email}</div>
@@ -148,7 +236,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                     </div>
                   ) : <span style={{ color: "var(--text-muted)", fontSize: 12 }}>—</span>}
                 </td>
-                <td><span className={`badge ${STATUS_COLORS[a.status] || "badge-gray"}`}>{a.status}</span></td>
+                <td><span className={\`badge \${STATUS_COLORS[a.status] || "badge-gray"}\`}>{a.status}</span></td>
                 <td style={{ fontSize: 12, color: "var(--text-muted)" }}>{format(new Date(a.createdAt), "MMM d, yyyy")}</td>
                 <td>
                   <button className="btn btn-ghost btn-sm" onClick={() => setSelected(a)} style={{ gap: 6 }}>
@@ -182,10 +270,10 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
               {[
                 { l: "Position", v: selected.jobPosting.title },
                 { l: "Type", v: selected.jobPosting.type },
-                { l: "Status", v: <span className={`badge ${STATUS_COLORS[selected.status]}`}>{selected.status}</span> },
-                { l: "AI Fit Score", v: selected.fitScore !== null ? `${selected.fitScore}%` : "—" },
+                { l: "Status", v: <span className={\`badge \${STATUS_COLORS[selected.status]}\`}>{selected.status}</span> },
+                { l: "AI Fit Score", v: selected.fitScore !== null ? \`\${selected.fitScore}%\` : "—" },
                 { l: "Applied", v: format(new Date(selected.createdAt), "MMM d, yyyy h:mm a") },
-                { l: "Interview Score", v: selected.interviewSession?.totalScore !== null && selected.interviewSession?.totalScore !== undefined ? `${selected.interviewSession.totalScore}%` : "—" },
+                { l: "Interview Score", v: selected.interviewSession?.totalScore !== null && selected.interviewSession?.totalScore !== undefined ? \`\${selected.interviewSession.totalScore}%\` : "—" },
               ].map((r: any) => (
                 <div key={r.l} style={{ padding: "10px 12px", background: "rgba(255,255,255,0.02)", borderRadius: 8 }}>
                   <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 3 }}>{r.l}</div>
@@ -226,7 +314,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                   Shortlist Manually
                 </button>
               )}
-              <a href={`/api/files/${selected.id}/cv`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm">
+              <a href={\`/api/files/\${selected.id}/cv\`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm">
                 <FileText size={13} /> View CV
               </a>
               <button className="btn btn-danger btn-sm" onClick={() => deleteApplicant(selected.id)} disabled={actionLoading} style={{ marginLeft: "auto", background: "rgba(220, 38, 38, 0.1)", border: "1px solid rgba(220, 38, 38, 0.3)", color: "#fca5a5" }}>

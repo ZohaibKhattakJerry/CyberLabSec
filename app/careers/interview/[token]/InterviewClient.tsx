@@ -15,7 +15,7 @@ interface Props {
   attempts: number; maxAttempts: number;
 }
 
-type Phase = "verify" | "intro" | "interview" | "submitting" | "done" | "terminated";
+type Phase = "verify" | "intro" | "interview" | "submitting" | "done" | "terminated" | "failed_retry" | "terminated_final";
 
 export default function InterviewClient({ sessionId, token, applicantName, applicantEmail, jobTitle, questions, passMark, emailVerified, attempts, maxAttempts }: Props) {
   const [phase, setPhase] = useState<Phase>(emailVerified ? "intro" : "verify");
@@ -148,8 +148,14 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
 
     if (res.ok) {
       const data = await res.json();
-      if (data.terminated) {
-        setPhase("terminated");
+      if (data.result === "Retry") {
+        if (data.terminated) {
+          setPhase("terminated");
+        } else {
+          setPhase("failed_retry");
+        }
+      } else if (data.terminated) {
+        setPhase("terminated_final");
       } else {
         setPhase("done");
       }
@@ -172,9 +178,8 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
     return (
       <Layout>
         <motion.div className="card" style={{ maxWidth: 480, width: "100%", padding: 40 }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24 }}>
-            <Shield size={20} color="var(--purple)" />
-            <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>Identity Verification</h1>
+          <div style={{ display: "flex", alignItems: "center", marginBottom: 24 }}>
+            <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 32, objectFit: "contain" }} />
           </div>
           <p style={{ color: "var(--text-secondary)", fontSize: 14, marginBottom: 24 }}>
             Before starting your interview for <strong>{jobTitle}</strong>, please verify your identity.
@@ -242,9 +247,8 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
       <div style={{ minHeight: "100vh", background: "var(--bg-primary)", display: "flex", flexDirection: "column" }}>
         {/* Interview header */}
         <div style={{ borderBottom: "1px solid var(--border)", padding: "0 24px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--bg-secondary)", position: "sticky", top: 0, zIndex: 50 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <Shield size={18} color="var(--purple)" />
-            <span style={{ fontWeight: 700, fontSize: 15 }}>CyberLab Interview</span>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 24, objectFit: "contain" }} />
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             <span style={{ fontSize: 13, color: "var(--text-muted)" }}>Q{currentQ + 1} of {questions.length}</span>
@@ -334,15 +338,51 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
     );
   }
 
-  // ── TERMINATED (cheating) ──
+  // ── TERMINATED (cheating but has retry) ──
   if (phase === "terminated") {
     return (
       <Layout>
         <div className="card" style={{ maxWidth: 520, width: "100%", padding: 48, textAlign: "center", borderColor: "var(--border-accent)" }}>
           <AlertTriangle size={48} color="var(--purple)" style={{ margin: "0 auto 20px" }} />
-          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: "var(--purple)" }}>Attempt Failed</h2>
-          <p style={{ color: "var(--text-secondary)", lineHeight: 1.7 }}>
+          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: "var(--purple)" }}>Attempt Terminated</h2>
+          <p style={{ color: "var(--text-secondary)", lineHeight: 1.7, marginBottom: 24 }}>
             Irregular activity was detected — your submission shows signs of an AI-generated or copied answer. This attempt has been recorded as failed. You have {maxAttempts - attempts - 1} attempts remaining.
+          </p>
+          <button className="btn btn-primary" onClick={() => window.location.reload()} style={{ width: "100%" }}>
+            Start Next Attempt <ChevronRight size={16} />
+          </button>
+        </div>
+      </Layout>
+    );
+  }
+
+  // ── FAILED BUT HAS RETRY ──
+  if (phase === "failed_retry") {
+    return (
+      <Layout>
+        <div className="card" style={{ maxWidth: 520, width: "100%", padding: 48, textAlign: "center" }}>
+          <AlertTriangle size={48} color="var(--amber)" style={{ margin: "0 auto 20px" }} />
+          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12 }}>Attempt Failed</h2>
+          <p style={{ color: "var(--text-secondary)", lineHeight: 1.7, marginBottom: 24 }}>
+            Your score did not meet the passing criteria for this role. You have {maxAttempts - attempts - 1} attempts remaining. A new set of questions will be generated.
+          </p>
+          <button className="btn btn-primary" onClick={() => window.location.reload()} style={{ width: "100%" }}>
+            Start Next Attempt <ChevronRight size={16} />
+          </button>
+        </div>
+      </Layout>
+    );
+  }
+
+  // ── TERMINATED FINAL (No retries left) ──
+  if (phase === "terminated_final") {
+    return (
+      <Layout>
+        <div className="card" style={{ maxWidth: 520, width: "100%", padding: 48, textAlign: "center", borderColor: "var(--border-accent)" }}>
+          <AlertTriangle size={48} color="var(--purple)" style={{ margin: "0 auto 20px" }} />
+          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: "var(--purple)" }}>Interview Terminated</h2>
+          <p style={{ color: "var(--text-secondary)", lineHeight: 1.7 }}>
+            Irregular activity was detected. Your interview has been permanently terminated and you have no remaining attempts.
           </p>
         </div>
       </Layout>

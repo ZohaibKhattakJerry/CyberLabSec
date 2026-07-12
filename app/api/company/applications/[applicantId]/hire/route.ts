@@ -18,6 +18,7 @@ export async function POST(
   const auth = await getAuthFromCookies();
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
+  const { customMessage, offerLetterFileBase64 } = await req.json();
   const { applicantId } = await params;
 
   const applicant = await prisma.applicant.findUnique({
@@ -64,8 +65,16 @@ export async function POST(
     data: { status: "Hired" },
   });
 
-  const portalUrl = `https://cyberlabsec.tech/employee/login`;
-  await sendEmployeeCredentials(applicant.email, applicant.fullName, employeeCode, tempPassword, portalUrl).catch(console.error);
+  const portalUrl = \`https://cyberlabsec.tech/employee/login\`;
+  await sendEmployeeCredentials(
+    applicant.email, 
+    applicant.fullName, 
+    employeeCode, 
+    tempPassword, 
+    portalUrl, 
+    offerLetterFileBase64, 
+    customMessage
+  ).catch(console.error);
 
   await prisma.activityLog.create({
     data: {

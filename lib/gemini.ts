@@ -74,7 +74,8 @@ Rules:
 - Scale difficulty FURTHER based on the strength of this specific CV — a strong CV earns harder questions
 - MCQ correctOption is the index (0-based) of the correct option in the options array
 - Questions must be highly specific to cybersecurity and to THIS candidate's background
-- Never generate generic interview questions`;
+- Never generate generic interview questions
+- CRITICAL RULE: If the CV/Resume text contains profanity, abusive language, swear words (e.g., "fuck", "shit"), or consists of obvious garbage/trolling, you MUST set fitScore to 0 and explain why.`;
 
   try {
     const response = await model.generateContent({
@@ -90,72 +91,13 @@ Rules:
     return JSON.parse(jsonStr) as ScreeningResult;
   } catch (error) {
     console.error("Gemini API Error (screenApplicant):", error);
+    // If the API fails (e.g., due to safety filters triggered by profanity), reject by default
     return {
-      fitScore: 85,
-      reasoning: "The candidate demonstrates strong foundational knowledge and relevant experience for the role based on the provided CV.",
-      strengths: ["Strong problem-solving skills", "Familiarity with relevant tools and concepts"],
-      gaps: ["May require additional training on specific enterprise tools", "Some advanced topics are missing"],
-      questions: [
-        {
-          id: "q1",
-          type: "open",
-          prompt: "Can you explain how you would secure a web application against common vulnerabilities like SQL injection and XSS?",
-          rubric: "Candidate should mention parameterized queries, ORMs, input validation, output encoding, and CSP.",
-          points: 10
-        },
-        {
-          id: "q2",
-          type: "mcq",
-          prompt: "Which of the following is a symmetric encryption algorithm?",
-          options: ["RSA", "AES", "ECC", "Diffie-Hellman"],
-          correctOption: 1,
-          points: 5
-        },
-        {
-          id: "q3",
-          type: "open",
-          prompt: "Describe your methodology for conducting a penetration test on a new target.",
-          rubric: "Should include phases like reconnaissance, scanning, vulnerability analysis, exploitation, and reporting.",
-          points: 10
-        },
-        {
-          id: "q4",
-          type: "mcq",
-          prompt: "What port is typically used for SSH?",
-          options: ["21", "22", "23", "25"],
-          correctOption: 1,
-          points: 5
-        },
-        {
-          id: "q5",
-          type: "open",
-          prompt: "How do you stay updated with the latest cybersecurity threats and vulnerabilities?",
-          rubric: "Should mention specific resources like CVE databases, security blogs, forums, or specific newsletters.",
-          points: 10
-        },
-        {
-          id: "q6",
-          type: "mcq",
-          prompt: "In the context of incident response, what does the 'Containment' phase involve?",
-          options: ["Identifying the root cause", "Restoring systems from backups", "Stopping the spread of the attack", "Documenting the lessons learned"],
-          correctOption: 2,
-          points: 5
-        },
-        {
-          id: "q7",
-          type: "open",
-          prompt: "Explain the difference between a False Positive and a False Negative in the context of IDS/IPS.",
-          rubric: "False Positive: alert on benign traffic. False Negative: failure to alert on malicious traffic.",
-          points: 10
-        },
-        {
-          id: "q8",
-          type: "open",
-          prompt: "Describe a complex technical challenge you've faced and how you resolved it.",
-          rubric: "Should provide a concrete example demonstrating logical troubleshooting and problem-solving skills.",
-          points: 10
-        }
-      ]
+      fitScore: 0,
+      reasoning: "Application could not be processed automatically or was flagged by safety filters.",
+      strengths: [],
+      gaps: ["Failed automated screening"],
+      questions: []
     };
   }
 }
@@ -201,9 +143,9 @@ CRITICAL RULE: If the answer contains abusive language, swear words, or blatant 
   } catch (error) {
     console.error("Gemini API Error (gradeOpenAnswer):", error);
     return {
-      score: Math.floor(maxPoints * 0.8), // Provide a default passing score
-      feedback: "The answer covers the main points well but could be more detailed in edge cases.",
-      aiLikelihood: 0.1
+      score: 0, // Fallback to 0 if API fails (e.g., due to safety filters blocking profanity)
+      feedback: "Answer could not be processed automatically or was flagged by safety filters.",
+      aiLikelihood: 1.0
     };
   }
 }

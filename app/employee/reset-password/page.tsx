@@ -20,7 +20,7 @@ export default function ResetPasswordPage() {
     if (newPw !== confirmPw) { setError("New passwords do not match."); return; }
     if (newPw.length < 8) { setError("Password must be at least 8 characters."); return; }
     setLoading(true); setError("");
-    const res = await fetch("/api/employee/profile/password", {
+    const res = await fetch("/api/employee/portal/profile/password", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ currentPassword: currentPw, newPassword: newPw }),
@@ -37,14 +37,8 @@ export default function ResetPasswordPage() {
       <div style={{ position: "fixed", inset: 0, backgroundImage: "linear-gradient(rgba(168,85,247,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(168,85,247,0.03) 1px, transparent 1px)", backgroundSize: "60px 60px", pointerEvents: "none" }} />
 
       <motion.div className="card" style={{ maxWidth: 440, width: "100%", padding: 40 }} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 32 }}>
-          <div style={{ width: 36, height: 36, background: "var(--purple)", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "var(--shadow-purple)" }}>
-            <Shield size={20} color="#fff" strokeWidth={2.5} />
-          </div>
-          <div>
-            <div style={{ fontWeight: 800, fontSize: 16 }}>CyberLab</div>
-            <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Employee Portal</div>
-          </div>
+        <div style={{ display: "flex", alignItems: "center", marginBottom: 32 }}>
+          <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 40, objectFit: "contain" }} />
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>

@@ -19,43 +19,48 @@ export default function CeoReviewClient({ applicants }: { applicants: Applicant[
   const [selected, setSelected] = useState<Applicant | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionMsg, setActionMsg] = useState("");
-  const [ceoNotes, setCeoNotes] = useState("");
-  const [offerLetterUrl, setOfferLetterUrl] = useState<string | null>(null);
+  const [customMessage, setCustomMessage] = useState("");
+  const [offerLetterFileBase64, setOfferLetterFileBase64] = useState<string | null>(null);
 
-  const generateOfferLetter = async (applicantId: string) => {
-    setActionLoading(true); setActionMsg(""); setOfferLetterUrl(null);
-    const res = await fetch(`/api/company/applications/${applicantId}/offer`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ceoNotes }),
-    });
-    const data = await res.json();
-    setActionLoading(false);
-    if (!res.ok) { setActionMsg(data.error || "Failed to generate offer letter"); return; }
-    
-    setActionMsg("Offer letter generated successfully!");
-    setOfferLetterUrl(data.url);
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.type !== "application/pdf") {
+      setActionMsg("Offer letter must be a PDF file.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = (reader.result as string).split(",")[1];
+      setOfferLetterFileBase64(base64);
+      setActionMsg("");
+    };
+    reader.readAsDataURL(file);
   };
 
   const approveAndHire = async (applicantId: string) => {
+    if (!offerLetterFileBase64) {
+      setActionMsg("You must attach an offer letter PDF.");
+      return;
+    }
     setActionLoading(true); setActionMsg("");
-    const res = await fetch(`/api/company/applications/${applicantId}/hire`, {
+    const res = await fetch(\`/api/company/applications/\${applicantId}/hire\`, {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ customMessage, offerLetterFileBase64 }),
     });
     const data = await res.json();
     setActionLoading(false);
     if (!res.ok) { setActionMsg(data.error || "Failed to create employee record"); return; }
     
-    setActionMsg(`Employee created: ${data.employeeCode}`);
+    setActionMsg(\`Employee created: \${data.employeeCode}\`);
     startTransition(() => { router.refresh(); setSelected(null); });
   };
 
   return (
     <div>
       <div style={{ marginBottom: 24, display: "flex", alignItems: "center", gap: 12 }}>
-        <div style={{ width: 40, height: 40, background: "var(--purple)", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "var(--shadow-purple)" }}>
-          <Shield size={20} color="#fff" />
-        </div>
+        <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 40, objectFit: "contain" }} />
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 4 }}>CEO Review Console</h1>
           <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>Final approval and offer letter generation for passed candidates.</p>
@@ -75,7 +80,7 @@ export default function CeoReviewClient({ applicants }: { applicants: Applicant[
               <span className="badge badge-green">Score: {a.interviewSession?.totalScore}%</span>
             </div>
 
-            <button className="btn btn-secondary" style={{ width: "100%", justifyContent: "center" }} onClick={() => { setSelected(a); setCeoNotes(""); setOfferLetterUrl(null); setActionMsg(""); }}>
+            <button className="btn btn-secondary" style={{ width: "100%", justifyContent: "center" }} onClick={() => { setSelected(a); setCustomMessage(""); setOfferLetterFileBase64(null); setActionMsg(""); }}>
               Review Candidate
             </button>
           </div>
@@ -121,14 +126,20 @@ export default function CeoReviewClient({ applicants }: { applicants: Applicant[
             )}
 
             <div style={{ marginBottom: 24 }}>
-              <label className="label">CEO Notes (Optional)</label>
+              <label className="label">Custom Message (Included in Welcome Email)</label>
               <textarea 
                 className="input" 
                 style={{ minHeight: 80 }} 
-                placeholder="Add notes or specific terms for the offer letter..."
-                value={ceoNotes}
-                onChange={e => setCeoNotes(e.target.value)}
+                placeholder="Welcome to the team! We are excited to have you..."
+                value={customMessage}
+                onChange={e => setCustomMessage(e.target.value)}
               />
+            </div>
+
+            <div style={{ marginBottom: 24 }}>
+              <label className="label">Attached Offer Letter (PDF)</label>
+              <input type="file" accept="application/pdf" className="input" onChange={handleFileUpload} />
+              {offerLetterFileBase64 && <p style={{ fontSize: 13, color: "var(--green)", marginTop: 8, display: "flex", alignItems: "center", gap: 6 }}><CheckCircle size={14} /> PDF attached successfully</p>}
             </div>
 
             {actionMsg && (
@@ -137,29 +148,12 @@ export default function CeoReviewClient({ applicants }: { applicants: Applicant[
               </div>
             )}
 
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              {!offerLetterUrl ? (
-                <button className="btn btn-secondary" onClick={() => generateOfferLetter(selected.id)} disabled={actionLoading}>
-                  {actionLoading ? <Loader2 size={16} className="spin" /> : <FileSignature size={16} />}
-                  Generate Offer Letter
-                </button>
-              ) : (
-                <a href={offerLetterUrl} target="_blank" rel="noopener noreferrer" className="btn btn-secondary" style={{ gap: 8 }}>
-                  <FileText size={16} /> View Offer Letter
-                </a>
-              )}
-
-              <button className="btn btn-primary" onClick={() => approveAndHire(selected.id)} disabled={actionLoading || !offerLetterUrl}>
-                <CheckCircle size={16} />
-                Approve & Hire
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 8 }}>
+              <button className="btn btn-primary" onClick={() => approveAndHire(selected.id)} disabled={actionLoading || !offerLetterFileBase64} style={{ width: "100%", justifyContent: "center", padding: "14px" }}>
+                {actionLoading ? <Loader2 size={16} className="spin" /> : <CheckCircle size={18} />}
+                Approve & Hire Candidate
               </button>
             </div>
-            
-            {!offerLetterUrl && (
-              <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 12 }}>
-                * You must generate an offer letter before approving the hire.
-              </p>
-            )}
           </div>
         </div>
       )}

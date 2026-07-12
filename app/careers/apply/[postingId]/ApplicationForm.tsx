@@ -159,10 +159,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
           <ChevronLeft size={16} /> Back to Careers
         </Link>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, flex: 1 }}>
-          <div style={{ width: 28, height: 28, background: "var(--purple)", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Shield size={16} color="#fff" />
-          </div>
-          <span style={{ fontWeight: 800, fontSize: 16 }}>CyberLab</span>
+          <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 28, objectFit: "contain" }} />
         </div>
         <div style={{ flex: 1 }}></div>
       </nav>
@@ -209,7 +206,18 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                     </Field>
                   </div>
                   <Field label="CNIC Number" required error={errors.cnic}>
-                    <input className={`input${errors.cnic ? " input-error" : ""}`} value={form.cnic} onChange={(e) => set("cnic", e.target.value)} placeholder="12345-1234567-1" maxLength={15} />
+                    <input 
+                      className={\`input\${errors.cnic ? " input-error" : ""}\`} 
+                      value={form.cnic} 
+                      onChange={(e) => {
+                        let val = e.target.value.replace(/\\D/g, "");
+                        if (val.length > 5) val = val.substring(0, 5) + "-" + val.substring(5);
+                        if (val.length > 13) val = val.substring(0, 13) + "-" + val.substring(13, 14);
+                        set("cnic", val);
+                      }} 
+                      placeholder="12345-1234567-1" 
+                      maxLength={15} 
+                    />
                     <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4 }}>Your CNIC is encrypted and used to prevent duplicate applications.</p>
                   </Field>
                   <Field label="Portfolio Links (Optional)">

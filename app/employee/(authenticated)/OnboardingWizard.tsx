@@ -78,8 +78,8 @@ export default function OnboardingWizard({ employee }: { employee: Employee }) {
       case "welcome":
         return (
           <div className="text-center py-12">
-            <div style={{ width: 80, height: 80, background: "var(--purple)", borderRadius: 20, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 32px", boxShadow: "0 0 40px rgba(168,85,247,0.4)" }}>
-              <Shield size={40} color="#fff" />
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 32 }}>
+              <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 60, objectFit: "contain" }} />
             </div>
             <h1 style={{ fontSize: 36, fontWeight: 800, marginBottom: 16 }}>Welcome, {employee.name}!</h1>
             <p style={{ fontSize: 18, color: "var(--text-secondary)", maxWidth: 600, margin: "0 auto 40px" }}>
