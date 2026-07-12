@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Save, Loader2, Shield, Settings2, Bell, Lock } from "lucide-react";
 import toast from "react-hot-toast";
+import QuestionBankTab from "./QuestionBankTab";
 
 interface SettingsData {
   companyName: string;
@@ -14,6 +15,7 @@ export default function SettingsClient() {
   const [data, setData] = useState<SettingsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState<"general" | "questions">("general");
 
   useEffect(() => {
     fetch("/api/company/settings")
@@ -60,7 +62,24 @@ export default function SettingsClient() {
   if (!data) return null;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+    <div>
+      <div style={{ display: "flex", gap: 32, borderBottom: "1px solid var(--border)", marginBottom: 32 }}>
+        <button 
+          onClick={() => setActiveTab("general")} 
+          style={{ padding: "0 0 16px", background: "none", border: "none", borderBottom: activeTab === "general" ? "2px solid var(--purple)" : "2px solid transparent", color: activeTab === "general" ? "var(--text-primary)" : "var(--text-muted)", fontSize: 15, fontWeight: activeTab === "general" ? 600 : 500, cursor: "pointer", transition: "all 0.2s" }}
+        >
+          General Settings
+        </button>
+        <button 
+          onClick={() => setActiveTab("questions")} 
+          style={{ padding: "0 0 16px", background: "none", border: "none", borderBottom: activeTab === "questions" ? "2px solid var(--purple)" : "2px solid transparent", color: activeTab === "questions" ? "var(--text-primary)" : "var(--text-muted)", fontSize: 15, fontWeight: activeTab === "questions" ? 600 : 500, cursor: "pointer", transition: "all 0.2s" }}
+        >
+          Question Bank
+        </button>
+      </div>
+
+      {activeTab === "general" ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
       <div className="card" style={{ padding: 32 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24, borderBottom: "1px solid var(--border)", paddingBottom: 16 }}>
           <Settings2 size={20} color="var(--purple)" />
@@ -132,6 +151,10 @@ export default function SettingsClient() {
           {saving ? "Saving..." : "Save Settings"}
         </button>
       </div>
+      </div>
+      ) : (
+        <QuestionBankTab />
+      )}
     </div>
   );
 }

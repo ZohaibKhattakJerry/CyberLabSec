@@ -13,7 +13,7 @@ type Review = {
   applicant: any;
 };
 
-export default function CeoReviewClient({ reviews }: { reviews: Review[] }) {
+export default function FinalApprovalClient({ reviews }: { reviews: Review[] }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [selected, setSelected] = useState<Review | null>(null);
@@ -44,7 +44,7 @@ export default function CeoReviewClient({ reviews }: { reviews: Review[] }) {
       return;
     }
     setActionLoading(true); setActionMsg("");
-    const res = await fetch(`/api/company/ceo-review/action`, {
+    const res = await fetch(`/api/company/final-approval/action`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ reviewId, status, customMessage, offerLetterFileBase64 }),

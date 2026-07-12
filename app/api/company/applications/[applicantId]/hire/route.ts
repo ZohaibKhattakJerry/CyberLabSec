@@ -20,7 +20,7 @@ export async function POST(
   const existingEmployee = await prisma.employee.findUnique({ where: { applicantId: applicant.id } });
   if (existingEmployee) return NextResponse.json({ error: "Employee record already exists" }, { status: 409 });
 
-  // Create CEO Review request
+  // Create Final Approval request
   const review = await prisma.cEOReview.create({
     data: {
       type: "Hire Request",

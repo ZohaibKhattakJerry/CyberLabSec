@@ -82,50 +82,22 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
   return (
     <div style={{ background: "var(--bg-primary)", minHeight: "100vh" }}>
       {/* NAV */}
-      <nav
-        style={{
-          borderBottom: "1px solid var(--border)",
-          background: "rgba(10,10,15,0.9)",
-          backdropFilter: "blur(12px)",
-          position: "sticky",
-          top: 0,
-          zIndex: 50,
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 1200,
-            margin: "0 auto",
-            padding: "0 24px",
-            height: 64,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <Link href="https://cyberlabsec.tech" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
-            <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 48, objectFit: "contain" }} />
+      <nav style={{ borderBottom: "1px solid var(--border)", padding: "0 24px", height: 72, display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(10,10,15,0.8)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 50 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <Link href="https://cyberlabsec.tech" style={{ display: "flex", alignItems: "center" }}>
+            <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 40, objectFit: "contain" }} />
           </Link>
-
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <Link
-              href="https://cyberlabsec.tech"
-              style={{
-                color: "var(--text-secondary)",
-                textDecoration: "none",
-                fontSize: 14,
-                fontWeight: 500,
-              }}
-            >
-              Main Site
-            </Link>
-            <Link
-              href="/employee/login"
-              className="btn btn-secondary btn-sm"
-            >
-              Employee Login
-            </Link>
-          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+          <Link href="/careers/status" style={{ fontSize: 14, color: "var(--text-secondary)", textDecoration: "none", fontWeight: 500, transition: "color 0.2s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-primary)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-secondary)"}>
+            Track Application
+          </Link>
+          <Link
+            href="/employee/login"
+            className="btn btn-secondary btn-sm"
+          >
+            Employee Login
+          </Link>
         </div>
       </nav>
 
@@ -520,21 +492,17 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
         style={{
           borderTop: "1px solid var(--border)",
           padding: "40px 24px",
-          textAlign: "center",
-          color: "var(--text-muted)",
-          fontSize: 13,
           marginTop: 60,
         }}
       >
-        <p>
-          &copy; 2025 CyberLabSec. All rights reserved.{" "}
-          <Link
-            href="https://cyberlabsec.tech"
-            style={{ color: "var(--purple)", textDecoration: "none" }}
-          >
-            cyberlabsec.tech
-          </Link>
-        </p>
+        <div style={{ textAlign: "center", marginTop: 60, paddingTop: 40, borderTop: "1px solid var(--border)", color: "var(--text-muted)", fontSize: 14 }}>
+            <div style={{ display: "flex", justifyContent: "center", gap: 24, marginBottom: 20 }}>
+              <Link href="/careers/status" style={{ color: "var(--text-secondary)", textDecoration: "none" }}>Track Application Status</Link>
+              <a href="mailto:careers@cyberlabsec.tech" style={{ color: "var(--text-secondary)", textDecoration: "none" }}>careers@cyberlabsec.tech</a>
+              <Link href="/" style={{ color: "var(--text-secondary)", textDecoration: "none" }}>Main Site</Link>
+            </div>
+            © {new Date().getFullYear()} CyberLabSec. All rights reserved.
+        </div>
       </footer>
     </div>
   );

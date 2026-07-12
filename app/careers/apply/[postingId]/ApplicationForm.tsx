@@ -239,14 +239,18 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg-primary)" }}>
       {/* Nav */}
-      <nav style={{ borderBottom: "1px solid var(--border)", padding: "0 24px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(10,10,15,0.9)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 50 }}>
-        <Link href="/careers" style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, textDecoration: "none", color: "var(--text-secondary)", fontSize: 14 }}>
-          <ChevronLeft size={16} /> Back to Careers
+      <nav style={{ padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid var(--border)", background: "rgba(10,10,15,0.8)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 50 }}>
+        <Link href="/careers" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}>
+          <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 32 }} />
         </Link>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, flex: 1 }}>
-          <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 48, objectFit: "contain", margin: "0 auto" }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+          <Link href="/careers/status" style={{ fontSize: 14, color: "var(--text-secondary)", textDecoration: "none", fontWeight: 500, transition: "color 0.2s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-primary)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-secondary)"}>
+            Track Application
+          </Link>
+          <Link href="/careers" style={{ fontSize: 14, color: "var(--text-secondary)", textDecoration: "none", display: "flex", alignItems: "center", gap: 6 }}>
+            <ChevronLeft size={16} /> Back to Jobs
+          </Link>
         </div>
-        <div style={{ flex: 1 }}></div>
       </nav>
 
       <div style={{ maxWidth: 680, margin: "0 auto", padding: "40px 24px" }}>

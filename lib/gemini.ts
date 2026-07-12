@@ -105,7 +105,7 @@ export async function screenApplicant(
   }
 
   // Format correctly
-  const finalQuestions: InterviewQuestion[] = [
+  let finalQuestions: InterviewQuestion[] = [
     ...openQuestions.map((q, i) => ({
       id: q.id, type: q.type as "open", prompt: q.prompt, rubric: q.rubric || "", points: q.points
     })),
@@ -113,6 +113,18 @@ export async function screenApplicant(
       id: q.id, type: q.type as "mcq", prompt: q.prompt, options: JSON.parse(q.options), correctOption: q.correctOption || 0, points: q.points
     }))
   ];
+
+  // FALLBACK: If database is completely empty, use hardcoded defaults
+  if (finalQuestions.length === 0) {
+    finalQuestions = [
+      { id: "fb1", type: "open", prompt: "Explain how Cross-Site Request Forgery (CSRF) works.", rubric: "Tokens, SameSite", points: 10 },
+      { id: "fb2", type: "open", prompt: "Describe the TCP three-way handshake.", rubric: "SYN, SYN-ACK, ACK", points: 10 },
+      { id: "fb3", type: "open", prompt: "What is Google Dorking?", rubric: "Search operators", points: 10 },
+      { id: "fb4", type: "mcq", prompt: "Which of the following is NOT a valid HTTP method?", options: ["GET", "POST", "UPDATE", "OPTIONS"], correctOption: 2, points: 2 },
+      { id: "fb5", type: "mcq", prompt: "What port does DNS typically run on?", options: ["21", "22", "53", "80"], correctOption: 2, points: 2 },
+      { id: "fb6", type: "mcq", prompt: "Which Nmap flag performs a SYN stealth scan?", options: ["-sT", "-sU", "-sV", "-sS"], correctOption: 3, points: 2 },
+    ];
+  }
 
   // Advanced fit score calculation
   const totalHits = Object.values(categoryScores).reduce((a, b) => a + b, 0);

@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       title: `CEO Review ${status}`,
       message: `Your request for ${review.applicant ? review.applicant.fullName : 'general review'} was ${status.toLowerCase()}.`,
       type: "CEOReview",
-      link: "/company/ceo-review"
+      link: "/company/final-approval"
     }
   });
 

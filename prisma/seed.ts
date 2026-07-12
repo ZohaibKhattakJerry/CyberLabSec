@@ -110,6 +110,48 @@ By acknowledging this policy, you agree to abide by all terms outlined above.`,
     },
   });
 
+  // Seed Default Questions
+  const defaultQuestions = [
+    { type: "open", category: "Web Security", difficulty: "Medium", prompt: "Explain how Cross-Site Request Forgery (CSRF) works and describe two effective ways to mitigate it.", rubric: "Must mention user session, forged request, Anti-CSRF tokens, SameSite cookie attributes.", points: 10 },
+    { type: "open", category: "Networking", difficulty: "Medium", prompt: "Describe the TCP three-way handshake process. What flags are used?", rubric: "SYN, SYN-ACK, ACK. Must explain client-server state transitions.", points: 10 },
+    { type: "open", category: "Linux", difficulty: "Easy", prompt: "How do you find all files with SUID bit set on a Linux system?", rubric: "find / -perm -4000 -type f 2>/dev/null", points: 10 },
+    { type: "open", category: "General", difficulty: "Hard", prompt: "If you find a Server-Side Request Forgery (SSRF) vulnerability on an AWS-hosted application, what is your immediate next step to demonstrate impact?", rubric: "Query the AWS metadata service (169.254.169.254) to extract IAM credentials.", points: 10 },
+    { type: "open", category: "OSINT", difficulty: "Easy", prompt: "What is Google Dorking? Give an example query to find exposed configuration files.", rubric: "Using advanced search operators. Example: ext:env OR filetype:conf", points: 10 },
+    
+    // Web Security MCQs
+    { type: "mcq", category: "Web Security", difficulty: "Easy", prompt: "Which of the following is NOT a valid HTTP method?", options: JSON.stringify(["GET", "POST", "UPDATE", "OPTIONS"]), correctOption: 2, points: 2 },
+    { type: "mcq", category: "Web Security", difficulty: "Medium", prompt: "What does CORS stand for?", options: JSON.stringify(["Cross-Origin Resource Sharing", "Centralized Open Routing System", "Cross-Object Request Scripting", "Core Object Resource Security"]), correctOption: 0, points: 2 },
+    { type: "mcq", category: "Web Security", difficulty: "Hard", prompt: "Which HTTP header is primarily used to prevent Clickjacking?", options: JSON.stringify(["X-XSS-Protection", "Content-Security-Policy", "X-Frame-Options", "Strict-Transport-Security"]), correctOption: 2, points: 2 },
+    
+    // Networking MCQs
+    { type: "mcq", category: "Networking", difficulty: "Easy", prompt: "What port does DNS typically run on?", options: JSON.stringify(["21", "22", "53", "80"]), correctOption: 2, points: 2 },
+    { type: "mcq", category: "Networking", difficulty: "Medium", prompt: "Which Nmap flag performs a SYN stealth scan?", options: JSON.stringify(["-sT", "-sU", "-sV", "-sS"]), correctOption: 3, points: 2 },
+    { type: "mcq", category: "Networking", difficulty: "Hard", prompt: "In a typical corporate network, what protocol does 802.1X utilize for authentication?", options: JSON.stringify(["RADIUS", "Kerberos", "NTLM", "LDAP"]), correctOption: 0, points: 2 },
+    
+    // Linux MCQs
+    { type: "mcq", category: "Linux", difficulty: "Easy", prompt: "Which command reveals the current user's UID and GID?", options: JSON.stringify(["whoami", "id", "groups", "finger"]), correctOption: 1, points: 2 },
+    { type: "mcq", category: "Linux", difficulty: "Medium", prompt: "What directory traditionally holds system-wide configuration files in Linux?", options: JSON.stringify(["/bin", "/var", "/etc", "/opt"]), correctOption: 2, points: 2 },
+    { type: "mcq", category: "Linux", difficulty: "Hard", prompt: "If a file has permissions 755, what can the file owner do?", options: JSON.stringify(["Read, Write, Execute", "Read, Execute", "Read, Write", "Only Execute"]), correctOption: 0, points: 2 },
+    
+    // General / Cryptography MCQs
+    { type: "mcq", category: "Cryptography", difficulty: "Easy", prompt: "Which of these is a hashing algorithm, NOT an encryption algorithm?", options: JSON.stringify(["AES", "RSA", "SHA-256", "DES"]), correctOption: 2, points: 2 },
+    { type: "mcq", category: "Cryptography", difficulty: "Medium", prompt: "In asymmetric encryption, what key is used to verify a digital signature?", options: JSON.stringify(["Sender's Public Key", "Sender's Private Key", "Receiver's Public Key", "Receiver's Private Key"]), correctOption: 0, points: 2 },
+    
+    // More General MCQs
+    { type: "mcq", category: "General", difficulty: "Easy", prompt: "What does the 'A' stand for in the CIA triad?", options: JSON.stringify(["Authentication", "Authorization", "Availability", "Accountability"]), correctOption: 2, points: 2 },
+    { type: "mcq", category: "General", difficulty: "Medium", prompt: "Which vulnerability occurs when user input is executed directly in a database query?", options: JSON.stringify(["XSS", "SQL Injection", "CSRF", "SSRF"]), correctOption: 1, points: 2 },
+    { type: "mcq", category: "General", difficulty: "Hard", prompt: "In Windows Active Directory, what is the default port for Global Catalog?", options: JSON.stringify(["389", "636", "3268", "88"]), correctOption: 2, points: 2 },
+    { type: "mcq", category: "General", difficulty: "Easy", prompt: "Which phase of a penetration test comes first?", options: JSON.stringify(["Reconnaissance", "Scanning", "Exploitation", "Reporting"]), correctOption: 0, points: 2 },
+  ];
+
+  const existingCount = await prisma.questionBank.count();
+  if (existingCount === 0) {
+    for (const q of defaultQuestions) {
+      await prisma.questionBank.create({ data: q });
+    }
+    console.log(`Seeded ${defaultQuestions.length} default questions.`);
+  }
+
   console.log("✅ Seed complete!");
   console.log("\nAdmin credentials:");
   console.log("  Employee Code: CyberLabSec");

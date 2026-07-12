@@ -1,9 +1,9 @@
 import { prisma } from "@/lib/prisma";
-import CeoReviewClient from "./CeoReviewClient";
+import FinalApprovalClient from "./FinalApprovalClient";
 
 export const dynamic = "force-dynamic";
 
-export default async function CeoReviewPage() {
+export default async function FinalApprovalPage() {
   const reviews = await prisma.cEOReview.findMany({
     where: { status: "Pending" },
     include: {
@@ -32,5 +32,5 @@ export default async function CeoReviewPage() {
     } : null
   }));
 
-  return <CeoReviewClient reviews={serializedReviews} />;
+  return <FinalApprovalClient reviews={serializedReviews} />;
 }

@@ -65,17 +65,17 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
   };
 
   const hireApplicant = async (applicantId: string) => {
-    if (!confirm("Are you sure you want to hire this applicant? This will send a request to the CEO Review queue.")) return;
+    if (!confirm("Are you sure you want to hire this applicant? This will send a request to the Final Approval queue.")) return;
     setActionLoading(true); setActionMsg("");
     
-    // Instead of auto-hiring, we push to CEO Review
+    // Instead of auto-hiring, we push to Final Approval
     const res = await fetch(`/api/company/applications/${applicantId}/hire`, {
       method: "POST",
     });
     const data = await res.json();
     setActionLoading(false);
     if (!res.ok) { setActionMsg(data.error || "Failed to submit for review"); return; }
-    setActionMsg(`Submitted to CEO Review queue.`);
+    setActionMsg(`Submitted to Final Approval queue.`);
     startTransition(() => { router.refresh(); });
   };
 
