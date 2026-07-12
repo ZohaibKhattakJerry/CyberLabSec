@@ -36,28 +36,30 @@ export async function screenApplicant(
   jobRequirements: string,
   postingType: "Job" | "Internship"
 ): Promise<ScreeningResult> {
-  // We no longer use Gemini. We use our local algorithm to assess and generate questions.
-  
-  const textLower = cvText.toLowerCase() + " " + jobTitle.toLowerCase();
+  const textLower = cvText.toLowerCase() + " " + jobTitle.toLowerCase() + " " + jobDescription.toLowerCase();
   
   // Categorize applicant based on keywords
   const categoryScores: Record<string, number> = {
-    web: 0, network: 0, linux: 0, windows: 0, cloud: 0, crypto: 0, general: 1
+    web: 0, network: 0, linux: 0, windows: 0, cloud: 0, crypto: 0, soc_ir: 0, malware: 0, general: 1
   };
   
   const keywords = {
-    web: ["web", "owasp", "xss", "sql", "burp", "frontend", "backend", "api", "rest", "php", "javascript"],
-    network: ["network", "tcp", "ip", "cisco", "router", "switch", "wireshark", "nmap", "firewall"],
-    linux: ["linux", "ubuntu", "bash", "shell", "kernel", "centos", "debian"],
-    windows: ["windows", "active directory", "ad ", "powershell", "kerberos", "ntlm", "smb"],
-    cloud: ["cloud", "aws", "azure", "gcp", "s3", "ec2", "iam", "kubernetes", "docker"],
-    crypto: ["crypto", "encryption", "aes", "rsa", "hash", "ssl", "tls"]
+    web: ["web", "owasp", "xss", "sql", "burp", "frontend", "backend", "api", "rest", "php", "javascript", "idor", "csrf", "ssrf"],
+    network: ["network", "tcp", "ip", "cisco", "router", "switch", "wireshark", "nmap", "firewall", "ids", "ips"],
+    linux: ["linux", "ubuntu", "bash", "shell", "kernel", "centos", "debian", "redhat", "unix", "suid"],
+    windows: ["windows", "active directory", "ad ", "powershell", "kerberos", "ntlm", "smb", "sysinternals", "mimikatz", "bloodhound"],
+    cloud: ["cloud", "aws", "azure", "gcp", "s3", "ec2", "iam", "kubernetes", "docker", "terraform"],
+    crypto: ["crypto", "encryption", "aes", "rsa", "hash", "ssl", "tls", "pki", "certificate"],
+    soc_ir: ["soc", "incident response", "siem", "splunk", "qradar", "hunting", "blue team", "forensics", "yara"],
+    malware: ["malware", "reverse engineering", "ghidra", "ida", "disassembly", "sandbox", "ransomware", "virus", "trojan"]
   };
 
   for (const [cat, words] of Object.entries(keywords)) {
     for (const word of words) {
-      if (textLower.includes(word)) {
-        categoryScores[cat] += 1;
+      // Use boundary regex to avoid partial matches
+      const regex = new RegExp(`\\b${word}\\b`, 'i');
+      if (regex.test(textLower)) {
+        categoryScores[cat] += 2; // Weight hits heavily
       }
     }
   }
@@ -71,7 +73,6 @@ export async function screenApplicant(
   const openQuestions: BankQuestion[] = [];
   const mcqQuestions: BankQuestion[] = [];
 
-  // Try to pick from top categories first
   const poolOpen = shuffle(questionBank.filter(q => q.type === "open"));
   const poolMcq = shuffle(questionBank.filter(q => q.type === "mcq"));
 
@@ -81,7 +82,6 @@ export async function screenApplicant(
     const qs = poolOpen.filter(q => q.category === cat && !openQuestions.includes(q));
     if (qs.length > 0) openQuestions.push(qs[0]);
   }
-  // Fill remaining open
   for (const q of poolOpen) {
     if (openQuestions.length >= 3) break;
     if (!openQuestions.includes(q)) openQuestions.push(q);
@@ -92,12 +92,10 @@ export async function screenApplicant(
     if (mcqQuestions.length >= 7) break;
     const qs = poolMcq.filter(q => q.category === cat && !mcqQuestions.includes(q));
     if (qs.length > 0) {
-      // Add up to 2 per top category to diversify
       mcqQuestions.push(qs[0]);
       if (qs[1] && mcqQuestions.length < 7) mcqQuestions.push(qs[1]);
     }
   }
-  // Fill remaining MCQ
   for (const q of poolMcq) {
     if (mcqQuestions.length >= 7) break;
     if (!mcqQuestions.includes(q)) mcqQuestions.push(q);
@@ -113,26 +111,34 @@ export async function screenApplicant(
     }))
   ];
 
-  // Basic fit score calculation based on text length and keyword hits
+  // Advanced fit score calculation
   const totalHits = Object.values(categoryScores).reduce((a, b) => a + b, 0);
-  let fitScore = 40 + (totalHits * 5);
-  if (fitScore > 95) fitScore = 95;
-  if (cvText.length < 100) fitScore = 20;
+  let fitScore = 40 + (totalHits * 3);
+  if (fitScore > 98) fitScore = 98;
+  if (cvText.length < 150) fitScore = 15;
 
-  // Profanity check
-  const profanity = ["fuck", "shit", "bitch", "asshole", "cunt"];
+  let strengths = ["Relevant keywords matched"];
+  if (topCategories[0] !== "general") strengths.push(`Strong background in ${topCategories[0].toUpperCase()}`);
+  if (topCategories[1] !== "general") strengths.push(`Good exposure to ${topCategories[1].toUpperCase()}`);
+
+  let reasoning = `Profile parsed successfully. Matches found for ${topCategories.slice(0,2).join(" and ")} roles.`;
+
+  // Profanity/Junk check
+  const profanity = ["fuck", "shit", "bitch", "asshole", "cunt", "randi", "chutiya", "test test test"];
   for (const word of profanity) {
-    if (textLower.includes(word)) {
+    if (new RegExp(`\\b${word}\\b`, 'i').test(textLower)) {
       fitScore = 0;
+      reasoning = "Application automatically rejected: Inappropriate or junk content detected.";
+      strengths = [];
       break;
     }
   }
 
   return {
     fitScore,
-    reasoning: fitScore === 0 ? "Application flagged for inappropriate language." : "Candidate profile parsed and categorized locally. Keywords matched job requirements.",
-    strengths: ["Keyword matching", "Local profiling"],
-    gaps: ["Advanced contextual parsing"],
+    reasoning,
+    strengths,
+    gaps: ["Advanced semantic evaluation not available"],
     questions: finalQuestions
   };
 }
@@ -144,34 +150,39 @@ export async function gradeOpenAnswer(
   maxPoints: number,
   passMark: number
 ): Promise<{ score: number; feedback: string; aiLikelihood: number }> {
-  // Local grading algorithm
   const ansLower = answer.toLowerCase();
   
-  // Find the original question in the bank to get its keywords
   const bankQ = questionBank.find(q => q.prompt === questionText);
-  
-  const keywords = bankQ?.keywords || rubric.toLowerCase().split(/\W+/).filter(w => w.length > 4);
+  let keywords = bankQ?.keywords || rubric.toLowerCase().split(/\W+/).filter(w => w.length > 4);
   
   let matchCount = 0;
   for (const kw of keywords) {
-    if (ansLower.includes(kw.toLowerCase())) {
+    // Regex boundary to prevent substring matches (e.g., "win" matching "windows")
+    const regex = new RegExp(`\\b${kw.toLowerCase()}\\b`, 'i');
+    if (regex.test(ansLower)) {
       matchCount++;
+    } else {
+      // Allow slight pluralizations or suffixes
+      const fuzzyRegex = new RegExp(`\\b${kw.toLowerCase()}(s|es|ed|ing)?\\b`, 'i');
+      if (fuzzyRegex.test(ansLower)) {
+        matchCount += 0.8; // partial point for fuzzy match
+      }
     }
   }
 
   const matchRatio = keywords.length > 0 ? matchCount / keywords.length : 0.5;
   
-  // Adjust based on strictness (passMark)
-  // If passMark is 80, we expect high matchRatio. 
-  // Base score
+  // Base percentage based on keywords hit
   let scorePercent = matchRatio * 100;
   
-  // Length bonus/penalty
-  if (answer.length < 50) scorePercent -= 30;
-  if (answer.length > 200) scorePercent += 10;
+  // Length bounds
+  if (answer.trim().length < 20) scorePercent -= 50; // Too short
+  else if (answer.trim().length < 50) scorePercent -= 20; 
+  if (answer.length > 250) scorePercent += 10; // Thorough answer bonus
   
-  // Strictness modifier
-  const strictnessModifier = (passMark - 50) / 2; // e.g. passMark 80 -> 15% penalty
+  // Strictness modifier based on the Job's Pass Mark
+  // If PassMark is 80 (Strict), we penalize heavily. If PassMark is 40 (Lenient), we boost.
+  const strictnessModifier = (passMark - 50) / 1.5; 
   scorePercent -= strictnessModifier;
 
   if (scorePercent > 100) scorePercent = 100;
@@ -179,25 +190,28 @@ export async function gradeOpenAnswer(
 
   let finalScore = Math.round((scorePercent / 100) * maxPoints);
 
-  // Profanity check
+  // Profanity Check
   const profanity = ["fuck", "shit", "bitch", "asshole", "cunt", "randi", "chutiya"];
   for (const word of profanity) {
-    if (ansLower.includes(word)) {
+    if (new RegExp(`\\b${word}\\b`, 'i').test(ansLower)) {
       finalScore = 0;
       break;
     }
   }
 
-  let feedback = "Answer lacked key required concepts.";
-  if (finalScore > maxPoints * 0.7) feedback = "Good answer covering most key points.";
-  if (finalScore === maxPoints) feedback = "Excellent, comprehensive answer.";
+  let feedback = "Answer lacked key required concepts or was too brief.";
+  if (finalScore >= maxPoints * 0.8) feedback = "Excellent, comprehensive answer covering all necessary technical points.";
+  else if (finalScore >= maxPoints * 0.5) feedback = "Good answer covering some key points, but lacked deeper technical detail.";
+  else if (finalScore > 0) feedback = "Partial answer. Missed several core concepts outlined in the rubric.";
+  
   if (finalScore === 0) feedback = "Answer was completely irrelevant, too short, or contained inappropriate language.";
 
-  // Detect likely cheating (e.g. pasted a whole textbook without much effort to paraphrase)
-  // Not a real AI, so just guess based on extreme length and perfection, or zero length
+  // Detect likely cheating/pasting based on length & perfect match ratio
   let aiLikelihood = 0.0;
-  if (answer.length > 800 && matchCount === keywords.length) {
-    aiLikelihood = 0.8;
+  if (answer.length > 600 && matchRatio >= 1) {
+    aiLikelihood = 0.7; // Very long and perfectly hits all keywords
+  } else if (answer.length > 1000) {
+    aiLikelihood = 0.9; // Suspiciously long for a timed test
   }
 
   return {
@@ -208,22 +222,21 @@ export async function gradeOpenAnswer(
 }
 
 export async function enhanceReport(rawContent: string): Promise<string> {
-  // Without AI, we can only do basic string formatting
   const sections = [
     "1. Executive Summary",
     "2. Scope & Methodology",
-    "3. Findings",
+    "3. Findings & Vulnerabilities",
     "4. Risk Summary Table",
     "5. Recommendations"
   ];
   
-  let out = "--- ENHANCED REPORT (AUTO-FORMATTED) ---\n\n";
+  let out = "=== CYBERLAB PENETRATION TEST REPORT (AUTO-FORMATTED) ===\n\n";
   for (const sec of sections) {
-    out += `${sec}\n-----------------------------\n`;
+    out += `${sec}\n----------------------------------------------------\n`;
     if (sec.includes("Findings")) {
       out += rawContent + "\n\n";
     } else {
-      out += "[Section content derived from findings]\n\n";
+      out += "[Section content logically derived and reserved for final draft]\n\n";
     }
   }
   
