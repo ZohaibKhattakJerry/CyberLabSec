@@ -16,7 +16,7 @@ export default async function AnnouncementsPage() {
   const teams = await prisma.team.findMany({ select: { id: true, name: true } });
   const employees = await prisma.employee.findMany({ where: { status: "Active" }, select: { id: true, name: true, employeeCode: true } });
 
-  const serialized = announcements.map(a => ({
+  const serialized = announcements.map((a: any) => ({
     ...a,
     sentAt: a.sentAt.toISOString(),
     expiresAt: a.expiresAt?.toISOString() || null,
