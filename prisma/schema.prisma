@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client-js"
+  engineType = "library"
 }
 
 datasource db {
@@ -7,65 +8,65 @@ datasource db {
 }
 
 model Applicant {
-  id               String           @id @default(cuid())
+  id               String            @id @default(cuid())
   fullName         String
   email            String
   phone            String
   cnicEncrypted    String
-  cnicHash         String           @unique
+  cnicHash         String            @unique
   cvFileUrl        String
   photoUrl         String?
-  portfolioLinks   String           @default("[]") // JSON string
+  portfolioLinks   String            @default("[]")
   universityName   String?
   semester         String?
   jobPostingId     String
-  jobPosting       JobPosting       @relation(fields: [jobPostingId], references: [id])
-  status           String           @default("Applied") // ApplicantStatus enum
+  status           String            @default("Applied")
   fitScore         Int?
   fitReasoning     String?
-  interviewSession InterviewSession?
-  consentData      String           @default("{}") // JSON string
+  consentData      String            @default("{}")
   ipAddress        String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  jobPosting       JobPosting        @relation(fields: [jobPostingId], references: [id])
   employeeRecord   Employee?
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
+  interviewSession InterviewSession?
 }
 
 model JobPosting {
   id                 String      @id @default(cuid())
   title              String
-  type               String      // "Job" | "Internship"
+  type               String
   department         String
   location           String
   description        String
   requirements       String
   universityRequired Boolean     @default(false)
   deadline           DateTime
-  status             String      @default("Open") // "Open" | "Closed"
+  status             String      @default("Open")
   shortlistThreshold Int         @default(50)
   passMark           Int         @default(60)
-  applicants         Applicant[]
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
+  applicants         Applicant[]
 }
 
 model InterviewSession {
-  id              String    @id @default(cuid())
-  applicantId     String    @unique
-  applicant       Applicant @relation(fields: [applicantId], references: [id])
-  token           String    @unique
-  tokenExpiry     DateTime
-  tokenUsed       Boolean   @default(false)
-  emailVerified   Boolean   @default(false)
-  questions       String    @default("[]") // JSON
-  answers         String    @default("[]") // JSON
-  perQuestionScore String   @default("[]") // JSON
-  cheatingSignals  String   @default("{}") // JSON
-  totalScore      Int?
-  result          String?   // "Passed" | "Failed" | "Cheating"
-  startedAt       DateTime?
-  completedAt     DateTime?
-  createdAt       DateTime  @default(now())
+  id               String    @id @default(cuid())
+  applicantId      String    @unique
+  token            String    @unique
+  tokenExpiry      DateTime
+  tokenUsed        Boolean   @default(false)
+  emailVerified    Boolean   @default(false)
+  questions        String    @default("[]")
+  answers          String    @default("[]")
+  perQuestionScore String    @default("[]")
+  cheatingSignals  String    @default("{}")
+  totalScore       Int?
+  result           String?
+  startedAt        DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime  @default(now())
+  applicant        Applicant @relation(fields: [applicantId], references: [id])
 }
 
 model Employee {
@@ -75,12 +76,11 @@ model Employee {
   email                String           @unique
   photoUrl             String?
   designation          String
-  employmentType       String           // "Employee" | "Intern"
+  employmentType       String
   startDate            DateTime
   endDate              DateTime?
-  status               String           @default("Active") // "Active" | "Terminated"
+  status               String           @default("Active")
   teamId               String?
-  team                 Team?            @relation(fields: [teamId], references: [id])
   passwordHash         String
   mustResetPassword    Boolean          @default(true)
   policyAcknowledgedAt DateTime?
@@ -88,79 +88,80 @@ model Employee {
   githubUrl            String?
   linkedinUrl          String?
   applicantId          String?          @unique
-  applicant            Applicant?       @relation(fields: [applicantId], references: [id])
-  submissions          TaskSubmission[]
-  announcementsSent    Announcement[]   @relation("SentBy")
-  announcementsRecv    Announcement[]   @relation("ReceivedAnnouncements")
-  activityLogs         ActivityLog[]
-  messages             TeamMessage[]
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
+  activityLogs         ActivityLog[]
+  announcementsRecv    Announcement[]   @relation("ReceivedAnnouncements")
+  announcementsSent    Announcement[]   @relation("SentBy")
+  applicant            Applicant?       @relation(fields: [applicantId], references: [id])
+  team                 Team?            @relation(fields: [teamId], references: [id])
+  submissions          TaskSubmission[]
+  messages             TeamMessage[]
 }
 
 model Team {
-  id              String        @id @default(cuid())
-  name            String
-  leadEmployeeId  String?
-  members         Employee[]
-  tasks           Task[]
-  announcements   Announcement[]
-  messages        TeamMessage[]
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  id             String         @id @default(cuid())
+  name           String
+  leadEmployeeId String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  announcements  Announcement[]
+  members        Employee[]
+  tasks          Task[]
+  messages       TeamMessage[]
 }
 
 model Task {
   id          String           @id @default(cuid())
   teamId      String
-  team        Team             @relation(fields: [teamId], references: [id])
   title       String
   brief       String
-  attachments String           @default("[]") // JSON
+  attachments String           @default("[]")
   deadline    DateTime
   createdBy   String
-  submissions TaskSubmission[]
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
+  team        Team             @relation(fields: [teamId], references: [id])
+  submissions TaskSubmission[]
 }
 
 model TaskSubmission {
   id          String   @id @default(cuid())
   taskId      String
-  task        Task     @relation(fields: [taskId], references: [id])
   employeeId  String
-  employee    Employee @relation(fields: [employeeId], references: [id])
-  files       String   @default("[]") // JSON
-  status      String   @default("Pending") // "Pending" | "Approved" | "Revision"
+  files       String   @default("[]")
+  status      String   @default("Pending")
   aiSummary   String?
   submittedAt DateTime @default(now())
+  employee    Employee @relation(fields: [employeeId], references: [id])
+  task        Task     @relation(fields: [taskId], references: [id])
 
   @@unique([taskId, employeeId])
 }
 
 model Announcement {
-  id        String    @id @default(cuid())
-  scope     String    // "Company" | "Team" | "Individual"
-  teamId    String?
-  team      Team?     @relation(fields: [teamId], references: [id])
-  employeeId String?  
-  employee  Employee? @relation("ReceivedAnnouncements", fields: [employeeId], references: [id])
-  message   String
-  isPinned  Boolean   @default(false)
-  expiresAt DateTime?
-  sentById  String
-  sentBy    Employee  @relation("SentBy", fields: [sentById], references: [id])
-  sentAt    DateTime  @default(now())
+  id         String    @id @default(cuid())
+  scope      String
+  teamId     String?
+  employeeId String?
+  message    String
+  isPinned   Boolean   @default(false)
+  expiresAt  DateTime?
+  sentById   String
+  sentAt     DateTime  @default(now())
+  employee   Employee? @relation("ReceivedAnnouncements", fields: [employeeId], references: [id])
+  sentBy     Employee  @relation("SentBy", fields: [sentById], references: [id])
+  team       Team?     @relation(fields: [teamId], references: [id])
 }
 
 model ActivityLog {
-  id         String    @id @default(cuid())
-  actorId    String?
-  actorType  String    // "Employee" | "System" | "Admin" | "Public"
-  action     String
-  metadata   String    @default("{}") // JSON
-  timestamp  DateTime  @default(now())
-  employee   Employee? @relation(fields: [actorId], references: [id])
+  id        String    @id @default(cuid())
+  actorId   String?
+  actorType String
+  action    String
+  metadata  String    @default("{}")
+  timestamp DateTime  @default(now())
+  employee  Employee? @relation(fields: [actorId], references: [id])
 }
 
 model PolicyDocument {
@@ -175,22 +176,22 @@ model PolicyDocument {
 model TeamMessage {
   id         String   @id @default(cuid())
   teamId     String
-  team       Team     @relation(fields: [teamId], references: [id])
   employeeId String
-  employee   Employee @relation(fields: [employeeId], references: [id])
   message    String
   createdAt  DateTime @default(now())
+  employee   Employee @relation(fields: [employeeId], references: [id])
+  team       Team     @relation(fields: [teamId], references: [id])
 }
 
 model AdminConfig {
-  id    String @id @default("singleton")
-  data  String @default("{}") // JSON config blob
+  id        String   @id @default("singleton")
+  data      String   @default("{}")
   updatedAt DateTime @updatedAt
 }
 
 model RateLimit {
   id        String   @id @default(cuid())
-  key       String   @unique // IP or CNIC hash
+  key       String   @unique
   attempts  Int      @default(0)
   resetAt   DateTime
   createdAt DateTime @default(now())
@@ -199,10 +200,10 @@ model RateLimit {
 
 model Notification {
   id        String   @id @default(cuid())
-  userId    String   // Employee ID or "admin"
+  userId    String
   title     String
   message   String
-  type      String   // "Task" | "Alert" | "System"
+  type      String
   link      String?
   read      Boolean  @default(false)
   createdAt DateTime @default(now())

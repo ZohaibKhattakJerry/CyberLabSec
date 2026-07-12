@@ -122,7 +122,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
             </tr>
           </thead>
           <tbody>
-            {filtered.map(e => (
+            {filtered.map((e: any) => (
               <tr key={e.id}>
                 <td>
                   <div style={{ fontWeight: 600, fontSize: 13, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 6 }}>
@@ -183,7 +183,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
                 <label className="label">Team Assignment</label>
                 <select className="input" value={editTeam} onChange={e => setEditTeam(e.target.value)}>
                   <option value="">Unassigned</option>
-                  {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                  {teams.map((t: any) => <option key={t.id} value={t.id}>{t.name}</option>)}
                 </select>
               </div>
               {msg && <p style={{ fontSize: 13, color: "var(--green)" }}>{msg}</p>}

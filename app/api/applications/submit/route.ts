@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
       cnicHash,
       cvFileUrl: cvUrl,
       photoUrl,
-      portfolioLinks: JSON.stringify(portfolioLinks.split("\n").map(l => l.trim()).filter(Boolean)),
+      portfolioLinks: JSON.stringify(portfolioLinks.split("\n").map((l: any) => l.trim()).filter(Boolean)),
       universityName: universityName || null,
       semester: semester || null,
       jobPostingId: postingId,

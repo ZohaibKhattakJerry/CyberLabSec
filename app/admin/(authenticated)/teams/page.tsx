@@ -25,11 +25,11 @@ export default async function TeamsPage() {
     select: { id: true, name: true, employeeCode: true, designation: true, teamId: true },
   });
 
-  const serialized = teams.map(t => ({
+  const serialized = teams.map((t: any) => ({
     ...t,
     createdAt: t.createdAt.toISOString(),
     updatedAt: t.updatedAt.toISOString(),
-    tasks: t.tasks.map(tk => ({ ...tk, deadline: tk.deadline.toISOString() })),
+    tasks: t.tasks.map((tk: any) => ({ ...tk, deadline: tk.deadline.toISOString() })),
   }));
 
   return <TeamsClient teams={serialized} employees={employees} />;

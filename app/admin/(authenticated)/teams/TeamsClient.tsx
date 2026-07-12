@@ -84,7 +84,7 @@ export default function TeamsClient({ teams, employees }: { teams: Team[]; emplo
         </div>
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(380px, 1fr))", gap: 16 }}>
-          {teams.map(team => (
+          {teams.map((team: any) => (
             <div key={team.id} className="card" style={{ padding: 24 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                 <div>
@@ -101,7 +101,7 @@ export default function TeamsClient({ teams, employees }: { teams: Team[]; emplo
                 <div style={{ marginBottom: 14 }}>
                   <p style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>Members</p>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                    {team.members.map(m => (
+                    {team.members.map((m: any) => (
                       <span key={m.id} style={{ fontSize: 12, padding: "4px 10px", background: "rgba(255,255,255,0.04)", borderRadius: 999, border: "1px solid var(--border)", color: "var(--text-secondary)" }}>
                         {m.name}
                       </span>
@@ -115,7 +115,7 @@ export default function TeamsClient({ teams, employees }: { teams: Team[]; emplo
               {team.tasks.length > 0 && (
                 <div>
                   <p style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>Recent Tasks</p>
-                  {team.tasks.map(t => (
+                  {team.tasks.map((t: any) => (
                     <div key={t.id} style={{ fontSize: 12, color: "var(--text-secondary)", padding: "4px 0", borderTop: "1px solid var(--border-subtle)" }}>
                       {t.title} <span style={{ color: "var(--text-muted)" }}>· Due {format(new Date(t.deadline), "MMM d")}</span>
                     </div>

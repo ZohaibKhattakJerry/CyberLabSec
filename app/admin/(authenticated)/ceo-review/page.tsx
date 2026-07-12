@@ -13,7 +13,7 @@ export default async function CeoReviewPage() {
     orderBy: { createdAt: "desc" },
   });
 
-  const serializedApplicants = applicants.map(a => ({
+  const serializedApplicants = applicants.map((a: any) => ({
     ...a,
     createdAt: a.createdAt.toISOString(),
     interviewSession: a.interviewSession ? {

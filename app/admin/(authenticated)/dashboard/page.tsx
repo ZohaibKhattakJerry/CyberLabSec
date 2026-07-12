@@ -24,7 +24,7 @@ export default async function AdminDashboard() {
 
   // Aggregate application data for the last 7 days
   const last7Days = Array.from({ length: 7 }).map((_, i) => format(subDays(new Date(), 6 - i), "MMM dd"));
-  const applicationsData = last7Days.map(date => {
+  const applicationsData = last7Days.map((date: any) => {
     return {
       date,
       count: applicants.filter(a => format(a.createdAt, "MMM dd") === date).length
@@ -32,7 +32,7 @@ export default async function AdminDashboard() {
   });
 
   // Aggregate task data by team
-  const tasksData = teamsWithTasks.map(team => {
+  const tasksData = teamsWithTasks.map((team: any) => {
     let pending = 0;
     let completed = 0;
     team.tasks.forEach(task => {
@@ -47,7 +47,7 @@ export default async function AdminDashboard() {
 
   // Aggregate applicant status
   const statuses = ["Applied", "Reviewing", "Shortlisted", "InterviewInvited", "Passed", "Failed", "Rejected"];
-  const applicantStatusData = statuses.map(status => ({
+  const applicantStatusData = statuses.map((status: any) => ({
     name: status,
     value: applicants.filter(a => a.status === status).length
   })).filter(s => s.value > 0);

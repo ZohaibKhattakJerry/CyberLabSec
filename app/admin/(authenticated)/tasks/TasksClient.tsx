@@ -94,7 +94,7 @@ export default function TasksClient({ initialTasks, teams }: { initialTasks: Tas
                 <label className="label label-required">Assign to Team</label>
                 <select className="input" value={teamId} onChange={(e) => setTeamId(e.target.value)} required>
                   <option value="" disabled>Select a team...</option>
-                  {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                  {teams.map((t: any) => <option key={t.id} value={t.id}>{t.name}</option>)}
                 </select>
               </div>
             </div>

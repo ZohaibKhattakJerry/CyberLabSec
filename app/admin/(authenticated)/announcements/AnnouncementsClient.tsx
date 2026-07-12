@@ -122,7 +122,7 @@ export default function AnnouncementsClient({ announcements, teams, employees }:
                     <label className="label label-required">Select Team</label>
                     <select className="input" value={teamId} onChange={e => setTeamId(e.target.value)}>
                       <option value="">-- Choose Team --</option>
-                      {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                      {teams.map((t: any) => <option key={t.id} value={t.id}>{t.name}</option>)}
                     </select>
                   </div>
                 )}
@@ -131,7 +131,7 @@ export default function AnnouncementsClient({ announcements, teams, employees }:
                     <label className="label label-required">Select Employee</label>
                     <select className="input" value={employeeId} onChange={e => setEmployeeId(e.target.value)}>
                       <option value="">-- Choose Employee --</option>
-                      {employees.map(e => <option key={e.id} value={e.id}>{e.name} ({e.employeeCode})</option>)}
+                      {employees.map((e: any) => <option key={e.id} value={e.id}>{e.name} ({e.employeeCode})</option>)}
                     </select>
                   </div>
                 )}

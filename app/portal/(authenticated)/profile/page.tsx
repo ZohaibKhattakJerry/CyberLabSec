@@ -38,7 +38,7 @@ export default async function ProfilePage() {
         endDate: employee.endDate?.toISOString() ?? null,
         policyAcknowledgedAt: employee.policyAcknowledgedAt?.toISOString() ?? null,
       }}
-      activityLogs={activityLogs.map(l => ({
+      activityLogs={activityLogs.map((l: any) => ({
         ...l,
         timestamp: l.timestamp.toISOString(),
       }))}

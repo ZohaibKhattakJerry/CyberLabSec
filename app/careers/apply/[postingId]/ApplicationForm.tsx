@@ -282,7 +282,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                       <Field label="Current Semester" required error={errors.semester}>
                         <select className={`input${errors.semester ? " input-error" : ""}`} value={form.semester} onChange={(e) => set("semester", e.target.value)}>
                           <option value="">Select semester</option>
-                          {[1,2,3,4,5,6,7,8].map(s => <option key={s} value={String(s)}>Semester {s}</option>)}
+                          {[1,2,3,4,5,6,7,8].map((s: any) => <option key={s} value={String(s)}>Semester {s}</option>)}
                         </select>
                       </Field>
                     </div>

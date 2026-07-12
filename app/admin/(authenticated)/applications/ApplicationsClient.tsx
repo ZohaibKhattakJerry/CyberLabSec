@@ -80,13 +80,13 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
         </div>
         <select className="input" style={{ width: 160 }} value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
           <option value="All">All Statuses</option>
-          {["Applied","Reviewing","Shortlisted","InterviewInvited","Passed","Failed","Rejected","Hired","Blocked"].map(s => (
+          {["Applied","Reviewing","Shortlisted","InterviewInvited","Passed","Failed","Rejected","Hired","Blocked"].map((s: any) => (
             <option key={s} value={s}>{s}</option>
           ))}
         </select>
         <select className="input" style={{ width: 200 }} value={filterPosting} onChange={e => setFilterPosting(e.target.value)}>
           <option value="All">All Positions</option>
-          {postings.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
+          {postings.map((p: any) => <option key={p.id} value={p.id}>{p.title}</option>)}
         </select>
         <div className="badge badge-gray" style={{ alignSelf: "center", padding: "6px 12px" }}>{filtered.length} results</div>
       </div>
@@ -106,7 +106,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
             </tr>
           </thead>
           <tbody>
-            {filtered.map(a => (
+            {filtered.map((a: any) => (
               <tr key={a.id}>
                 <td>
                   <div style={{ fontWeight: 600, fontSize: 13, color: "var(--text-primary)" }}>{a.fullName}</div>
@@ -173,7 +173,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                 { l: "AI Fit Score", v: selected.fitScore !== null ? `${selected.fitScore}%` : "—" },
                 { l: "Applied", v: format(new Date(selected.createdAt), "MMM d, yyyy h:mm a") },
                 { l: "Interview Score", v: selected.interviewSession?.totalScore !== null && selected.interviewSession?.totalScore !== undefined ? `${selected.interviewSession.totalScore}%` : "—" },
-              ].map(r => (
+              ].map((r: any) => (
                 <div key={r.l} style={{ padding: "10px 12px", background: "rgba(255,255,255,0.02)", borderRadius: 8 }}>
                   <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 3 }}>{r.l}</div>
                   <div style={{ fontSize: 14, fontWeight: 500 }}>{r.v}</div>

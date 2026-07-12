@@ -38,12 +38,12 @@ export async function POST(req: NextRequest) {
   let userIds: string[] = [];
   if (scope === "Company") {
     const allEmp = await prisma.employee.findMany({ where: { status: "Active" }, select: { id: true, email: true } });
-    emails = allEmp.map(e => e.email);
-    userIds = allEmp.map(e => e.id);
+    emails = allEmp.map((e: any) => e.email);
+    userIds = allEmp.map((e: any) => e.id);
   } else if (scope === "Team") {
     const teamEmp = await prisma.employee.findMany({ where: { teamId, status: "Active" }, select: { id: true, email: true } });
-    emails = teamEmp.map(e => e.email);
-    userIds = teamEmp.map(e => e.id);
+    emails = teamEmp.map((e: any) => e.email);
+    userIds = teamEmp.map((e: any) => e.id);
   } else if (scope === "Individual") {
     const emp = await prisma.employee.findUnique({ where: { id: employeeId }, select: { id: true, email: true } });
     if (emp) {
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
 
   if (userIds.length > 0) {
     await prisma.notification.createMany({
-      data: userIds.map(id => ({
+      data: userIds.map((id: any) => ({
         userId: id,
         title: scope === "Company" ? "Company Announcement" : scope === "Team" ? "Team Announcement" : "Personal Announcement",
         message: message.trim().substring(0, 50) + "...",

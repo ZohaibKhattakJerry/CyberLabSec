@@ -87,7 +87,7 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
         </div>
       ) : (
         <div style={{ display: "grid", gap: 14 }}>
-          {postings.map(p => (
+          {postings.map((p: any) => (
             <div key={p.id} className="card" style={{ padding: 22, display: "flex", alignItems: "center", gap: 16 }}>
               <div style={{ flex: 1 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>

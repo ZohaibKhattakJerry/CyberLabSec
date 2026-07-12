@@ -63,7 +63,7 @@ export default function CeoReviewClient({ applicants }: { applicants: Applicant[
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 20 }}>
-        {applicants.map(a => (
+        {applicants.map((a: any) => (
           <div key={a.id} className="card" style={{ padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
             <div>
               <h3 style={{ fontSize: 16, fontWeight: 700 }}>{a.fullName}</h3>

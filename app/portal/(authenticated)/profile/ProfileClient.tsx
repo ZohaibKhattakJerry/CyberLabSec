@@ -105,7 +105,7 @@ export default function ProfileClient({ employee, activityLogs }: { employee: Em
               label: "Policy",
               value: employee.policyAcknowledgedAt ? `Acknowledged ${format(new Date(employee.policyAcknowledgedAt), "MMM d, yyyy")}` : "Not yet acknowledged",
             },
-          ].map(r => (
+          ].map((r: any) => (
             <div key={r.label} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "10px 0", borderBottom: "1px solid var(--border-subtle)" }}>
               <span style={{ color: "var(--text-muted)", marginTop: 1, flexShrink: 0 }}>{r.icon}</span>
               <div style={{ flex: 1 }}>
@@ -185,7 +185,7 @@ export default function ProfileClient({ employee, activityLogs }: { employee: Em
               <p style={{ fontSize: 13, color: "var(--text-muted)" }}>No other activity recorded yet.</p>
             ) : (
               <div style={{ display: "grid", gap: 8 }}>
-                {activityLogs.filter(l => l.action !== "LOGIN").slice(0, 5).map(log => (
+                {activityLogs.filter(l => l.action !== "LOGIN").slice(0, 5).map((log: any) => (
                   <div key={log.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, padding: "8px 0", borderBottom: "1px solid var(--border-subtle)" }}>
                     <span style={{ color: "var(--text-secondary)" }}>{getActionLabel(log.action)}</span>
                     <span style={{ color: "var(--text-muted)", fontSize: 11 }}>{format(new Date(log.timestamp), "MMM d, h:mm a")}</span>
@@ -203,7 +203,7 @@ export default function ProfileClient({ employee, activityLogs }: { employee: Em
               <p style={{ fontSize: 13, color: "var(--text-muted)" }}>No login history found.</p>
             ) : (
               <div style={{ display: "grid", gap: 8 }}>
-                {activityLogs.filter(l => l.action === "LOGIN").map(log => {
+                {activityLogs.filter(l => l.action === "LOGIN").map((log: any) => {
                   let ip = "Unknown IP";
                   try {
                     ip = JSON.parse(log.metadata).ip || ip;
