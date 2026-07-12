@@ -1,0 +1,28 @@
+# CYBERLABSEC PLATFORM - MOBILE SETUP INSTRUCTIONS
+# Ye project Node.js (Next.js) par bana hai, isliye isme Python ki tarah 'requirements.txt' nahi hota.
+# Node.js mein dependencies 'package.json' file mein hoti hain.
+
+# Mobile (jaise Android mein Termux app) par run karne ke liye ye steps follow karein:
+
+1. Termux app open karein aur Node.js install karein:
+   pkg update && pkg upgrade
+   pkg install nodejs git -y
+
+2. Is project ke folder mein jayen:
+   cd path/to/CyberLabSec/cyberlabsec-platform
+
+3. Sari dependencies (requirements) install karne ke liye ye command chalayen:
+   npm install
+
+4. Database ko setup karne ke liye Prisma generate karein:
+   npx prisma generate
+
+5. Ab project ko start karne ke liye ye command chalayen:
+   npm run dev
+
+# Agar aap production (final) version run karna chahte hain to:
+# npm run build
+# npm start
+
+# Uske baad mobile browser mein jayein aur open karein:
+# http://localhost:3000

@@ -1,0 +1,305 @@
+"use client";
+
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { Shield, ChevronRight, ChevronLeft, CheckCircle, Info, Lock, BookOpen, AlertTriangle } from "lucide-react";
+import toast from "react-hot-toast";
+
+interface Employee {
+  id: string;
+  name: string;
+  designation: string;
+  team: { id: string; name: string } | null;
+}
+
+const STEPS = [
+  { id: "welcome", title: "Welcome" },
+  { id: "ceo", title: "CEO Message" },
+  { id: "overview", title: "Overview" },
+  { id: "portal", title: "Portal Tour" },
+  { id: "rules", title: "Guidelines" },
+  { id: "nda", title: "NDA & Policies" },
+  { id: "profile", title: "Profile Setup" },
+  { id: "complete", title: "Ready" },
+];
+
+export default function OnboardingWizard({ employee }: { employee: Employee }) {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [agreedNDA, setAgreedNDA] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  const handleNext = () => {
+    const stepId = STEPS[currentStep].id;
+    if (stepId === "nda" && !agreedNDA) {
+      toast.error("You must accept the Non-Disclosure Agreement to continue.");
+      return;
+    }
+    if (stepId === "profile") {
+      if (newPassword && newPassword !== confirmPassword) {
+        toast.error("Passwords do not match.");
+        return;
+      }
+      if (newPassword && newPassword.length < 8) {
+        toast.error("Password must be at least 8 characters.");
+        return;
+      }
+    }
+    if (currentStep < STEPS.length - 1) setCurrentStep((c) => c + 1);
+  };
+
+  const handleBack = () => {
+    if (currentStep > 0) setCurrentStep((c) => c - 1);
+  };
+
+  const completeOnboarding = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/employee/onboarding", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newPassword: newPassword || undefined }),
+      });
+      if (!res.ok) throw new Error("Failed to complete onboarding.");
+      toast.success("Welcome aboard!");
+      router.refresh();
+    } catch (error) {
+      toast.error("Error completing onboarding.");
+      setLoading(false);
+    }
+  };
+
+  const renderContent = () => {
+    const stepId = STEPS[currentStep].id;
+    switch (stepId) {
+      case "welcome":
+        return (
+          <div className="text-center py-12">
+            <div style={{ width: 80, height: 80, background: "var(--purple)", borderRadius: 20, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 32px", boxShadow: "0 0 40px rgba(168,85,247,0.4)" }}>
+              <Shield size={40} color="#fff" />
+            </div>
+            <h1 style={{ fontSize: 36, fontWeight: 800, marginBottom: 16 }}>Welcome, {employee.name}!</h1>
+            <p style={{ fontSize: 18, color: "var(--text-secondary)", maxWidth: 600, margin: "0 auto 40px" }}>
+              We are thrilled to have you join CyberLab as our new <span style={{ color: "var(--purple)", fontWeight: 600 }}>{employee.designation}</span>.
+              This wizard will guide you through our core principles, platform tools, and security policies.
+            </p>
+          </div>
+        );
+      case "ceo":
+        return (
+          <div className="py-8">
+            <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 24, display: "flex", alignItems: "center", gap: 10 }}>
+              <Shield size={24} color="var(--purple)" /> CEO Welcome Message
+            </h2>
+            <div className="card" style={{ padding: 32, marginBottom: 24 }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 20 }}>
+                <div style={{ width: 80, height: 80, borderRadius: "50%", background: "var(--purple)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, fontWeight: 800, color: "white", flexShrink: 0 }}>
+                  ZK
+                </div>
+                <div>
+                  <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Zohaib Khattak</h3>
+                  <p style={{ color: "var(--text-muted)", fontSize: 14, marginBottom: 16 }}>CEO & Founder, CyberLabSec</p>
+                  <div style={{ color: "var(--text-secondary)", fontStyle: "italic", lineHeight: 1.7, fontSize: 15, paddingLeft: 16, borderLeft: "4px solid var(--border-accent)" }}>
+                    <p style={{ marginBottom: 12 }}>"Welcome to the team! We founded CyberLabSec with a singular vision: to build the most elite, proactive defense force in the digital realm. As you step into your new role, remember that you are now part of a family that values integrity, innovation, and relentless pursuit of security."</p>
+                    <p>"We rely on your expertise to secure the future. I am incredibly excited to see the impact you will make here. Let's build something extraordinary together."</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      case "overview":
+        return (
+          <div className="py-8">
+            <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 24, display: "flex", alignItems: "center", gap: 10 }}>
+              <Info size={24} color="var(--purple)" /> Company Mission & Vision
+            </h2>
+            <div className="card" style={{ padding: 32, marginBottom: 24 }}>
+              <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 12 }}>Our Mission</h3>
+              <p style={{ color: "var(--text-secondary)", marginBottom: 24 }}>
+                At CyberLab, our mission is to proactively identify and neutralize digital threats before they can be exploited. 
+                We act as the ultimate line of defense for critical infrastructures worldwide.
+              </p>
+              <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 12 }}>Your Role</h3>
+              <p style={{ color: "var(--text-secondary)" }}>
+                As part of the <strong>{employee.team?.name || "CyberLab Team"}</strong>, you will be expected to maintain the highest standards of operational security (OPSEC) while executing your assigned tasks.
+              </p>
+            </div>
+          </div>
+        );
+      case "portal":
+        return (
+          <div className="py-8">
+            <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 24, display: "flex", alignItems: "center", gap: 10 }}>
+              <BookOpen size={24} color="var(--purple)" /> Employee Portal Guide
+            </h2>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+              <div className="card" style={{ padding: 24 }}>
+                <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>📋 Tasks</h3>
+                <p style={{ color: "var(--text-muted)", fontSize: 14 }}>View active assignments, deadlines, and operational briefs. Always submit your reports before the deadline.</p>
+              </div>
+              <div className="card" style={{ padding: 24 }}>
+                <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>📤 Submissions</h3>
+                <p style={{ color: "var(--text-muted)", fontSize: 14 }}>Upload your findings securely. The system automatically analyzes reports using AI for rapid review.</p>
+              </div>
+              <div className="card" style={{ padding: 24 }}>
+                <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>👥 Team</h3>
+                <p style={{ color: "var(--text-muted)", fontSize: 14 }}>Collaborate with your squad. View team announcements and secure comms.</p>
+              </div>
+              <div className="card" style={{ padding: 24 }}>
+                <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>🔔 Announcements</h3>
+                <p style={{ color: "var(--text-muted)", fontSize: 14 }}>Real-time updates from CyberLab Command regarding global intel and system events.</p>
+              </div>
+            </div>
+          </div>
+        );
+      case "rules":
+        return (
+          <div className="py-8">
+             <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 24, display: "flex", alignItems: "center", gap: 10 }}>
+              <AlertTriangle size={24} color="var(--purple)" /> Operational Rules
+            </h2>
+            <div className="card" style={{ padding: 32 }}>
+              <ul style={{ display: "flex", flexDirection: "column", gap: 16, color: "var(--text-secondary)" }}>
+                <li style={{ display: "flex", gap: 12 }}><CheckCircle size={20} color="var(--purple)" style={{ flexShrink: 0 }} /> <strong>Strict Confidentiality:</strong> No internal data or task details may be shared externally.</li>
+                <li style={{ display: "flex", gap: 12 }}><CheckCircle size={20} color="var(--purple)" style={{ flexShrink: 0 }} /> <strong>Timely Submissions:</strong> Late submissions are flagged and directly affect your performance metrics.</li>
+                <li style={{ display: "flex", gap: 12 }}><CheckCircle size={20} color="var(--purple)" style={{ flexShrink: 0 }} /> <strong>Zero Tolerance for Plagiarism:</strong> All code and reports are scanned. AI-generated content without disclosure will result in immediate review.</li>
+                <li style={{ display: "flex", gap: 12 }}><CheckCircle size={20} color="var(--purple)" style={{ flexShrink: 0 }} /> <strong>Professional Conduct:</strong> Maintain professional communication at all times.</li>
+              </ul>
+            </div>
+          </div>
+        );
+      case "nda":
+        return (
+          <div className="py-8">
+            <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 24, display: "flex", alignItems: "center", gap: 10 }}>
+              <Lock size={24} color="var(--purple)" /> Non-Disclosure Agreement
+            </h2>
+            <div className="card" style={{ padding: 32, marginBottom: 24, maxHeight: 300, overflowY: "auto", fontSize: 14, color: "var(--text-muted)", border: "1px solid rgba(168,85,247,0.2)" }}>
+              <h4 style={{ color: "var(--text-primary)", marginBottom: 12, fontWeight: 600 }}>CONFIDENTIALITY POLICY</h4>
+              <p style={{ marginBottom: 16 }}>As an employee of CyberLabSec, you will have access to highly sensitive and classified information regarding our clients, proprietary methodologies, and ongoing security operations.</p>
+              <p style={{ marginBottom: 16 }}>1. You agree not to disclose, share, or distribute any proprietary tools, vulnerability reports, or internal communications with any unauthorized third parties.</p>
+              <p style={{ marginBottom: 16 }}>2. You agree that any security research or exploits developed during your employment are the sole intellectual property of CyberLabSec.</p>
+              <p>Failure to comply with this agreement will result in immediate termination and potential legal action.</p>
+            </div>
+            <label style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer", background: "var(--bg-card)", padding: 20, borderRadius: 12, border: "1px solid var(--border)" }}>
+              <input type="checkbox" checked={agreedNDA} onChange={(e) => setAgreedNDA(e.target.checked)} style={{ width: 20, height: 20, accentColor: "var(--purple)" }} />
+              <span style={{ fontWeight: 500 }}>I have read and agree to the Non-Disclosure Agreement & Platform Policies.</span>
+            </label>
+          </div>
+        );
+      case "profile":
+        return (
+          <div className="py-8">
+            <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 24, display: "flex", alignItems: "center", gap: 10 }}>
+              <Lock size={24} color="var(--purple)" /> Profile & Security Setup
+            </h2>
+            <div className="card" style={{ padding: 32 }}>
+              <p style={{ color: "var(--text-secondary)", marginBottom: 24 }}>
+                For your security, we recommend setting a new password for your account now. If you leave this blank, your current password will remain unchanged.
+              </p>
+              
+              <div style={{ display: "grid", gap: 16, maxWidth: 400 }}>
+                <div>
+                  <label className="label">New Password</label>
+                  <input 
+                    type="password" 
+                    className="input" 
+                    placeholder="Min 8 characters"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="label">Confirm New Password</label>
+                  <input 
+                    type="password" 
+                    className="input" 
+                    placeholder="Retype password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      case "complete":
+        return (
+           <div className="text-center py-12">
+            <div style={{ width: 80, height: 80, background: "rgba(34, 197, 94, 0.2)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 32px" }}>
+              <CheckCircle size={40} color="#22c55e" />
+            </div>
+            <h1 style={{ fontSize: 32, fontWeight: 800, marginBottom: 16 }}>You are all set!</h1>
+            <p style={{ fontSize: 18, color: "var(--text-secondary)", maxWidth: 500, margin: "0 auto 40px" }}>
+              Your workspace is ready. Click the button below to enter the CyberLab Employee Portal and view your dashboard.
+            </p>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div style={{ minHeight: "100vh", background: "var(--bg-primary)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+      <div style={{ width: "100%", maxWidth: 800 }}>
+        {/* Progress Bar */}
+        <div style={{ display: "flex", gap: 8, marginBottom: 40 }}>
+          {STEPS.map((step, idx) => (
+            <div key={step.id} style={{ flex: 1 }}>
+              <div style={{ 
+                height: 4, borderRadius: 2, 
+                background: idx <= currentStep ? "var(--purple)" : "var(--border)",
+                transition: "background 0.3s"
+              }} />
+              <div style={{ fontSize: 12, marginTop: 8, color: idx === currentStep ? "var(--purple)" : "var(--text-muted)", fontWeight: idx === currentStep ? 600 : 400, transition: "color 0.3s" }}>
+                {step.title}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Content Area */}
+        <div style={{ minHeight: 400 }}>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentStep}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              {renderContent()}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Navigation */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 40, borderTop: "1px solid var(--border)", paddingTop: 32 }}>
+          <button 
+            onClick={handleBack} 
+            disabled={currentStep === 0 || loading}
+            className="btn btn-secondary"
+            style={{ visibility: currentStep === 0 ? "hidden" : "visible", gap: 8 }}
+          >
+            <ChevronLeft size={18} /> Back
+          </button>
+
+          {currentStep === STEPS.length - 1 ? (
+            <button onClick={completeOnboarding} disabled={loading} className="btn btn-primary" style={{ padding: "12px 32px", fontSize: 16, gap: 10 }}>
+              {loading ? "Processing..." : "Enter Workspace"} <ChevronRight size={18} />
+            </button>
+          ) : (
+            <button onClick={handleNext} className="btn btn-primary" style={{ gap: 8 }}>
+              Next Step <ChevronRight size={18} />
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
