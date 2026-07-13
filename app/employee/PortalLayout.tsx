@@ -47,8 +47,12 @@ export default function PortalLayout({ children, employee }: { children: React.R
       {/* Employee info */}
       <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(168,85,247,0.15)", border: "1px solid rgba(168,85,247,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 14, color: "var(--purple)", flexShrink: 0 }}>
-            {employee.name.charAt(0).toUpperCase()}
+          <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(168,85,247,0.15)", border: "1px solid rgba(168,85,247,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 14, color: "var(--purple)", flexShrink: 0, overflow: "hidden" }}>
+            {employee.photoUrl ? (
+              <img src={employee.photoUrl} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            ) : (
+              employee.name.charAt(0).toUpperCase()
+            )}
           </div>
           <div style={{ minWidth: 0 }}>
             <div style={{ fontWeight: 600, fontSize: 13, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{employee.name}</div>

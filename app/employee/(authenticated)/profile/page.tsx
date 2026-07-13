@@ -25,7 +25,7 @@ export default async function ProfilePage() {
   if (!employee) redirect("/employee/login");
 
   const activityLogs = await prisma.activityLog.findMany({
-    where: { actorId: employee.id },
+    where: { actorId: employee.id, actorType: "Employee" },
     orderBy: { timestamp: "desc" },
     take: 30,
   });

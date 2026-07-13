@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { format } from "date-fns";
-import { User, Shield, Calendar, KeyRound, Eye, EyeOff, Loader2, CheckCircle, Clock, Activity } from "lucide-react";
+import { User, Shield, Calendar, KeyRound, Eye, EyeOff, Loader2, CheckCircle, Clock, Activity, Camera, Code, Link as LinkIcon, UploadCloud } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface Employee {
   id: string; name: string; email: string; designation: string;
@@ -18,6 +19,7 @@ interface ActivityLog {
 }
 
 export default function ProfileClient({ employee, activityLogs }: { employee: Employee; activityLogs: ActivityLog[] }) {
+  const router = useRouter();
   const [currentPw, setCurrentPw] = useState("");
   const [newPw, setNewPw] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
@@ -31,6 +33,36 @@ export default function ProfileClient({ employee, activityLogs }: { employee: Em
   const [socialLoading, setSocialLoading] = useState(false);
   const [socialMsg, setSocialMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
 
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      alert("Photo must be less than 2MB");
+      return;
+    }
+
+    setUploadingPhoto(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/employee/profile/photo", {
+        method: "POST",
+        body: formData
+      });
+      if (!res.ok) throw new Error("Failed to upload photo");
+      router.refresh();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
   const handleSaveSocial = async (e: React.FormEvent) => {
     e.preventDefault();
     setSocialLoading(true); setSocialMsg(null);
@@ -43,6 +75,7 @@ export default function ProfileClient({ employee, activityLogs }: { employee: Em
     setSocialLoading(false);
     if (!res.ok) { setSocialMsg({ type: "err", text: data.error || "Failed to save." }); return; }
     setSocialMsg({ type: "ok", text: "Social links saved successfully." });
+    router.refresh();
   };
 
   const handlePasswordChange = async (e: React.FormEvent) => {
@@ -64,163 +97,178 @@ export default function ProfileClient({ employee, activityLogs }: { employee: Em
 
   const getActionLabel = (action: string) => {
     const map: Record<string, string> = {
-      LOGIN: "Signed in", LOGOUT: "Signed out", TASK_SUBMIT: "Submitted task", PASSWORD_CHANGE: "Changed password",
+      LOGIN: "System access granted", LOGOUT: "System disconnect", TASK_SUBMIT: "Objective submitted", PASSWORD_CHANGE: "Credentials rotated",
     };
     return map[action] || action;
   };
 
   return (
-    <div>
-      <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 4 }}>My Profile</h1>
-        <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>Manage your account and security settings</p>
+    <div className="animate-fade-up">
+      <div style={{ marginBottom: 32, display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
+        <div>
+          <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 6 }}>Operative Profile</h1>
+          <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>Manage identity, credentials, and access logs.</p>
+        </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-        {/* Employee Info */}
-        <div className="card" style={{ padding: 28 }}>
-          <h2 style={{ fontSize: 15, fontWeight: 700, marginBottom: 20, display: "flex", alignItems: "center", gap: 8 }}>
-            <User size={15} color="var(--purple)" /> Employee Details
-          </h2>
-
-          <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24, padding: 16, background: "rgba(255,255,255,0.02)", borderRadius: 10 }}>
-            <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(168,85,247,0.15)", border: "2px solid rgba(168,85,247,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, fontWeight: 800, color: "var(--purple)", flexShrink: 0 }}>
-              {employee.name.charAt(0).toUpperCase()}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "start" }}>
+        
+        {/* Left Column */}
+        <div style={{ display: "grid", gap: 24 }}>
+          {/* Identity Card */}
+          <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+            <div style={{ height: 100, background: "linear-gradient(to right, rgba(168,85,247,0.2), rgba(59,130,246,0.2))", position: "relative" }}>
+              <div style={{ position: "absolute", bottom: -40, left: 24, display: "flex", alignItems: "flex-end", gap: 16 }}>
+                <div 
+                  style={{ width: 90, height: 90, borderRadius: 16, background: "var(--bg-card)", border: "4px solid var(--bg-card)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, fontWeight: 800, color: "var(--purple)", position: "relative", overflow: "hidden", cursor: "pointer", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {employee.photoUrl ? (
+                    <img src={employee.photoUrl} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ) : (
+                    employee.name.charAt(0).toUpperCase()
+                  )}
+                  <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", opacity: 0, transition: "opacity 0.2s" }} className="hover:opacity-100">
+                    {uploadingPhoto ? <Loader2 size={24} color="#fff" style={{ animation: "spin 1s linear infinite" }} /> : <Camera size={24} color="#fff" />}
+                  </div>
+                  <input type="file" ref={fileInputRef} style={{ display: "none" }} accept="image/*" onChange={handlePhotoUpload} />
+                </div>
+              </div>
             </div>
-            <div>
-              <div style={{ fontSize: 18, fontWeight: 700 }}>{employee.name}</div>
-              <div style={{ fontSize: 13, color: "var(--text-muted)" }}>{employee.designation}</div>
+            
+            <div style={{ padding: "50px 24px 24px 24px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
+                <div>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: "var(--text-primary)" }}>{employee.name}</div>
+                  <div style={{ fontSize: 14, color: "var(--purple)", fontWeight: 600, marginTop: 4 }}>{employee.designation}</div>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <div className="badge badge-gray" style={{ marginBottom: 6 }}>{employee.status}</div>
+                  <div style={{ fontSize: 12, color: "var(--text-muted)" }}>ID: {employee.employeeCode}</div>
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gap: 12, background: "rgba(255,255,255,0.02)", padding: 16, borderRadius: 12, border: "1px solid var(--border-subtle)" }}>
+                {[
+                  { icon: <User size={14} />, label: "Comm Link", value: employee.email },
+                  { icon: <Shield size={14} />, label: "Squad Assignment", value: employee.team?.name || "Pending Assignment" },
+                  { icon: <Activity size={14} />, label: "Clearance Level", value: employee.employmentType },
+                  { icon: <Calendar size={14} />, label: "Induction Date", value: format(new Date(employee.startDate), "MMM d, yyyy") },
+                ].map((r: any) => (
+                  <div key={r.label} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: 8, background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)", flexShrink: 0 }}>
+                      {r.icon}
+                    </div>
+                    <div style={{ flex: 1, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontSize: 13, color: "var(--text-muted)" }}>{r.label}</span>
+                      <span style={{ fontSize: 14, color: "var(--text-primary)", fontWeight: 500 }}>{r.value}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
-          {[
-            { icon: <Shield size={14} />, label: "Employee ID", value: employee.employeeCode },
-            { icon: <User size={14} />, label: "Email", value: employee.email },
-            { icon: <Activity size={14} />, label: "Type", value: employee.employmentType },
-            { icon: <Calendar size={14} />, label: "Start Date", value: format(new Date(employee.startDate), "MMMM d, yyyy") },
-            ...(employee.endDate ? [{ icon: <Calendar size={14} />, label: "End Date", value: format(new Date(employee.endDate), "MMMM d, yyyy") }] : []),
-            { icon: <User size={14} />, label: "Team", value: employee.team?.name || "Unassigned" },
-            {
-              icon: <CheckCircle size={14} />,
-              label: "Policy",
-              value: employee.policyAcknowledgedAt ? `Acknowledged ${format(new Date(employee.policyAcknowledgedAt), "MMM d, yyyy")}` : "Not yet acknowledged",
-            },
-          ].map((r: any) => (
-            <div key={r.label} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "10px 0", borderBottom: "1px solid var(--border-subtle)" }}>
-              <span style={{ color: "var(--text-muted)", marginTop: 1, flexShrink: 0 }}>{r.icon}</span>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 1 }}>{r.label}</div>
-                <div style={{ fontSize: 14, color: "var(--text-primary)" }}>{r.value}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Social Links */}
-        <div className="card" style={{ padding: 28 }}>
-          <h2 style={{ fontSize: 15, fontWeight: 700, marginBottom: 20, display: "flex", alignItems: "center", gap: 8 }}>
-            <User size={15} color="var(--blue)" /> Social Profiles
-          </h2>
-          <form onSubmit={handleSaveSocial} style={{ display: "grid", gap: 14 }}>
-            <div>
-              <label className="label">GitHub Profile URL</label>
-              <input className="input" placeholder="https://github.com/username" value={githubUrl} onChange={e => setGithubUrl(e.target.value)} />
-            </div>
-            <div>
-              <label className="label">LinkedIn Profile URL</label>
-              <input className="input" placeholder="https://linkedin.com/in/username" value={linkedinUrl} onChange={e => setLinkedinUrl(e.target.value)} />
-            </div>
-            {socialMsg && (
-              <div style={{ fontSize: 13, padding: "10px 14px", borderRadius: 8, background: socialMsg.type === "ok" ? "rgba(34,197,94,0.08)" : "rgba(168,85,247,0.08)", border: `1px solid ${socialMsg.type === "ok" ? "rgba(34,197,94,0.2)" : "rgba(168,85,247,0.2)"}`, color: socialMsg.type === "ok" ? "var(--green)" : "#fca5a5" }}>
-                {socialMsg.text}
-              </div>
-            )}
-            <button className="btn btn-primary" type="submit" disabled={socialLoading}>
-              {socialLoading ? <><Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> Saving...</> : "Save Social Links"}
-            </button>
-          </form>
-        </div>
-
-        <div style={{ display: "grid", gap: 20, alignContent: "start" }}>
-          {/* Change Password */}
-          <div className="card" style={{ padding: 28 }}>
-            <h2 style={{ fontSize: 15, fontWeight: 700, marginBottom: 20, display: "flex", alignItems: "center", gap: 8 }}>
-              <KeyRound size={15} color="var(--amber)" /> Change Password
+          {/* Connected Profiles */}
+          <div className="card" style={{ padding: 24 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20, display: "flex", alignItems: "center", gap: 8, color: "var(--text-primary)" }}>
+              <User size={16} color="var(--blue)" /> External Databanks
             </h2>
-            <form onSubmit={handlePasswordChange} style={{ display: "grid", gap: 14 }}>
+            <form onSubmit={handleSaveSocial} style={{ display: "grid", gap: 16 }}>
+              <div>
+                <label className="label" style={{ display: "flex", alignItems: "center", gap: 6 }}><Code size={14} /> GitHub Repository</label>
+                <input className="input" placeholder="https://github.com/username" value={githubUrl} onChange={e => setGithubUrl(e.target.value)} style={{ borderRadius: 8 }} />
+              </div>
+              <div>
+                <label className="label" style={{ display: "flex", alignItems: "center", gap: 6 }}><LinkIcon size={14} /> Professional Network</label>
+                <input className="input" placeholder="https://linkedin.com/in/username" value={linkedinUrl} onChange={e => setLinkedinUrl(e.target.value)} style={{ borderRadius: 8 }} />
+              </div>
+              {socialMsg && (
+                <div style={{ fontSize: 13, padding: "12px 16px", borderRadius: 8, background: socialMsg.type === "ok" ? "rgba(34,197,94,0.08)" : "rgba(168,85,247,0.08)", border: `1px solid ${socialMsg.type === "ok" ? "rgba(34,197,94,0.2)" : "rgba(168,85,247,0.2)"}`, color: socialMsg.type === "ok" ? "var(--green)" : "#fca5a5" }}>
+                  {socialMsg.text}
+                </div>
+              )}
+              <button className="btn btn-primary" type="submit" disabled={socialLoading} style={{ marginTop: 4, height: 40 }}>
+                {socialLoading ? <><Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> Syncing...</> : <><UploadCloud size={16} /> Sync Profiles</>}
+              </button>
+            </form>
+          </div>
+        </div>
+
+        {/* Right Column */}
+        <div style={{ display: "grid", gap: 24, alignContent: "start" }}>
+          
+          {/* Change Password */}
+          <div className="card" style={{ padding: 24 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20, display: "flex", alignItems: "center", gap: 8, color: "var(--text-primary)" }}>
+              <KeyRound size={16} color="var(--amber)" /> Credential Rotation
+            </h2>
+            <form onSubmit={handlePasswordChange} style={{ display: "grid", gap: 16 }}>
               {[
-                { label: "Current Password", val: currentPw, setter: setCurrentPw, show: showCurrent, toggle: () => setShowCurrent(p => !p) },
-                { label: "New Password", val: newPw, setter: setNewPw, show: showNew, toggle: () => setShowNew(p => !p) },
-                { label: "Confirm New Password", val: confirmPw, setter: setConfirmPw, show: showNew, toggle: () => {} },
+                { label: "Current Passcode", val: currentPw, setter: setCurrentPw, show: showCurrent, toggle: () => setShowCurrent(p => !p) },
+                { label: "New Passcode", val: newPw, setter: setNewPw, show: showNew, toggle: () => setShowNew(p => !p) },
+                { label: "Verify New Passcode", val: confirmPw, setter: setConfirmPw, show: showNew, toggle: () => {} },
               ].map((f, i) => (
                 <div key={i}>
                   <label className="label label-required">{f.label}</label>
                   <div style={{ position: "relative" }}>
-                    <input className="input" type={f.show ? "text" : "password"} value={f.val} onChange={e => f.setter(e.target.value)} style={{ paddingRight: 40 }} required />
+                    <input className="input" type={f.show ? "text" : "password"} value={f.val} onChange={e => f.setter(e.target.value)} style={{ paddingRight: 40, borderRadius: 8 }} required />
                     {i < 2 && (
                       <button type="button" onClick={f.toggle} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", display: "flex" }}>
-                        {f.show ? <EyeOff size={15} /> : <Eye size={15} />}
+                        {f.show ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
                     )}
                   </div>
                 </div>
               ))}
               {pwMsg && (
-                <div style={{ fontSize: 13, padding: "10px 14px", borderRadius: 8, background: pwMsg.type === "ok" ? "rgba(34,197,94,0.08)" : "rgba(168,85,247,0.08)", border: `1px solid ${pwMsg.type === "ok" ? "rgba(34,197,94,0.2)" : "rgba(168,85,247,0.2)"}`, color: pwMsg.type === "ok" ? "var(--green)" : "#fca5a5" }}>
+                <div style={{ fontSize: 13, padding: "12px 16px", borderRadius: 8, background: pwMsg.type === "ok" ? "rgba(34,197,94,0.08)" : "rgba(168,85,247,0.08)", border: `1px solid ${pwMsg.type === "ok" ? "rgba(34,197,94,0.2)" : "rgba(168,85,247,0.2)"}`, color: pwMsg.type === "ok" ? "var(--green)" : "#fca5a5" }}>
                   {pwMsg.text}
                 </div>
               )}
-              <button className="btn btn-primary" type="submit" disabled={loading}>
-                {loading ? <><Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> Updating...</> : "Update Password"}
+              <button className="btn" type="submit" disabled={loading} style={{ marginTop: 4, height: 40, background: "rgba(245, 158, 11, 0.1)", color: "var(--amber)", border: "1px solid rgba(245, 158, 11, 0.3)" }}>
+                {loading ? <><Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> Generating Hash...</> : "Rotate Credentials"}
               </button>
             </form>
           </div>
 
-          {/* Activity Log */}
+          {/* Access Logs */}
           <div className="card" style={{ padding: 24 }}>
-            <h2 style={{ fontSize: 15, fontWeight: 700, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
-              <Clock size={15} color="var(--blue)" /> Recent Activity
+            <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, display: "flex", alignItems: "center", gap: 8, color: "var(--text-primary)" }}>
+              <Shield size={16} color="var(--green)" /> Security & Access Logs
             </h2>
-            {activityLogs.filter(l => l.action !== "LOGIN").length === 0 ? (
-              <p style={{ fontSize: 13, color: "var(--text-muted)" }}>No other activity recorded yet.</p>
-            ) : (
-              <div style={{ display: "grid", gap: 8 }}>
-                {activityLogs.filter(l => l.action !== "LOGIN").slice(0, 5).map((log: any) => (
-                  <div key={log.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, padding: "8px 0", borderBottom: "1px solid var(--border-subtle)" }}>
-                    <span style={{ color: "var(--text-secondary)" }}>{getActionLabel(log.action)}</span>
-                    <span style={{ color: "var(--text-muted)", fontSize: 11 }}>{format(new Date(log.timestamp), "MMM d, h:mm a")}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          {/* Login History */}
-          <div className="card" style={{ padding: 24 }}>
-            <h2 style={{ fontSize: 15, fontWeight: 700, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
-              <Shield size={15} color="var(--green)" /> Login History
-            </h2>
-            {activityLogs.filter(l => l.action === "LOGIN").length === 0 ? (
-              <p style={{ fontSize: 13, color: "var(--text-muted)" }}>No login history found.</p>
-            ) : (
-              <div style={{ display: "grid", gap: 8 }}>
-                {activityLogs.filter(l => l.action === "LOGIN").map((log: any) => {
-                  let ip = "Unknown IP";
-                  try {
-                    ip = JSON.parse(log.metadata).ip || ip;
-                  } catch (e) {}
-                  return (
-                    <div key={log.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13, padding: "10px 0", borderBottom: "1px solid var(--border-subtle)" }}>
-                      <div>
-                        <div style={{ color: "var(--text-primary)", fontWeight: 500 }}>Successful Login</div>
-                        <div style={{ color: "var(--text-muted)", fontSize: 11, marginTop: 2 }}>IP: {ip}</div>
+            <div style={{ maxHeight: 300, overflowY: "auto", paddingRight: 8 }}>
+              {activityLogs.length === 0 ? (
+                <p style={{ fontSize: 13, color: "var(--text-muted)", textAlign: "center", padding: 20 }}>No logs recorded in the mainframe.</p>
+              ) : (
+                <div style={{ display: "grid", gap: 12 }}>
+                  {activityLogs.map((log: any) => {
+                    let ip = "Unknown IP";
+                    try { ip = JSON.parse(log.metadata).ip || ip; } catch (e) {}
+                    
+                    const isLogin = log.action === "LOGIN";
+                    const isLogout = log.action === "LOGOUT";
+                    
+                    return (
+                      <div key={log.id} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "12px", background: "rgba(255,255,255,0.02)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.03)" }}>
+                        <div style={{ width: 32, height: 32, borderRadius: 8, background: isLogin ? "rgba(34,197,94,0.1)" : isLogout ? "rgba(239,68,68,0.1)" : "rgba(168,85,247,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: isLogin ? "var(--green)" : isLogout ? "var(--red)" : "var(--purple)", flexShrink: 0 }}>
+                          {isLogin || isLogout ? <KeyRound size={14} /> : <Activity size={14} />}
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 2 }}>
+                            <div style={{ color: "var(--text-primary)", fontSize: 13, fontWeight: 600 }}>{getActionLabel(log.action)}</div>
+                            <span style={{ color: "var(--text-muted)", fontSize: 11 }}>{format(new Date(log.timestamp), "MMM d, h:mm a")}</span>
+                          </div>
+                          {isLogin && <div style={{ color: "var(--text-muted)", fontSize: 11, display: "flex", alignItems: "center", gap: 4 }}><Shield size={10} /> Origin: {ip}</div>}
+                        </div>
                       </div>
-                      <span style={{ color: "var(--text-muted)", fontSize: 11 }}>{format(new Date(log.timestamp), "MMM d, yyyy h:mm a")}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
+
         </div>
       </div>
     </div>
