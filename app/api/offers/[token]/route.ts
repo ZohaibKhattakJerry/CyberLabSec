@@ -14,5 +14,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
 
   if (!offer) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  return NextResponse.json(offer);
+  // Mark as Viewed the first time candidate opens it
+  if (offer.status === "Sent") {
+    await prisma.offerLetter.update({
+      where: { token },
+      data: { status: "Viewed", viewedAt: new Date() },
+    }).catch(() => {});
+  }
+
+  return NextResponse.json({ ...offer, status: offer.status === "Sent" ? "Viewed" : offer.status });
 }

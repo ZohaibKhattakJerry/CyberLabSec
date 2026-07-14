@@ -139,6 +139,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
     const e: typeof errors = {};
     if (posting.universityRequired && !form.universityName.trim()) e.universityName = "Required";
     if (posting.universityRequired && !form.semester.trim()) e.semester = "Required";
+    if (posting.universityRequired && !form.degree.trim()) e.degree = "Required";
     setErrors(e);
     return Object.keys(e).length === 0;
   };

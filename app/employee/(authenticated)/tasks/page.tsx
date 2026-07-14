@@ -102,7 +102,7 @@ export default async function TasksPage() {
           <p style={{ color: "var(--text-secondary)" }}>No tasks currently assigned to your team.</p>
         </div>
       ) : (
-        <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingBottom: 16, minHeight: 600 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16, paddingBottom: 16, minHeight: 400 }}>
           {renderColumn("To-Do", pendingTasks, "badge-gray")}
           {renderColumn("In Review", inReviewTasks, "badge-amber")}
           {renderColumn("Needs Revision", revisionTasks, "badge-red")}

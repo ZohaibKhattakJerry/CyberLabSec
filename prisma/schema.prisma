@@ -256,6 +256,7 @@ model OfferLetter {
   content       String
   status        String      @default("Sent")
   expiresAt     DateTime
+  viewedAt      DateTime?
   acceptedAt    DateTime?
   declinedAt    DateTime?
   acceptedName  String?

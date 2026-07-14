@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Search, Calendar, ChevronRight, FileText, CheckCircle, Clock, AlertTriangle, Star, X, Loader2, ExternalLink, Eye, Filter } from "lucide-react";
+import { Plus, Search, Calendar, ChevronRight, FileText, CheckCircle, Clock, AlertTriangle, Star, X, Loader2, ExternalLink, Eye, Filter, LayoutList, LayoutGrid } from "lucide-react";
 import { format, formatDistanceToNow, isPast } from "date-fns";
 import toast from "react-hot-toast";
 
@@ -62,6 +62,7 @@ export default function TasksClient({ initialTasks, teams }: { initialTasks: Tas
   const [filterPriority, setFilterPriority] = useState("All");
   const [showCreate, setShowCreate] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [viewMode, setViewMode] = useState<"list" | "board">("list");
   const [reviewTask, setReviewTask] = useState<Task | null>(null);
   const [reviewAction, setReviewAction] = useState<{ submissionId: string; action: "approve" | "request_changes" } | null>(null);
   const [feedback, setFeedback] = useState("");
@@ -245,17 +246,68 @@ export default function TasksClient({ initialTasks, teams }: { initialTasks: Tas
           <option value="Critical">Critical</option>
         </select>
         <div className="badge badge-gray" style={{ padding: "6px 12px", whiteSpace: "nowrap" }}>{filteredTasks.length} tasks</div>
+        {/* View toggle */}
+        <div style={{ display: "flex", gap: 4, border: "1px solid var(--border-subtle)", borderRadius: 8, padding: 3, background: "rgba(255,255,255,0.03)" }}>
+          <button onClick={() => setViewMode("list")} style={{ padding: "5px 10px", borderRadius: 6, border: "none", cursor: "pointer", background: viewMode === "list" ? "rgba(168,85,247,0.2)" : "transparent", color: viewMode === "list" ? "var(--purple)" : "var(--text-muted)" }} title="List view">
+            <LayoutList size={15} />
+          </button>
+          <button onClick={() => setViewMode("board")} style={{ padding: "5px 10px", borderRadius: 6, border: "none", cursor: "pointer", background: viewMode === "board" ? "rgba(168,85,247,0.2)" : "transparent", color: viewMode === "board" ? "var(--purple)" : "var(--text-muted)" }} title="Board view">
+            <LayoutGrid size={15} />
+          </button>
+        </div>
       </div>
 
-      {/* Task List */}
-      <div style={{ display: "grid", gap: 12 }}>
-        {filteredTasks.length === 0 ? (
-          <div className="card" style={{ padding: 48, textAlign: "center" }}>
-            <FileText size={40} color="var(--text-muted)" style={{ margin: "0 auto 16px" }} />
-            <p style={{ color: "var(--text-muted)", fontSize: 15 }}>No tasks found matching your filters.</p>
-          </div>
-        ) : (
-          filteredTasks.map(task => {
+      {/* Board View */}
+      {viewMode === "board" && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(230px, 1fr))", gap: 16, overflowX: "auto", paddingBottom: 16 }}>
+          {(["Assigned", "In Progress", "Submitted", "Completed"] as const).map(col => {
+            const colTasks = filteredTasks.filter(t =>
+              col === "Assigned" ? t.status === "Assigned" :
+              col === "In Progress" ? t.status === "In Progress" :
+              col === "Submitted" ? ["Submitted", "Under Review", "Changes Requested"].includes(t.status) :
+              t.status === "Completed"
+            );
+            const colColors: Record<string, string> = { Assigned: "var(--text-muted)", "In Progress": "var(--blue)", Submitted: "var(--amber)", Completed: "var(--green)" };
+            return (
+              <div key={col} style={{ background: "rgba(255,255,255,0.02)", borderRadius: 12, padding: 14, border: "1px solid var(--border-subtle)", minHeight: 300 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                  <span style={{ fontWeight: 700, fontSize: 13, color: colColors[col] }}>{col}</span>
+                  <span style={{ fontSize: 11, background: "rgba(255,255,255,0.06)", padding: "2px 7px", borderRadius: 10, color: "var(--text-muted)" }}>{colTasks.length}</span>
+                </div>
+                <div style={{ display: "grid", gap: 8 }}>
+                  {colTasks.map(task => {
+                    const pc = PRIORITY_CONFIG[task.priority] || PRIORITY_CONFIG.Medium;
+                    const overdue = isPast(new Date(task.deadline)) && task.status !== "Completed";
+                    return (
+                      <div key={task.id} className="card card-hover" style={{ padding: 12, cursor: "pointer" }} onClick={() => router.push(`/company/tasks/${task.id}`)}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", marginBottom: 6, lineHeight: 1.3 }}>{task.title}</div>
+                        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                          <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 10, background: pc.bg, color: pc.color }}>{task.priority}</span>
+                          <span style={{ fontSize: 10, color: overdue ? "var(--red)" : "var(--text-muted)" }}>{overdue ? "⚠ Overdue" : format(new Date(task.deadline), "MMM d")}</span>
+                        </div>
+                        <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 6 }}>{task.team.name}</div>
+                      </div>
+                    );
+                  })}
+                  {colTasks.length === 0 && <div style={{ fontSize: 12, color: "var(--text-muted)", textAlign: "center", padding: 20 }}>No tasks</div>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Task List (List view) */}
+      {viewMode === "list" && (
+        <div style={{ display: "grid", gap: 12 }}>
+          {filteredTasks.length === 0 ? (
+            <div className="card" style={{ padding: 48, textAlign: "center" }}>
+              <FileText size={40} color="var(--text-muted)" style={{ margin: "0 auto 16px" }} />
+              <p style={{ color: "var(--text-muted)", fontSize: 15 }}>No tasks found matching your filters.</p>
+            </div>
+          ) : (
+            <>
+            {filteredTasks.map(task => {
             const isOverdue = isPast(new Date(task.deadline)) && task.status !== "Completed";
             const pc = PRIORITY_CONFIG[task.priority] || PRIORITY_CONFIG.Medium;
             const sc = STATUS_CONFIG[task.status] || STATUS_CONFIG.Assigned;
@@ -425,9 +477,11 @@ export default function TasksClient({ initialTasks, teams }: { initialTasks: Tas
                 )}
               </div>
             );
-          })
-        )}
-      </div>
+          })}
+          </>
+          )}
+        </div>
+      )}
     </div>
   );
 }
