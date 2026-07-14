@@ -269,6 +269,30 @@ export default function JobDetailClient({ posting }: { posting: Posting }) {
             </Section>
           )}
 
+          {/* Hiring Process + Decision Timeline */}
+          <Section title="Hiring Process" icon={<span style={{ fontSize: 18 }}>🔬</span>}>
+            <div style={{ display: "grid", gap: 12 }}>
+              {[
+                { step: "1", label: "Application Review", desc: "We review your profile, security links, and motivation within 3 business days." },
+                { step: "2", label: "AI Skill Scoring", desc: "Automated screening assesses technical alignment based on your profile and answers." },
+                { step: "3", label: "AI Technical Interview", desc: "A timed, remote interview with written + MCQ questions across core security domains." },
+                { step: "4", label: "Final Selection", desc: "CEO/founder review. Offer sent to selected candidates." },
+              ].map((s) => (
+                <div key={s.step} style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+                  <div style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(168,85,247,0.15)", border: "1px solid rgba(168,85,247,0.4)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 13, color: "var(--purple)", flexShrink: 0 }}>{s.step}</div>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text-primary)", marginBottom: 2 }}>{s.label}</div>
+                    <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>{s.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop: 20, padding: "12px 16px", borderRadius: 10, background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 16 }}>⏱</span>
+              <span style={{ fontSize: 13, color: "var(--green)", fontWeight: 500 }}>Decisions within <strong>7 days</strong> of interview completion. All candidates receive a response.</span>
+            </div>
+          </Section>
+
           {/* Share section */}
           <div
             className="card"

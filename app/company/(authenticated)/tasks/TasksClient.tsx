@@ -69,6 +69,8 @@ export default function TasksClient({ initialTasks, teams }: { initialTasks: Tas
 
   // Create form state
   const [form, setForm] = useState({ title: "", brief: "", deadline: "", teamId: "", priority: "Medium" });
+  const [checklistItems, setChecklistItems] = useState<string[]>([]);
+  const [checklistInput, setChecklistInput] = useState("");
 
   const filteredTasks = tasks.filter(t => {
     const q = search.toLowerCase();
@@ -86,13 +88,15 @@ export default function TasksClient({ initialTasks, teams }: { initialTasks: Tas
       const res = await fetch("/api/company/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, checklist: JSON.stringify(checklistItems) }),
       });
       if (!res.ok) throw new Error("Failed");
       const { task } = await res.json();
       setTasks([{ ...task, team: teams.find(t => t.id === form.teamId)!, submissions: [] }, ...tasks]);
       setShowCreate(false);
       setForm({ title: "", brief: "", deadline: "", teamId: "", priority: "Medium" });
+      setChecklistItems([]);
+      setChecklistInput("");
       toast.success("Task assigned successfully");
     } catch {
       toast.error("Failed to assign task");
@@ -180,6 +184,37 @@ export default function TasksClient({ initialTasks, teams }: { initialTasks: Tas
                 <label className="label label-required">Deadline</label>
                 <input type="datetime-local" className="input" value={form.deadline} onChange={e => setForm({ ...form, deadline: e.target.value })} required />
               </div>
+            </div>
+
+            {/* Checklist */}
+            <div>
+              <label className="label">Checklist Items (optional)</label>
+              <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                <input
+                  className="input"
+                  value={checklistInput}
+                  onChange={e => setChecklistInput(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      if (checklistInput.trim()) { setChecklistItems([...checklistItems, checklistInput.trim()]); setChecklistInput(""); }
+                    }
+                  }}
+                  placeholder="Type item and press Enter..."
+                />
+                <button type="button" className="btn btn-secondary btn-sm" style={{ flexShrink: 0 }} onClick={() => { if (checklistInput.trim()) { setChecklistItems([...checklistItems, checklistInput.trim()]); setChecklistInput(""); } }}>Add</button>
+              </div>
+              {checklistItems.length > 0 && (
+                <div style={{ display: "grid", gap: 6 }}>
+                  {checklistItems.map((item, i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px", background: "rgba(255,255,255,0.04)", borderRadius: 8, border: "1px solid var(--border-subtle)" }}>
+                      <input type="checkbox" disabled style={{ width: 14, height: 14, flexShrink: 0 }} />
+                      <span style={{ flex: 1, fontSize: 13, color: "var(--text-secondary)" }}>{item}</span>
+                      <button type="button" onClick={() => setChecklistItems(checklistItems.filter((_, j) => j !== i))} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: 2 }}>✕</button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>

@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { Search, UserX, UserCheck, Edit2, X, Loader2, Shield, Award, UserPlus, FileSignature, CheckCircle, UserMinus } from "lucide-react";
+import { Search, UserX, UserCheck, Edit2, X, Loader2, Shield, Award, UserPlus, FileSignature, CheckCircle, UserMinus, Download } from "lucide-react";
 
 type Employee = {
   id: string; name: string; email: string; designation: string;
@@ -59,6 +59,24 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
     const matchTeam = filterTeam === "All" || e.teamId === filterTeam;
     return matchSearch && matchStatus && matchTeam;
   });
+
+  const exportCSV = () => {
+    const rows = [
+      ["Employee ID", "Name", "Email", "Designation", "Team", "Status", "Employment Type", "Start Date"],
+      ...filtered.map(e => [
+        e.employeeCode, e.name, e.email, e.designation || "",
+        teams.find(t => t.id === e.teamId)?.name || "", e.status, e.tier || "",
+        e.startDate ? new Date(e.startDate).toLocaleDateString("en-PK") : "",
+      ])
+    ];
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `employees_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   const openEdit = (e: Employee) => {
     setEditEmployee(e); setEditTeam(e.teamId || ""); setEditDesignation(e.designation); setEditTier(e.tier || "Standard"); setMsg("");
@@ -245,6 +263,9 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
           {teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
         </select>
         <div className="badge badge-gray" style={{ alignSelf: "center", padding: "6px 12px" }}>{filtered.length} results</div>
+        <button className="btn btn-secondary btn-sm" onClick={exportCSV} style={{ alignSelf: "center", gap: 5 }}>
+          <Download size={13} /> Export CSV
+        </button>
       </div>
 
       <div className="table-container">

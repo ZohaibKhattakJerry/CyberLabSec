@@ -15,17 +15,17 @@ interface Posting {
 
 interface FormData {
   fullName: string; email: string; phone: string; cnic: string; city: string;
-  universityName: string; semester: string;
+  universityName: string; semester: string; degree: string; cgpa: string;
   linkedIn: string; github: string; tryHackMe: string; hackTheBox: string;
-  portfolio: string; cve: string; certifications: string; motivation: string;
+  portfolio: string; bugBounty: string; cve: string; certifications: string; motivation: string;
   consentData: boolean; consentInterview: boolean;
 }
 
 const initialForm: FormData = {
   fullName: "", email: "", phone: "", cnic: "", city: "",
-  universityName: "", semester: "",
+  universityName: "", semester: "", degree: "", cgpa: "",
   linkedIn: "", github: "", tryHackMe: "", hackTheBox: "",
-  portfolio: "", cve: "", certifications: "", motivation: "",
+  portfolio: "", bugBounty: "", cve: "", certifications: "", motivation: "",
   consentData: false, consentInterview: false,
 };
 
@@ -326,21 +326,31 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
           {step === 2 && (
             <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }}>
               <div className="card" style={{ padding: 28 }}>
-                <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 24 }}>Links & Profile</h2>
+                <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 24 }}>Education & Security Profiles</h2>
                 <div style={{ display: "grid", gap: 20 }}>
                   
                   {posting.universityRequired && (
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                      <Field label="University Name" required error={errors.universityName}>
-                        <input className={`input${errors.universityName ? " input-error" : ""}`} value={form.universityName} onChange={(e) => set("universityName", e.target.value)} placeholder="University name" />
-                      </Field>
-                      <Field label="Current Semester" required error={errors.semester}>
-                        <select className={`input${errors.semester ? " input-error" : ""}`} value={form.semester} onChange={(e) => set("semester", e.target.value)}>
-                          <option value="">Select semester</option>
-                          {[1,2,3,4,5,6,7,8].map((s: any) => <option key={s} value={String(s)}>Semester {s}</option>)}
-                        </select>
-                      </Field>
-                    </div>
+                    <>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                        <Field label="University Name" required error={errors.universityName}>
+                          <input className={`input${errors.universityName ? " input-error" : ""}`} value={form.universityName} onChange={(e) => set("universityName", e.target.value)} placeholder="University name" />
+                        </Field>
+                        <Field label="Current Semester" required error={errors.semester}>
+                          <select className={`input${errors.semester ? " input-error" : ""}`} value={form.semester} onChange={(e) => set("semester", e.target.value)}>
+                            <option value="">Select semester</option>
+                            {[1,2,3,4,5,6,7,8].map((s: number) => <option key={s} value={String(s)}>Semester {s}</option>)}
+                          </select>
+                        </Field>
+                      </div>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                        <Field label="Degree & Field of Study" required error={errors.degree}>
+                          <input className={`input${errors.degree ? " input-error" : ""}`} value={form.degree} onChange={(e) => set("degree", e.target.value)} placeholder="e.g. BS Computer Science" />
+                        </Field>
+                        <Field label="CGPA (optional)">
+                          <input className="input" value={form.cgpa} onChange={(e) => set("cgpa", e.target.value)} placeholder="e.g. 3.5 / 4.0" />
+                        </Field>
+                      </div>
+                    </>
                   )}
 
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
@@ -356,14 +366,43 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                     <Field label="HackTheBox">
                       <input className="input" value={form.hackTheBox} onChange={(e) => set("hackTheBox", e.target.value)} placeholder="Profile URL or Username" />
                     </Field>
+                    <Field label="Portfolio / Writeups">
+                      <input className="input" value={form.portfolio} onChange={(e) => set("portfolio", e.target.value)} placeholder="https://..." />
+                    </Field>
+                    <Field label="Bug Bounty Profile">
+                      <input className="input" value={form.bugBounty} onChange={(e) => set("bugBounty", e.target.value)} placeholder="HackerOne / Bugcrowd URL" />
+                    </Field>
                   </div>
                   
-                  <Field label="Personal Portfolio / Website">
-                    <input className="input" value={form.portfolio} onChange={(e) => set("portfolio", e.target.value)} placeholder="https://..." />
+                  <Field label="CVEs / Bug Disclosures">
+                    <input className="input" value={form.cve} onChange={(e) => set("cve", e.target.value)} placeholder="e.g. CVE-2024-XXXX (optional)" />
                   </Field>
                   
-                  <Field label="CVEs / Certifications">
-                    <input className="input" value={form.cve} onChange={(e) => set("cve", e.target.value)} placeholder="e.g. CVE-2024-XXXX, OSCP, eCPPT" />
+                  <Field label="Certifications">
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
+                      {["eJPT", "CEH", "Security+", "OSCP", "None yet"].map(cert => {
+                        const selected = form.certifications.split(",").map(s => s.trim()).filter(Boolean).includes(cert);
+                        return (
+                          <button
+                            key={cert}
+                            type="button"
+                            onClick={() => {
+                              const current = form.certifications.split(",").map(s => s.trim()).filter(Boolean);
+                              const next = selected ? current.filter(c => c !== cert) : [...current, cert];
+                              set("certifications", next.join(", "));
+                            }}
+                            style={{
+                              padding: "6px 14px", borderRadius: 20, fontSize: 13, fontWeight: 600, cursor: "pointer",
+                              border: `1.5px solid ${selected ? "var(--purple)" : "var(--border-subtle)"}`,
+                              background: selected ? "rgba(168,85,247,0.15)" : "transparent",
+                              color: selected ? "var(--purple)" : "var(--text-muted)",
+                              transition: "all 0.15s",
+                            }}
+                          >{cert}</button>
+                        );
+                      })}
+                    </div>
+                    <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 8 }}>Select all that apply. Additional certs can be listed under CVEs above.</p>
                   </Field>
 
                 </div>

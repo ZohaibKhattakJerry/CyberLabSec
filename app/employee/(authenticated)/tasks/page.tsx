@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight, Clock, FileText, CheckCircle, AlertTriangle } from "lucide-react";
 import { differenceInDays, format } from "date-fns";
+import StartTaskButton from "./StartTaskButton";
 
 export default async function TasksPage() {
   const auth = await getAuthFromCookies();
@@ -71,12 +72,17 @@ export default async function TasksPage() {
                   {statusStr === "Overdue" && <span className="badge badge-red" style={{ fontSize: 10 }}>Overdue</span>}
                 </div>
                 <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 12 }}>{task.brief.slice(0, 80)}...</div>
-                
+
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div style={{ display: "flex", gap: 4, fontSize: 11, color: statusStr === "Overdue" ? "var(--red)" : "var(--text-muted)", alignItems: "center" }}>
                     <Clock size={12} />
                     {statusStr === "Done" ? format(task.submissions[0].submittedAt, "MMM d, yyyy") : format(task.deadline, "MMM d, yyyy")}
                   </div>
+                  {(statusStr === "Pending" || statusStr === "Overdue") && (
+                    <span onClick={(e) => e.preventDefault()}>
+                      <StartTaskButton taskId={task.id} />
+                    </span>
+                  )}
                 </div>
               </div>
             </Link>

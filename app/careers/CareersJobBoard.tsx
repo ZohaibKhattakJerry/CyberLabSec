@@ -250,42 +250,46 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
         </div>
       </div>
 
-      {/* WHY WORK HERE */}
+      {/* WHY CYBERLABSEC STRIP */}
       <section style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 60px" }}>
         <div style={{ textAlign: "center", marginBottom: 40 }}>
-          <h2 style={{ fontSize: 24, fontWeight: 700, color: "var(--text-primary)" }}>Why Work Here?</h2>
+          <h2 style={{ fontSize: 24, fontWeight: 700, color: "var(--text-primary)" }}>Why CyberLabSec?</h2>
+          <p style={{ color: "var(--text-secondary)", fontSize: 15, marginTop: 8 }}>Four honest reasons top security talent chooses us.</p>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 24 }}>
           {[
             {
-              title: "Tackle the Hardest Problems",
-              desc: "From zero-day research to full-scope red teaming, you'll be challenged daily to outsmart the best defenses in the world.",
-              icon: <Terminal size={24} color="var(--purple)" />
+              icon: "🎯",
+              title: "Real Client Pentests",
+              desc: "From day one, you work on live engagements — not sandbox labs. Your reports land on real desks and drive real remediation.",
             },
             {
-              title: "Learn from the Elite",
-              desc: "Work alongside some of the brightest minds in offensive security. We prioritize knowledge sharing and continuous learning.",
-              icon: <Users size={24} color="var(--purple)" />
+              icon: "🧠",
+              title: "Mentorship from Senior Operators",
+              desc: "Our leads have years of offensive security fieldwork. You get direct code review, methodology coaching, and career guidance — not just tickets.",
             },
             {
-              title: "Meritocracy Above All",
-              desc: "We don't care about your pedigree. We care about what you can do. Our AI screening ensures everyone gets a fair shot based on skill alone.",
-              icon: <Briefcase size={24} color="var(--purple)" />
-            }
+              icon: "🌐",
+              title: "Remote-First Culture",
+              desc: "We are fully remote. Work from anywhere in Pakistan. Async-first, outcome-driven — we measure results, not hours online.",
+            },
+            {
+              icon: "📜",
+              title: "Certificate + Letter of Recommendation",
+              desc: "Top interns graduate with a completion certificate and a personal Letter of Recommendation from the founder — a real credential for your career.",
+            },
           ].map((item, i) => (
             <motion.div
               key={item.title}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 + (i * 0.1) }}
+              transition={{ duration: 0.5, delay: 0.2 + i * 0.08 }}
               className="card"
-              style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}
+              style={{ padding: 24, display: "flex", flexDirection: "column", gap: 14 }}
             >
-              <div style={{ width: 48, height: 48, borderRadius: 12, background: "rgba(168,85,247,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {item.icon}
-              </div>
-              <h3 style={{ fontSize: 18, fontWeight: 600, color: "var(--text-primary)" }}>{item.title}</h3>
-              <p style={{ color: "var(--text-secondary)", lineHeight: 1.6, fontSize: 14 }}>{item.desc}</p>
+              <div style={{ fontSize: 32 }}>{item.icon}</div>
+              <div style={{ fontWeight: 700, fontSize: 16, color: "var(--text-primary)" }}>{item.title}</div>
+              <div style={{ fontSize: 14, color: "var(--text-secondary)", lineHeight: 1.6 }}>{item.desc}</div>
             </motion.div>
           ))}
         </div>
