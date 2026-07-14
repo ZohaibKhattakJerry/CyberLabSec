@@ -350,6 +350,20 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
                 ⚠️ {tabSwitches} warning{tabSwitches !== 1 ? "s" : ""}
               </span>
             )}
+            {/* Section label: Written X/Y · MCQ X/Y */}
+            {(() => {
+              const totalOpen = questions.filter(q => q.type === "open").length;
+              const totalMCQ = questions.filter(q => q.type === "mcq").length;
+              const doneOpen = questions.slice(0, currentQ + 1).filter(q => q.type === "open").length;
+              const doneMCQ = questions.slice(0, currentQ + 1).filter(q => q.type === "mcq").length;
+              return (
+                <span style={{ fontSize: 12, color: "var(--text-muted)", display: "flex", gap: 6, alignItems: "center" }}>
+                  {totalOpen > 0 && <span style={{ color: "var(--blue)" }}>Written {Math.min(doneOpen, totalOpen)}/{totalOpen}</span>}
+                  {totalOpen > 0 && totalMCQ > 0 && <span>·</span>}
+                  {totalMCQ > 0 && <span style={{ color: "var(--amber)" }}>MCQ {Math.min(doneMCQ, totalMCQ)}/{totalMCQ}</span>}
+                </span>
+              );
+            })()}
             <span style={{ fontSize: 13, color: "var(--text-muted)" }}>Q{currentQ + 1} of {questions.length}</span>
             <div style={{ display: "flex", alignItems: "center", gap: 6, color: timeLeft <= 30 ? "var(--purple)" : "var(--text-secondary)", fontSize: 13, fontFamily: "monospace", fontWeight: 600 }}>
               <Clock size={14} />
@@ -357,6 +371,7 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
             </div>
           </div>
         </div>
+
 
         {/* Progress */}
         <div className="progress-bar" style={{ borderRadius: 0, height: 3 }}>

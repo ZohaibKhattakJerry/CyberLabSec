@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { format } from "date-fns";
 import { Megaphone, Building2, Users, Bell, Clock, Info } from "lucide-react";
+import AcknowledgeButton from "./AcknowledgeButton";
 
 export const dynamic = "force-dynamic";
 
@@ -47,6 +48,13 @@ export default async function AnnouncementsPage() {
     if (a.isPinned === b.isPinned) return 0;
     return a.isPinned ? -1 : 1;
   });
+
+  // Fetch read receipts for this employee
+  const myReceipts = await prisma.announcementReadReceipt.findMany({
+    where: { employeeId: auth.sub },
+    select: { announcementId: true },
+  });
+  const readSet = new Set(myReceipts.map((r) => r.announcementId));
 
   const pinnedCount = announcements.filter(a => a.isPinned).length;
 
@@ -125,18 +133,23 @@ export default async function AnnouncementsPage() {
                     </div>
                   </div>
                   
-                  <div style={{ 
-                    fontSize: 15, 
-                    color: "var(--text-secondary)", 
-                    lineHeight: 1.6, 
-                    whiteSpace: "pre-wrap", 
-                    borderLeft: `3px solid ${isCompany ? "var(--blue)" : isTeam ? "var(--purple)" : "var(--green)"}`, 
+                  <div style={{
+                    fontSize: 15,
+                    color: "var(--text-secondary)",
+                    lineHeight: 1.6,
+                    whiteSpace: "pre-wrap",
+                    borderLeft: `3px solid ${isCompany ? "var(--blue)" : isTeam ? "var(--purple)" : "var(--green)"}`,
                     paddingLeft: 16,
                     background: "rgba(255,255,255,0.01)",
                     padding: "16px 20px 16px 20px",
                     borderRadius: "0 8px 8px 0"
                   }}>
                     {a.message}
+                  </div>
+
+                  {/* Acknowledge button */}
+                  <div style={{ marginTop: 16, display: "flex", justifyContent: "flex-end" }}>
+                    <AcknowledgeButton announcementId={a.id} alreadyRead={readSet.has(a.id)} />
                   </div>
                 </div>
               </div>

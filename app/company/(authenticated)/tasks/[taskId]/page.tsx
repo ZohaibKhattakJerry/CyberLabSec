@@ -2,9 +2,10 @@ import { prisma } from "@/lib/prisma";
 import { getAuthFromCookies } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, FileText, CheckCircle, Clock, Search, AlertCircle } from "lucide-react";
+import { ChevronLeft, FileText, Clock } from "lucide-react";
 import { format } from "date-fns";
 import SubmissionReviewClient from "./SubmissionReviewClient";
+import TaskComments from "@/components/TaskComments";
 
 export default async function AdminTaskReviewPage({ params }: { params: Promise<{ taskId: string }> }) {
   const auth = await getAuthFromCookies();
@@ -25,6 +26,9 @@ export default async function AdminTaskReviewPage({ params }: { params: Promise<
   });
 
   if (!task) redirect("/company/tasks");
+
+  let comments: any[] = [];
+  try { comments = JSON.parse(task.comments || "[]"); } catch {}
 
   return (
     <div className="animate-fade-up">
@@ -70,20 +74,30 @@ export default async function AdminTaskReviewPage({ params }: { params: Promise<
           </div>
         </div>
 
-        <div className="card" style={{ padding: 24, position: "sticky", top: 80 }}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Task Details</h3>
-          <div style={{ display: "grid", gap: 16 }}>
-            <div>
-              <p style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 4 }}>Deadline</p>
-              <p style={{ fontSize: 14, fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}>
-                <Clock size={14} color="var(--purple)" /> {format(task.deadline, "PPP p")}
-              </p>
-            </div>
-            <div>
-              <p style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 4 }}>Created At</p>
-              <p style={{ fontSize: 14, fontWeight: 500 }}>{format(task.createdAt, "PPP")}</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div className="card" style={{ padding: 24, position: "sticky", top: 80 }}>
+            <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Task Details</h3>
+            <div style={{ display: "grid", gap: 16 }}>
+              <div>
+                <p style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 4 }}>Deadline</p>
+                <p style={{ fontSize: 14, fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}>
+                  <Clock size={14} color="var(--purple)" /> {format(task.deadline, "PPP p")}
+                </p>
+              </div>
+              <div>
+                <p style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 4 }}>Created At</p>
+                <p style={{ fontSize: 14, fontWeight: 500 }}>{format(task.createdAt, "PPP")}</p>
+              </div>
             </div>
           </div>
+
+          {/* Comments thread */}
+          <TaskComments
+            taskId={task.id}
+            initialComments={comments}
+            currentUserId={auth.sub}
+            currentUserRole="admin"
+          />
         </div>
       </div>
     </div>

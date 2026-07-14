@@ -9,9 +9,13 @@ export default async function AnnouncementsPage() {
     include: {
       sentBy: { select: { name: true } },
       team: { select: { name: true } },
-      employee: { select: { name: true } }
+      employee: { select: { name: true } },
+      _count: { select: { reads: true } },
     },
   });
+
+  // Get total employee count for acknowledgement % calculation
+  const totalEmployees = await prisma.employee.count({ where: { status: "Active" } });
 
   const teams = await prisma.team.findMany({ select: { id: true, name: true } });
   const employees = await prisma.employee.findMany({ where: { status: "Active" }, select: { id: true, name: true, employeeCode: true } });
@@ -20,7 +24,8 @@ export default async function AnnouncementsPage() {
     ...a,
     sentAt: a.sentAt.toISOString(),
     expiresAt: a.expiresAt?.toISOString() || null,
+    readCount: a._count?.reads || 0,
   }));
 
-  return <AnnouncementsClient announcements={serialized} teams={teams} employees={employees} />;
+  return <AnnouncementsClient announcements={serialized} teams={teams} employees={employees} totalEmployees={totalEmployees} />;
 }

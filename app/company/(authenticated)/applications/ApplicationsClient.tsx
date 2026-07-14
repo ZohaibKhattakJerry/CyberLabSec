@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { Search, Filter, X, Eye, UserCheck, UserX, Loader2, FileText, ChevronRight, Check, AlertTriangle, Clock } from "lucide-react";
+import { Search, Filter, X, Eye, UserCheck, UserX, Loader2, FileText, ChevronRight, Check, AlertTriangle, Clock, Star } from "lucide-react";
 
 type Applicant = {
   id: string; fullName: string; email: string; phone: string;
@@ -38,6 +38,10 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
   const [actionLoading, setActionLoading] = useState(false);
   const [actionMsg, setActionMsg] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [ratingDraft, setRatingDraft] = useState<number>(0);
+  const [notesDraft, setNotesDraft] = useState("");
+  const [notesSaving, setNotesSaving] = useState(false);
+  const [notesSaved, setNotesSaved] = useState(false);
 
   const toggleSelect = (id: string) => {
     setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
@@ -91,6 +95,22 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
         setSelected({...selected, status: status});
       }
     });
+  };
+
+  const saveNotes = async () => {
+    if (!selected) return;
+    setNotesSaving(true);
+    const res = await fetch(`/api/company/applications/${selected.id}/notes`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ internalRating: ratingDraft || null, privateNotes: notesDraft }),
+    });
+    setNotesSaving(false);
+    if (res.ok) {
+      setNotesSaved(true);
+      setTimeout(() => setNotesSaved(false), 2000);
+      setSelected({ ...selected, internalRating: ratingDraft || null, privateNotes: notesDraft });
+    }
   };
 
   const hireApplicant = async (applicantId: string) => {
@@ -253,7 +273,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                 <h2 style={{ fontSize: 20, fontWeight: 800 }}>{selected.fullName}</h2>
                 <p style={{ fontSize: 13, color: "var(--text-muted)" }}>{selected.email} · {selected.phone}</p>
               </div>
-              <button onClick={() => { setSelected(null); setActionMsg(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}>
+              <button onClick={() => { setSelected(null); setActionMsg(""); setNotesDraft(""); setRatingDraft(0); }} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}>
                 <X size={20} />
               </button>
             </div>
@@ -362,6 +382,48 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                 </p>
               </div>
             )}
+
+            {/* Rating + Private Notes */}
+            <div style={{ marginBottom: 20, padding: "16px", background: "rgba(168,85,247,0.04)", borderRadius: 10, border: "1px solid rgba(168,85,247,0.12)" }}>
+              <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Internal Scorecard</h3>
+              {/* Star rating */}
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 12 }}>
+                <span style={{ fontSize: 13, color: "var(--text-secondary)", marginRight: 4 }}>Rating:</span>
+                {[1,2,3,4,5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => setRatingDraft(star === ratingDraft ? 0 : star)}
+                    style={{ background: "none", border: "none", cursor: "pointer", padding: 2 }}
+                  >
+                    <Star
+                      size={20}
+                      fill={(ratingDraft || selected.internalRating || 0) >= star ? "#f59e0b" : "none"}
+                      color={(ratingDraft || selected.internalRating || 0) >= star ? "#f59e0b" : "var(--text-muted)"}
+                    />
+                  </button>
+                ))}
+                {(ratingDraft || selected.internalRating) ? (
+                  <span style={{ fontSize: 12, color: "var(--amber)", marginLeft: 4 }}>{ratingDraft || selected.internalRating}/5</span>
+                ) : <span style={{ fontSize: 12, color: "var(--text-muted)", marginLeft: 4 }}>Not rated</span>}
+              </div>
+              {/* Private notes */}
+              <textarea
+                className="input"
+                placeholder="Private notes (only visible to admins)…"
+                style={{ minHeight: 80, fontSize: 13, resize: "vertical", marginBottom: 8 }}
+                value={notesDraft || selected.privateNotes || ""}
+                onChange={(e) => setNotesDraft(e.target.value)}
+              />
+              <button
+                className="btn btn-secondary btn-sm"
+                style={{ gap: 6 }}
+                onClick={saveNotes}
+                disabled={notesSaving}
+              >
+                {notesSaving ? <Loader2 size={12} className="spin" /> : notesSaved ? <Check size={12} /> : <Star size={12} />}
+                {notesSaved ? "Saved!" : "Save Notes & Rating"}
+              </button>
+            </div>
 
             {actionMsg && (
               <div style={{ marginBottom: 16, padding: "12px", background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 8, fontSize: 13, color: "var(--green)" }}>

@@ -11,12 +11,13 @@ type Announcement = {
   sentBy: { name: string };
   team: { name: string } | null;
   employee: { name: string } | null;
+  readCount: number;
 };
 
 type Team = { id: string; name: string };
 type Employee = { id: string; name: string; employeeCode: string };
 
-export default function AnnouncementsClient({ announcements, teams, employees }: { announcements: Announcement[]; teams: Team[]; employees: Employee[] }) {
+export default function AnnouncementsClient({ announcements, teams, employees, totalEmployees }: { announcements: Announcement[]; teams: Team[]; employees: Employee[]; totalEmployees: number }) {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [showCreate, setShowCreate] = useState(false);
@@ -128,8 +129,20 @@ export default function AnnouncementsClient({ announcements, teams, employees }:
               <div style={{ fontSize: 14, color: "var(--text-secondary)", lineHeight: 1.7, whiteSpace: "pre-wrap", borderLeft: "3px solid var(--border-accent)", paddingLeft: 16 }}>
                 {a.message}
               </div>
+              {/* Acknowledgement tracking */}
+              <div style={{ marginTop: 10, display: "flex", justifyContent: "flex-end" }}>
+                <span style={{
+                  fontSize: 12, padding: "3px 10px", borderRadius: 20,
+                  background: a.readCount > 0 ? "rgba(34,197,94,0.1)" : "rgba(255,255,255,0.04)",
+                  border: `1px solid ${a.readCount > 0 ? "rgba(34,197,94,0.25)" : "var(--border-subtle)"}`,
+                  color: a.readCount > 0 ? "var(--green)" : "var(--text-muted)",
+                }}>
+                  👁 {a.readCount} acknowledged{a.scope === "Company" ? ` / ${totalEmployees} employees` : ""}
+                </span>
+              </div>
             </div>
           ))}
+
         </div>
       )}
 

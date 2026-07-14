@@ -89,6 +89,14 @@ export default async function Dashboard() {
     return a.isPinned ? -1 : 1;
   });
 
+  // Unread dots: which announcements has this employee NOT yet acknowledged
+  const myReceipts = await prisma.announcementReadReceipt.findMany({
+    where: { employeeId: auth.sub },
+    select: { announcementId: true },
+  });
+  const readSet = new Set(myReceipts.map((r) => r.announcementId));
+  const unreadAnnouncementCount = announcements.filter((a) => !readSet.has(a.id)).length;
+
   const activityLogs = await prisma.activityLog.findMany({
     where: { actorId: employee.id, actorType: "Employee" },
     orderBy: { timestamp: "desc" },
@@ -775,6 +783,13 @@ export default async function Dashboard() {
               }}
             >
               <Bell size={16} color="var(--purple)" /> Latest Transmissions
+              {unreadAnnouncementCount > 0 && (
+                <span style={{
+                  background: "var(--amber)", color: "#000",
+                  fontSize: 10, fontWeight: 800, padding: "1px 6px",
+                  borderRadius: 10, lineHeight: 1.6,
+                }}>{unreadAnnouncementCount} new</span>
+              )}
             </h2>
             <Link
               href="/employee/announcements"
@@ -798,12 +813,21 @@ export default async function Dashboard() {
               <div
                 key={a.id}
                 style={{
-                  borderLeft: "3px solid var(--purple)",
+                  borderLeft: `3px solid ${!readSet.has(a.id) ? "var(--amber)" : "var(--purple)"}`,
                   padding: "12px 16px",
-                  background: "rgba(255,255,255,0.02)",
+                  background: !readSet.has(a.id) ? "rgba(245,158,11,0.04)" : "rgba(255,255,255,0.02)",
                   borderRadius: "0 8px 8px 0",
+                  position: "relative",
                 }}
               >
+                {!readSet.has(a.id) && (
+                  <span style={{
+                    position: "absolute", top: 10, right: 10,
+                    width: 8, height: 8, borderRadius: "50%",
+                    background: "var(--amber)",
+                    boxShadow: "0 0 6px rgba(245,158,11,0.6)",
+                  }} />
+                )}
                 <p
                   style={{
                     fontSize: 14,
