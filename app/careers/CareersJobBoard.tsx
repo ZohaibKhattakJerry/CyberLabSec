@@ -226,6 +226,30 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
           </motion.div>
         </div>
       </section>
+
+      {/* TRACK APPLICATION BANNER */}
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 32px" }}>
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          gap: 16, flexWrap: "wrap",
+          background: "linear-gradient(135deg, rgba(168,85,247,0.08) 0%, rgba(59,130,246,0.08) 100%)",
+          border: "1px solid rgba(168,85,247,0.2)", borderRadius: 16, padding: "20px 28px",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(168,85,247,0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Search size={18} color="var(--purple)" />
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 15, color: "var(--text-primary)" }}>Already Applied?</div>
+              <div style={{ fontSize: 13, color: "var(--text-muted)" }}>Use your Reference ID to track your application status in real-time</div>
+            </div>
+          </div>
+          <Link href="/careers/status" className="btn btn-secondary" style={{ flexShrink: 0, gap: 8 }}>
+            <Search size={14} /> Track Application
+          </Link>
+        </div>
+      </div>
+
       {/* WHY WORK HERE */}
       <section style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 60px" }}>
         <div style={{ textAlign: "center", marginBottom: 40 }}>
