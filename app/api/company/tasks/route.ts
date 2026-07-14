@@ -2,11 +2,31 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthFromCookies } from "@/lib/auth";
 
+export async function GET(req: NextRequest) {
+  const auth = await getAuthFromCookies();
+  if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const tasks = await prisma.task.findMany({
+    include: {
+      team: { select: { id: true, name: true } },
+      submissions: {
+        include: {
+          employee: { select: { id: true, name: true, employeeCode: true } }
+        },
+        orderBy: { submittedAt: "desc" }
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return NextResponse.json(tasks);
+}
+
 export async function POST(req: NextRequest) {
   const auth = await getAuthFromCookies();
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const { teamId, title, brief, deadline, createdBy, attachments } = await req.json();
+  const { teamId, title, brief, deadline, priority, checklist, attachments, assigneeId } = await req.json();
   if (!teamId || !title || !deadline) {
     return NextResponse.json({ error: "teamId, title, and deadline are required" }, { status: 400 });
   }
@@ -20,20 +40,25 @@ export async function POST(req: NextRequest) {
       title: title.trim(),
       brief: brief?.trim() || "",
       deadline: new Date(deadline),
-      createdBy: createdBy || auth.sub,
+      createdBy: auth.sub,
+      priority: priority || "Medium",
+      status: "Assigned",
+      checklist: checklist ? JSON.stringify(checklist) : "[]",
       attachments: attachments ? JSON.stringify(attachments) : "[]",
+      assigneeId: assigneeId || null,
     },
   });
 
+  // Notify team members
   const teamMembers = await prisma.employee.findMany({ where: { teamId, status: "Active" } });
   if (teamMembers.length > 0) {
     await prisma.notification.createMany({
       data: teamMembers.map((member) => ({
         userId: member.id,
         title: "New Task Assigned",
-        message: `You have a new task: ${task.title}`,
+        message: `New objective: ${task.title} — Due ${new Date(deadline).toLocaleDateString()}`,
         type: "Task",
-        link: `/employee/tasks`,
+        link: `/employee/tasks/${task.id}`,
       })),
     });
   }

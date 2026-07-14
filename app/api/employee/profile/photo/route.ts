@@ -20,14 +20,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid file type. Must be an image." }, { status: 400 });
     }
 
-    const { url } = await saveFile(file);
+    const photoUrl = await saveFile(file, "photos", "photo");
 
     await prisma.employee.update({
       where: { id: auth.sub },
-      data: { photoUrl: url }
+      data: { photoUrl }
     });
 
-    return NextResponse.json({ success: true, photoUrl: url });
+    return NextResponse.json({ success: true, photoUrl });
   } catch (error: any) {
     console.error("Photo upload error:", error);
     return NextResponse.json({ error: error.message || "Failed to upload photo" }, { status: 500 });

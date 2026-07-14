@@ -78,8 +78,9 @@ export async function screenApplicant(
   const poolOpen = shuffle(dbQuestions.filter(q => q.type === "open"));
   const poolMcq = shuffle(dbQuestions.filter(q => q.type === "mcq"));
 
-  const openQuestions = [];
-  const mcqQuestions = [];
+  type QuestionBankItem = typeof dbQuestions[number];
+  const openQuestions: QuestionBankItem[] = [];
+  const mcqQuestions: QuestionBankItem[] = [];
 
   // Pick 5 Open
   for (const cat of topCategories) {

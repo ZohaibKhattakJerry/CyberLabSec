@@ -11,15 +11,16 @@ export async function POST(req: Request) {
     const code = crypto.randomInt(100000, 999999).toString();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    await prisma.emailVerification.create({
-      data: { email, code, expiresAt },
+    await prisma.emailVerification.upsert({
+      where: { email },
+      update: { otp: code, expiresAt, verified: false },
+      create: { email, otp: code, expiresAt },
     });
 
     await sendEmail({
       to: email,
       subject: "CyberLabSec Application - Verification Code",
-      text: `Your verification code is: ${code}\nThis code will expire in 10 minutes.`,
-      html: `<div style="font-family:sans-serif;color:#333;"><h2>CyberLabSec Application</h2><p>Your verification code is: <strong>${code}</strong></p><p>This code will expire in 10 minutes.</p></div>`,
+      html: `<div style="font-family:sans-serif;padding:24px;color:#333;"><h2 style="color:#7c3aed;">CyberLabSec</h2><p>Your application verification code:</p><div style="font-size:32px;font-weight:bold;letter-spacing:8px;color:#7c3aed;padding:16px 24px;background:#f5f3ff;border-radius:8px;display:inline-block;">${code}</div><p style="color:#666;font-size:14px;">Expires in 10 minutes. Do not share this code.</p></div>`,
     });
 
     return NextResponse.json({ success: true });

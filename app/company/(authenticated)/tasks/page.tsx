@@ -12,17 +12,26 @@ export default async function AdminTasksPage() {
   const tasks = await prisma.task.findMany({
     include: {
       team: { select: { id: true, name: true } },
-      submissions: { select: { id: true } },
+      submissions: {
+        include: {
+          employee: { select: { id: true, name: true, employeeCode: true } }
+        },
+        orderBy: { submittedAt: "desc" }
+      },
     },
     orderBy: { createdAt: "desc" },
   });
 
-  // Serialize dates to avoid passing Date objects to client component
-  const serializedTasks = tasks.map((t) => ({
+  const serializedTasks = tasks.map(t => ({
     ...t,
     deadline: t.deadline.toISOString(),
     createdAt: t.createdAt.toISOString(),
     updatedAt: t.updatedAt.toISOString(),
+    submissions: t.submissions.map(s => ({
+      ...s,
+      submittedAt: s.submittedAt.toISOString(),
+      reviewedAt: s.reviewedAt?.toISOString() || null,
+    }))
   }));
 
   return <TasksClient initialTasks={serializedTasks} teams={teams} />;

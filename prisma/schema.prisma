@@ -38,12 +38,18 @@ model Applicant {
   ipAddress        String?
   emailVerified    Boolean           @default(false)
   referenceId      String?           @unique
+  screeningAnswers   String            @default("{}")
+  bugBountyProfile   String?
+  reviewerRating     Int?
+  reviewerScorecard  String            @default("{}")
+  stageHistory       String            @default("[]")
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   jobPosting       JobPosting        @relation(fields: [jobPostingId], references: [id])
   employeeRecord   Employee?
   interviewSession InterviewSession?
   ceoReviews       CEOReview[]
+  offerLetter      OfferLetter?
 }
 
 model JobPosting {
@@ -60,10 +66,20 @@ model JobPosting {
   shortlistThreshold Int         @default(50)
   passMark           Int         @default(60)
   showApplicantCount Boolean     @default(false)
+  niceToHave         String?
+  whatYouGain        String?
+  screeningQuestions String      @default("[]")
+  stipend            String?
+  showStipend        Boolean     @default(true)
+  duration           String?
+  weeklyHours        Int?
+  experienceLevel    String      @default("Any")
+  openings           Int         @default(1)
   publishedDate      DateTime?
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
   applicants         Applicant[]
+  offerLetters       OfferLetter[]
 }
 
 model InterviewSession {
@@ -112,6 +128,15 @@ model Employee {
   onboardingCompleted  Boolean                   @default(false)
   githubUrl            String?
   linkedinUrl          String?
+  phone                String?
+  personalEmail        String?
+  address              String?
+  emergencyContact     String?
+  skills               String                    @default("[]")
+  offboardedAt         DateTime?
+  offboardReason       String?
+  points               Int                       @default(0)
+  monthlyPoints        Int                       @default(0)
   applicantId          String?                   @unique
   createdAt            DateTime                  @default(now())
   updatedAt            DateTime                  @updatedAt
@@ -124,6 +149,8 @@ model Employee {
   messages             TeamMessage[]
   submittedReviews     CEOReview[]               @relation("ReviewSubmitter")
   announcementReads    AnnouncementReadReceipt[]
+  badges               Badge[]
+  pointTransactions    PointTransaction[]
 }
 
 model Team {
@@ -148,6 +175,11 @@ model Task {
   attachments     String           @default("[]")
   deadline        DateTime
   createdBy       String
+  priority        String           @default("Medium")
+  status          String           @default("Assigned")
+  assigneeId      String?
+  checklist       String           @default("[]")
+  comments        String           @default("[]")
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   team            Team             @relation(fields: [teamId], references: [id])
@@ -165,11 +197,16 @@ model TaskSubmission {
   reviewerFeedback String?
   reviewerScore    Int?
   aiSummary        String?
-  submittedAt      DateTime @default(now())
-  employee         Employee @relation(fields: [employeeId], references: [id])
-  task             Task     @relation(fields: [taskId], references: [id])
+  submittedAt             DateTime  @default(now())
+  version                 Int       @default(1)
+  summary                 String?
+  reviewedAt              DateTime?
+  qualityRating           Int?
+  reviewerFeedbackHistory String    @default("[]")
+  employee                Employee  @relation(fields: [employeeId], references: [id])
+  task                    Task      @relation(fields: [taskId], references: [id])
 
-  @@unique([taskId, employeeId])
+  @@index([taskId, employeeId])
 }
 
 model Announcement {
@@ -212,6 +249,25 @@ model CEOReview {
   applicant   Applicant? @relation(fields: [applicantId], references: [id])
 }
 
+model OfferLetter {
+  id            String      @id @default(cuid())
+  applicantId   String      @unique
+  jobPostingId  String?
+  content       String
+  status        String      @default("Sent")
+  expiresAt     DateTime
+  acceptedAt    DateTime?
+  declinedAt    DateTime?
+  acceptedName  String?
+  acceptedIp    String?
+  declineReason String?
+  token         String      @unique
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  applicant     Applicant   @relation(fields: [applicantId], references: [id])
+  jobPosting    JobPosting? @relation(fields: [jobPostingId], references: [id])
+}
+
 model ActivityLog {
   id        String    @id @default(cuid())
   actorId   String?
@@ -240,6 +296,28 @@ model TeamMessage {
   createdAt  DateTime @default(now())
   employee   Employee @relation(fields: [employeeId], references: [id])
   team       Team     @relation(fields: [teamId], references: [id])
+}
+
+model Badge {
+  id         String   @id @default(cuid())
+  employeeId String
+  type       String
+  label      String
+  awardedAt  DateTime @default(now())
+  employee   Employee @relation(fields: [employeeId], references: [id])
+
+  @@unique([employeeId, type])
+}
+
+model PointTransaction {
+  id          String   @id @default(cuid())
+  employeeId  String
+  taskId      String?
+  points      Int
+  reason      String
+  adjustedBy  String?
+  createdAt   DateTime @default(now())
+  employee    Employee @relation(fields: [employeeId], references: [id])
 }
 
 model AdminConfig {

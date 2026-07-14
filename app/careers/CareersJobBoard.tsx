@@ -17,6 +17,7 @@ import {
   GraduationCap,
   Filter,
 } from "lucide-react";
+import { format } from "date-fns";
 
 const CareersHeroBackground = dynamic(() => import("@/components/CareersHeroBackground"), {
   ssr: false,
@@ -402,7 +403,7 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
                           </h2>
                           <span
                             className={
-                              posting.type === "Job" ? "badge badge-purple" : "badge badge-purple"
+                              posting.type === "Job" ? "badge badge-blue" : "badge badge-amber"
                             }
                           >
                             {posting.type}
@@ -445,31 +446,34 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
                         }}
                       >
                         <div
-                          style={{
-                            textAlign: "right",
-                            fontSize: 13,
-                          }}
-                        >
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 4,
-                              color: isUrgent ? "var(--purple)" : "var(--text-muted)",
-                              justifyContent: "flex-end",
-                              marginBottom: 2,
-                            }}
-                          >
-                            <Clock size={12} />
-                            {days > 0 ? `Closes in ${days} days` : "Closing soon"}
-                          </div>
-                          <div style={{ color: "var(--text-muted)", fontSize: 12 }}>
-                            {postedDays === 0 ? "Posted today" : `Posted ${postedDays} days ago`}
-                            {posting.showApplicantCount && (
-                              <span> • {posting._count.applicants} applicant{posting._count.applicants !== 1 ? "s" : ""}</span>
-                            )}
-                          </div>
-                        </div>
+                           style={{
+                             textAlign: "right",
+                             fontSize: 13,
+                           }}
+                         >
+                           <div
+                             style={{
+                               display: "flex",
+                               alignItems: "center",
+                               gap: 4,
+                               color: days <= 3 ? "var(--red)" : isUrgent ? "var(--amber)" : "var(--text-muted)",
+                               justifyContent: "flex-end",
+                               fontWeight: days <= 3 ? 600 : 400,
+                               marginBottom: 2,
+                             }}
+                           >
+                             <Clock size={12} />
+                             {days > 0
+                               ? `Closes ${format(new Date(posting.deadline), "MMM d")}`
+                               : "Closed"}
+                           </div>
+                           <div style={{ color: "var(--text-muted)", fontSize: 12 }}>
+                             {postedDays === 0 ? "Posted today" : `Posted ${postedDays}d ago`}
+                             {posting.showApplicantCount && (
+                               <span> · {posting._count.applicants} applicant{posting._count.applicants !== 1 ? "s" : ""}</span>
+                             )}
+                           </div>
+                         </div>
                         <ChevronRight
                           size={18}
                           style={{
@@ -487,22 +491,22 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
         )}
       </div>
 
-      {/* Footer */}
       <footer
         style={{
           borderTop: "1px solid var(--border)",
           padding: "40px 24px",
           marginTop: 60,
+          textAlign: "center",
+          color: "var(--text-muted)",
+          fontSize: 14,
         }}
       >
-        <div style={{ textAlign: "center", marginTop: 60, paddingTop: 40, borderTop: "1px solid var(--border)", color: "var(--text-muted)", fontSize: 14 }}>
-            <div style={{ display: "flex", justifyContent: "center", gap: 24, marginBottom: 20 }}>
-              <Link href="/careers/status" style={{ color: "var(--text-secondary)", textDecoration: "none" }}>Track Application Status</Link>
-              <a href="mailto:careers@cyberlabsec.tech" style={{ color: "var(--text-secondary)", textDecoration: "none" }}>careers@cyberlabsec.tech</a>
-              <Link href="/" style={{ color: "var(--text-secondary)", textDecoration: "none" }}>Main Site</Link>
-            </div>
-            © {new Date().getFullYear()} CyberLabSec. All rights reserved.
+        <div style={{ display: "flex", justifyContent: "center", gap: 24, marginBottom: 16, flexWrap: "wrap" }}>
+          <a href="/careers/status" style={{ color: "var(--text-secondary)", textDecoration: "none" }}>Track Application</a>
+          <a href="mailto:careers@cyberlabsec.tech" style={{ color: "var(--text-secondary)", textDecoration: "none" }}>careers@cyberlabsec.tech</a>
+          <a href="https://cyberlabsec.tech" style={{ color: "var(--text-secondary)", textDecoration: "none" }}>cyberlabsec.tech</a>
         </div>
+        © {new Date().getFullYear()} CyberLabSec. All rights reserved.
       </footer>
     </div>
   );

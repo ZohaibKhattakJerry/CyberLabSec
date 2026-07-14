@@ -8,14 +8,17 @@ import { Plus, X, Loader2, Briefcase, ToggleLeft, ToggleRight, Edit2, Trash2, Us
 type Posting = {
   id: string; title: string; type: string; department: string; location: string;
   description: string; requirements: string; universityRequired: boolean;
-  deadline: string; status: string; passMark: number;
+  deadline: string; status: string; passMark: number; showApplicantCount: boolean;
   createdAt: string; _count: { applicants: number };
 };
 
 const EMPTY_FORM = {
   title: "", type: "Job", department: "", location: "Remote",
-  description: "", requirements: "", universityRequired: false,
-  deadline: "", passMark: 60, showApplicantCount: true, status: "Draft"
+  description: "", requirements: "", niceToHave: "", whatYouGain: "",
+  universityRequired: false, deadline: "", passMark: 60,
+  showApplicantCount: true, status: "Draft",
+  experienceLevel: "Any", openings: 1,
+  stipend: "", duration: "", weeklyHours: "",
 };
 
 export default function PostingsClient({ postings }: { postings: Posting[] }) {
@@ -33,8 +36,15 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
     setForm({
       title: p.title, type: p.type, department: p.department, location: p.location,
       description: p.description, requirements: p.requirements,
+      niceToHave: (p as any).niceToHave || "",
+      whatYouGain: (p as any).whatYouGain || "",
       universityRequired: p.universityRequired, deadline: p.deadline.slice(0, 16),
       passMark: p.passMark, showApplicantCount: p.showApplicantCount ?? true, status: p.status,
+      experienceLevel: (p as any).experienceLevel || "Any",
+      openings: (p as any).openings || 1,
+      stipend: (p as any).stipend || "",
+      duration: (p as any).duration || "",
+      weeklyHours: (p as any).weeklyHours || "",
     });
     setMsg(""); setShowForm(true);
   };
@@ -166,12 +176,46 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
                 <textarea className="input" rows={5} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Provide a detailed overview of the role, daily responsibilities, and team culture..." />
               </div>
               <div style={{ gridColumn: "1/-1" }}>
-                <label className="label label-required">Requirements & Qualifications</label>
+                <label className="label">Requirements & Qualifications</label>
                 <textarea className="input" rows={5} value={form.requirements} onChange={e => setForm(f => ({ ...f, requirements: e.target.value }))} placeholder="List required skills, minimum experience, desired certifications (OSCP, OSEP, etc.)..." />
               </div>
-              
+              <div style={{ gridColumn: "1/-1" }}>
+                <label className="label">Nice to Have (Optional)</label>
+                <textarea className="input" rows={3} value={form.niceToHave} onChange={e => setForm(f => ({ ...f, niceToHave: e.target.value }))} placeholder="Bonus skills, preferred certifications, extra experience..." />
+              </div>
+              <div style={{ gridColumn: "1/-1" }}>
+                <label className="label">What You&apos;ll Gain (Benefits / Perks)</label>
+                <textarea className="input" rows={3} value={form.whatYouGain} onChange={e => setForm(f => ({ ...f, whatYouGain: e.target.value }))} placeholder="Certificate, Letter of Recommendation, real client experience, mentorship..." />
+              </div>
+
               <div style={{ gridColumn: "1/-1", marginTop: 12 }}>
-                <h3 style={{ fontSize: 14, fontWeight: 600, color: "var(--purple)", marginBottom: 12, borderBottom: "1px solid var(--border)", paddingBottom: 8 }}>Configuration & Settings</h3>
+                <h3 style={{ fontSize: 14, fontWeight: 600, color: "var(--purple)", marginBottom: 12, borderBottom: "1px solid var(--border)", paddingBottom: 8 }}>Compensation & Logistics</h3>
+              </div>
+              <div>
+                <label className="label">Stipend / Salary</label>
+                <input className="input" value={form.stipend} onChange={e => setForm(f => ({ ...f, stipend: e.target.value }))} placeholder="e.g. PKR 25,000 or Unpaid" />
+              </div>
+              <div>
+                <label className="label">Duration</label>
+                <input className="input" value={form.duration} onChange={e => setForm(f => ({ ...f, duration: e.target.value }))} placeholder="e.g. 3 months, 6 months" />
+              </div>
+              <div>
+                <label className="label">Weekly Hours</label>
+                <input className="input" type="number" min={1} max={60} value={form.weeklyHours} onChange={e => setForm(f => ({ ...f, weeklyHours: e.target.value }))} placeholder="e.g. 20" />
+              </div>
+              <div>
+                <label className="label">Openings</label>
+                <input className="input" type="number" min={1} value={form.openings} onChange={e => setForm(f => ({ ...f, openings: Number(e.target.value) }))} />
+              </div>
+              <div>
+                <label className="label">Experience Level</label>
+                <select className="input" value={form.experienceLevel} onChange={e => setForm(f => ({ ...f, experienceLevel: e.target.value }))}>
+                  <option value="Any">Any</option>
+                  <option value="Entry">Entry Level</option>
+                  <option value="Mid">Mid Level</option>
+                  <option value="Senior">Senior Level</option>
+                  <option value="Lead">Lead / Principal</option>
+                </select>
               </div>
               <div>
                 <label className="label" style={{ display: "flex", gap: 4, alignItems: "center" }}>Interview Pass Mark (%) <span className="tooltip"><span className="badge badge-gray" style={{ fontSize: 10, padding: "0 4px" }}>?</span><span className="tooltip-content">Minimum score required in technical interview</span></span></label>

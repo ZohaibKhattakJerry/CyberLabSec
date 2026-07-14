@@ -7,8 +7,8 @@ export async function POST(req: Request) {
     if (!email || !code) return NextResponse.json({ error: "Email and code required" }, { status: 400 });
 
     const verification = await prisma.emailVerification.findFirst({
-      where: { email, code, verified: false, expiresAt: { gt: new Date() } },
-      orderBy: { createdAt: 'desc' }
+      where: { email, otp: code, verified: false, expiresAt: { gt: new Date() } },
+      orderBy: { createdAt: "desc" },
     });
 
     if (!verification) {

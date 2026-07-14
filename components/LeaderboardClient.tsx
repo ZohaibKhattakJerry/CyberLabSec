@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Trophy, Medal, Award, Search, ChevronDown, Zap } from "lucide-react";
+
 
 type LeaderboardEmployee = {
   id: string; name: string; designation: string; teamName: string;
@@ -50,7 +51,7 @@ export default function LeaderboardClient({ employees }: { employees: Leaderboar
             let height = 140;
             let bg = "rgba(255,255,255,0.05)";
             let border = "1px solid rgba(255,255,255,0.1)";
-            let icon = null;
+            let icon: React.ReactNode = null;
             let rankNum = 0;
 
             if (isFirst) { height = 200; bg = "linear-gradient(to top, rgba(251, 191, 36, 0.2), rgba(251, 191, 36, 0.05))"; border = "1px solid rgba(251, 191, 36, 0.5)"; icon = <Trophy size={32} color="#fbbf24" style={{ marginBottom: 12 }} />; rankNum = 1; }
@@ -89,7 +90,7 @@ export default function LeaderboardClient({ employees }: { employees: Leaderboar
           <tbody>
             {filtered.map((e, index) => {
               const rank = index + 1;
-              let RankIcon = null;
+              let RankIcon: React.ReactNode = null;
               if (rank === 1) RankIcon = <Trophy size={18} color="#fbbf24" />;
               else if (rank === 2) RankIcon = <Medal size={18} color="#94a3b8" />;
               else if (rank === 3) RankIcon = <Award size={18} color="#b45309" />;

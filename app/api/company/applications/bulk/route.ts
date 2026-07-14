@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
             <br/>
             <p>Best regards,<br/>The CyberLabSec Team</p>
           `;
-          await sendEmail(app.email, `Update on your application for ${app.jobPosting.title}`, html);
+          await sendEmail({ to: app.email, subject: `Update on your application for ${app.jobPosting.title}`, html });
         }
       }
 

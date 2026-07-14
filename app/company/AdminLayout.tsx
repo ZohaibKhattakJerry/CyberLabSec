@@ -3,18 +3,22 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Shield, LayoutDashboard, Briefcase, Users, ClipboardList, Bell, Settings, LogOut, Menu, X, ChevronRight, FileText, Trophy } from "lucide-react";
+import {
+  Shield, LayoutDashboard, Users, Bell, Settings, LogOut,
+  Menu, X, ChevronRight, Trophy, ClipboardList, Building2,
+  Briefcase, UserCheck
+} from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 
 const NAV = [
   { href: "/company/dashboard", label: "Overview", icon: LayoutDashboard },
-  { href: "/company/postings", label: "Recruiting", icon: Briefcase },
-  { href: "/company/applications", label: "Applications", icon: FileText },
-  { href: "/company/final-approval", label: "Final Approval", icon: Shield },
+  { href: "/company/postings", label: "Job Postings", icon: Briefcase },
+  { href: "/company/applications", label: "Applications", icon: ClipboardList },
+  { href: "/company/final-approval", label: "Final Approval", icon: UserCheck },
   { href: "/company/employees", label: "Employees", icon: Users },
-  { href: "/company/teams", label: "Teams", icon: Users },
-  { href: "/company/leaderboard", label: "Leaderboard", icon: Trophy },
+  { href: "/company/teams", label: "Teams", icon: Building2 },
   { href: "/company/tasks", label: "Tasks", icon: ClipboardList },
+  { href: "/company/leaderboard", label: "Leaderboard", icon: Trophy },
   { href: "/company/announcements", label: "Announcements", icon: Bell },
   { href: "/company/settings", label: "Settings", icon: Settings },
 ];
@@ -29,77 +33,85 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     router.push("/company/login");
   };
 
-  const sidebarContent = (
-    <aside className={`sidebar ${mobileOpen ? "mobile-open" : ""}`} style={{ background: "#0a0a0f" }}>
-      <div style={{ padding: "24px 20px 20px", borderBottom: "1px solid var(--border)" }}>
-        <Link href="/company/dashboard" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
-          <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 32, objectFit: "contain" }} />
-        </Link>
-      </div>
-
-      <nav style={{ flex: 1, padding: "16px 12px" }}>
-        {NAV.map(({ href, label, icon: Icon }) => {
-          const active = pathname.startsWith(href);
-          return (
-            <Link key={href} href={href} style={{ textDecoration: "none" }} onClick={() => setMobileOpen(false)}>
-              <div 
-                className="nav-link-hover"
-                style={{
-                  display: "flex", alignItems: "center", gap: 10, padding: "10px 14px",
-                  borderRadius: 8, marginBottom: 4, transition: "all 0.15s",
-                  background: active ? "var(--purple)" : "transparent",
-                  color: active ? "#fff" : "var(--text-secondary)",
-                  fontSize: 14, fontWeight: active ? 600 : 500,
-                  transform: "scale(1)",
-                  cursor: "pointer",
-                }}
-                onMouseDown={(e) => e.currentTarget.style.transform = "scale(0.96)"}
-                onMouseUp={(e) => e.currentTarget.style.transform = "scale(1)"}
-                onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
-              >
-                <Icon size={18} />
-                {label}
-                {active && <ChevronRight size={14} style={{ marginLeft: "auto", opacity: 0.7 }} />}
-              </div>
-            </Link>
-          );
-        })}
-      </nav>
-
-      <div style={{ padding: "16px", borderTop: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <button onClick={logout} className="btn btn-ghost" style={{ justifyContent: "flex-start", gap: 10, fontSize: 14, color: "var(--text-muted)", padding: "10px 14px", flex: 1 }}>
-          <LogOut size={18} /> Exit Console
-        </button>
-        <NotificationBell role="admin" />
-      </div>
-    </aside>
-  );
-
   return (
     <div className="layout-sidebar">
-      <div style={{ display: "none" }} className="md:block">
-        {sidebarContent}
-      </div>
-      {sidebarContent}
-
-      {mobileOpen && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 99, display: "block" }} onClick={() => setMobileOpen(false)} />
-      )}
-
-      <div className="main-content">
-        <div className="md:hidden" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 20px", height: 60, borderBottom: "1px solid var(--border)", background: "var(--bg-secondary)", position: "sticky", top: 0, zIndex: 50 }}>
-          <button onClick={() => setMobileOpen(!mobileOpen)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", display: "flex" }}>
-            {mobileOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 24, objectFit: "contain" }} />
-          </div>
-          <div style={{ width: 24, display: "flex", justifyContent: "flex-end" }}>
-            <NotificationBell role="admin" />
-          </div>
+      {/* Sidebar */}
+      <aside className={`sidebar ${mobileOpen ? "mobile-open" : ""}`}>
+        {/* Brand */}
+        <div style={{ padding: "20px 20px 16px", borderBottom: "1px solid var(--border)" }}>
+          <Link href="/company/dashboard" style={{ display: "flex", alignItems: "center", textDecoration: "none", gap: 10 }}>
+            <img src="/logo.png" alt="CyberLabSec" style={{ height: 32, objectFit: "contain" }} />
+          </Link>
+          <div style={{ marginTop: 6, fontSize: 11, color: "var(--text-muted)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>Company Console</div>
         </div>
 
-        <main style={{ padding: "40px", maxWidth: 1400, margin: "0 auto" }}>
+        {/* Nav */}
+        <nav style={{ flex: 1, padding: "12px" }}>
+          {NAV.map(({ href, label, icon: Icon }) => {
+            const active = pathname.startsWith(href);
+            return (
+              <Link key={href} href={href} style={{ textDecoration: "none" }} onClick={() => setMobileOpen(false)}>
+                <div
+                  style={{
+                    display: "flex", alignItems: "center", gap: 10, padding: "9px 12px",
+                    borderRadius: 8, marginBottom: 2, transition: "all 0.15s",
+                    background: active ? "rgba(168,85,247,0.1)" : "transparent",
+                    color: active ? "var(--purple)" : "var(--text-secondary)",
+                    fontSize: 14, fontWeight: active ? 600 : 400,
+                  }}
+                >
+                  <Icon size={16} />
+                  {label}
+                  {active && <ChevronRight size={12} style={{ marginLeft: "auto" }} />}
+                </div>
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Footer */}
+        <div style={{ padding: "12px", borderTop: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <button onClick={logout} className="btn btn-ghost" style={{ justifyContent: "flex-start", gap: 10, fontSize: 14, color: "var(--text-muted)", flex: 1 }}>
+            <LogOut size={16} /> Sign Out
+          </button>
+          <NotificationBell role="admin" />
+        </div>
+      </aside>
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 99 }}
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Main content */}
+      <div className="main-content">
+        {/* Mobile topbar */}
+        <div style={{
+          display: "none",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "0 16px",
+          height: 56,
+          borderBottom: "1px solid var(--border)",
+          background: "var(--bg-secondary)",
+          position: "sticky",
+          top: 0,
+          zIndex: 50,
+        }} className="mobile-topbar">
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", display: "flex" }}
+          >
+            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+          <img src="/logo.png" alt="CyberLabSec" style={{ height: 24, objectFit: "contain" }} />
+          <NotificationBell role="admin" />
+        </div>
+
+        <main style={{ padding: "32px 24px", maxWidth: 1280, margin: "0 auto" }}>
           {children}
         </main>
       </div>

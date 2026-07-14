@@ -44,10 +44,10 @@ export async function GET(
     buffer = fs.readFileSync(absPath);
   }
 
-  return new NextResponse(buffer, {
+  return new NextResponse(Uint8Array.from(buffer), {
     headers: {
       "Content-Type": contentType,
-      "Content-Disposition": `inline; filename="${applicant.fullName.replace(/\s+/g, '_')}_${type.toUpperCase()}${ext}"`,
+      "Content-Disposition": `inline; filename="${applicant.fullName.replace(/\s+/g, "_")}_${type.toUpperCase()}${ext}"`,
     },
   });
 }
