@@ -12,6 +12,7 @@ type Announcement = {
   team: { name: string } | null;
   employee: { name: string } | null;
   readCount: number;
+  readers: { name: string; employeeCode: string; readAt: string }[];
 };
 
 type Team = { id: string; name: string };
@@ -22,6 +23,7 @@ export default function AnnouncementsClient({ announcements, teams, employees, t
   const [, startTransition] = useTransition();
   const [showCreate, setShowCreate] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [expandedReaders, setExpandedReaders] = useState<string | null>(null);
   const [scope, setScope] = useState("Company");
   const [teamId, setTeamId] = useState("");
   const [employeeId, setEmployeeId] = useState("");
@@ -129,16 +131,27 @@ export default function AnnouncementsClient({ announcements, teams, employees, t
               <div style={{ fontSize: 14, color: "var(--text-secondary)", lineHeight: 1.7, whiteSpace: "pre-wrap", borderLeft: "3px solid var(--border-accent)", paddingLeft: 16 }}>
                 {a.message}
               </div>
-              {/* Acknowledgement tracking */}
-              <div style={{ marginTop: 10, display: "flex", justifyContent: "flex-end" }}>
-                <span style={{
-                  fontSize: 12, padding: "3px 10px", borderRadius: 20,
-                  background: a.readCount > 0 ? "rgba(34,197,94,0.1)" : "rgba(255,255,255,0.04)",
-                  border: `1px solid ${a.readCount > 0 ? "rgba(34,197,94,0.25)" : "var(--border-subtle)"}`,
-                  color: a.readCount > 0 ? "var(--green)" : "var(--text-muted)",
-                }}>
-                  👁 {a.readCount} acknowledged{a.scope === "Company" ? ` / ${totalEmployees} employees` : ""}
-                </span>
+              {/* Acknowledgement tracking with expandable reader list */}
+              <div style={{ marginTop: 10 }}>
+                <button
+                  onClick={() => setExpandedReaders(expandedReaders === a.id ? null : a.id)}
+                  style={{ fontSize: 12, padding: "3px 10px", borderRadius: 20, border: `1px solid ${a.readCount > 0 ? "rgba(34,197,94,0.25)" : "var(--border-subtle)"}`, background: a.readCount > 0 ? "rgba(34,197,94,0.1)" : "rgba(255,255,255,0.04)", color: a.readCount > 0 ? "var(--green)" : "var(--text-muted)", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, marginLeft: "auto" }}
+                >
+                  👁 {a.readCount} acknowledged{a.scope === "Company" ? ` / ${totalEmployees} employees` : ""} {a.readCount > 0 ? (expandedReaders === a.id ? "▲" : "▼") : ""}
+                </button>
+                {expandedReaders === a.id && a.readers.length > 0 && (
+                  <div style={{ marginTop: 8, padding: "12px", background: "rgba(255,255,255,0.02)", borderRadius: 8, border: "1px solid var(--border-subtle)" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 8, textTransform: "uppercase" }}>Read by</div>
+                    <div style={{ display: "grid", gap: 6, maxHeight: 200, overflowY: "auto" }}>
+                      {a.readers.map((r, i) => (
+                        <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "var(--text-secondary)" }}>
+                          <span>{r.name} <span style={{ color: "var(--text-muted)" }}>({r.employeeCode})</span></span>
+                          <span style={{ color: "var(--text-muted)" }}>{format(new Date(r.readAt), "MMM d, h:mm a")}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ))}

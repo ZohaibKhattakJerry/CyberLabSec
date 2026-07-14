@@ -10,6 +10,7 @@ export default async function AnnouncementsPage() {
       sentBy: { select: { name: true } },
       team: { select: { name: true } },
       employee: { select: { name: true } },
+      reads: { include: { employee: { select: { name: true, employeeCode: true } } }, orderBy: { readAt: "asc" } },
       _count: { select: { reads: true } },
     },
   });
@@ -25,6 +26,7 @@ export default async function AnnouncementsPage() {
     sentAt: a.sentAt.toISOString(),
     expiresAt: a.expiresAt?.toISOString() || null,
     readCount: a._count?.reads || 0,
+    readers: a.reads.map((r: any) => ({ name: r.employee?.name || "Unknown", employeeCode: r.employee?.employeeCode || "", readAt: r.readAt.toISOString() })),
   }));
 
   return <AnnouncementsClient announcements={serialized} teams={teams} employees={employees} totalEmployees={totalEmployees} />;

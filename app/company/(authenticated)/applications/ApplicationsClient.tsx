@@ -12,6 +12,9 @@ type Applicant = {
   status: string; fitScore: number | null; fitReasoning: string | null;
   createdAt: string; jobPostingId: string;
   internalRating: number | null; privateNotes: string | null;
+  motivation: string | null; semester: string | null; degree: string | null;
+  cgpa: string | null; bugBounty: string | null; certifications: string | null;
+  cnic: string | null;
   jobPosting: { id: string; title: string; type: string };
   interviewSession: { 
     id: string; totalScore: number | null; result: string | null; 
@@ -320,6 +323,29 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                 {selected.cve && <div><strong>CVEs:</strong> {selected.cve}</div>}
               </div>
             </div>
+
+            {/* Motivation & Screening Answers */}
+            {(selected.motivation || selected.degree || selected.bugBounty || selected.certifications) && (
+              <div style={{ marginBottom: 24, padding: "16px", background: "rgba(255,255,255,0.02)", borderRadius: 8, border: "1px solid var(--border-subtle)" }}>
+                <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, color: "var(--text-muted)", textTransform: "uppercase" }}>Motivation & Screening</h3>
+                <div style={{ display: "grid", gap: 12 }}>
+                  {selected.motivation && (
+                    <div>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>WHY CYBERLABSEC?</div>
+                      <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.7, whiteSpace: "pre-wrap", padding: "10px 14px", background: "rgba(168,85,247,0.05)", borderRadius: 8, borderLeft: "3px solid var(--purple)", margin: 0 }}>{selected.motivation}</p>
+                    </div>
+                  )}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, fontSize: 13, color: "var(--text-secondary)" }}>
+                    {selected.degree && <div><strong>Degree:</strong> {selected.degree}</div>}
+                    {selected.semester && <div><strong>Semester:</strong> {selected.semester}</div>}
+                    {selected.cgpa && <div><strong>CGPA:</strong> {selected.cgpa}</div>}
+                    {selected.bugBounty && <div><strong>Bug Bounty:</strong> <a href={selected.bugBounty} target="_blank" rel="noopener noreferrer" style={{ color: "var(--purple)" }}>View Profile</a></div>}
+                    {selected.certifications && <div style={{ gridColumn: "1/-1" }}><strong>Certs:</strong> {selected.certifications}</div>}
+                    {selected.cnic && <div style={{ gridColumn: "1/-1" }}><strong>CNIC:</strong> {selected.cnic}</div>}
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 24 }}>
               <div style={{ padding: "12px", background: "rgba(255,255,255,0.02)", borderRadius: 8 }}>
