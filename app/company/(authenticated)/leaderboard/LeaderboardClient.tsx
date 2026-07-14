@@ -15,7 +15,7 @@ type Employee = {
   monthlyPoints: number;
   team: { id: string; name: string } | null;
   badges: { id: string; type: string; label: string; awardedAt: string }[];
-  submissions: { id: string }[];
+  submissions: { id: string; qualityRating: number | null; submittedAt: string; task: { title: string } | null }[];
 };
 
 type TeamRanking = {
@@ -50,6 +50,7 @@ export default function LeaderboardClient({
   const [showAdjust, setShowAdjust] = useState(false);
   const [adjustForm, setAdjustForm] = useState({ employeeId: "", points: 0, reason: "" });
   const [adjustLoading, setAdjustLoading] = useState(false);
+  const [expandedEmployee, setExpandedEmployee] = useState<string | null>(null);
 
   const sorted = [...employees].sort((a, b) =>
     view === "monthly" ? b.monthlyPoints - a.monthlyPoints : b.points - a.points
@@ -156,23 +157,48 @@ export default function LeaderboardClient({
               <span>#</span><span>Operative</span><span style={{ textAlign: "right" }}>Badges</span><span style={{ textAlign: "right", minWidth: 80 }}>Points</span>
             </div>
             {sorted.map((emp, i) => (
-              <div key={emp.id} style={{ padding: "14px 20px", borderBottom: "1px solid var(--border-subtle)", display: "grid", gridTemplateColumns: "48px 1fr auto auto", gap: 12, alignItems: "center", background: i < 3 ? "rgba(245,158,11,0.02)" : "transparent" }}>
-                <div style={{ fontWeight: 800, fontSize: 18, color: i === 0 ? "var(--amber)" : i === 1 ? "#94a3b8" : i === 2 ? "#cd7f32" : "var(--text-muted)" }}>
-                  {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`}
+              <div key={emp.id}>
+                <div
+                  onClick={() => setExpandedEmployee(expandedEmployee === emp.id ? null : emp.id)}
+                  style={{ padding: "14px 20px", borderBottom: expandedEmployee === emp.id ? "none" : "1px solid var(--border-subtle)", display: "grid", gridTemplateColumns: "48px 1fr auto auto", gap: 12, alignItems: "center", background: i < 3 ? "rgba(245,158,11,0.02)" : "transparent", cursor: "pointer" }}
+                  className="card-hover"
+                >
+                  <div style={{ fontWeight: 800, fontSize: 18, color: i === 0 ? "var(--amber)" : i === 1 ? "#94a3b8" : i === 2 ? "#cd7f32" : "var(--text-muted)" }}>
+                    {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text-primary)" }}>{emp.name}</div>
+                    <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{emp.designation}{emp.team ? ` · ${emp.team.name}` : ""} · {emp.submissions.length} tasks approved</div>
+                  </div>
+                  <div style={{ display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                    {emp.badges.slice(0, 3).map(b => (
+                      <span key={b.type} title={b.label} style={{ fontSize: 16 }}>{BADGE_ICONS[b.type] || "🏅"}</span>
+                    ))}
+                  </div>
+                  <div style={{ textAlign: "right", minWidth: 80 }}>
+                    <div style={{ fontWeight: 700, fontSize: 16, color: i < 3 ? "var(--amber)" : "var(--text-primary)" }}>{getPoints(emp)}</div>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)" }}>points {expandedEmployee === emp.id ? "▲" : "▼"}</div>
+                  </div>
                 </div>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text-primary)" }}>{emp.name}</div>
-                  <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{emp.designation}{emp.team ? ` · ${emp.team.name}` : ""}</div>
-                </div>
-                <div style={{ display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "flex-end" }}>
-                  {emp.badges.slice(0, 3).map(b => (
-                    <span key={b.type} title={b.label} style={{ fontSize: 16 }}>{BADGE_ICONS[b.type] || "🏅"}</span>
-                  ))}
-                </div>
-                <div style={{ textAlign: "right", minWidth: 80 }}>
-                  <div style={{ fontWeight: 700, fontSize: 16, color: i < 3 ? "var(--amber)" : "var(--text-primary)" }}>{getPoints(emp)}</div>
-                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>points</div>
-                </div>
+                {/* Drill-down breakdown */}
+                {expandedEmployee === emp.id && (
+                  <div style={{ padding: "0 20px 16px", borderBottom: "1px solid var(--border-subtle)", background: "rgba(168,85,247,0.03)" }}>
+                    {emp.submissions.length === 0 ? (
+                      <p style={{ fontSize: 12, color: "var(--text-muted)", padding: "12px 0" }}>No approved submissions yet.</p>
+                    ) : (
+                      <div style={{ display: "grid", gap: 6 }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", padding: "8px 0 4px" }}>Approved Tasks</div>
+                        {emp.submissions.map((sub) => (
+                          <div key={sub.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, padding: "5px 10px", background: "rgba(255,255,255,0.03)", borderRadius: 6 }}>
+                            <span style={{ color: "var(--text-secondary)", flex: 1 }}>{sub.task?.title || "—"}</span>
+                            <span style={{ color: "var(--amber)", marginRight: 10 }}>{'★'.repeat(sub.qualityRating || 0)}{'☆'.repeat(5 - (sub.qualityRating || 0))}</span>
+                            <span style={{ color: "var(--text-muted)", whiteSpace: "nowrap" }}>{new Date(sub.submittedAt).toLocaleDateString("en-PK", { month: "short", day: "numeric" })}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
             {sorted.length === 0 && (

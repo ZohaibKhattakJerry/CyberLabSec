@@ -16,7 +16,16 @@ export default async function CompanyLeaderboardPage() {
       monthlyPoints: true,
       team: { select: { id: true, name: true } },
       badges: { orderBy: { awardedAt: "asc" }, select: { id: true, type: true, label: true, awardedAt: true } },
-      submissions: { where: { status: "Approved" }, select: { id: true } },
+      submissions: { 
+        where: { status: "Approved" }, 
+        select: { 
+          id: true, 
+          qualityRating: true, 
+          submittedAt: true,
+          task: { select: { title: true } },
+        },
+        orderBy: { submittedAt: "desc" },
+      },
     },
     orderBy: { points: "desc" },
   });
@@ -51,6 +60,7 @@ export default async function CompanyLeaderboardPage() {
   const serializedEmployees = employees.map((e) => ({
     ...e,
     badges: e.badges.map((b) => ({ ...b, awardedAt: b.awardedAt.toISOString() })),
+    submissions: e.submissions.map((s) => ({ ...s, submittedAt: s.submittedAt.toISOString() })),
   }));
 
   return (

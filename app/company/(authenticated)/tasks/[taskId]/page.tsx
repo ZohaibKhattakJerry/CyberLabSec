@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuthFromCookies } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, FileText, Clock } from "lucide-react";
+import { ChevronLeft, FileText, Clock, CheckCircle } from "lucide-react";
 import { format } from "date-fns";
 import SubmissionReviewClient from "./SubmissionReviewClient";
 import TaskComments from "@/components/TaskComments";
@@ -27,8 +27,32 @@ export default async function AdminTaskReviewPage({ params }: { params: Promise<
 
   if (!task) redirect("/company/tasks");
 
+  // Fetch activity logs for this task
+  const activityLogs = await prisma.activityLog.findMany({
+    where: { metadata: { contains: resolvedParams.taskId } },
+    orderBy: { timestamp: "asc" },
+    take: 20,
+  });
+
+  const taskActivity = activityLogs.filter(log => {
+    try { const m = JSON.parse(log.metadata || "{}"); return m.taskId === resolvedParams.taskId; } catch { return false; }
+  });
+
+  // Parse checklist
+  let checklist: string[] = [];
+  try { checklist = JSON.parse(task.checklist || "[]"); } catch {}
+
   let comments: any[] = [];
   try { comments = JSON.parse(task.comments || "[]"); } catch {}
+
+  const ACTION_LABELS: Record<string, string> = {
+    TASK_CREATED: "Task created",
+    TASK_STARTED: "Task started",
+    TASK_SUBMITTED: "Submission received",
+    TASK_APPROVED: "Submission approved",
+    TASK_CHANGES_REQUESTED: "Changes requested",
+    TASK_STATUS_CHANGED: "Status updated",
+  };
 
   return (
     <div className="animate-fade-up">
@@ -50,6 +74,21 @@ export default async function AdminTaskReviewPage({ params }: { params: Promise<
             <p style={{ fontSize: 14, lineHeight: 1.6, color: "var(--text-primary)", whiteSpace: "pre-wrap", background: "rgba(255,255,255,0.02)", padding: 16, borderRadius: 8, border: "1px solid var(--border-subtle)" }}>
               {task.brief}
             </p>
+
+            {/* Checklist */}
+            {checklist.length > 0 && (
+              <div style={{ marginTop: 20 }}>
+                <h3 style={{ fontSize: 14, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 10 }}>Checklist</h3>
+                <div style={{ display: "grid", gap: 6 }}>
+                  {checklist.map((item, i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px", background: "rgba(255,255,255,0.02)", borderRadius: 8, border: "1px solid var(--border-subtle)", fontSize: 13, color: "var(--text-secondary)" }}>
+                      <CheckCircle size={14} color="var(--purple)" style={{ flexShrink: 0 }} />
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
@@ -88,8 +127,43 @@ export default async function AdminTaskReviewPage({ params }: { params: Promise<
                 <p style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 4 }}>Created At</p>
                 <p style={{ fontSize: 14, fontWeight: 500 }}>{format(task.createdAt, "PPP")}</p>
               </div>
+              <div>
+                <p style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 4 }}>Status</p>
+                <p style={{ fontSize: 14, fontWeight: 600, color: "var(--purple)" }}>{task.status}</p>
+              </div>
+              <div>
+                <p style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 4 }}>Priority</p>
+                <p style={{ fontSize: 14, fontWeight: 600 }}>{task.priority}</p>
+              </div>
             </div>
           </div>
+
+          {/* Activity Timeline */}
+          {taskActivity.length > 0 && (
+            <div className="card" style={{ padding: 24 }}>
+              <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 16, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Activity Timeline</h3>
+              <div style={{ display: "grid", gap: 0 }}>
+                {taskActivity.map((log, i) => {
+                  let meta: any = {};
+                  try { meta = JSON.parse(log.metadata || "{}"); } catch {}
+                  const label = ACTION_LABELS[log.action] || log.action.replace(/_/g, " ").toLowerCase();
+                  return (
+                    <div key={log.id} style={{ display: "flex", gap: 12, paddingBottom: i < taskActivity.length - 1 ? 14 : 0 }}>
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0 }}>
+                        <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--purple)", border: "1px solid rgba(168,85,247,0.5)", flexShrink: 0, marginTop: 4 }} />
+                        {i < taskActivity.length - 1 && <div style={{ width: 1, flex: 1, background: "rgba(168,85,247,0.15)", marginTop: 3 }} />}
+                      </div>
+                      <div style={{ paddingBottom: 12 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", textTransform: "capitalize" }}>{label}</div>
+                        {meta.employeeName && <div style={{ fontSize: 11, color: "var(--text-muted)" }}>by {meta.employeeName}</div>}
+                        <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>{format(new Date(log.timestamp), "MMM d, h:mm a")}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Comments thread */}
           <TaskComments
