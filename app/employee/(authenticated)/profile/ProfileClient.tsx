@@ -269,6 +269,66 @@ export default function ProfileClient({ employee, activityLogs }: { employee: Em
             </div>
           </div>
 
+          {/* My Documents */}
+          <div className="card" style={{ padding: 24 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+              <Shield size={16} color="var(--purple)" /> My Documents
+            </h2>
+            <div style={{ display: "grid", gap: 10 }}>
+              {[
+                { label: "Offer Letter", desc: "Your employment offer letter", icon: "📄", available: true, href: `/api/files/offer-letter/${employee.id}` },
+                { label: "Internship Completion Certificate", desc: "Certificate upon program completion", icon: "🎓", available: employee.status === "Inactive", href: `/api/company/employees/${employee.id}/certificate?type=completion` },
+                { label: "Letter of Recommendation", desc: "Performance-based recommendation letter", icon: "📝", available: employee.status === "Inactive", href: `/api/company/employees/${employee.id}/certificate?type=lor` },
+              ].map((doc) => (
+                <div key={doc.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", background: "rgba(255,255,255,0.02)", borderRadius: 10, border: "1px solid var(--border-subtle)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <span style={{ fontSize: 20 }}>{doc.icon}</span>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 600 }}>{doc.label}</div>
+                      <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{doc.desc}</div>
+                    </div>
+                  </div>
+                  {doc.available ? (
+                    <a href={doc.href} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm" style={{ gap: 6 }}>
+                      <Eye size={13} /> View
+                    </a>
+                  ) : (
+                    <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Not available yet</span>
+                  )}
+                </div>
+              ))}
+              {employee.status !== "Inactive" && (
+                <p style={{ fontSize: 12, color: "var(--text-muted)", padding: "4px 2px" }}>
+                  Completion Certificate and LoR will be available after your internship/program ends.
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Account Security */}
+          <div className="card" style={{ padding: 24 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+              <KeyRound size={16} color="var(--purple)" /> Account Security
+            </h2>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 0" }}>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 600 }}>Sign Out of All Devices</div>
+                <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>Invalidate all active sessions across every device</div>
+              </div>
+              <button
+                className="btn btn-danger btn-sm"
+                style={{ gap: 6 }}
+                onClick={async () => {
+                  if (!confirm("Sign out of all devices? You will be logged out immediately.")) return;
+                  await fetch("/api/auth/logout", { method: "POST" });
+                  router.push("/employee/login");
+                }}
+              >
+                <Shield size={13} /> Sign Out All
+              </button>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>

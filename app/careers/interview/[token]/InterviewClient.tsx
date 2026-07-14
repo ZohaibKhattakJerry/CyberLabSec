@@ -32,6 +32,11 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
   const [timeLeft, setTimeLeft] = useState(120); // 2 min per question
   const [totalTime, setTotalTime] = useState(0);
 
+  // Integrity state
+  const [tabSwitches, setTabSwitches] = useState(0);
+  const [tabSwitchToast, setTabSwitchToast] = useState(false);
+  const [pasteWarning, setPasteWarning] = useState(false);
+
   // Anti-cheat signals
   const pasteAttempts = useRef(0);
   const tabBlurCount = useRef(0);
@@ -91,15 +96,36 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
     window.addEventListener("blur", handleBlur);
     window.addEventListener("contextmenu", handleContextMenu);
     window.addEventListener("keydown", handleKeyDownGlob);
-    document.addEventListener("visibilitychange", () => {
-      if (document.hidden) tabBlurCount.current += 1;
-    });
     return () => {
       window.removeEventListener("blur", handleBlur);
       window.removeEventListener("contextmenu", handleContextMenu);
       window.removeEventListener("keydown", handleKeyDownGlob);
     };
   }, [phase]);
+
+  // Feature 1: Visibility change detection — tab switch logging
+  useEffect(() => {
+    if (phase !== "interview") return;
+    const handleVisibility = () => {
+      if (!document.hidden) return;
+      tabBlurCount.current += 1;
+      setTabSwitches((prev) => {
+        const newCount = prev + 1;
+        // Show toast warning
+        setTabSwitchToast(true);
+        setTimeout(() => setTabSwitchToast(false), 4000);
+        // Log to server
+        fetch("/api/interview/integrity", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId, type: "tab_switch", count: newCount }),
+        }).catch(console.error);
+        return newCount;
+      });
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [phase, sessionId]);
 
   const handleVerify = async () => {
     if (!verifyEmail.trim() || !verifyCnic.trim()) {
@@ -127,6 +153,9 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
     pasteAttempts.current += 1;
+    // Feature 2: Show paste warning
+    setPasteWarning(true);
+    setTimeout(() => setPasteWarning(false), 3000);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -233,6 +262,35 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
 
   // ── INTERVIEW PHASE ──
   if (phase === "interview") {
+    // Feature 4: Auto-terminate after 5+ tab switches
+    if (tabSwitches >= 5) {
+      return (
+        <Layout>
+          <motion.div
+            className="card"
+            style={{ maxWidth: 560, width: "100%", padding: 48, textAlign: "center", borderColor: "var(--border-accent)" }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+          >
+            <AlertTriangle size={52} color="var(--purple)" style={{ margin: "0 auto 20px" }} />
+            <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 16, color: "var(--purple)" }}>
+              Interview Terminated
+            </h2>
+            <p style={{ color: "var(--text-secondary)", lineHeight: 1.75, marginBottom: 20 }}>
+              Due to multiple integrity violations (5+ tab switches), this interview session has been automatically ended.
+            </p>
+            <p style={{ color: "var(--text-muted)", fontSize: 13, lineHeight: 1.6 }}>
+              If you believe this is an error, contact{" "}
+              <a href="mailto:careers@cyberlabsec.tech" style={{ color: "var(--purple)", textDecoration: "underline" }}>
+                careers@cyberlabsec.tech
+              </a>{" "}
+              before restarting.
+            </p>
+          </motion.div>
+        </Layout>
+      );
+    }
+
     if (!questions || questions.length === 0) {
       return (
         <Layout>
@@ -249,19 +307,53 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
     const q = questions[currentQ];
     const progress = ((currentQ) / questions.length) * 100;
     const timePercent = (timeLeft / (q.type === "open" ? 180 : 60)) * 100;
-
     return (
       <div style={{ minHeight: "100vh", background: "var(--bg-primary)", display: "flex", flexDirection: "column" }}>
+        {/* Feature 1: Tab-switch toast */}
+        <AnimatePresence>
+          {tabSwitchToast && (
+            <motion.div
+              initial={{ opacity: 0, y: -40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -40 }}
+              transition={{ duration: 0.25 }}
+              style={{
+                position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)",
+                zIndex: 9999, background: "rgba(234,179,8,0.15)",
+                border: "1px solid rgba(234,179,8,0.5)", borderRadius: 10,
+                padding: "10px 20px", fontSize: 13, fontWeight: 600,
+                color: "#fbbf24", backdropFilter: "blur(12px)",
+                boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
+                whiteSpace: "nowrap",
+              }}
+            >
+              ⚠️ Tab switch detected. This is logged and reviewed.
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Interview header */}
         <div style={{ borderBottom: "1px solid var(--border)", padding: "0 24px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--bg-secondary)", position: "sticky", top: 0, zIndex: 50 }}>
           <div style={{ display: "flex", alignItems: "center" }}>
             <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 32, objectFit: "contain" }} />
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            {/* Feature 3: Integrity counter */}
+            {tabSwitches > 0 && (
+              <span style={{
+                fontSize: 12, fontWeight: 600,
+                color: "#fbbf24",
+                background: "rgba(234,179,8,0.1)",
+                border: "1px solid rgba(234,179,8,0.3)",
+                borderRadius: 6, padding: "2px 8px",
+              }}>
+                ⚠️ {tabSwitches} warning{tabSwitches !== 1 ? "s" : ""}
+              </span>
+            )}
             <span style={{ fontSize: 13, color: "var(--text-muted)" }}>Q{currentQ + 1} of {questions.length}</span>
             <div style={{ display: "flex", alignItems: "center", gap: 6, color: timeLeft <= 30 ? "var(--purple)" : "var(--text-secondary)", fontSize: 13, fontFamily: "monospace", fontWeight: 600 }}>
               <Clock size={14} />
-              {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, "0")}
+              {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, "00")}
             </div>
           </div>
         </div>
@@ -307,15 +399,28 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
                     ))}
                   </div>
                 ) : (
-                  <textarea
-                    className="input"
-                    style={{ minHeight: 180, resize: "vertical" }}
-                    placeholder="Type your answer here..."
-                    value={currentAnswer}
-                    onChange={(e) => setAnswer(e.target.value)}
-                    onPaste={handlePaste}
-                    onKeyDown={handleKeyDown}
-                  />
+                  <>
+                    <textarea
+                      className="input"
+                      style={{ minHeight: 180, resize: "vertical" }}
+                      placeholder="Type your answer here..."
+                      value={currentAnswer}
+                      onChange={(e) => setAnswer(e.target.value)}
+                      onPaste={handlePaste}
+                      onKeyDown={handleKeyDown}
+                    />
+                    {/* Feature 2: Paste warning */}
+                    {pasteWarning && (
+                      <div style={{
+                        marginTop: 8, padding: "8px 14px", borderRadius: 8,
+                        background: "rgba(234,179,8,0.1)",
+                        border: "1px solid rgba(234,179,8,0.35)",
+                        color: "#fbbf24", fontSize: 13, fontWeight: 500,
+                      }}>
+                        🔒 Paste is disabled. Please type your answer.
+                      </div>
+                    )}
+                  </>
                 )}
 
                 <div style={{ marginTop: 24, display: "flex", justifyContent: "flex-end" }}>

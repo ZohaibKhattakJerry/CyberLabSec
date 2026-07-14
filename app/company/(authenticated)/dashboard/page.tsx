@@ -1,91 +1,66 @@
 import { prisma } from "@/lib/prisma";
-import { Users, Briefcase, FileText, CheckCircle } from "lucide-react";
-import DashboardChartsClient from "./DashboardChartsClient";
-import { format, subDays } from "date-fns";
+import DashboardClient from "./DashboardClient";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminDashboard() {
+export default async function DashboardPage() {
+  const now = new Date();
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
   const [
-    employeesCount,
-    postingsCount,
-    activeTasksCount,
-    pendingApplicantsCount,
-    applicants,
-    teamsWithTasks,
+    employees,
+    openPostings,
+    newApplications,
+    activeTasks,
+    overdueTasks,
+    pendingApprovals,
+    pendingReviews,
+    recentActivity,
+    tasksByStatus,
+    hiringFunnel,
+    topEmployees,
   ] = await Promise.all([
     prisma.employee.count({ where: { status: "Active" } }),
-    prisma.jobPosting.count({ where: { status: "Open" } }),
-    prisma.task.count({ where: { deadline: { gte: new Date() } } }),
-    prisma.applicant.count({ where: { status: { in: ["Applied", "Reviewing", "Shortlisted", "InterviewInvited", "Passed"] } } }),
-    prisma.applicant.findMany({ select: { createdAt: true, status: true } }),
-    prisma.team.findMany({ include: { tasks: { include: { submissions: true } } } })
+    prisma.jobPosting.count({ where: { status: "Published" } }),
+    prisma.applicant.count({ where: { createdAt: { gte: weekAgo } } }),
+    prisma.task.count({ where: { status: { in: ["Assigned", "InProgress", "Submitted"] } } }),
+    prisma.task.count({ where: { deadline: { lt: now }, status: { not: "Completed" } } }),
+    prisma.cEOReview.count({ where: { status: "Pending" } }).catch(() => 0),
+    prisma.taskSubmission.count({ where: { status: "Pending" } }),
+    prisma.activityLog.findMany({ orderBy: { timestamp: "desc" }, take: 20 }),
+    prisma.task.groupBy({ by: ["status"], _count: { id: true } }),
+    prisma.applicant.groupBy({ by: ["status"], _count: { id: true } }),
+    prisma.employee.findMany({
+      where: { status: "Active" },
+      orderBy: { points: "desc" },
+      take: 5,
+      select: { id: true, name: true, designation: true, points: true, monthlyPoints: true },
+    }),
   ]);
 
-  // Aggregate application data for the last 7 days
-  const last7Days = Array.from({ length: 7 }).map((_, i) => format(subDays(new Date(), 6 - i), "MMM dd"));
-  const applicationsData = last7Days.map((date: any) => {
-    return {
-      date,
-      count: applicants.filter(a => format(a.createdAt, "MMM dd") === date).length
-    };
-  });
-
-  // Aggregate task data by team
-  const tasksData = teamsWithTasks.map((team: any) => {
-    let pending = 0;
-    let completed = 0;
-    team.tasks.forEach(task => {
-      if (task.submissions.some(s => s.status === "Approved")) {
-        completed++;
-      } else {
-        pending++;
-      }
-    });
-    return { team: team.name, pending, completed };
-  });
-
-  // Aggregate applicant status
-  const statuses = ["Applied", "Reviewing", "Shortlisted", "InterviewInvited", "Passed", "Failed", "Rejected"];
-  const applicantStatusData = statuses.map((status: any) => ({
-    name: status,
-    value: applicants.filter(a => a.status === status).length
-  })).filter(s => s.value > 0);
-
-  const chartData = {
-    applicationsData,
-    tasksData,
-    applicantStatusData
+  const data = {
+    stats: {
+      employees,
+      openPostings,
+      newApplications,
+      activeTasks,
+      overdueTasks,
+      pendingApprovals,
+      pendingReviews,
+    },
+    recentActivity: recentActivity.map((a) => ({
+      id: a.id,
+      action: a.action,
+      actorId: a.actorId || "",
+      metadata: a.metadata,
+      createdAt: a.timestamp.toISOString(),
+    })),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tasksByStatus: tasksByStatus as any[],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    hiringFunnel: hiringFunnel as any[],
+    topEmployees,
   };
 
-  return (
-    <div>
-      <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 32 }}>Admin Dashboard</h1>
-      
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 24, marginBottom: 40 }}>
-        <StatCard icon={<Users size={24} color="var(--purple)" />} label="Active Employees" value={employeesCount} />
-        <StatCard icon={<Briefcase size={24} color="var(--blue)" />} label="Open Postings" value={postingsCount} />
-        <StatCard icon={<FileText size={24} color="var(--amber)" />} label="Active Tasks" value={activeTasksCount} />
-        <StatCard icon={<CheckCircle size={24} color="var(--green)" />} label="Pending Applicants" value={pendingApplicantsCount} />
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 24 }}>
-        <DashboardChartsClient data={chartData} />
-      </div>
-    </div>
-  );
-}
-
-function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
-  return (
-    <div className="card" style={{ padding: 24, display: "flex", alignItems: "center", gap: 16 }}>
-      <div style={{ width: 48, height: 48, borderRadius: 12, background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        {icon}
-      </div>
-      <div>
-        <div style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 4 }}>{label}</div>
-        <div style={{ fontSize: 28, fontWeight: 800, color: "var(--text-primary)" }}>{value}</div>
-      </div>
-    </div>
-  );
+  return <DashboardClient data={data} />;
 }

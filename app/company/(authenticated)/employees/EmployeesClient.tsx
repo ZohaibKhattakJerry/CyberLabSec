@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { Search, UserX, UserCheck, Edit2, X, Loader2, Shield, Award, UserPlus, FileSignature, CheckCircle } from "lucide-react";
+import { Search, UserX, UserCheck, Edit2, X, Loader2, Shield, Award, UserPlus, FileSignature, CheckCircle, UserMinus } from "lucide-react";
 
 type Employee = {
   id: string; name: string; email: string; designation: string;
@@ -46,6 +46,11 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
   const [analyticsEmployee, setAnalyticsEmployee] = useState<Employee | null>(null);
   const [reportGenerating, setReportGenerating] = useState(false);
   const [generatedReport, setGeneratedReport] = useState<string | null>(null);
+
+  // Offboard State
+  const [offboardEmployee, setOffboardEmployee] = useState<Employee | null>(null);
+  const [offboardForm, setOffboardForm] = useState({ reason: "internship_completed", effectiveDate: "", generateCertificate: false, generateLoR: false });
+  const [offboardLoading, setOffboardLoading] = useState(false);
 
   const filtered = employees.filter(e => {
     const q = search.toLowerCase();
@@ -180,6 +185,25 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
     startTransition(() => router.refresh());
   };
 
+  const handleOffboard = async () => {
+    if (!offboardEmployee) return;
+    if (!offboardForm.effectiveDate) { setMsg("Please set an effective date."); return; }
+    setOffboardLoading(true);
+    const res = await fetch(`/api/company/employees/${offboardEmployee.id}/offboard`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(offboardForm),
+    });
+    const data = await res.json();
+    setOffboardLoading(false);
+    if (!res.ok) { setMsg(data.error || "Failed to offboard."); return; }
+    if (offboardForm.generateCertificate) window.open(`/api/company/employees/${offboardEmployee.id}/certificate?type=completion`, "_blank");
+    if (offboardForm.generateLoR) window.open(`/api/company/employees/${offboardEmployee.id}/certificate?type=lor`, "_blank");
+    setOffboardEmployee(null);
+    setOffboardForm({ reason: "internship_completed", effectiveDate: "", generateCertificate: false, generateLoR: false });
+    startTransition(() => router.refresh());
+  };
+
   const generateReport = async (e: Employee) => {
     setReportGenerating(true);
     setGeneratedReport(null);
@@ -264,27 +288,26 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
                 </td>
                 <td data-label="Start Date" style={{ fontSize: 12, color: "var(--text-muted)" }}>{format(new Date(e.startDate), "MMM d, yyyy")}</td>
                 <td data-label="Status">
-                  <span className={`badge ${e.status === "Active" ? "badge-green" : "badge-purple"}`}>{e.status}</span>
+                  <span className={`badge ${e.status === "Active" ? "badge-green" : e.status === "Inactive" ? "badge-gray" : "badge-red"}`}>{e.status}</span>
                 </td>
                 <td data-label="Actions">
                   <div style={{ display: "flex", gap: 6 }}>
                     <button className="btn btn-ghost btn-sm" onClick={() => { setAnalyticsEmployee(e); setGeneratedReport(null); }} title="Performance Analytics"><Award size={13} /></button>
                     <button className="btn btn-ghost btn-sm" onClick={() => openEdit(e)} title="Edit"><Edit2 size={13} /></button>
-                    <button
-                      className={`btn btn-sm ${e.status === "Active" ? "btn-danger" : "btn-secondary"}`}
-                      onClick={() => toggleStatus(e.id, e.status)} disabled={loading}
-                      title={e.status === "Active" ? "Terminate" : "Reactivate"}
-                    >
-                      {e.status === "Active" ? <UserX size={13} /> : <UserCheck size={13} />}
-                    </button>
-                    {e.status === "Terminated" && (
+                    {e.status === "Active" && (
                       <button
                         className="btn btn-sm btn-danger"
-                        onClick={() => deleteEmployee(e.id)} disabled={loading}
-                        title="Delete Permanently"
+                        onClick={() => { setOffboardEmployee(e); setOffboardForm({ reason: "internship_completed", effectiveDate: "", generateCertificate: false, generateLoR: false }); setMsg(""); }}
+                        title="Offboard Employee"
                       >
-                        <X size={13} />
+                        <UserMinus size={13} />
                       </button>
+                    )}
+                    {(e.status === "Terminated" || e.status === "Inactive") && (
+                      <>
+                        <button className="btn btn-sm btn-secondary" onClick={() => toggleStatus(e.id, e.status)} disabled={loading} title="Reactivate"><UserCheck size={13} /></button>
+                        <button className="btn btn-sm btn-danger" onClick={() => deleteEmployee(e.id)} disabled={loading} title="Delete"><X size={13} /></button>
+                      </>
                     )}
                   </div>
                 </td>
@@ -515,6 +538,66 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
                 </p>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Offboarding Modal */}
+      {offboardEmployee && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+          <div className="card" style={{ maxWidth: 520, width: "100%", padding: 32 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <h2 style={{ fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", gap: 8 }}>
+                <UserMinus size={18} color="var(--red)" /> Offboard Employee
+              </h2>
+              <button onClick={() => setOffboardEmployee(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}><X size={18} /></button>
+            </div>
+
+            <div style={{ padding: "12px 16px", background: "rgba(168,85,247,0.06)", borderRadius: 8, border: "1px solid rgba(168,85,247,0.15)", marginBottom: 20, fontSize: 13, color: "var(--text-secondary)" }}>
+              Offboarding <strong style={{ color: "var(--text-primary)" }}>{offboardEmployee.name}</strong> ({offboardEmployee.employeeCode})
+            </div>
+
+            <div style={{ display: "grid", gap: 16 }}>
+              <div>
+                <label className="label label-required">Offboarding Reason</label>
+                <select className="input" value={offboardForm.reason} onChange={(e) => setOffboardForm((f) => ({ ...f, reason: e.target.value }))}>
+                  <option value="internship_completed">Internship Completed</option>
+                  <option value="resignation">Resignation</option>
+                  <option value="termination">Termination</option>
+                  <option value="contract_ended">Contract Ended</option>
+                </select>
+              </div>
+              <div>
+                <label className="label label-required">Effective Date</label>
+                <input type="datetime-local" className="input" value={offboardForm.effectiveDate} onChange={(e) => setOffboardForm((f) => ({ ...f, effectiveDate: e.target.value }))} />
+              </div>
+            </div>
+
+            {offboardForm.effectiveDate && new Date(offboardForm.effectiveDate) <= new Date() && (
+              <div style={{ marginTop: 14, padding: "10px 14px", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 8, fontSize: 13, color: "var(--red)" }}>
+                ⚠️ Portal access will be revoked <strong>immediately</strong> on submit.
+              </div>
+            )}
+
+            <div style={{ marginTop: 16, display: "grid", gap: 10 }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 14, color: "var(--text-secondary)" }}>
+                <input type="checkbox" checked={offboardForm.generateCertificate} onChange={(e) => setOffboardForm((f) => ({ ...f, generateCertificate: e.target.checked }))} style={{ width: 16, height: 16, accentColor: "var(--purple)" }} />
+                Generate Internship Completion Certificate (opens in new tab)
+              </label>
+              <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 14, color: "var(--text-secondary)" }}>
+                <input type="checkbox" checked={offboardForm.generateLoR} onChange={(e) => setOffboardForm((f) => ({ ...f, generateLoR: e.target.checked }))} style={{ width: 16, height: 16, accentColor: "var(--purple)" }} />
+                Generate Letter of Recommendation (opens in new tab)
+              </label>
+            </div>
+
+            {msg && <div style={{ marginTop: 12, padding: "10px 14px", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 8, fontSize: 13, color: "var(--red)" }}>{msg}</div>}
+
+            <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
+              <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setOffboardEmployee(null)}>Cancel</button>
+              <button className="btn btn-danger" style={{ flex: 1, gap: 8 }} onClick={handleOffboard} disabled={offboardLoading}>
+                {offboardLoading ? <Loader2 size={14} className="spin" /> : <UserMinus size={14} />} Offboard Employee
+              </button>
+            </div>
           </div>
         </div>
       )}
