@@ -58,8 +58,8 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
       {/* KPI Cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(155px, 1fr))", gap: 12 }}>
         {kpis.map((kpi) => (
-          <Link key={kpi.label} href={kpi.href} style={{ textDecoration: "none" }}>
-            <div className="card" style={{ padding: "16px 18px", border: (kpi as any).urgent ? `1px solid ${kpi.color}35` : undefined, cursor: "pointer", transition: "transform 0.15s" }}
+          <Link key={kpi.label} href={kpi.href} style={{ textDecoration: "none", display: "block", height: "100%" }}>
+            <div className="card" style={{ height: "100%", display: "flex", flexDirection: "column", padding: "16px 18px", border: (kpi as any).urgent ? `1px solid ${kpi.color}35` : undefined, cursor: "pointer", transition: "transform 0.15s" }}
               onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-2px)")}
               onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
             >
@@ -71,7 +71,11 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
               </div>
               <div style={{ fontSize: 26, fontWeight: 800, color: (kpi as any).urgent ? kpi.color : "var(--text-primary)", lineHeight: 1 }}>{kpi.value}</div>
               <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>{kpi.label}</div>
-              {(kpi as any).sublabel && <div style={{ fontSize: 10, color: "var(--text-muted)", opacity: 0.7 }}>{(kpi as any).sublabel}</div>}
+              {(kpi as any).sublabel ? (
+                <div style={{ fontSize: 10, color: "var(--text-muted)", opacity: 0.7, marginTop: "auto" }}>{(kpi as any).sublabel}</div>
+              ) : (
+                <div style={{ marginTop: "auto" }} />
+              )}
             </div>
           </Link>
         ))}

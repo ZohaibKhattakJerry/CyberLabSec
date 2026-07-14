@@ -71,7 +71,9 @@ export default async function TasksPage() {
                   <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text-primary)" }}>{task.title}</div>
                   {statusStr === "Overdue" && <span className="badge badge-red" style={{ fontSize: 10 }}>Overdue</span>}
                 </div>
-                <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 12 }}>{task.brief.slice(0, 80)}...</div>
+                <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 12 }}>
+                  {task.brief ? `${task.brief.slice(0, 80)}...` : ""}
+                </div>
 
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div style={{ display: "flex", gap: 4, fontSize: 11, color: statusStr === "Overdue" ? "var(--red)" : "var(--text-muted)", alignItems: "center" }}>

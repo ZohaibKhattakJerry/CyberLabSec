@@ -4,7 +4,7 @@ import { hashCNIC, encryptCNIC } from "@/lib/cnic";
 import { saveFile, extractPdfText } from "@/lib/fileStorage";
 import { checkRateLimit, getIpFromRequest } from "@/lib/rateLimit";
 import { screenApplicant } from "@/lib/gemini";
-import { sendInterviewInvite, sendDeclineEmail } from "@/lib/email";
+import { sendInterviewInvite, sendDeclineEmail, sendApplicationReceivedEmail } from "@/lib/email";
 import crypto from "crypto";
 
 export const runtime = "nodejs";
@@ -148,6 +148,9 @@ export async function POST(req: NextRequest) {
         ipAddress: ip,
       },
     });
+
+    const trackingUrl = `https://cyberlabsec.tech/careers/status?ref=${applicant.referenceId}`;
+    await sendApplicationReceivedEmail(email, fullName, posting.title, applicant.referenceId, trackingUrl).catch(console.error);
 
     // Run AI screening asynchronously (don't block the response)
     // Actually, we must await it on Vercel so the serverless function is not killed

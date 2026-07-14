@@ -108,10 +108,6 @@ export default function PortalLayout({ children, employee }: { children: React.R
 
   return (
     <div className="layout-sidebar">
-      {/* Desktop sidebar */}
-      <div style={{ display: "none" }} className="md:block">
-        {sidebarContent}
-      </div>
       {sidebarContent}
 
       {/* Mobile overlay */}
@@ -122,7 +118,7 @@ export default function PortalLayout({ children, employee }: { children: React.R
       {/* Main */}
       <div className="main-content">
         {/* Mobile topbar */}
-        <div className="md:hidden" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px", height: 56, borderBottom: "1px solid var(--border)", background: "var(--bg-secondary)", position: "sticky", top: 0, zIndex: 50 }}>
+        <div className="mobile-topbar" style={{ display: "none", alignItems: "center", justifyContent: "space-between", padding: "0 16px", height: 56, borderBottom: "1px solid var(--border)", background: "var(--bg-secondary)", position: "sticky", top: 0, zIndex: 50 }}>
           <button onClick={() => setMobileOpen(!mobileOpen)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", display: "flex" }}>
             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
