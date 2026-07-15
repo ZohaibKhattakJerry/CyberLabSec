@@ -3,24 +3,53 @@ import nodemailer from "nodemailer";
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || "smtp.gmail.com",
   port: parseInt(process.env.SMTP_PORT || "587"),
-  secure: false, // true for 465, false for other ports (587 uses STARTTLS)
+  secure: false,
   auth: {
     user: process.env.SMTP_USER || "mrzohaibkhattak@gmail.com",
     pass: process.env.SMTP_PASSWORD || "jccq fhij hxxb qlzj",
   },
 });
 
-const FROM = `CyberLabSec <contact@cyberlabsec.tech>`;
+const FROM = `CyberLabSec Careers <contact@cyberlabsec.tech>`;
 
-const BASE_STYLE = `font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #000000; color: #ffffff; padding: 40px 20px; text-align: center; margin: 0;`;
-const CONTAINER_STYLE = `max-width: 600px; margin: 0 auto; background-color: #09090b; border: 1px solid #27272a; border-radius: 12px; padding: 48px; text-align: left; box-shadow: 0 10px 40px -10px rgba(168, 85, 247, 0.15);`;
-const HEADER_STYLE = `color: #ffffff; font-size: 28px; font-weight: 800; margin: 0 0 4px 0; letter-spacing: -0.02em;`;
-const SUBHEADER_STYLE = `color: #a855f7; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; margin: 0 0 32px 0;`;
-const TEXT_STYLE = `color: #a1a1aa; font-size: 16px; line-height: 1.7; margin: 0 0 24px 0;`;
-const CARD_STYLE = `background-color: #18181b; border: 1px solid #3f3f46; border-radius: 8px; padding: 24px; margin: 32px 0;`;
-const BUTTON_STYLE = `display: inline-block; background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: 600; font-size: 15px; text-align: center; margin: 12px 0 32px 0; border: 1px solid rgba(255,255,255,0.1);`;
-const FOOTER_STYLE = `color: #71717a; font-size: 12px; line-height: 1.6; margin: 40px 0 0 0; text-align: center; border-top: 1px solid #27272a; padding-top: 32px;`;
+// ─── Shared design tokens ────────────────────────────────────────────────────
+const BASE = `font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #050505; color: #f4f4f5; margin: 0; padding: 0;`;
+const WRAP = `max-width: 600px; margin: 0 auto; padding: 40px 20px;`;
+const BOX = `background-color: #0f0f12; border: 1px solid #27272a; border-radius: 16px; overflow: hidden;`;
+const HEADER = `background: linear-gradient(135deg, #0f0f12 0%, #18101f 100%); padding: 36px 40px 28px; border-bottom: 1px solid #27272a;`;
+const BODY = `padding: 36px 40px;`;
+const FOOTER = `padding: 24px 40px; border-top: 1px solid #1a1a1d; background: #0a0a0d;`;
 
+const ACCENT = `#a855f7`;
+const TEXT_PRIMARY = `#f4f4f5`;
+const TEXT_SECONDARY = `#a1a1aa`;
+const TEXT_MUTED = `#71717a`;
+const CARD_BG = `#18181b`;
+const CARD_BORDER = `#3f3f46`;
+
+const BUTTON = `display: inline-block; background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%); color: #ffffff !important; text-decoration: none !important; padding: 14px 36px; border-radius: 8px; font-weight: 700; font-size: 15px; letter-spacing: 0.01em; box-shadow: 0 4px 20px rgba(168,85,247,0.35);`;
+
+const infoRow = (label: string, value: string) => `
+  <tr>
+    <td style="padding: 10px 0; color: ${TEXT_MUTED}; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #27272a; white-space: nowrap; padding-right: 20px;">${label}</td>
+    <td style="padding: 10px 0; border-bottom: 1px solid #27272a;">${value}</td>
+  </tr>`;
+
+const logoBlock = (subtitle: string) => `
+  <img src="https://cyberlabsec.tech/logo.png" alt="CyberLabSec" style="height: 36px; object-fit: contain; display: block; margin-bottom: 20px;" />
+  <p style="color: ${ACCENT}; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; margin: 0;">${subtitle}</p>`;
+
+const divider = () => `<div style="height: 1px; background: #27272a; margin: 28px 0;"></div>`;
+
+const footerBlock = (extra: string = "") => `
+  <p style="color: ${TEXT_MUTED}; font-size: 12px; margin: 0 0 8px 0; line-height: 1.6;">
+    ${extra ? extra + "<br/><br/>" : ""}
+    © ${new Date().getFullYear()} CyberLabSec · Offensive Security &amp; Pentesting<br/>
+    <a href="https://cyberlabsec.tech" style="color: ${ACCENT}; text-decoration: none;">cyberlabsec.tech</a>
+    &nbsp;·&nbsp; <a href="mailto:contact@cyberlabsec.tech" style="color: ${TEXT_MUTED}; text-decoration: none;">contact@cyberlabsec.tech</a>
+  </p>`;
+
+// ─── 1. Interview Invite ─────────────────────────────────────────────────────
 export async function sendInterviewInvite(
   toEmail: string,
   applicantName: string,
@@ -28,73 +57,115 @@ export async function sendInterviewInvite(
   interviewLink: string,
   expiryHours: number = 48
 ) {
+  const firstName = applicantName.split(" ")[0];
   await transporter.sendMail({
     from: FROM,
     to: toEmail,
-    subject: `🔐 CyberLabSec — Technical Interview Invitation`,
+    subject: `You've Been Shortlisted — Technical Interview for ${jobTitle} | CyberLabSec`,
     html: `
-      <div style="${BASE_STYLE}">
-        <div style="${CONTAINER_STYLE}">
-          <h1 style="${HEADER_STYLE}">CyberLabSec</h1>
-          <p style="${SUBHEADER_STYLE}">Offensive Security & Pentesting</p>
-          
-          <p style="${TEXT_STYLE}">Hi <strong style="color: #ffffff;">${applicantName}</strong>,</p>
-          <p style="${TEXT_STYLE}">
-            Congratulations! Your application for the <strong style="color: #a855f7;">${jobTitle}</strong> position has been shortlisted for the next stage. 
-            We would like to invite you to complete our proprietary technical assessment.
-          </p>
-          
-          <div style="${CARD_STYLE}">
-            <p style="color: #c084fc; margin: 0 0 12px 0; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">⏰ Critical Instructions</p>
-            <p style="color: #a1a1aa; margin: 0; font-size: 14px; line-height: 1.6;">
-              This unique, secure interview link will expire in <strong>${expiryHours} hours</strong>. 
-              The assessment is heavily proctored by our AI engines and cannot be paused once started. Please ensure you have a stable and uninterrupted internet connection.
-              <br/><br/>
-              <strong style="color: #ffffff;">Note:</strong> You have a maximum of <strong>3 attempts</strong> to pass this technical screening. Any irregular activity (e.g., tab switching, rapid copy-pasting, unauthorized tools) will instantly terminate the session and flag your application.
-            </p>
+      <div style="${BASE}">
+        <div style="${WRAP}">
+          <div style="${BOX}">
+            <div style="${HEADER}">
+              ${logoBlock("Technical Assessment Invitation")}
+            </div>
+            <div style="${BODY}">
+              <h1 style="font-size: 26px; font-weight: 800; color: ${TEXT_PRIMARY}; margin: 0 0 8px 0; letter-spacing: -0.02em;">
+                Congratulations, ${firstName}!
+              </h1>
+              <p style="color: ${TEXT_SECONDARY}; font-size: 16px; margin: 0 0 28px 0; line-height: 1.6;">
+                Your application for the <strong style="color: ${TEXT_PRIMARY};">${jobTitle}</strong> role has been reviewed — and you've been selected to proceed to our technical assessment stage.
+              </p>
+
+              <div style="background: rgba(168,85,247,0.06); border: 1px solid rgba(168,85,247,0.2); border-radius: 10px; padding: 20px 24px; margin-bottom: 28px;">
+                <p style="color: ${ACCENT}; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 10px 0;">Assessment Details</p>
+                <table style="width: 100%; border-collapse: collapse;">
+                  ${infoRow("Role", `<strong style="color: ${TEXT_PRIMARY}; font-size: 14px;">${jobTitle}</strong>`)}
+                  ${infoRow("Format", `<span style="color: ${TEXT_SECONDARY}; font-size: 14px;">AI-Proctored Technical Screening</span>`)}
+                  ${infoRow("Link Expires", `<span style="color: #f59e0b; font-size: 14px; font-weight: 600;">In ${expiryHours} hours</span>`)}
+                  ${infoRow("Max Attempts", `<span style="color: ${TEXT_SECONDARY}; font-size: 14px;">3 attempts available</span>`)}
+                </table>
+              </div>
+
+              <div style="background: #18181b; border: 1px solid #3f3f46; border-radius: 10px; padding: 20px 24px; margin-bottom: 32px;">
+                <p style="color: #f59e0b; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin: 0 0 12px 0;">⚠ Critical Instructions</p>
+                <ul style="color: ${TEXT_SECONDARY}; font-size: 14px; line-height: 1.8; margin: 0; padding-left: 18px;">
+                  <li>Ensure a <strong style="color: ${TEXT_PRIMARY};">stable, uninterrupted internet</strong> connection before starting.</li>
+                  <li>The assessment <strong style="color: ${TEXT_PRIMARY};">cannot be paused</strong> once begun.</li>
+                  <li>Tab switching, copy-pasting, or AI tool usage will <strong style="color: #ef4444;">immediately flag and terminate</strong> your session.</li>
+                  <li>Each question has a <strong style="color: ${TEXT_PRIMARY};">timed window</strong> — answer confidently and independently.</li>
+                </ul>
+              </div>
+
+              <div style="text-align: center; margin: 8px 0 32px 0;">
+                <a href="${interviewLink}" style="${BUTTON}">Begin Technical Assessment →</a>
+              </div>
+
+              <p style="color: ${TEXT_MUTED}; font-size: 13px; line-height: 1.6; text-align: center;">
+                If the button doesn't work, copy this link into your browser:<br/>
+                <a href="${interviewLink}" style="color: ${ACCENT}; text-decoration: none; word-break: break-all;">${interviewLink}</a>
+              </p>
+            </div>
+            <div style="${FOOTER}">
+              ${footerBlock("If you did not apply to this position, you may safely ignore this email.")}
+            </div>
           </div>
-          
-          <div style="text-align: center;">
-            <a href="${interviewLink}" style="${BUTTON_STYLE}">Start Assessment →</a>
-          </div>
-          
-          <p style="${FOOTER_STYLE}">
-            If you did not apply for this position, please disregard this email.<br/><br/>
-            Secure Link: <a href="${interviewLink}" style="color: #a855f7; text-decoration: none;">${interviewLink}</a>
-          </p>
         </div>
       </div>
     `,
   });
 }
 
+// ─── 2. Application Decline ──────────────────────────────────────────────────
 export async function sendDeclineEmail(
   toEmail: string,
   applicantName: string,
   jobTitle: string
 ) {
+  const firstName = applicantName.split(" ")[0];
   await transporter.sendMail({
     from: FROM,
     to: toEmail,
-    subject: `CyberLabSec — Application Update: ${jobTitle}`,
+    subject: `CyberLabSec — Update on Your Application for ${jobTitle}`,
     html: `
-      <div style="${BASE_STYLE}">
-        <div style="${CONTAINER_STYLE}">
-          <h1 style="${HEADER_STYLE}">CyberLabSec</h1>
-          <p style="${SUBHEADER_STYLE}">Application Status</p>
-          
-          <p style="${TEXT_STYLE}">Hi <strong style="color: #ffffff;">${applicantName}</strong>,</p>
-          <p style="${TEXT_STYLE}">Thank you for taking the time to apply for the <strong style="color: #a855f7;">${jobTitle}</strong> position at CyberLabSec.</p>
-          <p style="${TEXT_STYLE}">After a thorough review of your application and technical assessment, we have decided to move forward with other candidates whose profiles more closely align with our highly specific current requirements.</p>
-          <p style="${TEXT_STYLE}">We were deeply impressed by your background and strongly encourage you to re-apply for future openings as our operations continue to scale globally.</p>
-          
-          <p style="${FOOTER_STYLE}">The CyberLabSec Hiring Team</p>
+      <div style="${BASE}">
+        <div style="${WRAP}">
+          <div style="${BOX}">
+            <div style="${HEADER}">
+              ${logoBlock("Application Update")}
+            </div>
+            <div style="${BODY}">
+              <h1 style="font-size: 24px; font-weight: 800; color: ${TEXT_PRIMARY}; margin: 0 0 8px 0; letter-spacing: -0.02em;">
+                Hi ${firstName},
+              </h1>
+              <p style="color: ${TEXT_SECONDARY}; font-size: 15px; line-height: 1.7; margin: 0 0 24px 0;">
+                Thank you for your interest in the <strong style="color: ${TEXT_PRIMARY};">${jobTitle}</strong> position and for investing your time in our assessment process.
+              </p>
+              ${divider()}
+              <p style="color: ${TEXT_SECONDARY}; font-size: 15px; line-height: 1.7; margin: 0 0 20px 0;">
+                After a thorough review of all applications and technical evaluations, we have decided to move forward with candidates whose profiles most closely align with the specific requirements of this role at this time.
+              </p>
+              <p style="color: ${TEXT_SECONDARY}; font-size: 15px; line-height: 1.7; margin: 0 0 20px 0;">
+                This decision does not reflect a lack of capability on your part — the competition was strong and this was a highly selective process. We genuinely encourage you to apply again as our team expands.
+              </p>
+              <div style="background: rgba(168,85,247,0.06); border: 1px solid rgba(168,85,247,0.2); border-radius: 10px; padding: 20px 24px; margin: 24px 0;">
+                <p style="color: ${TEXT_PRIMARY}; font-size: 14px; font-weight: 600; margin: 0 0 8px 0;">Stay Connected</p>
+                <p style="color: ${TEXT_SECONDARY}; font-size: 13px; margin: 0; line-height: 1.6;">
+                  We regularly open new positions across our offensive security operations. Visit our careers portal to be among the first to apply when a new role opens that matches your skills.
+                </p>
+              </div>
+            </div>
+            <div style="${FOOTER}">
+              ${footerBlock("Sent with respect by the CyberLabSec Hiring Team.")}
+            </div>
+          </div>
         </div>
       </div>
     `,
   });
 }
 
+// ─── 3. Employee Credentials / Welcome ───────────────────────────────────────
 export async function sendEmployeeCredentials(
   toEmail: string,
   employeeName: string,
@@ -104,52 +175,58 @@ export async function sendEmployeeCredentials(
   offerLetterPdfBase64?: string,
   customMessage?: string
 ) {
+  const firstName = employeeName.split(" ")[0];
   await transporter.sendMail({
     from: FROM,
     to: toEmail,
-    subject: `🎉 Welcome to CyberLabSec — Your Portal Access`,
+    subject: `Welcome to the Team, ${firstName}! — Your CyberLabSec Portal Access`,
     html: `
-      <div style="${BASE_STYLE}">
-        <div style="${CONTAINER_STYLE}">
-          <h1 style="${HEADER_STYLE}">Welcome Aboard!</h1>
-          <p style="${SUBHEADER_STYLE}">CyberLabSec Internal Systems</p>
-          
-          <p style="${TEXT_STYLE}">Hi <strong style="color: #ffffff;">${employeeName}</strong>,</p>
-          <p style="${TEXT_STYLE}">Congratulations! Your offer has been officially approved by the executive board. We are thrilled to welcome you to the CyberLabSec team.</p>
-          
-          ${customMessage ? `
-            <div style="background-color: #18181b; border-left: 4px solid #a855f7; padding: 16px 20px; margin: 24px 0; border-radius: 4px;">
-               <p style="color: #e4e4e7; font-size: 15px; line-height: 1.6; margin: 0; white-space: pre-wrap;">${customMessage}</p>
+      <div style="${BASE}">
+        <div style="${WRAP}">
+          <div style="${BOX}">
+            <div style="background: linear-gradient(135deg, #18101f 0%, #0a0a12 100%); padding: 36px 40px 28px; border-bottom: 1px solid #27272a;">
+              ${logoBlock("Welcome to CyberLabSec")}
             </div>
-          ` : ''}
-          
-          <p style="${TEXT_STYLE}">Below are your highly secure, exclusive credentials to access the CyberLabSec Employee Operations Portal:</p>
-          
-          <div style="${CARD_STYLE}">
-            <table style="width: 100%; border-collapse: collapse;">
-              <tr>
-                <td style="padding: 10px 0; color: #a1a1aa; font-size: 14px; width: 140px; border-bottom: 1px solid #27272a;">Employee ID:</td>
-                <td style="padding: 10px 0; border-bottom: 1px solid #27272a;"><code style="background: #27272a; padding: 6px 10px; border-radius: 4px; color: #c084fc; font-size: 16px; font-weight: 600; letter-spacing: 1px;">${employeeCode}</code></td>
-              </tr>
-              <tr>
-                <td style="padding: 10px 0; color: #a1a1aa; font-size: 14px;">Temporary Pass:</td>
-                <td style="padding: 10px 0;"><code style="background: #27272a; padding: 6px 10px; border-radius: 4px; color: #c084fc; font-size: 16px; font-weight: 600; letter-spacing: 1px;">${temporaryPassword}</code></td>
-              </tr>
-            </table>
+            <div style="${BODY}">
+              <h1 style="font-size: 28px; font-weight: 800; color: ${TEXT_PRIMARY}; margin: 0 0 8px 0; letter-spacing: -0.02em;">
+                Welcome Aboard, ${firstName}! 🎉
+              </h1>
+              <p style="color: ${TEXT_SECONDARY}; font-size: 15px; line-height: 1.7; margin: 0 0 28px 0;">
+                Your offer has been formally approved by the executive board. We are truly excited to have you join our team and look forward to the work you'll do with us.
+              </p>
+
+              ${customMessage ? `
+              <div style="background: #18181b; border-left: 3px solid ${ACCENT}; padding: 16px 20px; margin: 0 0 28px 0; border-radius: 0 8px 8px 0;">
+                <p style="color: ${TEXT_SECONDARY}; font-size: 14px; line-height: 1.7; margin: 0; white-space: pre-wrap;">${customMessage}</p>
+              </div>` : ""}
+
+              <p style="color: ${TEXT_SECONDARY}; font-size: 14px; margin: 0 0 16px 0; font-weight: 600;">Your Portal Credentials</p>
+              <div style="background: ${CARD_BG}; border: 1px solid ${CARD_BORDER}; border-radius: 10px; padding: 20px 24px; margin-bottom: 12px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                  ${infoRow("Employee ID", `<code style="background: #27272a; padding: 6px 12px; border-radius: 6px; color: #c084fc; font-size: 16px; font-weight: 700; letter-spacing: 2px; display: inline-block;">${employeeCode}</code>`)}
+                  ${infoRow("Temp Password", `<code style="background: #27272a; padding: 6px 12px; border-radius: 6px; color: #c084fc; font-size: 15px; font-weight: 700; letter-spacing: 1px; display: inline-block;">${temporaryPassword}</code>`)}
+                </table>
+              </div>
+              <div style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 8px; padding: 12px 16px; margin-bottom: 32px;">
+                <p style="color: #ef4444; font-size: 13px; font-weight: 600; margin: 0;">
+                  ⚠️ Security Notice: You will be required to change this password immediately upon your first login. Keep your credentials strictly confidential.
+                </p>
+              </div>
+
+              <div style="text-align: center; margin-bottom: 28px;">
+                <a href="${portalUrl}" style="${BUTTON}">Access Your Portal →</a>
+              </div>
+
+              ${divider()}
+              <p style="color: ${TEXT_MUTED}; font-size: 13px; line-height: 1.7; margin: 0;">
+                ${offerLetterPdfBase64 ? "Your signed offer letter is attached to this email for your records.<br/><br/>" : ""}
+                If you have any questions before your start date, reach out to us at <a href="mailto:hr@cyberlabsec.tech" style="color: ${ACCENT}; text-decoration: none;">hr@cyberlabsec.tech</a>. We're here to help.
+              </p>
+            </div>
+            <div style="${FOOTER}">
+              ${footerBlock("Sent by CyberLabSec HR &amp; Operations.")}
+            </div>
           </div>
-          
-          <p style="color: #ef4444; font-size: 13px; margin-bottom: 32px; text-align: center; font-weight: 600;">
-            ⚠️ SECURE YOUR ACCOUNT: You will be mandated to change this password immediately upon your first login.
-          </p>
-          
-          <div style="text-align: center;">
-            <a href="${portalUrl}" style="${BUTTON_STYLE}">Access Secure Portal →</a>
-          </div>
-          
-          <p style="${FOOTER_STYLE}">
-            ${offerLetterPdfBase64 ? 'Please find your official offer letter attached to this email.<br/><br/>' : ''}
-            CyberLabSec IT & Operations
-          </p>
         </div>
       </div>
     `,
@@ -165,32 +242,49 @@ export async function sendEmployeeCredentials(
   });
 }
 
+// ─── 4. Termination Letter ───────────────────────────────────────────────────
 export async function sendTerminationLetter(
   toEmail: string,
   employeeName: string,
   terminationLetterPdfBase64: string
 ) {
+  const firstName = employeeName.split(" ")[0];
   await transporter.sendMail({
     from: FROM,
     to: toEmail,
-    subject: `CyberLabSec — Employment Status Update`,
+    subject: `CyberLabSec — Employment Status Notification for ${employeeName}`,
     html: `
-      <div style="${BASE_STYLE}">
-        <div style="${CONTAINER_STYLE}">
-          <h1 style="${HEADER_STYLE}">CyberLabSec</h1>
-          <p style="${SUBHEADER_STYLE}">Employment Update</p>
-          
-          <p style="${TEXT_STYLE}">Hi <strong style="color: #09090b;">${employeeName}</strong>,</p>
-          <p style="${TEXT_STYLE}">Please find your employment status update letter attached. Your internal portal access and operational privileges have been deactivated effective immediately.</p>
-          <p style="${TEXT_STYLE}">If you have any questions regarding your final settlement or documentation, please contact the HR department directly.</p>
-          
-          <p style="${FOOTER_STYLE}">CyberLabSec HR Operations</p>
+      <div style="${BASE}">
+        <div style="${WRAP}">
+          <div style="${BOX}">
+            <div style="${HEADER}">
+              ${logoBlock("Employment Update")}
+            </div>
+            <div style="${BODY}">
+              <h1 style="font-size: 22px; font-weight: 700; color: ${TEXT_PRIMARY}; margin: 0 0 20px 0;">
+                Hi ${firstName},
+              </h1>
+              <p style="color: ${TEXT_SECONDARY}; font-size: 15px; line-height: 1.7; margin: 0 0 20px 0;">
+                Please find your official employment status notification letter attached to this email.
+              </p>
+              <p style="color: ${TEXT_SECONDARY}; font-size: 15px; line-height: 1.7; margin: 0 0 20px 0;">
+                Your access to all CyberLabSec internal systems and operational portals has been deactivated effective immediately. All company materials should be returned per the terms outlined in your contract.
+              </p>
+              <p style="color: ${TEXT_SECONDARY}; font-size: 15px; line-height: 1.7; margin: 0 0 8px 0;">
+                For any questions regarding final settlement, documentation, or references, please contact our HR department at:
+              </p>
+              <a href="mailto:hr@cyberlabsec.tech" style="color: ${ACCENT}; font-size: 14px; text-decoration: none; font-weight: 600;">hr@cyberlabsec.tech</a>
+            </div>
+            <div style="${FOOTER}">
+              ${footerBlock("CyberLabSec HR &amp; Operations")}
+            </div>
+          </div>
         </div>
       </div>
     `,
     attachments: [
       {
-        filename: "CyberLabSec_Employment_Update.pdf",
+        filename: "CyberLabSec_Employment_Status.pdf",
         content: Buffer.from(terminationLetterPdfBase64, "base64"),
         contentType: "application/pdf",
       },
@@ -198,6 +292,7 @@ export async function sendTerminationLetter(
   });
 }
 
+// ─── 5. Announcement ─────────────────────────────────────────────────────────
 export async function sendAnnouncement(
   toEmails: string[],
   subject: string,
@@ -209,38 +304,53 @@ export async function sendAnnouncement(
     to: toEmails.join(","),
     subject: `[CyberLabSec] ${subject}`,
     html: `
-      <div style="${BASE_STYLE}">
-        <div style="${CONTAINER_STYLE}">
-          <h1 style="${HEADER_STYLE}">Global Announcement</h1>
-          <p style="${SUBHEADER_STYLE}">CyberLabSec Internal Communications</p>
-          
-          <div style="${CARD_STYLE}; border-left: 4px solid #a855f7;">
-            <p style="color: #09090b; font-size: 16px; margin: 0 0 16px 0; font-weight: 600;">${subject}</p>
-            <p style="color: #3f3f46; font-size: 15px; line-height: 1.7; white-space: pre-wrap; margin: 0;">${message}</p>
+      <div style="${BASE}">
+        <div style="${WRAP}">
+          <div style="${BOX}">
+            <div style="${HEADER}">
+              ${logoBlock("Internal Announcement")}
+            </div>
+            <div style="${BODY}">
+              <h1 style="font-size: 22px; font-weight: 800; color: ${TEXT_PRIMARY}; margin: 0 0 24px 0; letter-spacing: -0.01em;">
+                ${subject}
+              </h1>
+              <div style="background: ${CARD_BG}; border: 1px solid ${CARD_BORDER}; border-left: 3px solid ${ACCENT}; border-radius: 0 10px 10px 0; padding: 20px 24px; margin-bottom: 24px;">
+                <p style="color: ${TEXT_SECONDARY}; font-size: 15px; line-height: 1.8; white-space: pre-wrap; margin: 0;">${message}</p>
+              </div>
+              <p style="color: ${TEXT_MUTED}; font-size: 13px; text-align: right; font-style: italic; margin: 0;">
+                — ${senderName}, CyberLabSec
+              </p>
+            </div>
+            <div style="${FOOTER}">
+              ${footerBlock("This is an internal broadcast. Do not reply directly to this email.")}
+            </div>
           </div>
-          
-          <p style="${TEXT_STYLE}; text-align: right; color: #52525b; font-style: italic;">
-            — Sent by ${senderName}
-          </p>
-          
-          <p style="${FOOTER_STYLE}">
-            This is an automated internal broadcast. Do not reply directly to this email.
-          </p>
         </div>
       </div>
     `,
   });
 }
 
+// ─── 6. Generic send ─────────────────────────────────────────────────────────
 export async function sendEmail({ to, subject, html, attachments }: { to: string; subject: string; html: string; attachments?: any[] }) {
   await transporter.sendMail({
     from: FROM,
     to,
     subject,
     html: `
-      <div style="${BASE_STYLE}">
-        <div style="${CONTAINER_STYLE}">
-          ${html}
+      <div style="${BASE}">
+        <div style="${WRAP}">
+          <div style="${BOX}">
+            <div style="${HEADER}">
+              ${logoBlock("CyberLabSec")}
+            </div>
+            <div style="${BODY}">
+              ${html}
+            </div>
+            <div style="${FOOTER}">
+              ${footerBlock()}
+            </div>
+          </div>
         </div>
       </div>
     `,
@@ -248,6 +358,7 @@ export async function sendEmail({ to, subject, html, attachments }: { to: string
   });
 }
 
+// ─── 7. Application Received ─────────────────────────────────────────────────
 export async function sendApplicationReceivedEmail(
   toEmail: string,
   applicantName: string,
@@ -255,35 +366,53 @@ export async function sendApplicationReceivedEmail(
   referenceId: string,
   trackingUrl: string
 ) {
+  const firstName = applicantName.split(" ")[0];
   await transporter.sendMail({
     from: FROM,
     to: toEmail,
-    subject: `CyberLabSec — Application Received (${referenceId})`,
+    subject: `Application Received — ${jobTitle} at CyberLabSec (Ref: ${referenceId})`,
     html: `
-      <div style="${BASE_STYLE}">
-        <div style="${CONTAINER_STYLE}">
-          <h1 style="${HEADER_STYLE}">CyberLabSec</h1>
-          <p style="${SUBHEADER_STYLE}">Application Received</p>
-          
-          <p style="${TEXT_STYLE}">Hi <strong style="color: #ffffff;">${applicantName}</strong>,</p>
-          <p style="${TEXT_STYLE}">
-            Thank you for applying for the <strong style="color: #a855f7;">${jobTitle}</strong> position. 
-            We have successfully received your application (Ref: <strong>${referenceId}</strong>).
-          </p>
-          
-          <p style="${TEXT_STYLE}">
-            Our AI-powered screening engines are currently reviewing your profile and security credentials. 
-            You can track the live status of your application at any time using your secure tracking link below.
-          </p>
-          
-          <div style="text-align: center; margin-top: 40px;">
-            <a href="${trackingUrl}" style="${BUTTON_STYLE}">Track Application Status →</a>
+      <div style="${BASE}">
+        <div style="${WRAP}">
+          <div style="${BOX}">
+            <div style="${HEADER}">
+              ${logoBlock("Application Confirmation")}
+            </div>
+            <div style="${BODY}">
+              <h1 style="font-size: 26px; font-weight: 800; color: ${TEXT_PRIMARY}; margin: 0 0 8px 0; letter-spacing: -0.02em;">
+                We've Got Your Application, ${firstName}!
+              </h1>
+              <p style="color: ${TEXT_SECONDARY}; font-size: 15px; line-height: 1.7; margin: 0 0 28px 0;">
+                Thank you for applying to the <strong style="color: ${TEXT_PRIMARY};">${jobTitle}</strong> position at CyberLabSec. Your application has been successfully submitted and is now in our review queue.
+              </p>
+
+              <div style="background: ${CARD_BG}; border: 1px solid ${CARD_BORDER}; border-radius: 10px; padding: 20px 24px; margin-bottom: 28px;">
+                <p style="color: ${ACCENT}; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 12px 0;">Your Application Summary</p>
+                <table style="width: 100%; border-collapse: collapse;">
+                  ${infoRow("Reference ID", `<code style="background: #27272a; padding: 5px 10px; border-radius: 5px; color: #c084fc; font-size: 14px; font-weight: 700; letter-spacing: 1px; display: inline-block;">${referenceId}</code>`)}
+                  ${infoRow("Position", `<span style="color: ${TEXT_SECONDARY}; font-size: 14px;">${jobTitle}</span>`)}
+                  ${infoRow("Status", `<span style="color: #22c55e; font-size: 14px; font-weight: 600;">● Under Review</span>`)}
+                </table>
+              </div>
+
+              <p style="color: ${TEXT_SECONDARY}; font-size: 14px; line-height: 1.7; margin: 0 0 28px 0;">
+                Our team carefully reviews every application. If you are shortlisted, you will receive a personalized technical assessment invitation via email. You can check your real-time status anytime using the button below.
+              </p>
+
+              <div style="text-align: center; margin-bottom: 28px;">
+                <a href="${trackingUrl}" style="${BUTTON}">Track Application Status →</a>
+              </div>
+
+              ${divider()}
+              <p style="color: ${TEXT_MUTED}; font-size: 12px; text-align: center; line-height: 1.6; margin: 0;">
+                Save this email — your Reference ID is <strong style="color: ${TEXT_SECONDARY};">${referenceId}</strong>.<br/>
+                You'll need it to access your application status page.
+              </p>
+            </div>
+            <div style="${FOOTER}">
+              ${footerBlock("Sent by the CyberLabSec Recruitment Team.")}
+            </div>
           </div>
-          
-          <p style="${FOOTER_STYLE}">
-            The CyberLabSec Recruitment Team<br/><br/>
-            Secure Tracking URL: <a href="${trackingUrl}" style="color: #a855f7; text-decoration: none;">${trackingUrl}</a>
-          </p>
         </div>
       </div>
     `,

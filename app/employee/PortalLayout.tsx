@@ -3,10 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import {
-  Shield, LayoutDashboard, ClipboardList, Users, Bell, User, LogOut,
-  Menu, X, ChevronRight, Trophy
+  LayoutDashboard, ClipboardList, Users, Bell, User, LogOut,
+  Menu, X, ChevronRight, Trophy, FileText,
 } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 
@@ -19,6 +18,7 @@ interface Employee {
 const NAV = [
   { href: "/employee/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/employee/tasks", label: "Tasks", icon: ClipboardList },
+  { href: "/employee/documents", label: "My Documents", icon: FileText },
   { href: "/employee/team", label: "My Team", icon: Users },
   { href: "/employee/leaderboard", label: "Leaderboard", icon: Trophy },
   { href: "/employee/announcements", label: "Announcements", icon: Bell },
@@ -45,61 +45,57 @@ export default function PortalLayout({ children, employee }: { children: React.R
       </div>
 
       {/* Employee info */}
-      <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(168,85,247,0.15)", border: "1px solid rgba(168,85,247,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 14, color: "var(--purple)", flexShrink: 0, overflow: "hidden" }}>
+      <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", background: "linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 100%)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ width: 38, height: 38, borderRadius: 10, background: "linear-gradient(135deg, #a855f7 0%, #7e22ce 100%)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 15, color: "#fff", flexShrink: 0, overflow: "hidden", boxShadow: "0 4px 12px rgba(168,85,247,0.25)" }}>
             {employee.photoUrl ? (
               <img src={employee.photoUrl} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             ) : (
               employee.name.charAt(0).toUpperCase()
             )}
           </div>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontWeight: 600, fontSize: 13, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{employee.name}</div>
-            <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{employee.employeeCode}</div>
+          <div style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
+            <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", letterSpacing: "-0.01em" }}>{employee.name}</div>
+            <div style={{ fontSize: 11, color: "var(--text-secondary)", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{employee.designation}</div>
           </div>
         </div>
         {employee.team && (
-          <div style={{ marginTop: 10, fontSize: 12, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 6 }}>
-            <Users size={11} /> {employee.team.name}
+          <div style={{ marginTop: 10, padding: "4px 10px", background: "rgba(168,85,247,0.1)", borderRadius: 6, fontSize: 11, color: "var(--purple)", display: "flex", alignItems: "center", gap: 6, fontWeight: 600, border: "1px solid rgba(168,85,247,0.2)" }}>
+            <Users size={10} /> {employee.team.name}
           </div>
         )}
       </div>
 
       {/* Nav */}
-      <nav style={{ flex: 1, padding: "12px 12px" }}>
+      <nav style={{ flex: 1, padding: "10px", overflowY: "auto" }}>
         {NAV.map(({ href, label, icon: Icon }) => {
-          const active = pathname.startsWith(href);
+          const active = pathname === href || (href !== "/employee/dashboard" && pathname.startsWith(href));
           return (
             <Link key={href} href={href} style={{ textDecoration: "none" }} onClick={() => setMobileOpen(false)}>
-              <div 
-                className="nav-link-hover"
+              <div
                 style={{
-                  display: "flex", alignItems: "center", gap: 10, padding: "9px 12px",
+                  display: "flex", alignItems: "center", gap: 10, padding: "8px 12px",
                   borderRadius: 8, marginBottom: 2, transition: "all 0.15s",
-                  background: active ? "rgba(168,85,247,0.1)" : "transparent",
+                  background: active ? "rgba(168,85,247,0.12)" : "transparent",
                   color: active ? "var(--purple)" : "var(--text-secondary)",
-                  fontSize: 14, fontWeight: active ? 600 : 400,
-                  transform: "scale(1)",
+                  fontSize: 13, fontWeight: active ? 600 : 400,
                   cursor: "pointer",
+                  borderLeft: active ? "2px solid var(--purple)" : "2px solid transparent",
                 }}
-                onMouseDown={(e) => e.currentTarget.style.transform = "scale(0.96)"}
-                onMouseUp={(e) => e.currentTarget.style.transform = "scale(1)"}
-                onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
               >
-                <Icon size={16} />
+                <Icon size={15} />
                 {label}
-                {active && <ChevronRight size={12} style={{ marginLeft: "auto" }} />}
+                {active && <ChevronRight size={11} style={{ marginLeft: "auto", opacity: 0.7 }} />}
               </div>
             </Link>
           );
         })}
       </nav>
 
-      {/* Notifications & Logout */}
-      <div style={{ padding: "12px 12px", borderTop: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <button onClick={logout} className="btn btn-ghost" style={{ justifyContent: "flex-start", gap: 10, fontSize: 14, color: "var(--text-muted)", flex: 1 }}>
-          <LogOut size={16} /> Sign Out
+      {/* Logout + Notifications */}
+      <div style={{ padding: "12px", borderTop: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <button onClick={logout} className="btn btn-ghost" style={{ justifyContent: "flex-start", gap: 8, fontSize: 13, color: "var(--text-muted)", flex: 1 }}>
+          <LogOut size={14} /> Sign Out
         </button>
         <NotificationBell role="employee" />
       </div>
@@ -112,25 +108,34 @@ export default function PortalLayout({ children, employee }: { children: React.R
 
       {/* Mobile overlay */}
       {mobileOpen && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 99, display: "block" }} onClick={() => setMobileOpen(false)} />
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 99, backdropFilter: "blur(4px)" }}
+          onClick={() => setMobileOpen(false)}
+        />
       )}
 
-      {/* Main */}
+      {/* Main content */}
       <div className="main-content">
         {/* Mobile topbar */}
-        <div className="mobile-topbar" style={{ display: "none", alignItems: "center", justifyContent: "space-between", padding: "0 16px", height: 56, borderBottom: "1px solid var(--border)", background: "var(--bg-secondary)", position: "sticky", top: 0, zIndex: 50 }}>
-          <button onClick={() => setMobileOpen(!mobileOpen)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", display: "flex" }}>
+        <div
+          className="mobile-topbar"
+          style={{
+            display: "none", alignItems: "center", justifyContent: "space-between",
+            padding: "0 16px", height: 56, borderBottom: "1px solid var(--border)",
+            background: "var(--bg-secondary)", position: "sticky", top: 0, zIndex: 50,
+          }}
+        >
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", display: "flex", padding: 8 }}
+          >
             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 24, objectFit: "contain" }} />
-          </div>
-          <div style={{ width: 32, display: "flex", justifyContent: "flex-end" }}>
-            <NotificationBell role="employee" />
-          </div>
+          <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 24, objectFit: "contain" }} />
+          <NotificationBell role="employee" />
         </div>
 
-        <main style={{ padding: "32px 24px", maxWidth: 1200, margin: "0 auto" }}>
+        <main style={{ padding: "24px 20px", maxWidth: 1200, margin: "0 auto" }}>
           {children}
         </main>
       </div>

@@ -539,58 +539,7 @@ tbody td {
   color: var(--text-primary) !important;
 }
 
-/* Responsive utilities */
-@media (max-width: 768px) {
-  .sidebar {
-    display: none;
-  }
-  .sidebar.mobile-open {
-    display: flex;
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 100;
-    height: 100vh;
-    width: 280px;
-  }
-
-  table, thead, tbody, th, td, tr {
-    display: block;
-  }
-  thead tr {
-    position: absolute;
-    top: -9999px;
-    left: -9999px;
-  }
-  tbody tr {
-    margin-bottom: 16px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 12px;
-  }
-  tbody td {
-    border: none;
-    position: relative;
-    padding: 8px 0;
-    padding-left: 45%;
-    text-align: right;
-  }
-  tbody td::before {
-    content: attr(data-label);
-    position: absolute;
-    left: 0;
-    top: 8px;
-    font-weight: 600;
-    color: var(--text-muted);
-    font-size: 12px;
-    text-transform: uppercase;
-  }
-  
-  .btn, .input {
-    min-height: 44px;
-  }
-}
+/* Responsive utilities (comprehensive block at bottom of file) */
 
 /* Skeleton loaders */
 .skeleton {
@@ -700,5 +649,159 @@ select.input option {
 @media (max-width: 768px) {
   .mobile-topbar {
     display: flex !important;
+  }
+
+  /* Main content padding */
+  .main-content main {
+    padding: 16px !important;
+  }
+
+  /* Cards - ensure they don't overflow */
+  .card {
+    overflow: hidden;
+  }
+
+  /* Stats grids - 2 columns on mobile */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Why CyberLabSec - single column on mobile */
+  .why-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Hero text sizing */
+  .hero-title {
+    font-size: 32px !important;
+  }
+
+  /* Kanban columns - vertical stack */
+  .kanban-board {
+    flex-direction: column !important;
+  }
+
+  /* Buttons - full width on mobile forms */
+  .btn-block-mobile {
+    width: 100% !important;
+  }
+
+  /* Headings */
+  h1 { font-size: 22px !important; }
+  h2 { font-size: 18px !important; }
+
+  /* Remove excessive side padding on mobile */
+  section[style*="padding"] {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  /* Company portal sidebar same fix */
+  .sidebar {
+    display: none;
+  }
+  .sidebar.mobile-open {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    height: 100vh;
+    width: 280px;
+    overflow-y: auto;
+  }
+
+  /* Grid containers - single column on small screens */
+  div[style*="grid-template-columns: repeat(2, 1fr)"],
+  div[style*="repeat(2, 1fr)"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  div[style*="grid-template-columns: repeat(3, 1fr)"],
+  div[style*="repeat(3, 1fr)"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  div[style*="repeat(4, 1fr)"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  div[style*="repeat(auto-fit, minmax(260px"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  div[style*="repeat(auto-fit, minmax(240px"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  div[style*="repeat(auto-fill, minmax(280px"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  div[style*="repeat(auto-fill, minmax(320px"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Table mobile fix */
+  table, thead, tbody, th, td, tr {
+    display: block;
+  }
+  thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+  tbody tr {
+    margin-bottom: 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 12px;
+  }
+  tbody td {
+    border: none;
+    position: relative;
+    padding: 8px 0;
+    padding-left: 45%;
+    text-align: right;
+  }
+  tbody td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 0;
+    top: 8px;
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 12px;
+    text-transform: uppercase;
+  }
+  
+  .btn, .input {
+    min-height: 44px;
+  }
+
+  /* Flex rows to column on mobile */
+  .flex-mobile-col {
+    flex-direction: column !important;
+  }
+
+  /* Hide less critical sidebar items on mobile */
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+/* Tablet (768px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .sidebar {
+    width: 220px;
+  }
+
+  div[style*="repeat(4, 1fr)"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  div[style*="repeat(3, 1fr)"] {
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 }

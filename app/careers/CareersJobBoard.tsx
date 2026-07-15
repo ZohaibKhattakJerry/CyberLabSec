@@ -251,45 +251,49 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
       </div>
 
       {/* WHY CYBERLABSEC STRIP */}
-      <section style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 60px" }}>
-        <div style={{ textAlign: "center", marginBottom: 40 }}>
-          <h2 style={{ fontSize: 24, fontWeight: 700, color: "var(--text-primary)" }}>Why CyberLabSec?</h2>
-          <p style={{ color: "var(--text-secondary)", fontSize: 15, marginTop: 8 }}>Four honest reasons top security talent chooses us.</p>
+      <section style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 64px" }}>
+        <div style={{ textAlign: "center", marginBottom: 36 }}>
+          <h2 style={{ fontSize: 22, fontWeight: 800, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>Why CyberLabSec?</h2>
+          <p style={{ color: "var(--text-secondary)", fontSize: 14, marginTop: 8 }}>What sets us apart in offensive security.</p>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 24 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
           {[
             {
-              icon: "🎯",
-              title: "Real Client Pentests",
-              desc: "From day one, you work on live engagements — not sandbox labs. Your reports land on real desks and drive real remediation.",
+              icon: <Terminal size={20} color="var(--purple)" />,
+              title: "Real Client Engagements",
+              desc: "Live penetration tests from day one—not simulated labs. Your reports drive real client remediation.",
             },
             {
-              icon: "🧠",
-              title: "Mentorship from Senior Operators",
-              desc: "Our leads have years of offensive security fieldwork. You get direct code review, methodology coaching, and career guidance — not just tickets.",
+              icon: <Users size={20} color="var(--purple)" />,
+              title: "Senior Mentorship",
+              desc: "Direct code reviews and guidance from experienced offensive security operators.",
             },
             {
-              icon: "🌐",
-              title: "Remote-First Culture",
-              desc: "We are fully remote. Work from anywhere in Pakistan. Async-first, outcome-driven — we measure results, not hours online.",
+              icon: <Shield size={20} color="var(--purple)" />,
+              title: "Results-Driven Culture",
+              desc: "Fully remote. We measure technical excellence and impact, not hours online.",
             },
             {
-              icon: "📜",
-              title: "Certificate + Letter of Recommendation",
-              desc: "Top interns graduate with a completion certificate and a personal Letter of Recommendation from the founder — a real credential for your career.",
+              icon: <GraduationCap size={20} color="var(--purple)" />,
+              title: "Verifiable Credentials",
+              desc: "Completion certificates and Letters of Recommendation from our founder for top performers.",
             },
           ].map((item, i) => (
             <motion.div
               key={item.title}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 + i * 0.08 }}
+              transition={{ duration: 0.4, delay: 0.1 + i * 0.07 }}
               className="card"
-              style={{ padding: 24, display: "flex", flexDirection: "column", gap: 14 }}
+              style={{ padding: "20px 24px", display: "flex", gap: 16, alignItems: "flex-start" }}
             >
-              <div style={{ fontSize: 32 }}>{item.icon}</div>
-              <div style={{ fontWeight: 700, fontSize: 16, color: "var(--text-primary)" }}>{item.title}</div>
-              <div style={{ fontSize: 14, color: "var(--text-secondary)", lineHeight: 1.6 }}>{item.desc}</div>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(168,85,247,0.1)", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(168,85,247,0.2)", flexShrink: 0 }}>
+                {item.icon}
+              </div>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)", marginBottom: 6 }}>{item.title}</div>
+                <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6 }}>{item.desc}</div>
+              </div>
             </motion.div>
           ))}
         </div>

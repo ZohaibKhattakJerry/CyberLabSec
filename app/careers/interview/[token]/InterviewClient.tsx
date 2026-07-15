@@ -224,26 +224,35 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
   if (phase === "verify") {
     return (
       <Layout>
-        <motion.div className="card" style={{ maxWidth: 480, width: "100%", padding: 40 }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
-            <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 48, objectFit: "contain" }} />
+        <motion.div className="card" style={{ maxWidth: 480, width: "100%", padding: 40, border: "1px solid var(--border-subtle)", boxShadow: "0 24px 48px -12px rgba(0,0,0,0.5)" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 32 }}>
+            <div style={{ width: 64, height: 64, borderRadius: 16, background: "linear-gradient(135deg, rgba(168,85,247,0.1) 0%, rgba(126,34,206,0.1) 100%)", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(168,85,247,0.2)" }}>
+              <Shield size={32} color="var(--purple)" />
+            </div>
           </div>
-          <p style={{ color: "var(--text-secondary)", fontSize: 14, marginBottom: 24 }}>
-            Before starting your interview for <strong>{jobTitle}</strong>, please verify your identity.
-          </p>
-          <div style={{ display: "grid", gap: 16, marginBottom: 20 }}>
+          <div style={{ textAlign: "center", marginBottom: 32 }}>
+            <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 8, letterSpacing: "-0.02em" }}>Identity Verification</h1>
+            <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>
+              Before starting your interview for <strong>{jobTitle}</strong>, please verify your credentials.
+            </p>
+          </div>
+          <div style={{ display: "grid", gap: 16, marginBottom: 24 }}>
             <div>
-              <label className="label label-required">Email Address</label>
-              <input className="input" type="email" value={verifyEmail} onChange={(e) => setVerifyEmail(e.target.value)} placeholder="The email you applied with" />
+              <label className="label label-required">Registered Email</label>
+              <input className="input" type="email" value={verifyEmail} onChange={(e) => setVerifyEmail(e.target.value)} placeholder="name@example.com" />
             </div>
             <div>
               <label className="label label-required">CNIC Number</label>
               <input className="input" value={verifyCnic} onChange={(e) => setVerifyCnic(e.target.value)} placeholder="12345-1234567-1" />
             </div>
           </div>
-          {verifyError && <p style={{ color: "var(--purple)", fontSize: 13, marginBottom: 16 }}>{verifyError}</p>}
-          <button className="btn btn-primary" style={{ width: "100%" }} onClick={handleVerify}>
-            Verify Identity <ChevronRight size={16} />
+          {verifyError && (
+            <div style={{ padding: "10px 14px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 8, color: "var(--red)", fontSize: 13, marginBottom: 20, display: "flex", gap: 8, alignItems: "center" }}>
+              <AlertTriangle size={14} /> {verifyError}
+            </div>
+          )}
+          <button className="btn btn-primary btn-lg" style={{ width: "100%" }} onClick={handleVerify}>
+            Verify & Continue <ChevronRight size={16} />
           </button>
         </motion.div>
       </Layout>
@@ -252,9 +261,6 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
 
   // ── INTRO PHASE ──
   if (phase === "intro") {
-    // We add local state for consent in this phase scope, or we can just use a local component or add to main state. 
-    // Since we can't easily add a hook here without breaking rules of hooks (if we conditionally render), we need to lift it.
-    // Let's add it properly.
     return (
       <IntroPhase applicantName={applicantName} jobTitle={jobTitle} questions={questions} attempts={attempts} maxAttempts={maxAttempts} onStart={() => setPhase("interview")} />
     );
@@ -298,7 +304,7 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
             <AlertTriangle size={48} color="var(--amber)" style={{ margin: "0 auto 20px" }} />
             <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12 }}>Interview Unavailable</h2>
             <p style={{ color: "var(--text-secondary)", lineHeight: 1.7, marginBottom: 24 }}>
-              The AI screening could not generate valid questions for your profile. Please contact support.
+              We couldn&apos;t load your interview questions. Please contact support.
             </p>
           </div>
         </Layout>
@@ -334,8 +340,10 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
 
         {/* Interview header */}
         <div style={{ borderBottom: "1px solid var(--border)", padding: "0 24px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--bg-secondary)", position: "sticky", top: 0, zIndex: 50 }}>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 32, objectFit: "contain" }} />
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 24, objectFit: "contain" }} />
+            <div style={{ height: 16, width: 1, background: "var(--border)" }} />
+            <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-secondary)" }}>Active Session</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             {/* Feature 3: Integrity counter */}
@@ -357,16 +365,16 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
               const doneOpen = questions.slice(0, currentQ + 1).filter(q => q.type === "open").length;
               const doneMCQ = questions.slice(0, currentQ + 1).filter(q => q.type === "mcq").length;
               return (
-                <span style={{ fontSize: 12, color: "var(--text-muted)", display: "flex", gap: 6, alignItems: "center" }}>
+                <span style={{ fontSize: 12, color: "var(--text-muted)", display: "flex", gap: 6, alignItems: "center", fontWeight: 500 }}>
                   {totalOpen > 0 && <span style={{ color: "var(--blue)" }}>Written {Math.min(doneOpen, totalOpen)}/{totalOpen}</span>}
                   {totalOpen > 0 && totalMCQ > 0 && <span>·</span>}
                   {totalMCQ > 0 && <span style={{ color: "var(--amber)" }}>MCQ {Math.min(doneMCQ, totalMCQ)}/{totalMCQ}</span>}
                 </span>
               );
             })()}
-            <span style={{ fontSize: 13, color: "var(--text-muted)" }}>Q{currentQ + 1} of {questions.length}</span>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, color: timeLeft <= 30 ? "var(--purple)" : "var(--text-secondary)", fontSize: 13, fontFamily: "monospace", fontWeight: 600 }}>
-              <Clock size={14} />
+            <span style={{ fontSize: 13, color: "var(--text-muted)", fontWeight: 500 }}>Q{currentQ + 1} of {questions.length}</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, color: timeLeft <= 30 ? "var(--purple)" : "var(--text-primary)", fontSize: 14, fontFamily: "monospace", fontWeight: 700 }}>
+              <Clock size={16} />
               {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, "00")}
             </div>
           </div>
@@ -385,28 +393,29 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
         <div style={{ flex: 1, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "40px 24px" }}>
           <AnimatePresence mode="wait">
             <motion.div key={q.id} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.25 }} style={{ maxWidth: 720, width: "100%" }}>
-              <div className="card" style={{ padding: 32 }}>
-                <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
+              <div className="card" style={{ padding: 32, boxShadow: "0 12px 32px rgba(0,0,0,0.2)" }}>
+                <div style={{ display: "flex", gap: 10, marginBottom: 24 }}>
                   <span className={q.type === "open" ? "badge badge-blue" : "badge badge-amber"}>
                     {q.type === "open" ? "Written Answer" : "Multiple Choice"}
                   </span>
                   <span className="badge badge-gray">{q.points} pts</span>
                 </div>
 
-                <h2 style={{ fontSize: 18, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.6, marginBottom: 24 }}>{q.prompt}</h2>
+                <h2 style={{ fontSize: 20, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.6, marginBottom: 32 }}>{q.prompt}</h2>
 
                 {q.type === "mcq" && q.options ? (
-                  <div style={{ display: "grid", gap: 10 }}>
+                  <div style={{ display: "grid", gap: 12 }}>
                     {q.options.map((opt, i) => (
                       <button
                         key={i}
                         onClick={() => setAnswer(String(i))}
                         style={{
-                          padding: "14px 18px", textAlign: "left", borderRadius: 8, cursor: "pointer",
+                          padding: "16px 20px", textAlign: "left", borderRadius: 10, cursor: "pointer",
                           border: `1px solid ${currentAnswer === String(i) ? "var(--purple)" : "var(--border)"}`,
                           background: currentAnswer === String(i) ? "rgba(168,85,247,0.08)" : "rgba(255,255,255,0.02)",
                           color: currentAnswer === String(i) ? "var(--text-primary)" : "var(--text-secondary)",
-                          fontSize: 14, transition: "all 0.2s", fontFamily: "inherit",
+                          fontSize: 15, transition: "all 0.2s", fontFamily: "inherit",
+                          boxShadow: currentAnswer === String(i) ? "0 4px 12px rgba(168,85,247,0.15)" : "none",
                         }}
                       >
                         {opt}
@@ -417,7 +426,7 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
                   <>
                     <textarea
                       className="input"
-                      style={{ minHeight: 180, resize: "vertical" }}
+                      style={{ minHeight: 200, resize: "vertical", fontSize: 15, lineHeight: 1.6, padding: 20 }}
                       placeholder="Type your answer here..."
                       value={currentAnswer}
                       onChange={(e) => setAnswer(e.target.value)}
@@ -427,18 +436,18 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
                     {/* Feature 2: Paste warning */}
                     {pasteWarning && (
                       <div style={{
-                        marginTop: 8, padding: "8px 14px", borderRadius: 8,
+                        marginTop: 12, padding: "10px 16px", borderRadius: 8,
                         background: "rgba(234,179,8,0.1)",
                         border: "1px solid rgba(234,179,8,0.35)",
-                        color: "#fbbf24", fontSize: 13, fontWeight: 500,
+                        color: "#fbbf24", fontSize: 13, fontWeight: 500, display: "flex", alignItems: "center", gap: 8
                       }}>
-                        🔒 Paste is disabled. Please type your answer.
+                        <Shield size={14} /> Paste is disabled for integrity. Please type your answer independently.
                       </div>
                     )}
                   </>
                 )}
 
-                <div style={{ marginTop: 24, display: "flex", justifyContent: "flex-end" }}>
+                <div style={{ marginTop: 32, display: "flex", justifyContent: "flex-end", borderTop: "1px solid var(--border-subtle)", paddingTop: 24 }}>
                   <button className="btn btn-primary" onClick={handleNext} disabled={q.type === "mcq" && !currentAnswer}>
                     {currentQ === questions.length - 1 ? "Submit Interview" : "Next Question"}
                     <ChevronRight size={16} />
@@ -531,42 +540,62 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
   );
 }
 
+import { ClipboardList, RefreshCw } from "lucide-react";
+
 function IntroPhase({ applicantName, jobTitle, questions, attempts, maxAttempts, onStart }: { applicantName: string; jobTitle: string; questions: Question[]; attempts: number; maxAttempts: number; onStart: () => void }) {
   const [consent, setConsent] = useState(false);
   
   return (
     <Layout>
-      <motion.div className="card" style={{ maxWidth: 620, width: "100%", padding: 40 }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 8 }}>Hi {applicantName.split(" ")[0]}! 👋</h1>
-        <p style={{ color: "var(--text-secondary)", marginBottom: 28 }}>Welcome to your CyberLabSec interview for <strong style={{ color: "var(--text-primary)" }}>{jobTitle}</strong>.</p>
+      <motion.div className="card" style={{ maxWidth: 680, width: "100%", padding: 48, border: "1px solid var(--border-subtle)" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+        <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 12, letterSpacing: "-0.02em", color: "var(--text-primary)" }}>Welcome, {applicantName.split(" ")[0]}</h1>
+        <p style={{ color: "var(--text-secondary)", marginBottom: 36, fontSize: 15, lineHeight: 1.6 }}>You are about to begin your technical interview for the <strong style={{ color: "var(--text-primary)", fontWeight: 600 }}>{jobTitle}</strong> position.</p>
         
-        <div style={{ display: "grid", gap: 12, marginBottom: 24 }}>
-          {[
-            ["📋", `${questions.length} questions total — ${questions.filter((q: any) => q.type === "open").length} written, ${questions.filter((q: any) => q.type === "mcq").length} multiple choice`],
-            ["⏱️", "Each question has its own timer — open questions: 3 min, MCQ: 1 min"],
-            ["🚫", "Do not paste text or switch tabs — these are recorded as signals"],
-            ["🤖", "Your answers will be evaluated based on technical depth and accuracy"],
-            ["🔄", `Attempt ${attempts + 1} of ${maxAttempts} available. Use them wisely.`],
-          ].map(([icon, text]) => (
-            <div key={text as string} style={{ display: "flex", gap: 12, fontSize: 14, color: "var(--text-secondary)" }}>
-              <span>{icon}</span><span>{text}</span>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 32 }}>
+          <div style={{ padding: 16, background: "rgba(255,255,255,0.02)", borderRadius: 12, border: "1px solid var(--border-subtle)", display: "flex", alignItems: "flex-start", gap: 12 }}>
+            <div style={{ color: "var(--purple)", marginTop: 2 }}><ClipboardList size={20} /></div>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>Format</div>
+              <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>{questions.length} questions total ({questions.filter((q: any) => q.type === "open").length} written, {questions.filter((q: any) => q.type === "mcq").length} MCQ).</div>
             </div>
-          ))}
+          </div>
+          <div style={{ padding: 16, background: "rgba(255,255,255,0.02)", borderRadius: 12, border: "1px solid var(--border-subtle)", display: "flex", alignItems: "flex-start", gap: 12 }}>
+            <div style={{ color: "var(--purple)", marginTop: 2 }}><Clock size={20} /></div>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>Time Limits</div>
+              <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>Each question has its own timer (3m for written, 1m for MCQ).</div>
+            </div>
+          </div>
+          <div style={{ padding: 16, background: "rgba(255,255,255,0.02)", borderRadius: 12, border: "1px solid var(--border-subtle)", display: "flex", alignItems: "flex-start", gap: 12 }}>
+            <div style={{ color: "var(--amber)", marginTop: 2 }}><AlertTriangle size={20} /></div>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>Strict Integrity</div>
+              <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>Do not switch tabs or paste content. This leads to termination.</div>
+            </div>
+          </div>
+          <div style={{ padding: 16, background: "rgba(255,255,255,0.02)", borderRadius: 12, border: "1px solid var(--border-subtle)", display: "flex", alignItems: "flex-start", gap: 12 }}>
+            <div style={{ color: "var(--blue)", marginTop: 2 }}><RefreshCw size={20} /></div>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>Attempts</div>
+              <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>Attempt {attempts + 1} of {maxAttempts} available. New questions are generated on retry.</div>
+            </div>
+          </div>
         </div>
 
-        <div style={{ background: "rgba(168,85,247,0.06)", border: "1px solid rgba(168,85,247,0.15)", borderRadius: 8, padding: 14, fontSize: 13, color: "var(--text-secondary)", marginBottom: 20 }}>
-          <strong>Integrity Notice:</strong> This assessment is monitored for integrity. Copy-pasting, switching tabs, or AI-generated answers are automatically flagged. Significant violations may end the session and affect your eligibility for future openings. Please complete the interview independently — we're evaluating <em>your</em> thinking.
+        <div style={{ background: "rgba(168,85,247,0.06)", border: "1px solid rgba(168,85,247,0.15)", borderRadius: 12, padding: 20, fontSize: 13, color: "var(--text-secondary)", marginBottom: 28 }}>
+          <strong style={{ color: "var(--purple)", display: "flex", alignItems: "center", gap: 6, marginBottom: 8, fontSize: 14 }}><Shield size={16} /> Technical Assessment Integrity</strong>
+          This assessment is heavily monitored. Using LLMs, copy-pasting, or switching tabs will be flagged by our scoring AI and may result in immediate failure and ban from future applications. We want to see <em>your</em> unfiltered thinking.
         </div>
 
-        <label style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 28, cursor: "pointer" }}>
-          <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} style={{ marginTop: 4, width: 16, height: 16, accentColor: "var(--purple)" }} />
-          <span style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>
-            I understand this session monitors paste events and tab switching for integrity purposes, and I agree to complete this assessment independently.
+        <label style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 32, cursor: "pointer", padding: "12px 0" }}>
+          <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} style={{ marginTop: 3, width: 18, height: 18, accentColor: "var(--purple)", cursor: "pointer" }} />
+          <span style={{ fontSize: 14, color: "var(--text-secondary)", lineHeight: 1.5, userSelect: "none" }}>
+            I agree to complete this assessment independently without external aids, and acknowledge that my browser interactions are monitored for integrity.
           </span>
         </label>
 
-        <button className="btn btn-primary btn-lg" style={{ width: "100%" }} onClick={onStart} disabled={!consent}>
-          Start Interview <ChevronRight size={16} />
+        <button className="btn btn-primary btn-lg" style={{ width: "100%", padding: 16, fontSize: 15 }} onClick={onStart} disabled={!consent}>
+          Acknowledge & Start Interview <ChevronRight size={18} style={{ marginLeft: 4 }} />
         </button>
       </motion.div>
     </Layout>
@@ -576,7 +605,7 @@ function IntroPhase({ applicantName, jobTitle, questions, attempts, maxAttempts,
 function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg-primary)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24 }}>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, var(--purple) 0%, transparent 100%)" }} />
+      <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: 4, background: "linear-gradient(90deg, #7e22ce 0%, #a855f7 50%, #d8b4fe 100%)" }} />
       {children}
     </div>
   );

@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  const newStatus = result === "Passed" ? "Passed" : "Failed";
+  const newStatus = result === "Passed" ? "Interview" : "Interview";
   await prisma.applicant.update({
     where: { id: session.applicantId },
     data: { status: newStatus },

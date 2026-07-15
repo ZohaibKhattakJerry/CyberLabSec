@@ -138,7 +138,7 @@ export async function POST(req: NextRequest) {
         universityName: universityName || null,
         semester: semester || null,
         jobPostingId: postingId,
-        status: "Reviewing",
+        status: "Applied",
         consentData: JSON.stringify({
           dataConsent: consentData,
           interviewConsent: consentInterview,
@@ -204,7 +204,7 @@ async function runScreening(
       await prisma.applicant.update({
         where: { id: applicantId },
         data: {
-          status: "Shortlisted",
+          status: "Screening",
           fitScore: result.fitScore,
           fitReasoning: `${result.reasoning}\n\nStrengths: ${result.strengths.join(", ")}\nGaps: ${result.gaps.join(", ")}`,
         },
@@ -215,7 +215,7 @@ async function runScreening(
 
       await prisma.applicant.update({
         where: { id: applicantId },
-        data: { status: "InterviewInvited" },
+        data: { status: "Interview" },
       });
     } else {
       await prisma.applicant.update({
@@ -233,7 +233,7 @@ async function runScreening(
     console.error("Screening error:", err);
     await prisma.applicant.update({
       where: { id: applicantId },
-      data: { status: "Reviewing" },
+      data: { status: "Applied" },
     }).catch(() => {});
   }
 }
