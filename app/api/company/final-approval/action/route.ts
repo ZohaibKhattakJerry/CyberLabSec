@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthFromCookies } from "@/lib/auth";
 import crypto from "crypto";
-import { sendEmail } from "@/lib/email";
+import bcrypt from "bcryptjs";
+import { sendEmployeeCredentials } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   const auth = await getAuthFromCookies();
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
     data: { status, comments: customMessage || review.comments }
   });
 
-  // Notifications
+  // Notify the submitter
   await prisma.notification.create({
     data: {
       userId: review.submitterId,
@@ -35,50 +36,66 @@ export async function POST(req: NextRequest) {
 
   if (status === "Approved" && review.type === "Hire Request" && review.applicantId) {
     const applicant = review.applicant!;
-    
-    await prisma.applicant.update({
-      where: { id: applicant.id },
-      data: { status: "Hired" }
-    });
 
-    const year = new Date().getFullYear();
-    const code = `CL-${year}-${crypto.randomBytes(2).toString("hex").toUpperCase()}`;
-    const defaultPassword = crypto.randomBytes(4).toString("hex");
-
-    const employee = await prisma.employee.create({
-      data: {
-        email: applicant.email,
-        name: applicant.fullName,
-        designation: "New Hire",
-        employeeCode: code,
-        status: "Active",
-        startDate: new Date(),
-        employmentType: "Intern",
-        passwordHash: defaultPassword, // Replace with proper hashing
-      }
-    });
-
-    const emailHtml = `
-      <h2>Welcome to CyberLabSec, ${applicant.fullName}!</h2>
-      <p>We are thrilled to offer you a position. Please find your offer letter attached.</p>
-      ${customMessage ? `<blockquote>${customMessage}</blockquote>` : ""}
-      <p><strong>Employee Code:</strong> ${code}</p>
-      <p><strong>Temporary Password:</strong> ${defaultPassword}</p>
-      <p>Login at: <a href="https://cyberlabsec.tech/employee/login">https://cyberlabsec.tech/employee/login</a></p>
-    `;
-
-    try {
-      await sendEmail({
-        to: applicant.email,
-        subject: "Welcome to CyberLabSec - Offer Letter enclosed",
-        html: emailHtml,
-        attachments: offerLetterFileBase64 ? [
-          { filename: "CyberLabSec_Offer_Letter.pdf", content: offerLetterFileBase64, encoding: "base64" }
-        ] : undefined
+    // Check if employee already exists to avoid duplicates
+    const existingEmployee = await prisma.employee.findUnique({ where: { applicantId: applicant.id } });
+    if (!existingEmployee) {
+      // Update applicant status
+      await prisma.applicant.update({
+        where: { id: applicant.id },
+        data: { status: "Hired" }
       });
-    } catch (e) {
-      console.error("Failed to send hire email:", e);
+
+      const year = new Date().getFullYear();
+      const code = `CL-${year}-${crypto.randomBytes(2).toString("hex").toUpperCase()}`;
+      const rawPassword = crypto.randomBytes(4).toString("hex");
+      const passwordHash = await bcrypt.hash(rawPassword, 12);
+
+      const employee = await prisma.employee.create({
+        data: {
+          email: applicant.email,
+          name: applicant.fullName,
+          designation: "New Hire",
+          employeeCode: code,
+          status: "Active",
+          startDate: new Date(),
+          employmentType: "Intern",
+          passwordHash,
+          mustResetPassword: true,
+          applicantId: applicant.id,
+        }
+      });
+
+      await prisma.activityLog.create({
+        data: {
+          actorId: auth.sub,
+          actorType: "Admin",
+          action: "EMPLOYEE_HIRED",
+          metadata: JSON.stringify({ employeeId: employee.id, applicantId: applicant.id, employeeCode: code })
+        }
+      }).catch(() => {});
+
+      const portalUrl = "https://cyberlabsec.tech/employee/login";
+      try {
+        await sendEmployeeCredentials(
+          applicant.email,
+          applicant.fullName,
+          code,
+          rawPassword,
+          portalUrl,
+          offerLetterFileBase64 || undefined,
+          customMessage || undefined
+        );
+      } catch (e) {
+        console.error("Failed to send hire email:", e);
+      }
     }
+  } else if (status === "Rejected" && review.type === "Hire Request" && review.applicant) {
+    // Move applicant back to Interview stage
+    await prisma.applicant.update({
+      where: { id: review.applicant.id },
+      data: { status: "Interview" }
+    }).catch(() => {});
   }
 
   return NextResponse.json({ success: true });

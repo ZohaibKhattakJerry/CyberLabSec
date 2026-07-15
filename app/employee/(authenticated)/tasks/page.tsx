@@ -25,19 +25,36 @@ export default async function TasksPage() {
     );
   }
 
-  const tasks = await prisma.task.findMany({
-    where: { teamId: employee.teamId },
-    orderBy: { deadline: "asc" },
-    include: {
-      submissions: {
-        where: { employeeId: auth.sub }
+  let tasks: any[] = [];
+  let taskError = false;
+  try {
+    tasks = await prisma.task.findMany({
+      where: { teamId: employee.teamId },
+      orderBy: { deadline: "asc" },
+      include: {
+        submissions: {
+          where: { employeeId: auth.sub }
+        }
       }
-    }
-  });
+    });
+  } catch (e) {
+    console.error("Tasks query failed:", e);
+    taskError = true;
+  }
+
+  if (taskError) {
+    return (
+      <div className="card" style={{ padding: 40, textAlign: "center" }}>
+        <AlertTriangle size={40} color="var(--red)" style={{ margin: "0 auto 16px" }} />
+        <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Failed to Load Tasks</h2>
+        <p style={{ color: "var(--text-secondary)" }}>An error occurred while loading your tasks. Please refresh the page or contact support.</p>
+      </div>
+    );
+  }
 
   const getStatus = (task: any) => {
     if (task.submissions.length === 0) {
-      const daysLeft = differenceInDays(task.deadline, new Date());
+      const daysLeft = differenceInDays(new Date(task.deadline), new Date());
       return daysLeft < 0 ? "Overdue" : "Pending";
     }
     const status = task.submissions[0].status;
@@ -62,7 +79,7 @@ export default async function TasksPage() {
         <div style={{ padding: 20, textAlign: "center", color: "var(--text-muted)", fontSize: 13, background: "rgba(0,0,0,0.2)", borderRadius: 8 }}>No tasks</div>
       ) : (
         columnTasks.map(task => {
-          const daysLeft = differenceInDays(task.deadline, new Date());
+          const daysLeft = differenceInDays(new Date(task.deadline), new Date());
           const statusStr = getStatus(task);
           return (
             <Link key={task.id} href={`/employee/tasks/${task.id}`} style={{ textDecoration: "none" }}>
@@ -78,7 +95,7 @@ export default async function TasksPage() {
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div style={{ display: "flex", gap: 4, fontSize: 11, color: statusStr === "Overdue" ? "var(--red)" : "var(--text-muted)", alignItems: "center" }}>
                     <Clock size={12} />
-                    {statusStr === "Done" ? format(task.submissions[0].submittedAt, "MMM d, yyyy") : format(task.deadline, "MMM d, yyyy")}
+                    {statusStr === "Done" ? (task.submissions[0]?.submittedAt ? format(new Date(task.submissions[0].submittedAt), "MMM d, yyyy") : format(new Date(task.deadline), "MMM d, yyyy")) : format(new Date(task.deadline), "MMM d, yyyy")}
                   </div>
                   {(statusStr === "Pending" || statusStr === "Overdue") && (
                     <span onClick={(e) => e.preventDefault()}>

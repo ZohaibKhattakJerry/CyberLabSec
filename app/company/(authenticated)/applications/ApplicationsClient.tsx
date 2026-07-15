@@ -26,6 +26,26 @@ type Applicant = {
 type Posting = { id: string; title: string };
 
 const PIPELINE_STAGES = ["Applied", "Screening", "Interview", "Offer", "Hired", "Rejected", "Withdrawn"];
+const STATUS_NORMALIZE: Record<string, string> = {
+  // Legacy values
+  "INTERVIEWINVITED": "Interview",
+  "PASSED": "Interview",
+  "FAILED": "Rejected",
+  "SHORTLISTED": "Screening",
+  "REVIEWING": "Screening",
+  "Reviewing": "Screening",
+  "Shortlisted": "Screening",
+  "Failed": "Rejected",
+  "Passed": "Interview",
+  // Keep correct ones
+  "Applied": "Applied",
+  "Screening": "Screening",
+  "Interview": "Interview",
+  "Offer": "Offer",
+  "Hired": "Hired",
+  "Rejected": "Rejected",
+  "Withdrawn": "Withdrawn",
+};
 const STATUS_COLORS: Record<string, string> = {
   Applied: "badge-gray", Screening: "badge-amber", Interview: "badge-purple",
   Offer: "badge-blue", Hired: "badge-green", Rejected: "badge-red", Withdrawn: "badge-gray",
@@ -74,7 +94,9 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
     startTransition(() => { router.refresh(); });
   };
 
-  const filtered = applicants.filter(a => {
+  const normalizedApplicants = applicants.map(a => ({ ...a, status: STATUS_NORMALIZE[a.status] || a.status }));
+
+  const filtered = normalizedApplicants.filter(a => {
     const q = search.toLowerCase();
     const matchSearch = !q || a.fullName.toLowerCase().includes(q) || a.email.toLowerCase().includes(q);
     const matchPosting = filterPosting === "All" || a.jobPostingId === filterPosting;
