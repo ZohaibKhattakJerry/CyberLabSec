@@ -44,17 +44,29 @@ export default function FinalApprovalClient({ reviews }: { reviews: Review[] }) 
       return;
     }
     setActionLoading(true); setActionMsg("");
-    const res = await fetch(`/api/company/final-approval/action`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reviewId, status, customMessage, offerLetterFileBase64 }),
-    });
-    const data = await res.json();
-    setActionLoading(false);
-    if (!res.ok) { setActionMsg(data.error || "Failed to process review"); return; }
-    
-    toast.success(`Review ${status}`);
-    startTransition(() => { router.refresh(); setSelected(null); });
+    try {
+      const res = await fetch(\`/api/company/final-approval/action\`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviewId, status, customMessage, offerLetterFileBase64 }),
+      });
+      
+      let data;
+      try {
+        data = await res.json();
+      } catch (e) {
+        throw new Error("The server took too long to respond. The action might have succeeded, please refresh the page to check.");
+      }
+      
+      if (!res.ok) { setActionMsg(data.error || "Failed to process review"); return; }
+      
+      toast.success(\`Review \${status}\`);
+      startTransition(() => { router.refresh(); setSelected(null); });
+    } catch (error: any) {
+      setActionMsg(error.message || "An unexpected error occurred.");
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   return (
@@ -121,11 +133,15 @@ export default function FinalApprovalClient({ reviews }: { reviews: Review[] }) 
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                     <div style={{ padding: "12px", background: "var(--bg-card)", borderRadius: 6 }}>
                       <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 4 }}>AI Screening Score</div>
-                      <div style={{ fontSize: 16, fontWeight: 700, color: "var(--green)" }}>{selected.applicant.fitScore}%</div>
+                      <div style={{ fontSize: 16, fontWeight: 700, color: selected.applicant.fitScore ? "var(--green)" : "var(--text-muted)" }}>
+                        {selected.applicant.fitScore ? `${selected.applicant.fitScore}%` : "—"}
+                      </div>
                     </div>
                     <div style={{ padding: "12px", background: "var(--bg-card)", borderRadius: 6 }}>
                       <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 4 }}>Interview Score</div>
-                      <div style={{ fontSize: 16, fontWeight: 700, color: "var(--green)" }}>{selected.applicant.interviewSession?.totalScore}%</div>
+                      <div style={{ fontSize: 16, fontWeight: 700, color: selected.applicant.interviewSession?.totalScore ? "var(--green)" : "var(--text-muted)" }}>
+                        {selected.applicant.interviewSession?.totalScore ? `${selected.applicant.interviewSession.totalScore}%` : "—"}
+                      </div>
                     </div>
                   </div>
                 </div>

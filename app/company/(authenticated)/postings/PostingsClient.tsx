@@ -117,7 +117,7 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
                   <span>Pass ≥ {p.passMark}%</span>
                 </div>
               </div>
-              <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+              <div style={{ display: "flex", gap: 8, flexShrink: 0, flexWrap: "wrap", width: "100%", justifyContent: "flex-start" }}>
                 {p.status !== "Draft" && (
                   <button className="btn btn-ghost btn-sm" onClick={() => toggleStatus(p)} title={p.status === "Published" ? "Close" : "Publish"} style={{ color: p.status === "Published" ? "var(--amber)" : "var(--green)" }}>
                     {p.status === "Published" ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}

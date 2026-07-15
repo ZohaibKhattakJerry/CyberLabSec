@@ -26,6 +26,14 @@ export default function TeamChatClient({ messages, currentUserId }: { messages: 
     }
   }, [messages]);
 
+  // Polling for new messages
+  useEffect(() => {
+    const interval = setInterval(() => {
+      startTransition(() => router.refresh());
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [router]);
+
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!text.trim()) return;
@@ -44,7 +52,7 @@ export default function TeamChatClient({ messages, currentUserId }: { messages: 
   };
 
   return (
-    <div className="card" style={{ display: "flex", flexDirection: "column", height: 600, overflow: "hidden", border: "1px solid var(--border-subtle)", boxShadow: "0 10px 40px rgba(0,0,0,0.2)" }}>
+    <div className="card" style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 140px)", minHeight: 400, overflow: "hidden", border: "1px solid var(--border-subtle)", boxShadow: "0 10px 40px rgba(0,0,0,0.2)" }}>
       <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border-subtle)", background: "rgba(255,255,255,0.03)", display: "flex", alignItems: "center", gap: 10 }}>
         <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(168,85,247,0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <MessageSquare size={16} color="var(--purple)" />

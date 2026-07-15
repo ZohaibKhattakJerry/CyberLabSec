@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { Toaster } from "react-hot-toast";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+const jetBrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", display: "swap" });
 
 export const metadata: Metadata = {
   title: {
@@ -20,8 +24,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full" suppressHydrationWarning data-scroll-behavior="smooth">
-      <body className="min-h-full" suppressHydrationWarning>
+    <html lang="en" className={`h-full ${inter.variable} ${jetBrainsMono.variable}`} suppressHydrationWarning data-scroll-behavior="smooth">
+      <body className="min-h-full" style={{ fontFamily: "var(--font-inter), sans-serif" }} suppressHydrationWarning>
         {children}
         <Toaster
           position="top-right"

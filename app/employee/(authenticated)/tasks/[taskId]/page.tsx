@@ -86,14 +86,51 @@ export default async function TaskDetailsPage({ params }: { params: Promise<{ ta
 
       {/* Submission form or locked state */}
       {isLocked ? (
-        <div style={{ textAlign: "center", padding: 48, border: "1px dashed rgba(34,197,94,0.3)", borderRadius: 16, background: "rgba(34,197,94,0.03)" }}>
-          <CheckCircle size={44} color="var(--green)" style={{ margin: "0 auto 16px" }} />
-          <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--green)", marginBottom: 6 }}>
-            {submission?.status === "Approved" ? "Submission Approved ✓" : "Submission Received — Awaiting Review"}
-          </h2>
-          <p style={{ color: "var(--text-secondary)", fontSize: 13 }}>
-            <strong>{task.title}</strong> · v{submission?.version} submitted on {format(new Date(submission!.submittedAt), "PPP 'at' p")}
-          </p>
+        <div className="card" style={{ padding: 24, background: "rgba(255,255,255,0.01)", border: "1px solid var(--border)", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 4, background: submission?.status === "Approved" ? "var(--green)" : "var(--purple)" }} />
+          
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+            <CheckCircle size={24} color={submission?.status === "Approved" ? "var(--green)" : "var(--purple)"} />
+            <div>
+              <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: submission?.status === "Approved" ? "var(--green)" : "var(--text-primary)" }}>
+                {submission?.status === "Approved" ? "Submission Approved" : "Submission Under Review"}
+              </h2>
+              <p style={{ margin: 0, fontSize: 12, color: "var(--text-muted)" }}>
+                Version {submission?.version} submitted on {format(new Date(submission!.submittedAt), "MMM d, yyyy 'at' h:mm a")}
+              </p>
+            </div>
+          </div>
+          
+          <div style={{ display: "grid", gap: 16 }}>
+            {submission?.textResponse && (
+              <div>
+                <label className="label">Work Summary</label>
+                <div style={{ padding: "12px 16px", background: "rgba(0,0,0,0.2)", borderRadius: 8, border: "1px solid var(--border-subtle)", fontSize: 14, color: "var(--text-secondary)", whiteSpace: "pre-wrap" }}>
+                  {submission.textResponse}
+                </div>
+              </div>
+            )}
+            
+            {submission?.linkResponse && (
+              <div>
+                <label className="label">Link</label>
+                <div>
+                  <a href={submission.linkResponse} target="_blank" rel="noreferrer" style={{ color: "var(--purple)", fontSize: 14, textDecoration: "none" }}>
+                    {submission.linkResponse}
+                  </a>
+                </div>
+              </div>
+            )}
+            
+            {submission?.reviewerFeedback && (
+              <div style={{ marginTop: 8, padding: 16, background: "rgba(245,158,11,0.1)", borderRadius: 8, border: "1px solid rgba(245,158,11,0.2)" }}>
+                <label style={{ fontSize: 12, fontWeight: 700, color: "var(--amber)", textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: 8 }}>Reviewer Feedback</label>
+                <div style={{ fontSize: 14, color: "var(--text-secondary)", whiteSpace: "pre-wrap" }}>
+                  {submission.reviewerFeedback}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       ) : (
         <TaskSubmitClient

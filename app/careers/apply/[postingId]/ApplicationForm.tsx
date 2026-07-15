@@ -618,19 +618,38 @@ function Field({ label, required, error, children }: { label: string; required?:
 function ScreeningScreen({ status, message, referenceId }: { status: ScreeningStatus; message: string; referenceId?: string; }) {
   const isDone = status === "done";
   const isShortlisted = message === "shortlisted";
+  const [currentStep, setCurrentStep] = useState(0);
+
+  useEffect(() => {
+    if (status !== "screening") return;
+    const interval = setInterval(() => {
+      setCurrentStep(s => (s < 3 ? s + 1 : 3));
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [status]);
+
+  const steps = ["Receiving your application...", "Processing documents...", "Evaluating profile fit...", "Finalizing review..."];
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg-primary)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-      <motion.div className="card scan-effect" style={{ maxWidth: 520, width: "100%", padding: 48, textAlign: "center" }} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
-        <div style={{ width: 72, height: 72, borderRadius: "50%", background: isDone ? (isShortlisted ? "rgba(34,197,94,0.1)" : "rgba(168,85,247,0.1)") : "rgba(168,85,247,0.1)", border: `2px solid ${isDone ? (isShortlisted ? "var(--green)" : "var(--purple)") : "var(--purple)"}`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 28px", boxShadow: isDone ? `0 0 30px ${isShortlisted ? "rgba(34,197,94,0.2)" : "var(--purple-glow)"}` : "var(--shadow-purple)" }}>
-          {isDone ? (isShortlisted ? <CheckCircle size={36} color="var(--green)" /> : <Shield size={36} color="var(--purple)" />) : <Loader2 size={36} color="var(--purple)" style={{ animation: "spin 1s linear infinite" }} />}
+      <motion.div className="card-glass scan-effect" style={{ maxWidth: 520, width: "100%", padding: 48, textAlign: "center", position: "relative", overflow: "hidden" }} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
+        <div style={{ position: "relative", width: 96, height: 96, margin: "0 auto 32px" }}>
+          {!isDone && (
+            <>
+              <motion.div animate={{ scale: [1, 2.5], opacity: [0.3, 0] }} transition={{ repeat: Infinity, duration: 2, ease: "easeOut" }} style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "2px solid var(--purple)", zIndex: 0 }} />
+              <motion.div animate={{ scale: [1, 2.5], opacity: [0.3, 0] }} transition={{ repeat: Infinity, duration: 2, ease: "easeOut", delay: 1 }} style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "2px solid var(--purple)", zIndex: 0 }} />
+            </>
+          )}
+          <div style={{ position: "relative", zIndex: 10, width: "100%", height: "100%", borderRadius: "50%", background: isDone ? (isShortlisted ? "rgba(34,197,94,0.1)" : "rgba(168,85,247,0.1)") : "var(--bg-card)", border: `2px solid ${isDone ? (isShortlisted ? "var(--green)" : "var(--purple)") : "var(--purple)"}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: isDone ? `0 0 30px ${isShortlisted ? "rgba(34,197,94,0.2)" : "var(--purple-glow)"}` : "var(--shadow-purple)", backdropFilter: "blur(4px)" }}>
+            {isDone ? (isShortlisted ? <CheckCircle size={40} color="var(--green)" /> : <Shield size={40} color="var(--purple)" />) : <Shield size={40} color="var(--purple)" />}
+          </div>
         </div>
 
-        <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 12 }}>
+        <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 12 }}>
           {status === "uploading" ? "Uploading..." : isDone ? (isShortlisted ? "Shortlisted! 🎉" : "Application Received") : "Review in Progress"}
         </h2>
 
-        <p style={{ color: "var(--text-secondary)", fontSize: 15, lineHeight: 1.7, marginBottom: 24 }}>
+        <p style={{ color: "var(--text-secondary)", fontSize: 15, lineHeight: 1.7, marginBottom: 28 }}>
           {isDone
             ? isShortlisted
               ? "Congratulations! Your profile has been shortlisted. Check your email for an interview invitation link. The link expires in 48 hours."
@@ -649,18 +668,26 @@ function ScreeningScreen({ status, message, referenceId }: { status: ScreeningSt
         )}
 
         {!isDone && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 12, color: "var(--text-muted)" }}>
-            {["Receiving your application...", "Processing documents...", "Evaluating profile fit...", "Finalizing review..."].map((step, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <div className="spinner" style={{ width: 12, height: 12, opacity: 0.5 }} />
-                {step}
-              </div>
-            ))}
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, textAlign: "left", background: "rgba(0,0,0,0.2)", padding: 20, borderRadius: 12, border: "1px solid var(--border-subtle)" }}>
+            {steps.map((step, i) => {
+              const isPast = currentStep > i;
+              const isActive = currentStep === i;
+              return (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, opacity: isPast || isActive ? 1 : 0.4, transition: "opacity 0.3s" }}>
+                  <div style={{ width: 18, height: 18, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    {isPast ? <CheckCircle size={16} color="var(--green)" /> : isActive ? <Loader2 size={16} className="spinner" color="var(--purple)" /> : <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--text-muted)" }} />}
+                  </div>
+                  <span style={{ fontSize: 14, color: isPast ? "var(--text-secondary)" : isActive ? "var(--purple-light)" : "var(--text-muted)", fontWeight: isActive ? 600 : 400 }}>
+                    {step}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         )}
 
         {isDone && (
-          <Link href="/careers" className="btn btn-secondary" style={{ marginTop: 8 }}>
+          <Link href="/careers" className="btn btn-secondary" style={{ marginTop: 12 }}>
             Back to Careers
           </Link>
         )}

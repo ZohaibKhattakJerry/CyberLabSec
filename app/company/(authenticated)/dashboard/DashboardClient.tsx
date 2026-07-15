@@ -56,7 +56,7 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
       </div>
 
       {/* KPI Cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(155px, 1fr))", gap: 12 }}>
+      <div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(155px, 1fr))", gap: 12 }}>
         {kpis.map((kpi) => (
           <Link key={kpi.label} href={kpi.href} style={{ textDecoration: "none", display: "block", height: "100%" }}>
             <div className="card" style={{ height: "100%", display: "flex", flexDirection: "column", padding: "16px 18px", border: (kpi as any).urgent ? `1px solid ${kpi.color}35` : undefined, cursor: "pointer", transition: "transform 0.15s" }}

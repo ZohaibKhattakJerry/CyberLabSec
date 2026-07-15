@@ -86,7 +86,7 @@ export default function NotificationBell({ role }: { role: "admin" | "employee" 
       </button>
 
       {open && (
-        <div className="card animate-fade-up" style={{ position: "absolute", top: "100%", right: 0, width: 320, maxHeight: 400, display: "flex", flexDirection: "column", zIndex: 100, overflow: "hidden", marginTop: 8, boxShadow: "var(--shadow-lg)" }}>
+        <div className="card animate-fade-up notification-dropdown" style={{ maxHeight: 400, display: "flex", flexDirection: "column", zIndex: 100, overflow: "hidden", marginTop: 8, boxShadow: "var(--shadow-lg)" }}>
           <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--bg-elevated)" }}>
             <h3 style={{ fontSize: 14, fontWeight: 700 }}>Notifications</h3>
             {unreadCount > 0 && (
@@ -110,8 +110,8 @@ export default function NotificationBell({ role }: { role: "admin" | "employee" 
                 You have no notifications.
               </div>
             ) : (
-              notifications.map((n) => (
-                <div key={n.id} style={{ padding: "12px 20px", display: "flex", gap: 12, transition: "background 0.2s", background: n.read ? "transparent" : "rgba(168,85,247,0.05)" }} className="hover:bg-[rgba(255,255,255,0.02)]">
+              notifications.map((n, i) => (
+                <div key={n.id} style={{ padding: "12px 20px", display: "flex", gap: 12, transition: "background 0.2s", background: n.read ? "transparent" : "rgba(168,85,247,0.05)", animationDelay: \`\${i * 50}ms\` }} className="hover:bg-[rgba(255,255,255,0.02)] animate-fade-up">
                   <div style={{ marginTop: 2 }}>
                     {!n.read ? <Circle size={10} color="var(--purple)" fill="var(--purple)" /> : <Check size={12} color="var(--text-muted)" />}
                   </div>

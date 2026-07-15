@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import dynamic from "next/dynamic";
+import toast from "react-hot-toast";
 import {
   MapPin,
   Briefcase,
@@ -50,15 +52,20 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
     return matchSearch && matchType;
   });
 
+  const [now, setNow] = useState<number | null>(null);
+  useEffect(() => {
+    setNow(Date.now());
+  }, []);
+
   const daysUntilDeadline = (deadline: string) => {
-    // eslint-disable-next-line react-hooks/purity
-    const diff = new Date(deadline).getTime() - Date.now();
+    if (now === null) return null;
+    const diff = new Date(deadline).getTime() - now;
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
   };
 
   const daysSincePublished = (pubDate: string) => {
-    // eslint-disable-next-line react-hooks/purity
-    const diff = Date.now() - new Date(pubDate).getTime();
+    if (now === null) return null;
+    const diff = now - new Date(pubDate).getTime();
     return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
   };
 
@@ -75,8 +82,12 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
         body: JSON.stringify({ email: talentEmail }),
       });
       if (res.ok) setTalentSubmitted(true);
-    } catch (err) {
-      console.error(err);
+      else {
+        const data = await res.json();
+        toast.error(data.error || "Failed to join talent pool");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Network error");
     }
   };
 
@@ -86,11 +97,11 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
       <nav style={{ borderBottom: "1px solid var(--border)", padding: "0 24px", height: 72, display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(10,10,15,0.8)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 50 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <Link href="https://cyberlabsec.tech" style={{ display: "flex", alignItems: "center" }}>
-            <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 40, objectFit: "contain" }} />
+            <Image src="/logo.png" alt="CyberLabSec Logo" width={180} height={40} style={{ height: 40, width: "auto", objectFit: "contain" }} priority />
           </Link>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-          <Link href="/careers/status" style={{ fontSize: 14, color: "var(--text-secondary)", textDecoration: "none", fontWeight: 500, transition: "color 0.2s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-primary)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-secondary)"}>
+          <Link href="/careers/status" className="hide-mobile" style={{ fontSize: 14, color: "var(--text-secondary)", textDecoration: "none", fontWeight: 500, transition: "color 0.2s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-primary)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-secondary)"}>
             Track Application
           </Link>
           <Link
@@ -232,7 +243,7 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
           gap: 16, flexWrap: "wrap",
-          background: "linear-gradient(135deg, rgba(168,85,247,0.08) 0%, rgba(59,130,246,0.08) 100%)",
+          background: "linear-gradient(135deg, rgba(168,85,247,0.12) 0%, rgba(239,68,68,0.08) 100%)",
           border: "1px solid rgba(168,85,247,0.2)", borderRadius: 16, padding: "20px 28px",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
@@ -392,7 +403,7 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
             {filtered.map((posting, i) => {
               const days = daysUntilDeadline(posting.deadline);
               const postedDays = daysSincePublished(posting.publishedDate);
-              const isUrgent = days <= 7;
+              const isUrgent = days !== null && days <= 7;
 
               return (
                 <motion.div
@@ -496,19 +507,21 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
                                display: "flex",
                                alignItems: "center",
                                gap: 4,
-                               color: days <= 3 ? "var(--red)" : isUrgent ? "var(--amber)" : "var(--text-muted)",
+                               color: days !== null && days <= 3 ? "var(--red)" : isUrgent ? "var(--amber)" : "var(--text-muted)",
                                justifyContent: "flex-end",
-                               fontWeight: days <= 3 ? 600 : 400,
+                               fontWeight: days !== null && days <= 3 ? 600 : 400,
                                marginBottom: 2,
                              }}
                            >
                              <Clock size={12} />
-                             {days > 0
-                               ? `Closes ${format(new Date(posting.deadline), "MMM d")}`
-                               : "Closed"}
+                             {days !== null ? (
+                               days > 0 ? `Closes ${format(new Date(posting.deadline), "MMM d")}` : "Closed"
+                             ) : "..."}
                            </div>
                            <div style={{ color: "var(--text-muted)", fontSize: 12 }}>
-                             {postedDays === 0 ? "Posted today" : `Posted ${postedDays}d ago`}
+                             {postedDays !== null ? (
+                               postedDays === 0 ? "Posted today" : `Posted ${postedDays}d ago`
+                             ) : "..."}
                              {posting.showApplicantCount && (
                                <span> · {posting._count.applicants} applicant{posting._count.applicants !== 1 ? "s" : ""}</span>
                              )}

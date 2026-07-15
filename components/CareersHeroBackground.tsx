@@ -23,8 +23,11 @@ export default function CareersHeroBackground() {
     };
     resize();
 
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const particleCount = window.innerWidth < 768 ? 20 : 60;
+
     // Create particles
-    for (let i = 0; i < 60; i++) {
+    for (let i = 0; i < particleCount; i++) {
       particles.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
@@ -87,7 +90,9 @@ export default function CareersHeroBackground() {
         }
       }
 
-      animationId = requestAnimationFrame(draw);
+      if (!prefersReducedMotion) {
+        animationId = requestAnimationFrame(draw);
+      }
     };
 
     draw();

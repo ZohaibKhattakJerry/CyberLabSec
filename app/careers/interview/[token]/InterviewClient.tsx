@@ -18,10 +18,7 @@ interface Props {
 type Phase = "verify" | "intro" | "interview" | "submitting" | "done" | "terminated" | "failed_retry" | "terminated_final";
 
 export default function InterviewClient({ sessionId, token, applicantName, applicantEmail, jobTitle, questions, initialAnswers = {}, passMark, emailVerified, attempts, maxAttempts }: Props) {
-  const [phase, setPhase] = useState<Phase>(emailVerified ? "intro" : "verify");
-  const [verifyEmail, setVerifyEmail] = useState("");
-  const [verifyCnic, setVerifyCnic] = useState("");
-  const [verifyError, setVerifyError] = useState("");
+  const [phase, setPhase] = useState<Phase>("intro");
   
   // Calculate starting question index based on existing answers
   const initialQIndex = questions.findIndex(q => !initialAnswers[q.id]);
@@ -137,24 +134,6 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
     return () => document.removeEventListener("visibilitychange", handleVisibility);
   }, [phase, sessionId]);
 
-  const handleVerify = async () => {
-    if (!verifyEmail.trim() || !verifyCnic.trim()) {
-      setVerifyError("Please enter both email and CNIC to verify your identity.");
-      return;
-    }
-    const res = await fetch(`/api/interview/verify`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token, email: verifyEmail.trim(), cnic: verifyCnic.trim() }),
-    });
-    if (res.ok) {
-      setPhase("intro");
-    } else {
-      const d = await res.json();
-      setVerifyError(d.error || "Verification failed. Please check your details.");
-    }
-  };
-
   const currentAnswer = answers[questions[currentQ]?.id] || "";
   const setAnswer = (val: string) => {
     setAnswers((a) => ({ ...a, [questions[currentQ].id]: val }));
@@ -229,45 +208,6 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
     }
     setCurrentQ((q) => q + 1);
   }, [currentQ, questions.length, submitInterview]);
-
-  // ── VERIFY PHASE ──
-  if (phase === "verify") {
-    return (
-      <Layout>
-        <motion.div className="card" style={{ maxWidth: 480, width: "100%", padding: 40, border: "1px solid var(--border-subtle)", boxShadow: "0 24px 48px -12px rgba(0,0,0,0.5)" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 32 }}>
-            <div style={{ width: 64, height: 64, borderRadius: 16, background: "linear-gradient(135deg, rgba(168,85,247,0.1) 0%, rgba(126,34,206,0.1) 100%)", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(168,85,247,0.2)" }}>
-              <Shield size={32} color="var(--purple)" />
-            </div>
-          </div>
-          <div style={{ textAlign: "center", marginBottom: 32 }}>
-            <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 8, letterSpacing: "-0.02em" }}>Identity Verification</h1>
-            <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>
-              Before starting your interview for <strong>{jobTitle}</strong>, please verify your credentials.
-            </p>
-          </div>
-          <div style={{ display: "grid", gap: 16, marginBottom: 24 }}>
-            <div>
-              <label className="label label-required">Registered Email</label>
-              <input className="input" type="email" value={verifyEmail} onChange={(e) => setVerifyEmail(e.target.value)} placeholder="name@example.com" />
-            </div>
-            <div>
-              <label className="label label-required">CNIC Number</label>
-              <input className="input" value={verifyCnic} onChange={(e) => setVerifyCnic(e.target.value)} placeholder="12345-1234567-1" />
-            </div>
-          </div>
-          {verifyError && (
-            <div style={{ padding: "10px 14px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 8, color: "var(--red)", fontSize: 13, marginBottom: 20, display: "flex", gap: 8, alignItems: "center" }}>
-              <AlertTriangle size={14} /> {verifyError}
-            </div>
-          )}
-          <button className="btn btn-primary btn-lg" style={{ width: "100%" }} onClick={handleVerify}>
-            Verify & Continue <ChevronRight size={16} />
-          </button>
-        </motion.div>
-      </Layout>
-    );
-  }
 
   // ── INTRO PHASE ──
   if (phase === "intro") {

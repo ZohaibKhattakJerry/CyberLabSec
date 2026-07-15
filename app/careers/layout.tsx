@@ -20,17 +20,5 @@ export default function CareersLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <>
-      {children}
-      <Toaster position="top-center" toastOptions={{
-        className: 'toast-error',
-        style: {
-          background: "var(--bg-card)",
-          border: "1px solid var(--border-accent)",
-          color: "var(--text-primary)",
-        }
-      }} />
-    </>
-  );
+  return <>{children}</>;
 }

@@ -279,7 +279,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
           <Search size={14} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)", pointerEvents: "none" }} />
           <input className="input" style={{ paddingLeft: 36 }} placeholder="Search candidates..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
-        <select className="input" style={{ width: 200 }} value={filterPosting} onChange={e => setFilterPosting(e.target.value)}>
+        <select className="input" style={{ flex: 1, minWidth: 200, maxWidth: 400 }} value={filterPosting} onChange={e => setFilterPosting(e.target.value)}>
           <option value="All">All Positions</option>
           {postings.map((p: Posting) => <option key={p.id} value={p.id}>{p.title}</option>)}
         </select>
@@ -288,7 +288,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
       {viewMode === "kanban" ? renderKanban() : renderList()}
 
       {selectedIds.length > 0 && (
-        <div style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", background: "var(--bg-elevated)", border: "1px solid var(--purple)", borderRadius: 12, padding: "12px 24px", display: "flex", alignItems: "center", gap: 24, boxShadow: "0 10px 40px rgba(0,0,0,0.5)", zIndex: 100 }}>
+        <div style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", background: "var(--bg-elevated)", border: "1px solid var(--purple)", borderRadius: 12, padding: "12px 16px", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", justifyContent: "center", width: "calc(100% - 32px)", maxWidth: "max-content", boxShadow: "0 10px 40px rgba(0,0,0,0.5)", zIndex: 100 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span style={{ fontWeight: 600, color: "var(--purple)" }}>{selectedIds.length}</span>
             <span style={{ fontSize: 14, color: "var(--text-secondary)" }}>selected</span>
@@ -374,7 +374,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                       <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.7, whiteSpace: "pre-wrap", padding: "10px 14px", background: "rgba(168,85,247,0.05)", borderRadius: 8, borderLeft: "3px solid var(--purple)", margin: 0 }}>{selected.motivation}</p>
                     </div>
                   )}
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, fontSize: 13, color: "var(--text-secondary)" }}>
+                  <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, fontSize: 13, color: "var(--text-secondary)" }}>
                     {selected.degree && <div><strong>Degree:</strong> {selected.degree}</div>}
                     {selected.semester && <div><strong>Semester:</strong> {selected.semester}</div>}
                     {selected.cgpa && <div><strong>CGPA:</strong> {selected.cgpa}</div>}
@@ -497,12 +497,16 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
             )}
 
             <div style={{ display: "flex", flexWrap: "wrap", gap: 12, borderTop: "1px solid var(--border-subtle)", paddingTop: 20 }}>
-              {(selected.status === "Final Approval" || selected.status === "Interview" || selected.status === "Offer") && (
+              {selected.status === "Final Approval" ? (
+                <div className="badge badge-blue" style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 16px" }}>
+                  <Check size={14} /> Pending CEO Approval
+                </div>
+              ) : (selected.status === "Interview" || selected.status === "Offer") ? (
                 <button className="btn btn-primary" onClick={() => hireApplicant(selected.id)} disabled={actionLoading}>
                   {actionLoading ? <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> : <UserCheck size={14} />}
                   Hire & Request CEO Approval
                 </button>
-              )}
+              ) : null}
               <a href={`/api/files/${selected.id}/cv`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
                 <FileText size={14} /> View CV
               </a>

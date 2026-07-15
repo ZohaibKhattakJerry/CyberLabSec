@@ -89,17 +89,17 @@ export default function EmployeeLeaderboardClient({
               marginBottom: 6,
             }}
           >
-            <Trophy size={24} color="var(--amber)" /> Leaderboard
+            <Trophy size={24} color="var(--amber)" /> Reputation Leaderboard
           </h1>
           <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>
-            Performance rankings based on approved tasks and quality ratings.
+            Reputation XP rankings based on approved tasks and quality ratings.
           </p>
         </div>
         <button
           onClick={() => setShowInfo(!showInfo)}
           className="btn btn-secondary btn-sm"
         >
-          <Info size={14} /> How Points Work
+          <Info size={14} /> How XP Works
         </button>
       </div>
 
@@ -122,7 +122,7 @@ export default function EmployeeLeaderboardClient({
             }}
           >
             <h3 style={{ fontSize: 15, fontWeight: 700, color: "var(--purple)", margin: 0 }}>
-              How Points Are Calculated
+              How XP Is Calculated
             </h3>
             <button
               onClick={() => setShowInfo(false)}
@@ -140,7 +140,7 @@ export default function EmployeeLeaderboardClient({
           >
             <div>
               <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 8 }}>
-                Base Points (by priority)
+                Base XP (by priority)
               </div>
               <div
                 style={{
@@ -150,15 +150,15 @@ export default function EmployeeLeaderboardClient({
                   gap: 6,
                 }}
               >
-                <div>🟢 Low task = <strong>10 pts</strong></div>
-                <div>🔵 Medium task = <strong>20 pts</strong></div>
-                <div>🟡 High task = <strong>35 pts</strong></div>
-                <div>🔴 Critical task = <strong>50 pts</strong></div>
+                <div>🟢 Low task = <strong>10 XP</strong></div>
+                <div>🔵 Medium task = <strong>20 XP</strong></div>
+                <div>🟡 High task = <strong>35 XP</strong></div>
+                <div>🔴 Critical task = <strong>50 XP</strong></div>
               </div>
             </div>
             <div>
               <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 8 }}>
-                Bonus Points
+                Bonus XP
               </div>
               <div
                 style={{
@@ -169,8 +169,8 @@ export default function EmployeeLeaderboardClient({
                 }}
               >
                 <div>⏰ On-time submission = <strong>+20%</strong></div>
-                <div>⭐ Quality rating (1–5★) = <strong>×5 pts each</strong></div>
-                <div>🔄 Resubmissions = <strong>no extra points</strong></div>
+                <div>⭐ Quality rating (1–5★) = <strong>×5 XP each</strong></div>
+                <div>🔄 Resubmissions = <strong>no extra XP</strong></div>
               </div>
             </div>
           </div>
@@ -209,7 +209,7 @@ export default function EmployeeLeaderboardClient({
         >
           {[
             { value: `#${myRank}`, label: "My Rank", color: "var(--amber)" },
-            { value: myPoints, label: "Points", color: "var(--text-primary)" },
+            { value: myPoints, label: "Total XP", color: "var(--text-primary)" },
             { value: myCompletedTasks, label: "Tasks Done", color: "var(--green)" },
             { value: `${myOnTimeRate}%`, label: "On Time", color: "var(--blue)" },
           ].map((s) => (
@@ -365,7 +365,7 @@ export default function EmployeeLeaderboardClient({
                     marginBottom: 8,
                   }}
                 >
-                  {pts} pts
+                  {pts} XP
                 </div>
                 <div
                   style={{
@@ -392,14 +392,14 @@ export default function EmployeeLeaderboardClient({
             color: "var(--text-muted)",
             fontWeight: 600,
             display: "grid",
-            gridTemplateColumns: "44px 1fr 60px auto",
-            gap: 12,
+            gridTemplateColumns: "32px 1fr 50px 60px",
+            gap: 8,
           }}
         >
           <span>#</span>
           <span>Operative</span>
           <span style={{ textAlign: "center" }}>Badges</span>
-          <span style={{ textAlign: "right", minWidth: 70 }}>Points</span>
+          <span style={{ textAlign: "right" }}>XP</span>
         </div>
 
         {sorted.map((emp, i) => {
@@ -413,8 +413,8 @@ export default function EmployeeLeaderboardClient({
                 padding: "14px 20px",
                 borderBottom: "1px solid var(--border-subtle)",
                 display: "grid",
-                gridTemplateColumns: "44px 1fr 60px auto",
-                gap: 12,
+                gridTemplateColumns: "32px 1fr 50px 60px",
+                gap: 8,
                 alignItems: "center",
                 background: isMe ? "rgba(168,85,247,0.06)" : "transparent",
                 borderLeft: isMe
@@ -476,7 +476,7 @@ export default function EmployeeLeaderboardClient({
                   </span>
                 ))}
               </div>
-              <div style={{ textAlign: "right", minWidth: 70 }}>
+              <div style={{ textAlign: "right" }}>
                 <div
                   style={{
                     fontWeight: 700,
@@ -486,7 +486,7 @@ export default function EmployeeLeaderboardClient({
                 >
                   {pts}
                 </div>
-                <div style={{ fontSize: 11, color: "var(--text-muted)" }}>pts</div>
+                <div style={{ fontSize: 11, color: "var(--text-muted)" }}>XP</div>
               </div>
             </div>
           );

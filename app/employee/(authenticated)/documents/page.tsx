@@ -41,9 +41,9 @@ export default async function DocumentsPage() {
         
         <div style={{ display: "grid", gap: 12 }}>
           {documents.map((doc) => (
-            <div key={doc.label} className="card-hover" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", background: "rgba(255,255,255,0.02)", borderRadius: 12, border: "1px solid var(--border-subtle)", transition: "all 0.2s" }}>
+            <div key={doc.label} className="card-hover flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", padding: "16px 20px", background: "rgba(255,255,255,0.02)", borderRadius: 12, border: "1px solid var(--border-subtle)", transition: "all 0.2s", gap: 16 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                <div style={{ fontSize: 24, width: 40, height: 40, borderRadius: 10, background: "rgba(0,0,0,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ fontSize: 24, width: 40, height: 40, borderRadius: 10, background: "rgba(0,0,0,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                   {doc.icon}
                 </div>
                 <div>
@@ -52,7 +52,7 @@ export default async function DocumentsPage() {
                 </div>
               </div>
               {doc.available ? (
-                <a href={doc.href} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm" style={{ gap: 6 }}>
+                <a href={doc.href} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm" style={{ gap: 6, width: "max-content" }}>
                   <Eye size={14} /> View Document
                 </a>
               ) : (

@@ -19,10 +19,20 @@ function ResetPasswordForm() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!token) {
-      setError("No reset token provided. Please request a new password reset link.");
-    }
+    // If no token is provided, we assume it's an authenticated user forced to reset their password
   }, [token]);
+
+  const handleSkip = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/skip-reset", { method: "POST" });
+      if (res.ok) router.push("/employee/dashboard");
+      else setError("Failed to skip.");
+    } catch {
+      setError("Network error.");
+    }
+    setLoading(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,8 +80,8 @@ function ResetPasswordForm() {
       <div>
         <label className="label label-required">New Password</label>
         <div style={{ position: "relative" }}>
-          <input className="input" type={showPw ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 8 characters" style={{ paddingRight: 40 }} required disabled={!token} />
-          <button type="button" onClick={() => setShowPw(!showPw)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", display: "flex", alignItems: "center" }} disabled={!token}>
+          <input className="input" type={showPw ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 8 characters" style={{ paddingRight: 40 }} required />
+          <button type="button" onClick={() => setShowPw(!showPw)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", display: "flex", alignItems: "center" }}>
             {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
         </div>
@@ -79,7 +89,7 @@ function ResetPasswordForm() {
       
       <div>
         <label className="label label-required">Confirm Password</label>
-        <input className="input" type={showPw ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm your password" required disabled={!token} />
+        <input className="input" type={showPw ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm your password" required />
       </div>
 
       {error && (
@@ -88,9 +98,16 @@ function ResetPasswordForm() {
         </div>
       )}
 
-      <button className="btn btn-primary" type="submit" disabled={loading || !token} style={{ width: "100%", marginTop: 4 }}>
-        {loading ? <><Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> Resetting...</> : "Reset Password"}
-      </button>
+      <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
+        {!token && (
+          <button className="btn btn-secondary" type="button" onClick={handleSkip} disabled={loading} style={{ flex: 1 }}>
+            Skip for now
+          </button>
+        )}
+        <button className="btn btn-primary" type="submit" disabled={loading} style={{ flex: 1 }}>
+          {loading ? <><Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> Resetting...</> : "Reset Password"}
+        </button>
+      </div>
     </form>
   );
 }

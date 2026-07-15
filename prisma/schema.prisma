@@ -147,7 +147,7 @@ model Employee {
   announcementsSent    Announcement[]            @relation("SentBy")
   applicant            Applicant?                @relation(fields: [applicantId], references: [id])
   team                 Team?                     @relation(fields: [teamId], references: [id])
-  submissions          TaskSubmission[]
+  submissions          TaskSubmission[]          @relation("EmployeeSubmissions")
   messages             TeamMessage[]
   submittedReviews     CEOReview[]               @relation("ReviewSubmitter")
   announcementReads    AnnouncementReadReceipt[]
@@ -205,8 +205,8 @@ model TaskSubmission {
   reviewedAt              DateTime?
   qualityRating           Int?
   reviewerFeedbackHistory String    @default("[]")
-  employee                Employee  @relation(fields: [employeeId], references: [id])
-  task                    Task      @relation(fields: [taskId], references: [id])
+  employee                Employee  @relation("EmployeeSubmissions", fields: [employeeId], references: [id], onDelete: Cascade)
+  task                    Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   @@index([taskId, employeeId])
 }
@@ -279,7 +279,7 @@ model ActivityLog {
   metadata  String    @default("{}")
   ipAddress String?
   timestamp DateTime  @default(now())
-  employee  Employee? @relation(fields: [actorId], references: [id])
+  employee  Employee? @relation(fields: [actorId], references: [id], onDelete: Cascade)
 }
 
 model PolicyDocument {
@@ -307,7 +307,7 @@ model Badge {
   type       String
   label      String
   awardedAt  DateTime @default(now())
-  employee   Employee @relation(fields: [employeeId], references: [id])
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@unique([employeeId, type])
 }
@@ -320,7 +320,7 @@ model PointTransaction {
   reason      String
   adjustedBy  String?
   createdAt   DateTime @default(now())
-  employee    Employee @relation(fields: [employeeId], references: [id])
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 }
 
 model AdminConfig {

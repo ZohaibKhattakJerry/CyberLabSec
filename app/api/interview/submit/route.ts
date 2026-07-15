@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { gradeOpenAnswer, screenApplicant } from "@/lib/gemini";
 import { extractPdfText } from "@/lib/fileStorage";
-import { sendEmail } from "@/lib/email";
+import { sendInterviewCompleteEmail } from "@/lib/email";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -125,35 +125,32 @@ export async function POST(req: NextRequest) {
   });
 
   if (result === "Passed") {
-    await prisma.cEOReview.create({
-      data: {
-        type: "Hire Request",
-        applicantId: session.applicantId,
-        status: "Pending",
-        comments: `Automated Request: Candidate successfully passed the AI interview with a score of ${normalizedScore}%.`,
-      },
+    // Find an admin/system user to attach to the automated review
+    const systemUser = await prisma.employee.findFirst({
+      orderBy: { createdAt: 'asc' }
     });
+
+    if (systemUser) {
+      await prisma.cEOReview.create({
+        data: {
+          type: "Hire Request",
+          applicantId: session.applicantId,
+          submitterId: systemUser.id,
+          status: "Pending",
+          comments: `Automated Request: Candidate successfully passed the AI interview with a score of ${normalizedScore}%.`,
+        },
+      });
+    }
   }
 
   // Send Email Notification
   try {
-    await sendEmail({
-      to: session.applicant.email,
-      subject: `Interview Completed - Update on your Application`,
-      html: `
-        <div>
-          <h2 style="font-size: 24px; font-weight: 800; color: #f4f4f5; margin: 0 0 16px 0;">Interview Completed</h2>
-          <p style="color: #a1a1aa; font-size: 15px; line-height: 1.7; margin: 0 0 16px 0;">Hi ${session.applicant.fullName.split(" ")[0]},</p>
-          <p style="color: #a1a1aa; font-size: 15px; line-height: 1.7; margin: 0 0 16px 0;">Thank you for taking the time to complete your AI technical interview for the <strong style="color: #f4f4f5;">${session.applicant.jobPosting.title}</strong> role at CyberLabSec.</p>
-          <p style="color: #a1a1aa; font-size: 15px; line-height: 1.7; margin: 0 0 16px 0;">Your interview has been successfully submitted and scored. Our team is currently reviewing the results.</p>
-          <div style="background: rgba(168,85,247,0.06); border: 1px solid rgba(168,85,247,0.2); border-radius: 10px; padding: 20px 24px; margin: 24px 0;">
-            <p style="color: #f4f4f5; font-size: 14px; font-weight: 600; margin: 0 0 8px 0;">Application Status Update</p>
-            <p style="color: #a1a1aa; font-size: 13px; margin: 0; line-height: 1.6;">Your status is now: <strong style="color: #a855f7;">${newStatus}</strong>.</p>
-          </div>
-          <p style="color: #a1a1aa; font-size: 15px; line-height: 1.7; margin: 0;">Best regards,<br/>The CyberLabSec Team</p>
-        </div>
-      `,
-    });
+    await sendInterviewCompleteEmail(
+      session.applicant.email,
+      session.applicant.fullName,
+      session.applicant.jobPosting.title,
+      newStatus
+    );
   } catch (e) {
     console.error("Failed to send interview completion email:", e);
   }

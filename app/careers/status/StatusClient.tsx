@@ -58,7 +58,7 @@ export default function StatusClient() {
       {/* Nav */}
       <nav style={{ borderBottom: "1px solid var(--border)", padding: "0 24px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(10,10,15,0.9)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 50 }}>
         <Link href="/careers" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", color: "var(--text-secondary)", fontSize: 14 }}>
-          <ChevronLeft size={16} /> Back to Careers
+          <ChevronLeft size={16} /> <span className="hide-mobile-text">Back to Careers</span>
         </Link>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
           <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 48, objectFit: "contain" }} />
@@ -80,6 +80,7 @@ export default function StatusClient() {
                 className={`input${error ? " input-error" : ""}`}
                 style={{ paddingLeft: 44, height: 48, fontSize: 16, textTransform: "uppercase" }}
                 placeholder="APP-XXXXXX"
+                aria-label="Reference ID"
                 value={refId}
                 onChange={(e) => setRefId(e.target.value)}
               />
@@ -90,7 +91,7 @@ export default function StatusClient() {
           </form>
 
           {error && (
-            <p style={{ color: "var(--purple)", fontSize: 14, marginTop: 16, display: "flex", alignItems: "center", gap: 6 }}>
+            <p style={{ color: "var(--red)", fontSize: 14, marginTop: 16, display: "flex", alignItems: "center", gap: 6 }}>
               <AlertCircle size={14} /> {error}
             </p>
           )}
@@ -115,7 +116,7 @@ export default function StatusClient() {
                     <h3 style={{ fontSize: 14, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 20 }}>Current Status</h3>
                     
                     <div style={{ overflowX: "auto", paddingBottom: 20 }}>
-                      <div style={{ position: "relative", display: "flex", justifyContent: "space-between", minWidth: 320 }}>
+                      <div style={{ position: "relative", display: "flex", justifyContent: "space-between" }}>
                         <div style={{ position: "absolute", top: 12, left: 24, right: 24, height: 2, background: "var(--border)", zIndex: 0 }} />
                         
                         {getPipeline(data.status).map((stage, i) => {

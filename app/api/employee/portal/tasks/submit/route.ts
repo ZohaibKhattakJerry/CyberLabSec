@@ -16,9 +16,6 @@ export async function POST(req: NextRequest) {
   const taskId = formData.get("taskId") as string;
   const summary = (formData.get("summary") as string)?.trim() || null;
   const link = (formData.get("link") as string)?.trim() || null;
-  const versionParam = formData.get("version");
-  const version = versionParam ? parseInt(versionParam as string, 10) : 1;
-
   if (!taskId) return NextResponse.json({ error: "Task ID required" }, { status: 400 });
   if (!summary) return NextResponse.json({ error: "Work summary is required" }, { status: 400 });
 
@@ -46,6 +43,8 @@ export async function POST(req: NextRequest) {
   if (existing && ["Pending", "Approved"].includes(existing.status)) {
     return NextResponse.json({ error: "You have already submitted this task" }, { status: 409 });
   }
+
+  const version = existing ? existing.version + 1 : 1;
 
   // Save file if provided
   const savedPaths: string[] = existing ? JSON.parse(existing.files ?? "[]") : [];

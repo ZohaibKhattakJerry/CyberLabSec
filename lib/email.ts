@@ -13,33 +13,35 @@ const transporter = nodemailer.createTransport({
 const FROM = `CyberLabSec Careers <contact@cyberlabsec.tech>`;
 
 // ─── Shared design tokens ────────────────────────────────────────────────────
-const BASE = `font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #050505; color: #f4f4f5; margin: 0; padding: 0;`;
+const BASE = `font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f4f5; color: #18181b; margin: 0; padding: 0;`;
 const WRAP = `max-width: 600px; margin: 0 auto; padding: 40px 20px;`;
-const BOX = `background-color: #0f0f12; border: 1px solid #27272a; border-radius: 16px; overflow: hidden;`;
-const HEADER = `background: linear-gradient(135deg, #0f0f12 0%, #18101f 100%); padding: 36px 40px 28px; border-bottom: 1px solid #27272a;`;
-const BODY = `padding: 36px 40px;`;
-const FOOTER = `padding: 24px 40px; border-top: 1px solid #1a1a1d; background: #0a0a0d;`;
+const BOX = `background-color: #ffffff; border: 1px solid #e4e4e7; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);`;
+const HEADER = `background-color: #ffffff; padding: 32px 40px 24px; border-bottom: 1px solid #f4f4f5;`;
+const BODY = `padding: 32px 40px; background-color: #ffffff;`;
+const FOOTER = `padding: 24px 40px; border-top: 1px solid #f4f4f5; background: #fafafa;`;
 
-const ACCENT = `#a855f7`;
-const TEXT_PRIMARY = `#f4f4f5`;
-const TEXT_SECONDARY = `#a1a1aa`;
-const TEXT_MUTED = `#71717a`;
-const CARD_BG = `#18181b`;
-const CARD_BORDER = `#3f3f46`;
+const ACCENT = `#7e22ce`;
+const TEXT_PRIMARY = `#000000`;
+const TEXT_SECONDARY = `#555555`;
+const TEXT_MUTED = `#888888`;
+const CARD_BG = `#fafafa`;
+const CARD_BORDER = `#e4e4e7`;
 
-const BUTTON = `display: inline-block; background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%); color: #ffffff !important; text-decoration: none !important; padding: 14px 36px; border-radius: 8px; font-weight: 700; font-size: 15px; letter-spacing: 0.01em; box-shadow: 0 4px 20px rgba(168,85,247,0.35);`;
+const BUTTON = `display: inline-block; background-color: #7e22ce; color: #ffffff !important; text-decoration: none !important; padding: 12px 32px; border-radius: 6px; font-weight: 600; font-size: 14px; letter-spacing: 0.01em;`;
 
 const infoRow = (label: string, value: string) => `
   <tr>
-    <td style="padding: 10px 0; color: ${TEXT_MUTED}; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #27272a; white-space: nowrap; padding-right: 20px;">${label}</td>
-    <td style="padding: 10px 0; border-bottom: 1px solid #27272a;">${value}</td>
+    <td style="padding: 12px 0; border-bottom: 1px solid #e4e4e7; color: #52525b; font-size: 14px; font-weight: 600; width: 140px;">${label}</td>
+    <td style="padding: 12px 0; border-bottom: 1px solid #e4e4e7; color: #09090b; font-size: 14px;">${value}</td>
   </tr>`;
 
 const logoBlock = (subtitle: string) => `
-  <img src="https://cyberlabsec.tech/logo.png" alt="CyberLabSec" style="height: 36px; object-fit: contain; display: block; margin-bottom: 20px;" />
-  <p style="color: ${ACCENT}; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; margin: 0;">${subtitle}</p>`;
+  <div style="margin-bottom: 20px;">
+    <h2 style="color: #7e22ce; font-size: 24px; font-weight: 800; margin: 0 0 4px 0; letter-spacing: -0.02em; font-family: 'Inter', sans-serif;">CyberLab<span style="color: #18181b;">Sec</span></h2>
+  </div>
+  <p style="color: #7e22ce; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; margin: 0;">${subtitle}</p>`;
 
-const divider = () => `<div style="height: 1px; background: #27272a; margin: 28px 0;"></div>`;
+const divider = () => `<div style="height: 1px; background: #e4e4e7; margin: 28px 0;"></div>`;
 
 const footerBlock = (extra: string = "") => `
   <p style="color: ${TEXT_MUTED}; font-size: 12px; margin: 0 0 8px 0; line-height: 1.6;">
@@ -63,7 +65,12 @@ export async function sendInterviewInvite(
     to: toEmail,
     subject: `You've Been Shortlisted — Technical Interview for ${jobTitle} | CyberLabSec`,
     html: `
-      <div style="${BASE}">
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+      </head>
+      <body style="${BASE}">
         <div style="${WRAP}">
           <div style="${BOX}">
             <div style="${HEADER}">
@@ -128,7 +135,12 @@ export async function sendDeclineEmail(
     to: toEmail,
     subject: `CyberLabSec — Update on Your Application for ${jobTitle}`,
     html: `
-      <div style="${BASE}">
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+      </head>
+      <body style="${BASE}">
         <div style="${WRAP}">
           <div style="${BOX}">
             <div style="${HEADER}">
@@ -181,7 +193,12 @@ export async function sendEmployeeCredentials(
     to: toEmail,
     subject: `Welcome to the Team, ${firstName}! — Your CyberLabSec Portal Access`,
     html: `
-      <div style="${BASE}">
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+      </head>
+      <body style="${BASE}">
         <div style="${WRAP}">
           <div style="${BOX}">
             <div style="background: linear-gradient(135deg, #18101f 0%, #0a0a12 100%); padding: 36px 40px 28px; border-bottom: 1px solid #27272a;">
@@ -254,7 +271,12 @@ export async function sendTerminationLetter(
     to: toEmail,
     subject: `CyberLabSec — Employment Status Notification for ${employeeName}`,
     html: `
-      <div style="${BASE}">
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+      </head>
+      <body style="${BASE}">
         <div style="${WRAP}">
           <div style="${BOX}">
             <div style="${HEADER}">
@@ -304,7 +326,12 @@ export async function sendAnnouncement(
     to: toEmails.join(","),
     subject: `[CyberLabSec] ${subject}`,
     html: `
-      <div style="${BASE}">
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+      </head>
+      <body style="${BASE}">
         <div style="${WRAP}">
           <div style="${BOX}">
             <div style="${HEADER}">
@@ -338,7 +365,12 @@ export async function sendEmail({ to, subject, html, attachments }: { to: string
     to,
     subject,
     html: `
-      <div style="${BASE}">
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+      </head>
+      <body style="${BASE}">
         <div style="${WRAP}">
           <div style="${BOX}">
             <div style="${HEADER}">
@@ -372,7 +404,12 @@ export async function sendApplicationReceivedEmail(
     to: toEmail,
     subject: `Application Received — ${jobTitle} at CyberLabSec (Ref: ${referenceId})`,
     html: `
-      <div style="${BASE}">
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+      </head>
+      <body style="${BASE}">
         <div style="${WRAP}">
           <div style="${BOX}">
             <div style="${HEADER}">
@@ -414,7 +451,66 @@ export async function sendApplicationReceivedEmail(
             </div>
           </div>
         </div>
-      </div>
+      </body>
+      </html>
+    `,
+  });
+}
+
+// ─── 8. Interview Completed ──────────────────────────────────────────────────
+export async function sendInterviewCompleteEmail(
+  toEmail: string,
+  applicantName: string,
+  jobTitle: string,
+  status: string
+) {
+  const firstName = applicantName.split(" ")[0];
+  await transporter.sendMail({
+    from: FROM,
+    to: toEmail,
+    subject: `Interview Completed — Update on your Application`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+      </head>
+      <body style="${BASE}">
+        <div style="${WRAP}">
+          <div style="${BOX}">
+            <div style="${HEADER}">
+              ${logoBlock("Interview Completed")}
+            </div>
+            <div style="${BODY}">
+              <h1 style="font-size: 26px; font-weight: 800; color: ${TEXT_PRIMARY}; margin: 0 0 8px 0; letter-spacing: -0.02em;">
+                Great job, ${firstName}!
+              </h1>
+              <p style="color: ${TEXT_SECONDARY}; font-size: 15px; line-height: 1.7; margin: 0 0 24px 0;">
+                Thank you for taking the time to complete your AI technical interview for the <strong style="color: ${TEXT_PRIMARY};">${jobTitle}</strong> role at CyberLabSec.
+              </p>
+              <p style="color: ${TEXT_SECONDARY}; font-size: 15px; line-height: 1.7; margin: 0 0 28px 0;">
+                Your interview has been successfully submitted and scored. Our team is currently reviewing the results alongside your application.
+              </p>
+
+              <div style="background: ${CARD_BG}; border: 1px solid ${CARD_BORDER}; border-radius: 10px; padding: 20px 24px; margin-bottom: 28px;">
+                <p style="color: ${ACCENT}; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 12px 0;">Application Status Update</p>
+                <table style="width: 100%; border-collapse: collapse;">
+                  ${infoRow("Position", `<span style="color: ${TEXT_SECONDARY}; font-size: 14px;">${jobTitle}</span>`)}
+                  ${infoRow("Status", `<span style="color: ${status === 'Rejected' ? '#ef4444' : '#22c55e'}; font-size: 14px; font-weight: 600;">● ${status}</span>`)}
+                </table>
+              </div>
+
+              <p style="color: ${TEXT_SECONDARY}; font-size: 15px; line-height: 1.7; margin: 0;">
+                We will be in touch with you shortly regarding the next steps in the process.
+              </p>
+            </div>
+            <div style="${FOOTER}">
+              ${footerBlock("Sent by the CyberLabSec Recruitment Team.")}
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
     `,
   });
 }

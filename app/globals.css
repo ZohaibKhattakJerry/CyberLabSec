@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
 /* ============================================================
@@ -662,6 +661,7 @@ select.input option {
   /* Cards - ensure they don't overflow */
   .card {
     overflow: hidden;
+    padding: 16px !important;
   }
 
   /* Stats grids - 2 columns on mobile */
@@ -791,10 +791,15 @@ select.input option {
   /* Flex rows to column on mobile */
   .flex-mobile-col {
     flex-direction: column !important;
+    align-items: flex-start !important;
   }
 
   /* Hide less critical sidebar items on mobile */
   .hide-mobile {
+    display: none !important;
+  }
+  
+  .hide-mobile-text {
     display: none !important;
   }
   
@@ -843,5 +848,23 @@ select.input option {
 
   div[style*="repeat(3, 1fr)"] {
     grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* Notification Dropdown Responsive */
+.notification-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 320px;
+}
+
+@media (max-width: 640px) {
+  .notification-dropdown {
+    position: fixed;
+    top: 70px;
+    right: 16px;
+    left: 16px;
+    width: auto;
   }
 }

@@ -34,8 +34,8 @@ interface Posting {
 }
 
 export default function JobDetailClient({ posting }: { posting: Posting }) {
-  const [daysLeft, setDaysLeft] = useState(0);
-  const [postedDays, setPostedDays] = useState(0);
+  const [daysLeft, setDaysLeft] = useState<number | null>(null);
+  const [postedDays, setPostedDays] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -46,28 +46,29 @@ export default function JobDetailClient({ posting }: { posting: Posting }) {
   }, [posting]);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(window.location.href);
+    navigator.clipboard.writeText(window.location.origin + window.location.pathname);
     setCopied(true);
     toast.success("Link copied!");
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleLinkedIn = () => {
-    const url = encodeURIComponent(window.location.href);
+    const url = encodeURIComponent(window.location.origin + window.location.pathname);
     const title = encodeURIComponent(posting.title);
     window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}&title=${title}`, "_blank");
   };
 
   const handleWhatsApp = () => {
-    const text = encodeURIComponent(`🔐 ${posting.title} — CyberLabSec\n${window.location.href}`);
+    const url = window.location.origin + window.location.pathname;
+    const text = encodeURIComponent(`🔐 ${posting.title} — CyberLabSec\n${url}`);
     window.open(`https://wa.me/?text=${text}`, "_blank");
   };
 
-  const isUrgent = daysLeft <= 3 && daysLeft > 0;
-  const isClosed = daysLeft <= 0;
+  const isUrgent = daysLeft !== null && daysLeft <= 3 && daysLeft > 0;
+  const isClosed = daysLeft !== null && daysLeft <= 0;
 
   const parseLines = (text: string) =>
-    text.split("\n").filter((l) => l.trim()).map((l) => l.replace(/^[-•]\s*/, "").trim());
+    text.split("\n").filter((l) => l.trim()).map((l) => l.replace(/^[-•*]\s*/, "").trim());
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg-primary)" }}>
@@ -131,8 +132,8 @@ export default function JobDetailClient({ posting }: { posting: Posting }) {
                 <GraduationCap size={11} /> University Required
               </span>
             )}
-            {isUrgent && <span className="badge badge-red">⚠ Closes in {daysLeft} days</span>}
-            {isClosed && <span className="badge badge-red">Closed</span>}
+            {daysLeft !== null && isUrgent && <span className="badge badge-red">⚠ Closes in {daysLeft} days</span>}
+            {daysLeft !== null && isClosed && <span className="badge badge-red">Closed</span>}
           </div>
 
           <h1
@@ -347,21 +348,25 @@ export default function JobDetailClient({ posting }: { posting: Posting }) {
             <div style={{ fontWeight: 700, color: "var(--text-primary)", fontSize: 15, marginBottom: 2 }}>
               {posting.title}
             </div>
-            <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
-              {postedDays === 0 ? "Posted today" : `Posted ${postedDays}d ago`}
-              {posting.showApplicantCount &&
-                ` · ${posting._count.applicants} applicant${posting._count.applicants !== 1 ? "s" : ""}`}
-              {posting.stipend && ` · ${posting.stipend}/mo`}
-            </div>
+            {postedDays !== null && (
+              <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                {postedDays === 0 ? "Posted today" : `Posted ${postedDays}d ago`}
+                {posting.showApplicantCount &&
+                  ` · ${posting._count.applicants} applicant${posting._count.applicants !== 1 ? "s" : ""}`}
+                {posting.stipend && ` · ${posting.stipend}/mo`}
+              </div>
+            )}
           </div>
-          {isClosed ? (
-            <div className="badge badge-red" style={{ padding: "10px 20px", fontSize: 14 }}>
-              Applications Closed
-            </div>
-          ) : (
-            <Link href={`/careers/apply/${posting.id}`} className="btn btn-primary">
-              Apply Now <ChevronRight size={18} />
-            </Link>
+          {daysLeft !== null && (
+            isClosed ? (
+              <div className="badge badge-red" style={{ padding: "10px 20px", fontSize: 14 }}>
+                Applications Closed
+              </div>
+            ) : (
+              <Link href={`/careers/apply/${posting.id}`} className="btn btn-primary">
+                Apply Now <ChevronRight size={18} />
+              </Link>
+            )
           )}
         </div>
       </div>

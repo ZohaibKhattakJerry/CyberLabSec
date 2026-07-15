@@ -31,6 +31,12 @@ export async function POST(
     },
   });
 
+  // Update applicant status
+  await prisma.applicant.update({
+    where: { id: applicant.id },
+    data: { status: "Final Approval" }
+  });
+
   await prisma.activityLog.create({
     data: {
       actorId: auth.sub, actorType: "Admin", action: "HIRE_REQUEST_SUBMITTED",

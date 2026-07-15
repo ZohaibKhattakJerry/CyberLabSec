@@ -84,6 +84,8 @@ export async function DELETE(
       prisma.teamMessage.deleteMany({ where: { employeeId } }),
       prisma.notification.deleteMany({ where: { userId: employeeId } }),
       prisma.cEOReview.deleteMany({ where: { submitterId: employeeId } }),
+      prisma.pointTransaction.deleteMany({ where: { employeeId } }),
+      prisma.badge.deleteMany({ where: { employeeId } }),
       prisma.employee.delete({ where: { id: employeeId } }),
     ]);
 

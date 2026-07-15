@@ -17,10 +17,24 @@ export async function POST(req: Request) {
       create: { email, otp: code, expiresAt },
     });
 
+    const htmlContent = `
+      <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#09090b;">
+        <h2 style="color:#8b5cf6;margin-bottom:20px;font-size:24px;">CyberLabSec</h2>
+        <div style="background-color:#ffffff;border:1px solid #e4e4e7;border-radius:12px;padding:32px;">
+          <h3 style="margin-top:0;font-size:18px;color:#09090b;">Your Verification Code</h3>
+          <p style="color:#52525b;font-size:15px;line-height:1.6;">Please use the code below to verify your email address and continue with your application.</p>
+          <div style="margin:32px 0;text-align:center;">
+            <div style="display:inline-block;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:8px;padding:16px 32px;font-size:36px;font-weight:bold;letter-spacing:12px;color:#8b5cf6;font-family:monospace;">${code}</div>
+          </div>
+          <p style="color:#71717a;font-size:14px;margin-bottom:0;">This code expires in 10 minutes. Do not share this code with anyone.</p>
+        </div>
+      </div>
+    `;
+
     await sendEmail({
       to: email,
       subject: "CyberLabSec Application - Verification Code",
-      html: `<div style="font-family:sans-serif;padding:24px;color:#333;"><h2 style="color:#7c3aed;">CyberLabSec</h2><p>Your application verification code:</p><div style="font-size:32px;font-weight:bold;letter-spacing:8px;color:#7c3aed;padding:16px 24px;background:#f5f3ff;border-radius:8px;display:inline-block;">${code}</div><p style="color:#666;font-size:14px;">Expires in 10 minutes. Do not share this code.</p></div>`,
+      html: htmlContent,
     });
 
     return NextResponse.json({ success: true });

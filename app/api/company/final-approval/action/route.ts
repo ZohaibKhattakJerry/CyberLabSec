@@ -3,7 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { getAuthFromCookies } from "@/lib/auth";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
-import { sendEmployeeCredentials } from "@/lib/email";
+import { sendEmployeeCredentials, sendDeclineEmail } from "@/lib/email";
+
+export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   const auth = await getAuthFromCookies();
@@ -91,11 +93,21 @@ export async function POST(req: NextRequest) {
       }
     }
   } else if (status === "Rejected" && review.type === "Hire Request" && review.applicant) {
-    // Move applicant back to Interview stage
+    // Move applicant to Rejected stage
     await prisma.applicant.update({
       where: { id: review.applicant.id },
-      data: { status: "Interview" }
+      data: { status: "Rejected" }
     }).catch(() => {});
+
+    try {
+      await sendDeclineEmail(
+        review.applicant.email,
+        review.applicant.fullName,
+        review.applicant.jobPosting?.title || "Role"
+      );
+    } catch (e) {
+      console.error("Failed to send rejection email:", e);
+    }
   }
 
   return NextResponse.json({ success: true });
