@@ -132,6 +132,10 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
     if (!CNIC_REGEX.test(form.cnic)) e.cnic = "Format: 12345-1234567-1";
     if (!form.city.trim()) e.city = "Required";
     setErrors(e);
+    if (!otpVerified) {
+      toast.error("Please verify your email to continue");
+      return false;
+    }
     return Object.keys(e).length === 0;
   };
 
@@ -146,8 +150,9 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
 
   const validateStep3 = () => {
     const e: typeof errors = {};
-    if (!cvFile) e.fullName = "CV is required"; // overload fullName error for generic toast or just toast
     if (!cvFile) {
+      e.cv = "CV is required";
+      setErrors(e);
       toast.error("Please upload your CV before continuing.");
       return false;
     }
@@ -167,16 +172,14 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
     try {
       const fd = new FormData();
       fd.append("postingId", posting.id);
-      fd.append("emailVerified", "true");
+      fd.append("emailVerified", otpVerified ? "true" : "false");
       Object.entries(form).forEach(([k, v]) => fd.append(k, String(v)));
       
       if (cvFile) fd.append("cv", cvFile);
       if (photoFile) fd.append("photo", photoFile);
 
-      setTimeout(() => {
-        setStatus("screening");
-        setStatusMsg("Received — our AI is reviewing your profile...");
-      }, 1500);
+      setStatus("screening");
+      setStatusMsg("Received — our AI is reviewing your profile...");
 
       const res = await fetch("/api/applications/submit", { method: "POST", body: fd });
       const data = await res.json();
@@ -202,7 +205,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
       try {
         const res = await fetch(`/api/applications/${appId}/status`);
         const data = await res.json();
-        if (data.status === "Shortlisted" || data.status === "InterviewInvited") {
+        if (data.status === "Shortlisted" || data.status === "InterviewInvited" || data.status === "Interview") {
           clearInterval(interval);
           setStatus("done");
           setStatusMsg("shortlisted");
@@ -215,7 +218,16 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
         }
       } catch { /* keep polling */ }
     }, 3000);
-    setTimeout(() => { clearInterval(interval); if (status === "screening") { setStatus("done"); setStatusMsg("reviewed"); } }, 120000);
+    setTimeout(() => { 
+      clearInterval(interval); 
+      setStatus(prev => {
+        if (prev === "screening") {
+          setTimeout(() => setStatusMsg("reviewed"), 0);
+          return "done";
+        }
+        return prev;
+      });
+    }, 120000);
   };
 
   if (!isLoaded) return <div style={{ minHeight: "100vh", background: "var(--bg-primary)" }} />;
@@ -240,7 +252,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg-primary)" }}>
       {/* Nav */}
-      <nav style={{ padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid var(--border)", background: "rgba(10,10,15,0.8)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 50 }}>
+      <nav className="flex-mobile-col" style={{ padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, borderBottom: "1px solid var(--border)", background: "rgba(10,10,15,0.8)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 50, minHeight: 70 }}>
         <Link href="/careers" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}>
           <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 32 }} />
         </Link>
@@ -266,7 +278,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
         </div>
 
         {/* Step indicator */}
-        <div style={{ display: "flex", gap: 8, marginBottom: 32, alignItems: "center" }}>
+        <div style={{ display: "flex", gap: 8, marginBottom: 32, alignItems: "center", flexWrap: "wrap" }}>
           {[1, 2, 3, 4].map((s) => (
             <div key={s} style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <div style={{ width: 28, height: 28, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, background: s <= step ? "var(--purple)" : "rgba(255,255,255,0.06)", color: s <= step ? "#fff" : "var(--text-muted)", transition: "all 0.3s" }}>{s}</div>
@@ -289,10 +301,31 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                   </Field>
                   
                   <Field label="Email Address" required error={errors.email}>
-                    <input className={`input${errors.email ? " input-error" : ""}`} type="email" value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="you@example.com" />
+                    <div style={{ display: "flex", gap: 10 }}>
+                      <input className={`input${errors.email ? " input-error" : ""}`} type="email" value={form.email} onChange={(e) => { set("email", e.target.value); setOtpSent(false); setOtpVerified(false); }} placeholder="you@example.com" disabled={otpVerified || otpSent} />
+                      {!otpVerified && (
+                        <button className="btn btn-secondary" onClick={sendOtp} disabled={otpLoading || otpSent || !form.email}>
+                          {otpLoading ? <Loader2 size={16} className="spinner" /> : otpSent ? "Sent" : "Verify"}
+                        </button>
+                      )}
+                    </div>
                   </Field>
+                  
+                  {otpSent && !otpVerified && (
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}>
+                      <Field label="Verification Code" required>
+                        <div style={{ display: "flex", gap: 10 }}>
+                          <input className="input" value={otpCode} onChange={e => setOtpCode(e.target.value)} placeholder="6-digit code" maxLength={6} />
+                          <button className="btn btn-primary" onClick={verifyOtp} disabled={otpLoading || otpCode.length < 6}>
+                            {otpLoading ? <Loader2 size={16} className="spinner" /> : "Confirm"}
+                          </button>
+                        </div>
+                      </Field>
+                    </motion.div>
+                  )}
 
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+
+                  <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                     <Field label="Phone Number" required error={errors.phone}>
                       <input className={`input${errors.phone ? " input-error" : ""}`} value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="03XX-XXXXXXX" />
                     </Field>
@@ -332,7 +365,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                   
                   {posting.universityRequired && (
                     <>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                      <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                         <Field label="University Name" required error={errors.universityName}>
                           <input className={`input${errors.universityName ? " input-error" : ""}`} value={form.universityName} onChange={(e) => set("universityName", e.target.value)} placeholder="University name" />
                         </Field>
@@ -343,7 +376,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                           </select>
                         </Field>
                       </div>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                      <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                         <Field label="Degree & Field of Study" required error={errors.degree}>
                           <input className={`input${errors.degree ? " input-error" : ""}`} value={form.degree} onChange={(e) => set("degree", e.target.value)} placeholder="e.g. BS Computer Science" />
                         </Field>
@@ -354,7 +387,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                     </>
                   )}
 
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                  <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                     <Field label="LinkedIn">
                       <input className="input" value={form.linkedIn} onChange={(e) => set("linkedIn", e.target.value)} placeholder="https://linkedin.com/in/..." />
                     </Field>
@@ -388,8 +421,14 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                             key={cert}
                             type="button"
                             onClick={() => {
-                              const current = form.certifications.split(",").map(s => s.trim()).filter(Boolean);
-                              const next = selected ? current.filter(c => c !== cert) : [...current, cert];
+                              let current = form.certifications.split(",").map(s => s.trim()).filter(Boolean);
+                              let next: string[] = [];
+                              if (cert === "None yet") {
+                                next = selected ? [] : ["None yet"];
+                              } else {
+                                current = current.filter(c => c !== "None yet");
+                                next = selected ? current.filter(c => c !== cert) : [...current, cert];
+                              }
                               set("certifications", next.join(", "));
                             }}
                             style={{
@@ -422,13 +461,21 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                 <div style={{ display: "grid", gap: 20 }}>
                   
                   {/* CV Upload */}
-                  <Field label="CV / Resume" required error={errors.fullName}>
+                  <Field label="CV / Resume" required error={errors.cv}>
                     <div
                       style={{ border: `2px dashed ${cvDrag ? "var(--purple)" : cvFile ? "var(--green)" : "var(--border)"}`, borderRadius: 8, padding: "24px", textAlign: "center", cursor: "pointer", transition: "all 0.2s", background: cvFile ? "rgba(34,197,94,0.04)" : "transparent" }}
                       onClick={() => cvRef.current?.click()}
                       onDragOver={(e) => { e.preventDefault(); setCvDrag(true); }}
                       onDragLeave={() => setCvDrag(false)}
-                      onDrop={(e) => { e.preventDefault(); setCvDrag(false); const f = e.dataTransfer.files[0]; if (f) setCvFile(f); }}
+                      onDrop={(e) => { 
+                        e.preventDefault(); setCvDrag(false); 
+                        const f = e.dataTransfer.files[0]; 
+                        if (f && ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(f.type) && f.size <= 5*1024*1024) {
+                          setCvFile(f); 
+                        } else if (f) {
+                          toast.error("Invalid CV format or size > 5MB");
+                        }
+                      }}
                     >
                       {cvFile ? (
                         <div style={{ display: "flex", alignItems: "center", gap: 10, justifyContent: "center" }}>
@@ -465,7 +512,15 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                       onClick={() => photoRef.current?.click()}
                       onDragOver={(e) => { e.preventDefault(); setPhotoDrag(true); }}
                       onDragLeave={() => setPhotoDrag(false)}
-                      onDrop={(e) => { e.preventDefault(); setPhotoDrag(false); const f = e.dataTransfer.files[0]; if (f) setPhotoFile(f); }}
+                      onDrop={(e) => { 
+                        e.preventDefault(); setPhotoDrag(false); 
+                        const f = e.dataTransfer.files[0]; 
+                        if (f && f.type.startsWith("image/") && f.size <= 2*1024*1024) {
+                          setPhotoFile(f); 
+                        } else if (f) {
+                          toast.error("Invalid photo format or size > 2MB");
+                        }
+                      }}
                     >
                       {photoFile ? (
                         <div style={{ display: "flex", alignItems: "center", gap: 10, justifyContent: "center" }}>

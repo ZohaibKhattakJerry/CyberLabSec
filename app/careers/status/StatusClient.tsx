@@ -39,12 +39,15 @@ export default function StatusClient() {
   };
 
   const getPipeline = (status: string) => {
-    const stages = [
+    let stages = [
       { id: "Applied", label: "Received", active: true },
-      { id: "Reviewing", label: "Under Review", active: ["Reviewing", "Screening", "Shortlisted", "InterviewInvited", "Interview Completed", "Final Approval", "Offer", "Hired"].includes(status) },
+      { id: "Reviewing", label: "Under Review", active: ["Reviewing", "Screening", "Shortlisted", "InterviewInvited", "Interview Completed", "Final Approval", "Offer", "Hired", "Rejected"].includes(status) },
       { id: "Interview", label: "Interview", active: ["Shortlisted", "InterviewInvited", "Interview Completed", "Final Approval", "Offer", "Hired"].includes(status) },
       { id: "Decision", label: "Decision", active: ["Rejected", "Hired", "Offer", "Final Approval", "Interview Completed"].includes(status) && status !== "Shortlisted" && status !== "InterviewInvited" }
     ];
+    if (status === "Rejected") {
+      stages = stages.filter(s => s.id !== "Interview" || s.active);
+    }
     return stages;
   };
 
@@ -60,7 +63,7 @@ export default function StatusClient() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
           <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 48, objectFit: "contain" }} />
         </div>
-        <div style={{ width: 100 }} />
+        <div className="hide-mobile" style={{ width: 100 }} />
       </nav>
 
       <div style={{ maxWidth: 640, margin: "0 auto", padding: "60px 24px" }}>
@@ -70,7 +73,7 @@ export default function StatusClient() {
         </div>
 
         <div className="card" style={{ padding: 32 }}>
-          <form onSubmit={handleCheck} style={{ display: "flex", gap: 12 }}>
+          <form className="flex-mobile-col" onSubmit={handleCheck} style={{ display: "flex", gap: 12 }}>
             <div style={{ position: "relative", flex: 1 }}>
               <Search size={18} style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />
               <input
@@ -111,30 +114,32 @@ export default function StatusClient() {
                   <div style={{ marginTop: 32 }}>
                     <h3 style={{ fontSize: 14, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 20 }}>Current Status</h3>
                     
-                    <div style={{ position: "relative", display: "flex", justifyContent: "space-between", paddingBottom: 20 }}>
-                      <div style={{ position: "absolute", top: 12, left: 24, right: 24, height: 2, background: "var(--border)", zIndex: 0 }} />
-                      
-                      {getPipeline(data.status).map((stage, i) => {
-                        const isDecision = stage.id === "Decision";
-                        const showRejected = isDecision && isRejected;
-                        return (
-                          <div key={stage.id} style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 12, width: 80 }}>
-                            <div style={{ 
-                              width: 24, height: 24, borderRadius: "50%", 
-                              background: showRejected ? "var(--amber)" : stage.active ? "var(--purple)" : "var(--bg-primary)",
-                              border: `2px solid ${showRejected ? "var(--amber)" : stage.active ? "var(--purple)" : "var(--border)"}`,
-                              display: "flex", alignItems: "center", justifyContent: "center",
-                              boxShadow: stage.active ? "0 0 12px rgba(168,85,247,0.3)" : "none",
-                              color: "var(--bg-primary)"
-                            }}>
-                              {stage.active && <CheckCircle size={14} strokeWidth={3} />}
+                    <div style={{ overflowX: "auto", paddingBottom: 20 }}>
+                      <div style={{ position: "relative", display: "flex", justifyContent: "space-between", minWidth: 320 }}>
+                        <div style={{ position: "absolute", top: 12, left: 24, right: 24, height: 2, background: "var(--border)", zIndex: 0 }} />
+                        
+                        {getPipeline(data.status).map((stage, i) => {
+                          const isDecision = stage.id === "Decision";
+                          const showRejected = isDecision && isRejected;
+                          return (
+                            <div key={stage.id} style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 12, width: 80 }}>
+                              <div style={{ 
+                                width: 24, height: 24, borderRadius: "50%", 
+                                background: showRejected ? "var(--amber)" : stage.active ? "var(--purple)" : "var(--bg-primary)",
+                                border: `2px solid ${showRejected ? "var(--amber)" : stage.active ? "var(--purple)" : "var(--border)"}`,
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                boxShadow: stage.active ? "0 0 12px rgba(168,85,247,0.3)" : "none",
+                                color: "var(--bg-primary)"
+                              }}>
+                                {stage.active && <CheckCircle size={14} strokeWidth={3} />}
+                              </div>
+                              <span style={{ fontSize: 12, fontWeight: stage.active ? 600 : 400, color: showRejected ? "var(--amber)" : stage.active ? "var(--text-primary)" : "var(--text-muted)", textAlign: "center" }}>
+                                {showRejected ? "Not Selected" : stage.label}
+                              </span>
                             </div>
-                            <span style={{ fontSize: 12, fontWeight: stage.active ? 600 : 400, color: showRejected ? "var(--amber)" : stage.active ? "var(--text-primary)" : "var(--text-muted)", textAlign: "center" }}>
-                              {showRejected ? "Not Selected" : stage.label}
-                            </span>
-                          </div>
-                        )
-                      })}
+                          )
+                        })}
+                      </div>
                     </div>
                   </div>
 

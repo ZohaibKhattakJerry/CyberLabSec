@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {
   title: "Careers — CyberLabSec",
@@ -19,5 +20,17 @@ export default function CareersLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      <Toaster position="top-center" toastOptions={{
+        className: 'toast-error',
+        style: {
+          background: "var(--bg-card)",
+          border: "1px solid var(--border-accent)",
+          color: "var(--text-primary)",
+        }
+      }} />
+    </>
+  );
 }

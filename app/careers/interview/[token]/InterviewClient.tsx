@@ -47,11 +47,21 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
   // Timer per question
   useEffect(() => {
     if (phase !== "interview") return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setTimeLeft(questions[currentQ]?.type === "open" ? 180 : 60);
+    const storageKey = `timer_${sessionId}_${currentQ}`;
+    const savedEnd = localStorage.getItem(storageKey);
+    const duration = questions[currentQ]?.type === "open" ? 180 : 60;
+    
+    if (savedEnd) {
+      const remaining = Math.max(0, Math.floor((parseInt(savedEnd) - Date.now()) / 1000));
+      setTimeLeft(remaining);
+    } else {
+      setTimeLeft(duration);
+      localStorage.setItem(storageKey, String(Date.now() + duration * 1000));
+    }
+    
     // eslint-disable-next-line react-hooks/purity
-    answerStartTime.current = Date.now();
-  }, [currentQ, phase, questions]);
+    answerStartTime.current = Date.now() + 3000; // Delay by 3s to prevent false positives on early keystrokes
+  }, [currentQ, phase, questions, sessionId]);
 
   useEffect(() => {
     if (phase !== "interview") return;
@@ -330,7 +340,7 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
                 padding: "10px 20px", fontSize: 13, fontWeight: 600,
                 color: "#fbbf24", backdropFilter: "blur(12px)",
                 boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
-                whiteSpace: "nowrap",
+                maxWidth: "90vw", textAlign: "center",
               }}
             >
               ⚠️ Tab switch detected. This is logged and reviewed.
@@ -339,13 +349,13 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
         </AnimatePresence>
 
         {/* Interview header */}
-        <div style={{ borderBottom: "1px solid var(--border)", padding: "0 24px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--bg-secondary)", position: "sticky", top: 0, zIndex: 50 }}>
+        <div className="flex-mobile-col" style={{ borderBottom: "1px solid var(--border)", padding: "12px 24px", minHeight: 56, height: "auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, background: "var(--bg-secondary)", position: "sticky", top: 0, zIndex: 50 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 24, objectFit: "contain" }} />
             <div style={{ height: 16, width: 1, background: "var(--border)" }} />
-            <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-secondary)" }}>Active Session</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-secondary)", whiteSpace: "nowrap" }}>Active Session</span>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", justifyContent: "flex-end" }}>
             {/* Feature 3: Integrity counter */}
             {tabSwitches > 0 && (
               <span style={{
@@ -551,7 +561,7 @@ function IntroPhase({ applicantName, jobTitle, questions, attempts, maxAttempts,
         <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 12, letterSpacing: "-0.02em", color: "var(--text-primary)" }}>Welcome, {applicantName.split(" ")[0]}</h1>
         <p style={{ color: "var(--text-secondary)", marginBottom: 36, fontSize: 15, lineHeight: 1.6 }}>You are about to begin your technical interview for the <strong style={{ color: "var(--text-primary)", fontWeight: 600 }}>{jobTitle}</strong> position.</p>
         
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 32 }}>
+        <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 32 }}>
           <div style={{ padding: 16, background: "rgba(255,255,255,0.02)", borderRadius: 12, border: "1px solid var(--border-subtle)", display: "flex", alignItems: "flex-start", gap: 12 }}>
             <div style={{ color: "var(--purple)", marginTop: 2 }}><ClipboardList size={20} /></div>
             <div>
@@ -588,7 +598,7 @@ function IntroPhase({ applicantName, jobTitle, questions, attempts, maxAttempts,
         </div>
 
         <label style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 32, cursor: "pointer", padding: "12px 0" }}>
-          <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} style={{ marginTop: 3, width: 18, height: 18, accentColor: "var(--purple)", cursor: "pointer" }} />
+          <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} style={{ width: 18, height: 18, accentColor: "var(--purple)", cursor: "pointer", flexShrink: 0, marginTop: 2 }} />
           <span style={{ fontSize: 14, color: "var(--text-secondary)", lineHeight: 1.5, userSelect: "none" }}>
             I agree to complete this assessment independently without external aids, and acknowledge that my browser interactions are monitored for integrity.
           </span>

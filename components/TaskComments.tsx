@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Send, Loader2, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Comment {
   id: string;
@@ -62,11 +63,17 @@ export default function TaskComments({ taskId, initialComments, currentUserId, c
         {comments.length === 0 && (
           <p style={{ fontSize: 13, color: "var(--text-muted)", padding: "10px 0" }}>No comments yet. Start the conversation.</p>
         )}
+        <AnimatePresence>
         {comments.map((c) => {
           const isMe = c.authorId === currentUserId;
           const isAdmin = c.authorRole === "admin";
           return (
-            <div key={c.id} style={{ display: "flex", gap: 10, alignItems: "flex-start", flexDirection: isMe ? "row-reverse" : "row" }}>
+            <motion.div 
+              key={c.id} 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              style={{ display: "flex", gap: 10, alignItems: "flex-start", flexDirection: isMe ? "row-reverse" : "row" }}
+            >
               {/* Avatar */}
               <div style={{
                 width: 32, height: 32, borderRadius: "50%", flexShrink: 0,
@@ -94,9 +101,10 @@ export default function TaskComments({ taskId, initialComments, currentUserId, c
                   {c.text}
                 </div>
               </div>
-            </div>
+            </motion.div>
           );
         })}
+        </AnimatePresence>
       </div>
 
       {/* Input */}
@@ -115,7 +123,7 @@ export default function TaskComments({ taskId, initialComments, currentUserId, c
           onClick={submit}
           disabled={loading || !text.trim()}
         >
-          {loading ? <Loader2 size={14} className="spin" /> : <Send size={14} />}
+          {loading ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
           Send
         </button>
       </div>

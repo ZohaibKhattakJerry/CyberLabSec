@@ -7,7 +7,8 @@ export default function StartTaskButton({ taskId }: { taskId: string }) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const start = async () => {
+  const start = async (e: React.MouseEvent) => {
+    e.preventDefault();
     setLoading(true);
     await fetch(`/api/employee/tasks/${taskId}/start`, { method: "PATCH" });
     setLoading(false);

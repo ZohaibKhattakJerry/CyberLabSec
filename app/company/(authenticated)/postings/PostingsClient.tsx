@@ -51,6 +51,7 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
 
   const handleSave = async (saveAsDraft = false) => {
     if (!form.title || !form.department || !form.deadline) { setMsg("Title, department and deadline are required."); return; }
+    if (!form.description.trim() || !form.requirements.trim()) { setMsg("Job description and requirements are required."); return; }
     setLoading(true); setMsg("");
     
     const payload = { ...form, status: saveAsDraft ? "Draft" : (form.status === "Draft" ? "Published" : form.status) };
@@ -85,7 +86,7 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+      <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24, gap: 16 }}>
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 4 }}>Job Postings</h1>
           <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>{postings.length} postings</p>
@@ -101,14 +102,14 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
       ) : (
         <div style={{ display: "grid", gap: 14 }}>
           {postings.map((p: any) => (
-            <div key={p.id} className="card" style={{ padding: 22, display: "flex", alignItems: "center", gap: 16 }}>
+            <div key={p.id} className="card flex-mobile-col" style={{ padding: 22, display: "flex", alignItems: "flex-start", gap: 16 }}>
               <div style={{ flex: 1 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
                   <h3 style={{ fontSize: 15, fontWeight: 700 }}>{p.title}</h3>
                   <span className={`badge ${p.status === "Published" ? "badge-green" : p.status === "Draft" ? "badge-gray" : "badge-amber"}`}>{p.status}</span>
                   <span className={`badge ${p.type === "Job" ? "badge-blue" : "badge-purple"}`}>{p.type}</span>
                 </div>
-                <div style={{ fontSize: 12, color: "var(--text-muted)", display: "flex", gap: 16 }}>
+                <div style={{ fontSize: 12, color: "var(--text-muted)", display: "flex", gap: 16, flexWrap: "wrap", marginTop: 8 }}>
                   <span>{p.department}</span>
                   <span>{p.location}</span>
                   <span style={{ display: "flex", alignItems: "center", gap: 4 }}><Users size={11} /> {p._count.applicants} applicants</span>
@@ -139,7 +140,7 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
               <h2 style={{ fontSize: 16, fontWeight: 700 }}>{editPosting ? "Edit Posting" : "New Job Posting"}</h2>
               <button onClick={() => setShowForm(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}><X size={18} /></button>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+            <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
               <div style={{ gridColumn: "1/-1" }}>
                 <h3 style={{ fontSize: 14, fontWeight: 600, color: "var(--purple)", marginBottom: 12, borderBottom: "1px solid var(--border)", paddingBottom: 8 }}>Basic Information</h3>
               </div>

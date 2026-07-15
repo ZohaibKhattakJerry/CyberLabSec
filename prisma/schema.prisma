@@ -135,6 +135,8 @@ model Employee {
   skills               String                    @default("[]")
   offboardedAt         DateTime?
   offboardReason       String?
+  customCertificateUrl String?
+  customLorUrl         String?
   points               Int                       @default(0)
   monthlyPoints        Int                       @default(0)
   applicantId          String?                   @unique

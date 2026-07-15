@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Bell, Check, Circle } from "lucide-react";
+import { Bell, Check, Circle, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 
@@ -19,6 +19,8 @@ export default function NotificationBell({ role }: { role: "admin" | "employee" 
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -43,8 +45,15 @@ export default function NotificationBell({ role }: { role: "admin" | "employee" 
         const data = await res.json();
         setNotifications(data.notifications);
         setUnreadCount(data.notifications.filter((n: Notification) => !n.read).length);
+        setError(false);
+      } else {
+        setError(true);
       }
-    } catch (err) {}
+    } catch (err) {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const markAsRead = async (id: string) => {
@@ -88,7 +97,15 @@ export default function NotificationBell({ role }: { role: "admin" | "employee" 
           </div>
           
           <div style={{ overflowY: "auto", flex: 1, padding: "8px 0" }}>
-            {notifications.length === 0 ? (
+            {loading ? (
+              <div style={{ padding: 32, textAlign: "center", color: "var(--text-muted)", display: "flex", justifyContent: "center" }}>
+                <Loader2 className="animate-spin" size={20} />
+              </div>
+            ) : error ? (
+              <div style={{ padding: 32, textAlign: "center", color: "var(--red)", fontSize: 13 }}>
+                Failed to load notifications.
+              </div>
+            ) : notifications.length === 0 ? (
               <div style={{ padding: 32, textAlign: "center", color: "var(--text-muted)", fontSize: 13 }}>
                 You have no notifications.
               </div>

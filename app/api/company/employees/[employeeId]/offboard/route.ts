@@ -2,15 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthFromCookies } from "@/lib/auth";
 
-export async function POST(req: NextRequest, { params }: { params: { employeeId: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ employeeId: string }> }) {
   const auth = await getAuthFromCookies();
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const { reason, effectiveDate, generateCertificate, generateLoR } = await req.json();
+  const resolvedParams = await params;
+  const employeeId = resolvedParams.employeeId;
+
+  const { reason, effectiveDate, generateCertificate, generateLoR, customCertificateBase64, customLorBase64 } = await req.json();
   if (!reason || !effectiveDate) return NextResponse.json({ error: "Reason and effective date required" }, { status: 400 });
 
   const employee = await prisma.employee.findUnique({
-    where: { id: params.employeeId },
+    where: { id: employeeId },
     include: { team: true },
   });
   if (!employee) return NextResponse.json({ error: "Employee not found" }, { status: 404 });
@@ -19,10 +22,12 @@ export async function POST(req: NextRequest, { params }: { params: { employeeId:
   const isImmediate = effectiveDateObj <= new Date();
 
   await prisma.employee.update({
-    where: { id: params.employeeId },
+    where: { id: employeeId },
     data: {
       offboardedAt: effectiveDateObj,
       offboardReason: reason,
+      customCertificateUrl: customCertificateBase64 || null,
+      customLorUrl: customLorBase64 || null,
       ...(isImmediate ? { status: "Inactive" } : {}),
     },
   });
@@ -32,9 +37,9 @@ export async function POST(req: NextRequest, { params }: { params: { employeeId:
       actorId: auth.sub,
       actorType: "Admin",
       action: "EMPLOYEE_OFFBOARDED",
-      metadata: JSON.stringify({ employeeId: params.employeeId, employeeName: employee.name, reason, effectiveDate, isImmediate }),
+      metadata: JSON.stringify({ employeeId, employeeName: employee.name, reason, effectiveDate, isImmediate }),
     },
   }).catch(() => {});
 
-  return NextResponse.json({ success: true, isImmediate, employeeId: params.employeeId });
+  return NextResponse.json({ success: true, isImmediate, employeeId });
 }

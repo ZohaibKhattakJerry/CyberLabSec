@@ -25,7 +25,7 @@ type Applicant = {
 
 type Posting = { id: string; title: string };
 
-const PIPELINE_STAGES = ["Applied", "Screening", "Interview", "Offer", "Hired", "Rejected", "Withdrawn"];
+const PIPELINE_STAGES = ["Applied", "Screening", "Interview", "Final Approval", "Offer", "Hired", "Rejected", "Withdrawn"];
 const STATUS_NORMALIZE: Record<string, string> = {
   // Legacy values
   "INTERVIEWINVITED": "Interview",
@@ -48,7 +48,7 @@ const STATUS_NORMALIZE: Record<string, string> = {
 };
 const STATUS_COLORS: Record<string, string> = {
   Applied: "badge-gray", Screening: "badge-amber", Interview: "badge-purple",
-  Offer: "badge-blue", Hired: "badge-green", Rejected: "badge-red", Withdrawn: "badge-gray",
+  "Final Approval": "badge-blue", Offer: "badge-green", Hired: "badge-green", Rejected: "badge-red", Withdrawn: "badge-gray",
 };
 
 export default function ApplicationsClient({ applicants, postings }: { applicants: Applicant[]; postings: Posting[] }) {
@@ -91,6 +91,21 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
     
     setActionMsg(`Successfully ${action === "reject" ? "rejected" : "deleted"} ${selectedIds.length} application(s).`);
     setSelectedIds([]);
+    startTransition(() => { router.refresh(); });
+  };
+
+  const handleSingleDelete = async (id: string) => {
+    if (!confirm(`Are you sure you want to completely delete this application? This cannot be undone.`)) return;
+    setActionLoading(true); setActionMsg("");
+    const res = await fetch("/api/company/applications/bulk", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "delete", applicantIds: [id] }),
+    });
+    const data = await res.json();
+    setActionLoading(false);
+    if (!res.ok) { setActionMsg(data.error || "Failed"); return; }
+    setSelected(null);
     startTransition(() => { router.refresh(); });
   };
 
@@ -172,6 +187,8 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                   <div key={a.id} className={`card ${selectedIds.includes(a.id) ? 'selected' : ''}`} style={{ padding: 16, cursor: "pointer", transition: "transform 0.1s", position: "relative", border: selectedIds.includes(a.id) ? "1px solid var(--purple)" : "1px solid var(--border)" }} onClick={(e) => {
                     if ((e.target as HTMLElement).closest('.checkbox-container')) return;
                     setSelected(a);
+                    setNotesDraft(a.privateNotes || "");
+                    setRatingDraft(a.internalRating || 0);
                   }}>
                     <div className="checkbox-container" style={{ position: "absolute", top: 12, right: 12 }}>
                       <input type="checkbox" checked={selectedIds.includes(a.id)} onChange={() => toggleSelect(a.id)} style={{ width: 16, height: 16, accentColor: "var(--purple)", cursor: "pointer" }} />
@@ -234,7 +251,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                 <td data-label="Stage"><span className={`badge ${STATUS_COLORS[a.status] || "badge-gray"}`}>{a.status}</span></td>
                 <td data-label="Applied" style={{ fontSize: 12, color: "var(--text-muted)" }}>{format(new Date(a.createdAt), "MMM d, yyyy")}</td>
                 <td data-label="Actions">
-                  <button className="btn btn-ghost btn-sm" onClick={() => setSelected(a)}><Eye size={13} /> View</button>
+                  <button className="btn btn-ghost btn-sm" onClick={() => { setSelected(a); setNotesDraft(a.privateNotes || ""); setRatingDraft(a.internalRating || 0); }}><Eye size={13} /> View</button>
                 </td>
               </tr>
             ))}
@@ -246,7 +263,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
 
   return (
     <div>
-      <div style={{ marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+      <div className="flex-mobile-col" style={{ marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 16 }}>
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 4 }}>Applications Pipeline</h1>
           <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>{applicants.length} total applications</p>
@@ -293,7 +310,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
       {selected && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
           <div className="card" style={{ maxWidth: 700, width: "100%", padding: 32, maxHeight: "90vh", overflowY: "auto" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
+            <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24, gap: 16 }}>
               <div>
                 <h2 style={{ fontSize: 20, fontWeight: 800 }}>{selected.fullName}</h2>
                 <p style={{ fontSize: 13, color: "var(--text-muted)" }}>{selected.email} · {selected.phone}</p>
@@ -323,7 +340,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
               })}
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 24 }}>
+            <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 24 }}>
               <div style={{ padding: "12px", background: "rgba(255,255,255,0.02)", borderRadius: 8 }}>
                 <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 3 }}>Position</div>
                 <div style={{ fontSize: 14, fontWeight: 500 }}>{selected.jobPosting.title}</div>
@@ -336,7 +353,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
 
             <div style={{ marginBottom: 24, padding: "16px", background: "rgba(255,255,255,0.02)", borderRadius: 8, border: "1px solid var(--border-subtle)" }}>
               <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, color: "var(--text-muted)", textTransform: "uppercase" }}>Candidate Profile</h3>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, fontSize: 13, color: "var(--text-secondary)" }}>
+              <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, fontSize: 13, color: "var(--text-secondary)" }}>
                 {selected.city && <div><strong>City:</strong> {selected.city}</div>}
                 {selected.universityName && <div><strong>University:</strong> {selected.universityName}</div>}
                 {selected.linkedIn && <div><strong>LinkedIn:</strong> <a href={selected.linkedIn} target="_blank" rel="noopener noreferrer" style={{ color: "var(--purple)" }}>View Profile</a></div>}
@@ -369,7 +386,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
               </div>
             )}
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 24 }}>
+            <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 24 }}>
               <div style={{ padding: "12px", background: "rgba(255,255,255,0.02)", borderRadius: 8 }}>
                 <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 4 }}>AI Screening Score</div>
                 <div style={{ fontSize: 16, fontWeight: 700, color: selected.fitScore !== null && selected.fitScore >= 70 ? "var(--green)" : "var(--amber)" }}>{selected.fitScore ?? "—"}%</div>
@@ -459,7 +476,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                 className="input"
                 placeholder="Private notes (only visible to admins)…"
                 style={{ minHeight: 80, fontSize: 13, resize: "vertical", marginBottom: 8 }}
-                value={notesDraft || selected.privateNotes || ""}
+                value={notesDraft}
                 onChange={(e) => setNotesDraft(e.target.value)}
               />
               <button
@@ -480,7 +497,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
             )}
 
             <div style={{ display: "flex", flexWrap: "wrap", gap: 12, borderTop: "1px solid var(--border-subtle)", paddingTop: 20 }}>
-              {selected.status === "Offer" && (
+              {(selected.status === "Final Approval" || selected.status === "Interview" || selected.status === "Offer") && (
                 <button className="btn btn-primary" onClick={() => hireApplicant(selected.id)} disabled={actionLoading}>
                   {actionLoading ? <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> : <UserCheck size={14} />}
                   Hire & Request CEO Approval
@@ -493,9 +510,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                 className="btn btn-danger" 
                 style={{ marginLeft: "auto" }}
                 onClick={() => {
-                  setSelectedIds([selected.id]);
-                  handleBulkAction("delete");
-                  setSelected(null);
+                  handleSingleDelete(selected.id);
                 }}
                 disabled={actionLoading}
               >

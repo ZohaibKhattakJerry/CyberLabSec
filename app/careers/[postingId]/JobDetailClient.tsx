@@ -73,6 +73,7 @@ export default function JobDetailClient({ posting }: { posting: Posting }) {
     <div style={{ minHeight: "100vh", background: "var(--bg-primary)" }}>
       {/* Sticky Nav */}
       <nav
+        className="job-detail-nav"
         style={{
           borderBottom: "1px solid var(--border)",
           padding: "0 24px",
@@ -100,7 +101,7 @@ export default function JobDetailClient({ posting }: { posting: Posting }) {
             whiteSpace: "nowrap",
           }}
         >
-          <ChevronLeft size={16} /> Careers
+          <ChevronLeft size={16} /> <span className="hide-mobile-text">Careers</span>
         </Link>
         <img src="/logo.png" alt="CyberLabSec" style={{ height: 44, objectFit: "contain" }} />
         <div style={{ display: "flex", gap: 8 }}>
@@ -116,7 +117,7 @@ export default function JobDetailClient({ posting }: { posting: Posting }) {
         </div>
       </nav>
 
-      <div style={{ maxWidth: 840, margin: "0 auto", padding: "48px 24px 120px" }}>
+      <div className="job-detail-content" style={{ maxWidth: 840, margin: "0 auto", padding: "48px 24px 120px" }}>
 
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
@@ -319,6 +320,7 @@ export default function JobDetailClient({ posting }: { posting: Posting }) {
 
       {/* Sticky Apply Bar */}
       <div
+        className="job-detail-apply-bar"
         style={{
           position: "fixed",
           bottom: 0,

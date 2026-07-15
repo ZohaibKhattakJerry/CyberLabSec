@@ -119,7 +119,7 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
       </div>
 
       {/* Charts Row */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+      <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
         <div className="card" style={{ padding: 18 }}>
           <h2 style={{ fontSize: 13, fontWeight: 700, marginBottom: 14, display: "flex", alignItems: "center", gap: 6 }}>
             <Activity size={14} color="var(--purple)" /> Tasks by Status
@@ -175,7 +175,7 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
       </div>
 
       {/* Top Performers + Recent Activity */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1.6fr", gap: 14 }}>
+      <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1.6fr", gap: 14 }}>
         <div className="card" style={{ padding: 18 }}>
           <h2 style={{ fontSize: 13, fontWeight: 700, marginBottom: 14 }}>Top Performers (Month)</h2>
           {topEmployees.length === 0 ? (

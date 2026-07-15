@@ -39,9 +39,12 @@ export default function PortalLayout({ children, employee }: { children: React.R
     <aside className={`sidebar ${mobileOpen ? "mobile-open" : ""}`}>
       {/* Brand */}
       <div style={{ padding: "20px 20px 16px", borderBottom: "1px solid var(--border)" }}>
-        <Link href="/employee/dashboard" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
+        <Link href="/employee/dashboard" style={{ display: "flex", alignItems: "center", textDecoration: "none", flex: 1 }}>
           <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 32, objectFit: "contain" }} />
         </Link>
+        <button className="show-mobile" onClick={() => setMobileOpen(false)} style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer", padding: 4 }}>
+          <X size={20} />
+        </button>
       </div>
 
       {/* Employee info */}
@@ -109,7 +112,7 @@ export default function PortalLayout({ children, employee }: { children: React.R
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
-          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 99, backdropFilter: "blur(4px)" }}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 99, backdropFilter: "blur(8px)" }}
           onClick={() => setMobileOpen(false)}
         />
       )}

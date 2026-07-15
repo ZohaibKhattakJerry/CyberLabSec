@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthFromCookies } from "@/lib/auth";
+import { sendEmail } from "@/lib/email";
 
 export async function PATCH(
   req: NextRequest,
@@ -20,6 +21,27 @@ export async function PATCH(
     data: { status },
     include: { jobPosting: true, interviewSession: { select: { token: true } } }
   });
+
+  if (status !== "Applied" && status !== "Hired") {
+    await sendEmail({
+      to: updated.email,
+      subject: `Update on your application for ${updated.jobPosting.title}`,
+      html: `
+        <div>
+          <h2 style="font-size: 24px; font-weight: 800; color: #f4f4f5; margin: 0 0 16px 0;">Application Status Update</h2>
+          <p style="color: #a1a1aa; font-size: 15px; line-height: 1.7; margin: 0 0 16px 0;">Hi ${updated.fullName.split(" ")[0]},</p>
+          <p style="color: #a1a1aa; font-size: 15px; line-height: 1.7; margin: 0 0 16px 0;">Your application for <strong style="color: #f4f4f5;">${updated.jobPosting.title}</strong> has moved to a new stage.</p>
+          
+          <div style="background: rgba(168,85,247,0.06); border: 1px solid rgba(168,85,247,0.2); border-radius: 10px; padding: 20px 24px; margin: 24px 0;">
+            <p style="color: #f4f4f5; font-size: 14px; font-weight: 600; margin: 0 0 8px 0;">Current Status</p>
+            <p style="color: #a1a1aa; font-size: 13px; margin: 0; line-height: 1.6;"><strong style="color: #a855f7;">${status}</strong></p>
+          </div>
+          
+          <p style="color: #a1a1aa; font-size: 15px; line-height: 1.7; margin: 0;">Our team is reviewing your profile and will be in touch with next steps soon.</p>
+        </div>
+      `
+    }).catch(e => console.error("Failed to send status email:", e));
+  }
 
   // Trigger templated emails based on new stage
   if (status === "Rejected") {

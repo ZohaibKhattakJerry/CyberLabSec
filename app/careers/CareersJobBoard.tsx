@@ -303,16 +303,16 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 32px" }}>
         {postings.length > 3 && (
           <div
+            className="flex-mobile-col"
             style={{
               display: "flex",
               gap: 12,
-              flexWrap: "wrap",
               alignItems: "center",
               marginBottom: 32,
             }}
           >
             {/* Search */}
-            <div style={{ position: "relative", flex: 1, minWidth: 240 }}>
+            <div style={{ position: "relative", flex: 1, width: "100%" }}>
               <Search
                 size={16}
                 style={{
@@ -333,12 +333,13 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
             </div>
 
             {/* Type filter */}
-            <div style={{ display: "flex", gap: 8 }}>
+            <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4 }}>
               {(["All", "Job", "Internship"] as const).map((t) => (
                 <button
                   key={t}
                   onClick={() => setTypeFilter(t)}
                   className={typeFilter === t ? "btn btn-primary btn-sm" : "btn btn-secondary btn-sm"}
+                  style={{ flexShrink: 0 }}
                 >
                   {t === "Internship" ? <GraduationCap size={14} /> : <Filter size={14} />}
                   {t}
@@ -386,21 +387,27 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
             )}
           </motion.div>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <motion.div layout style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <AnimatePresence mode="popLayout">
             {filtered.map((posting, i) => {
               const days = daysUntilDeadline(posting.deadline);
               const postedDays = daysSincePublished(posting.publishedDate);
               const isUrgent = days <= 7;
 
               return (
-                <Link key={posting.id} href={`/careers/${posting.id}`} style={{ textDecoration: 'none' }}>
-                  <motion.article
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: i * 0.05 }}
-                    className="card card-hover"
-                    style={{ cursor: "pointer" }}
-                  >
+                <motion.div
+                  key={posting.id}
+                  layout
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+                  transition={{ duration: 0.4, delay: i * 0.05 }}
+                >
+                  <Link href={`/careers/${posting.id}`} style={{ textDecoration: 'none', display: 'block' }}>
+                    <article
+                      className="card card-hover"
+                      style={{ cursor: "pointer" }}
+                    >
                     <div style={{ padding: "20px 24px" }}>
                       <div
                         style={{
@@ -410,6 +417,7 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
                           gap: 16,
                           flexWrap: "wrap",
                         }}
+                        className="flex-mobile-col"
                       >
                       {/* Left: Info */}
                       <div style={{ flex: 1, minWidth: 0 }}>
@@ -515,11 +523,13 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
                       </div>
                     </div>
                   </div>
-                </motion.article>
+                </article>
               </Link>
+                </motion.div>
               );
             })}
-          </div>
+            </AnimatePresence>
+          </motion.div>
         )}
       </div>
 

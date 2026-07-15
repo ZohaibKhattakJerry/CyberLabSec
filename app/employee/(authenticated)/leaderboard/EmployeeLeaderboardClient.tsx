@@ -313,6 +313,7 @@ export default function EmployeeLeaderboardClient({
                   flexDirection: "column",
                   alignItems: "center",
                   flex: 1,
+                  minWidth: 0,
                   maxWidth: 140,
                 }}
               >
@@ -347,6 +348,10 @@ export default function EmployeeLeaderboardClient({
                     color: isMe ? "var(--purple)" : "var(--text-primary)",
                     textAlign: "center",
                     marginBottom: 2,
+                    width: "100%",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
                   }}
                 >
                   {emp.name.split(" ")[0]}

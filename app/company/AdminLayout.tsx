@@ -39,11 +39,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Sidebar */}
       <aside className={`sidebar ${mobileOpen ? "mobile-open" : ""}`}>
         {/* Brand */}
-        <div style={{ padding: "20px 20px 16px", borderBottom: "1px solid var(--border)" }}>
-          <Link href="/company/dashboard" style={{ display: "flex", alignItems: "center", textDecoration: "none", gap: 10 }}>
-            <img src="/logo.png" alt="CyberLabSec" style={{ height: 32, objectFit: "contain" }} />
-          </Link>
-          <div style={{ marginTop: 6, fontSize: 11, color: "var(--text-muted)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>Company Console</div>
+        <div style={{ padding: "20px 20px 16px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+          <div>
+            <Link href="/company/dashboard" style={{ display: "flex", alignItems: "center", textDecoration: "none", gap: 10 }}>
+              <img src="/logo.png" alt="CyberLabSec" style={{ height: 32, objectFit: "contain" }} />
+            </Link>
+            <div style={{ marginTop: 6, fontSize: 11, color: "var(--text-muted)", fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>Company Console</div>
+          </div>
+          <button className="show-mobile" onClick={() => setMobileOpen(false)} style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer", padding: 4 }}>
+            <X size={20} />
+          </button>
         </div>
 
         {/* Nav */}
@@ -82,7 +87,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
-          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 99 }}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 99, backdropFilter: "blur(8px)" }}
           onClick={() => setMobileOpen(false)}
         />
       )}

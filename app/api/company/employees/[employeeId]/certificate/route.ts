@@ -2,15 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthFromCookies } from "@/lib/auth";
 
-export async function GET(req: NextRequest, { params }: { params: { employeeId: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ employeeId: string }> }) {
   const auth = await getAuthFromCookies();
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   
   const { searchParams } = new URL(req.url);
   const type = searchParams.get("type") || "completion"; // "completion" | "lor"
 
+  const resolvedParams = await params;
+  const employeeId = resolvedParams.employeeId;
+
   const employee = await prisma.employee.findUnique({
-    where: { id: params.employeeId },
+    where: { id: employeeId },
     include: { team: true }
   });
   if (!employee) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -21,6 +24,34 @@ export async function GET(req: NextRequest, { params }: { params: { employeeId: 
 
   let html = "";
   
+  if (type === "completion" && employee.customCertificateUrl) {
+    const dataUri = employee.customCertificateUrl;
+    const mimeMatch = dataUri.match(/^data:(.*?);base64,(.*)$/);
+    if (mimeMatch) {
+      const buffer = Buffer.from(mimeMatch[2], "base64");
+      return new NextResponse(buffer, {
+        headers: {
+          "Content-Type": mimeMatch[1],
+          "Content-Disposition": `inline; filename="Certificate_${employee.name.replace(/\s+/g, '_')}.${mimeMatch[1].split('/')[1] || 'pdf'}"`
+        }
+      });
+    }
+  }
+
+  if (type === "lor" && employee.customLorUrl) {
+    const dataUri = employee.customLorUrl;
+    const mimeMatch = dataUri.match(/^data:(.*?);base64,(.*)$/);
+    if (mimeMatch) {
+      const buffer = Buffer.from(mimeMatch[2], "base64");
+      return new NextResponse(buffer, {
+        headers: {
+          "Content-Type": mimeMatch[1],
+          "Content-Disposition": `inline; filename="LoR_${employee.name.replace(/\s+/g, '_')}.${mimeMatch[1].split('/')[1] || 'pdf'}"`
+        }
+      });
+    }
+  }
+
   if (type === "completion") {
     html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Internship Completion Certificate</title>
 <style>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronRight, Clock, FileText, CheckCircle, AlertTriangle } from "lucide-react";
 import { differenceInDays, format } from "date-fns";
 import StartTaskButton from "./StartTaskButton";
+import TaskCard from "./TaskCard";
 
 export default async function TasksPage() {
   const auth = await getAuthFromCookies();
@@ -82,29 +83,7 @@ export default async function TasksPage() {
           const daysLeft = differenceInDays(new Date(task.deadline), new Date());
           const statusStr = getStatus(task);
           return (
-            <Link key={task.id} href={`/employee/tasks/${task.id}`} style={{ textDecoration: "none" }}>
-              <div className="card card-hover" style={{ padding: 16, cursor: "pointer", transition: "transform 0.1s" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
-                  <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text-primary)" }}>{task.title}</div>
-                  {statusStr === "Overdue" && <span className="badge badge-red" style={{ fontSize: 10 }}>Overdue</span>}
-                </div>
-                <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 12 }}>
-                  {task.brief ? `${task.brief.slice(0, 80)}...` : ""}
-                </div>
-
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div style={{ display: "flex", gap: 4, fontSize: 11, color: statusStr === "Overdue" ? "var(--red)" : "var(--text-muted)", alignItems: "center" }}>
-                    <Clock size={12} />
-                    {statusStr === "Done" ? (task.submissions[0]?.submittedAt ? format(new Date(task.submissions[0].submittedAt), "MMM d, yyyy") : format(new Date(task.deadline), "MMM d, yyyy")) : format(new Date(task.deadline), "MMM d, yyyy")}
-                  </div>
-                  {(statusStr === "Pending" || statusStr === "Overdue") && (
-                    <span onClick={(e) => e.preventDefault()}>
-                      <StartTaskButton taskId={task.id} />
-                    </span>
-                  )}
-                </div>
-              </div>
-            </Link>
+            <TaskCard key={task.id} task={task} statusStr={statusStr} />
           );
         })
       )}

@@ -47,10 +47,10 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
   const [reportGenerating, setReportGenerating] = useState(false);
   const [generatedReport, setGeneratedReport] = useState<string | null>(null);
 
-  // Offboard State
   const [offboardEmployee, setOffboardEmployee] = useState<Employee | null>(null);
-  const [offboardForm, setOffboardForm] = useState({ reason: "internship_completed", effectiveDate: "", generateCertificate: false, generateLoR: false });
+  const [offboardForm, setOffboardForm] = useState({ reason: "internship_completed", effectiveDate: "", generateCertificate: false, generateLoR: false, customCertificateBase64: "", customLorBase64: "" });
   const [offboardLoading, setOffboardLoading] = useState(false);
+  const [offboardSuccessLinks, setOffboardSuccessLinks] = useState<{ cert: string | null, lor: string | null }>({ cert: null, lor: null });
 
   const filtered = employees.filter(e => {
     const q = search.toLowerCase();
@@ -215,10 +215,17 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
     const data = await res.json();
     setOffboardLoading(false);
     if (!res.ok) { setMsg(data.error || "Failed to offboard."); return; }
-    if (offboardForm.generateCertificate) window.open(`/api/company/employees/${offboardEmployee.id}/certificate?type=completion`, "_blank");
-    if (offboardForm.generateLoR) window.open(`/api/company/employees/${offboardEmployee.id}/certificate?type=lor`, "_blank");
+    
+    if (offboardForm.generateCertificate || offboardForm.generateLoR) {
+      setOffboardSuccessLinks({
+        cert: offboardForm.generateCertificate ? `/api/company/employees/${offboardEmployee.id}/certificate?type=completion` : null,
+        lor: offboardForm.generateLoR ? `/api/company/employees/${offboardEmployee.id}/certificate?type=lor` : null,
+      });
+      return;
+    }
+
     setOffboardEmployee(null);
-    setOffboardForm({ reason: "internship_completed", effectiveDate: "", generateCertificate: false, generateLoR: false });
+    setOffboardForm({ reason: "internship_completed", effectiveDate: "", generateCertificate: false, generateLoR: false, customCertificateBase64: "", customLorBase64: "" });
     startTransition(() => router.refresh());
   };
 
@@ -238,7 +245,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
 
   return (
     <div>
-      <div style={{ marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+      <div className="flex-mobile-col" style={{ marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 16 }}>
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 4 }}>Employees & Teams</h1>
           <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>{employees.length} total employees</p>
@@ -316,13 +323,22 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
                     <button className="btn btn-ghost btn-sm" onClick={() => { setAnalyticsEmployee(e); setGeneratedReport(null); }} title="Performance Analytics"><Award size={13} /></button>
                     <button className="btn btn-ghost btn-sm" onClick={() => openEdit(e)} title="Edit"><Edit2 size={13} /></button>
                     {e.status === "Active" && (
-                      <button
-                        className="btn btn-sm btn-danger"
-                        onClick={() => { setOffboardEmployee(e); setOffboardForm({ reason: "internship_completed", effectiveDate: "", generateCertificate: false, generateLoR: false }); setMsg(""); }}
-                        title="Offboard Employee"
-                      >
-                        <UserMinus size={13} />
-                      </button>
+                      <>
+                        <button
+                          className="btn btn-sm btn-danger"
+                          onClick={() => toggleStatus(e.id, e.status)}
+                          title="Terminate Employee"
+                        >
+                          <UserX size={13} />
+                        </button>
+                        <button
+                          className="btn btn-sm btn-secondary"
+                          onClick={() => { setOffboardEmployee(e); setOffboardForm({ reason: "internship_completed", effectiveDate: "", generateCertificate: false, generateLoR: false, customCertificateBase64: "", customLorBase64: "" }); setMsg(""); setOffboardSuccessLinks({cert: null, lor: null}); }}
+                          title="Offboard Employee"
+                        >
+                          <UserMinus size={13} />
+                        </button>
+                      </>
                     )}
                     {(e.status === "Terminated" || e.status === "Inactive") && (
                       <>
@@ -389,7 +405,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
             </div>
             
             <form onSubmit={submitDirectHire} style={{ display: "grid", gap: 16 }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 <div>
                   <label className="label">Full Name</label>
                   <input required className="input" value={dhData.name} onChange={e => setDhData({...dhData, name: e.target.value})} />
@@ -469,7 +485,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
                 <label className="label">Designation / Role</label>
                 <input className="input" value={editDesignation} onChange={e => setEditDesignation(e.target.value)} />
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 <div>
                   <label className="label">Tier</label>
                   <select className="input" value={editTier} onChange={e => setEditTier(e.target.value)}>
@@ -527,7 +543,8 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
                     className="btn btn-secondary btn-sm" 
                     onClick={() => {
                       const printWindow = window.open('', '_blank');
-                      if (printWindow) {
+                      if (printWindow && generatedReport) {
+                        const sanitized = generatedReport.replace(/</g, "&lt;").replace(/>/g, "&gt;");
                         printWindow.document.write(`
                           <html>
                             <head>
@@ -542,7 +559,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
                             <body>
                               <h1>CyberLabSec AI Performance Analytics</h1>
                               <p class="subtitle">Employee: ${analyticsEmployee.name} (${analyticsEmployee.employeeCode})<br/>Date: ${new Date().toLocaleDateString()}</p>
-                              <pre>${generatedReport}</pre>
+                              <pre>${sanitized}</pre>
                               <script>window.print(); window.onafterprint = () => window.close();</script>
                             </body>
                           </html>
@@ -578,8 +595,31 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
               Offboarding <strong style={{ color: "var(--text-primary)" }}>{offboardEmployee.name}</strong> ({offboardEmployee.employeeCode})
             </div>
 
-            <div style={{ display: "grid", gap: 16 }}>
-              <div>
+            {offboardSuccessLinks.cert || offboardSuccessLinks.lor ? (
+              <div style={{ textAlign: "center", padding: 20 }}>
+                <CheckCircle size={48} color="var(--green)" style={{ margin: "0 auto 16px" }} />
+                <h3 style={{ fontSize: 18, marginBottom: 16 }}>Employee Offboarded Successfully</h3>
+                <p style={{ fontSize: 14, color: "var(--text-secondary)", marginBottom: 24 }}>The requested documents are ready.</p>
+                <div style={{ display: "flex", gap: 12, justifyContent: "center", marginBottom: 24 }}>
+                  {offboardSuccessLinks.cert && (
+                    <a href={offboardSuccessLinks.cert} target="_blank" rel="noreferrer" className="btn btn-primary" onClick={() => setOffboardSuccessLinks(l => ({...l, cert: null}))}>
+                      <Download size={14} /> Download Certificate
+                    </a>
+                  )}
+                  {offboardSuccessLinks.lor && (
+                    <a href={offboardSuccessLinks.lor} target="_blank" rel="noreferrer" className="btn btn-primary" onClick={() => setOffboardSuccessLinks(l => ({...l, lor: null}))}>
+                      <Download size={14} /> Download LoR
+                    </a>
+                  )}
+                </div>
+                {(!offboardSuccessLinks.cert && !offboardSuccessLinks.lor) && (
+                  <button className="btn btn-secondary" onClick={() => { setOffboardEmployee(null); setOffboardSuccessLinks({cert: null, lor: null}); startTransition(() => router.refresh()); }}>Close</button>
+                )}
+              </div>
+            ) : (
+              <>
+                <div style={{ display: "grid", gap: 16 }}>
+                  <div>
                 <label className="label label-required">Offboarding Reason</label>
                 <select className="input" value={offboardForm.reason} onChange={(e) => setOffboardForm((f) => ({ ...f, reason: e.target.value }))}>
                   <option value="internship_completed">Internship Completed</option>
@@ -602,23 +642,50 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
 
             <div style={{ marginTop: 16, display: "grid", gap: 10 }}>
               <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 14, color: "var(--text-secondary)" }}>
-                <input type="checkbox" checked={offboardForm.generateCertificate} onChange={(e) => setOffboardForm((f) => ({ ...f, generateCertificate: e.target.checked }))} style={{ width: 16, height: 16, accentColor: "var(--purple)" }} />
-                Generate Internship Completion Certificate (opens in new tab)
+                <input type="checkbox" checked={offboardForm.generateCertificate} onChange={(e) => setOffboardForm((f) => ({ ...f, generateCertificate: e.target.checked, customCertificateBase64: "" }))} style={{ width: 16, height: 16, accentColor: "var(--purple)" }} />
+                Auto-Generate Internship Completion Certificate
               </label>
+              {!offboardForm.generateCertificate && (
+                <div style={{ paddingLeft: 26, marginBottom: 8 }}>
+                  <label style={{ fontSize: 12, color: "var(--text-muted)", display: "block", marginBottom: 4 }}>Or Attach Custom Certificate (PDF/Image)</label>
+                  <input type="file" className="input" accept="application/pdf,image/*" onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = () => setOffboardForm(f => ({ ...f, customCertificateBase64: reader.result as string }));
+                    reader.readAsDataURL(file);
+                  }} style={{ padding: "8px", fontSize: 12 }} />
+                </div>
+              )}
+
               <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 14, color: "var(--text-secondary)" }}>
-                <input type="checkbox" checked={offboardForm.generateLoR} onChange={(e) => setOffboardForm((f) => ({ ...f, generateLoR: e.target.checked }))} style={{ width: 16, height: 16, accentColor: "var(--purple)" }} />
-                Generate Letter of Recommendation (opens in new tab)
+                <input type="checkbox" checked={offboardForm.generateLoR} onChange={(e) => setOffboardForm((f) => ({ ...f, generateLoR: e.target.checked, customLorBase64: "" }))} style={{ width: 16, height: 16, accentColor: "var(--purple)" }} />
+                Auto-Generate Letter of Recommendation (LoR)
               </label>
+              {!offboardForm.generateLoR && (
+                <div style={{ paddingLeft: 26 }}>
+                  <label style={{ fontSize: 12, color: "var(--text-muted)", display: "block", marginBottom: 4 }}>Or Attach Custom LoR (PDF/Image)</label>
+                  <input type="file" className="input" accept="application/pdf,image/*" onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = () => setOffboardForm(f => ({ ...f, customLorBase64: reader.result as string }));
+                    reader.readAsDataURL(file);
+                  }} style={{ padding: "8px", fontSize: 12 }} />
+                </div>
+              )}
             </div>
 
             {msg && <div style={{ marginTop: 12, padding: "10px 14px", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 8, fontSize: 13, color: "var(--red)" }}>{msg}</div>}
 
             <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
               <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setOffboardEmployee(null)}>Cancel</button>
-              <button className="btn btn-danger" style={{ flex: 1, gap: 8 }} onClick={handleOffboard} disabled={offboardLoading}>
-                {offboardLoading ? <Loader2 size={14} className="spin" /> : <UserMinus size={14} />} Offboard Employee
-              </button>
-            </div>
+                <button className="btn btn-danger" style={{ flex: 1, gap: 8 }} onClick={handleOffboard} disabled={offboardLoading}>
+                  {offboardLoading ? <Loader2 size={14} className="spin" /> : <UserMinus size={14} />} Offboard Employee
+                </button>
+              </div>
+              </>
+            )}
           </div>
         </div>
       )}

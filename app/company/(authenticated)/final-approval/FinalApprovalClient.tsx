@@ -102,7 +102,7 @@ export default function FinalApprovalClient({ reviews }: { reviews: Review[] }) 
       {selected && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
           <div className="card" style={{ maxWidth: 640, width: "100%", padding: 32, maxHeight: "90vh", overflowY: "auto" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
+            <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24, gap: 16 }}>
               <div>
                 <h2 style={{ fontSize: 20, fontWeight: 800 }}>{selected.type}</h2>
                 <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Requested by {selected.submitter.name} ({selected.submitter.designation})</p>
@@ -170,7 +170,7 @@ export default function FinalApprovalClient({ reviews }: { reviews: Review[] }) 
             )}
 
             {actionMsg && (
-              <div style={{ marginBottom: 20, padding: "12px", background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 8, fontSize: 13, color: "var(--green)" }}>
+              <div style={{ marginBottom: 20, padding: "12px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 8, fontSize: 13, color: "var(--red)" }}>
                 {actionMsg}
               </div>
             )}

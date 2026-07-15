@@ -44,9 +44,11 @@ export default async function ApplyPage({
   } catch (error) {
     console.error("Failed to load posting for application:", error);
     return (
-      <div className="p-10 text-center font-mono text-red-500">
-        <h1 className="text-2xl font-bold mb-4">Service Unavailable</h1>
-        <p className="text-gray-500">We are currently unable to process applications. Please check back later.</p>
+      <div style={{ minHeight: "100vh", background: "var(--bg-primary)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+        <div className="card" style={{ maxWidth: 480, width: "100%", padding: 40, textAlign: "center" }}>
+          <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 12, color: "var(--red)" }}>Service Unavailable</h1>
+          <p style={{ color: "var(--text-secondary)" }}>We are currently unable to process applications. Please check back later.</p>
+        </div>
       </div>
     );
   }
