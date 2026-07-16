@@ -24,6 +24,8 @@ export default function NotificationBell() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [toastMsg, setToastMsg] = useState<{title: string, message: string} | null>(null);
+  const prevUnreadRef = useRef<string[]>([]);
   const ref = useRef<HTMLDivElement>(null);
 
   const fetchNotifications = async () => {
@@ -32,7 +34,23 @@ export default function NotificationBell() {
       if (res.ok) {
         const data = await res.json();
         setNotifications(data.notifications);
-        setUnreadCount(data.notifications.filter((n: Notification) => !n.read).length);
+        
+        const currentUnreads = data.notifications.filter((n: Notification) => !n.read);
+        setUnreadCount(currentUnreads.length);
+        
+        const unreadIds = currentUnreads.map((n: Notification) => n.id);
+        const newIds = unreadIds.filter((id: string) => !prevUnreadRef.current.includes(id));
+        
+        // Show real-time toast if there are new notifications and it's not the first load
+        if (prevUnreadRef.current.length > 0 && newIds.length > 0) {
+           const newest = currentUnreads.find((n: Notification) => n.id === newIds[0]);
+           if (newest) {
+              setToastMsg({ title: newest.title, message: newest.message });
+              setTimeout(() => setToastMsg(null), 5000);
+           }
+        }
+        prevUnreadRef.current = unreadIds;
+        
         setError(false);
       } else {
         setError(true);
@@ -48,7 +66,7 @@ export default function NotificationBell() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 60000); // Poll every minute
+    const interval = setInterval(fetchNotifications, 15000); // Poll every 15s for near real-time feel
     return () => clearInterval(interval);
   }, []);
 
@@ -95,7 +113,7 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="card animate-fade-up notification-dropdown" style={{ maxHeight: 400, display: "flex", flexDirection: "column", zIndex: 100, overflow: "hidden", marginTop: 8, boxShadow: "var(--shadow-lg)" }}>
+        <div className="card animate-fade-up notification-dropdown" style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, width: 350, maxWidth: "calc(100vw - 32px)", maxHeight: 450, display: "flex", flexDirection: "column", zIndex: 9999, overflow: "hidden", boxShadow: "var(--shadow-xl)" }}>
           <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--bg-elevated)" }}>
             <h3 style={{ fontSize: 14, fontWeight: 700 }}>Notifications</h3>
             {unreadCount > 0 && (
@@ -167,6 +185,24 @@ export default function NotificationBell() {
               ))
             )}
           </div>
+        </div>
+      )}
+
+      {/* Real-time Toast */}
+      {toastMsg && (
+        <div style={{ position: "fixed", bottom: 24, right: 24, background: "var(--bg-elevated)", border: "1px solid var(--purple)", borderRadius: 12, padding: 16, width: 320, boxShadow: "0 8px 32px rgba(168,85,247,0.25)", zIndex: 99999, animation: "fadeUp 0.3s ease-out" }}>
+          <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+            <div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(168,85,247,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Bell size={16} color="var(--purple)" />
+            </div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--purple)", marginBottom: 4 }}>{toastMsg.title}</div>
+              <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.4 }}>{toastMsg.message}</div>
+            </div>
+          </div>
+          <button onClick={() => setToastMsg(null)} style={{ position: "absolute", top: 12, right: 12, background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}>
+            <X size={14} />
+          </button>
         </div>
       )}
     </div>

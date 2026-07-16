@@ -99,12 +99,11 @@ export default function PortalLayout({ children, employee }: { children: React.R
         })}
       </nav>
 
-      {/* Logout + Notifications */}
+      {/* Logout */}
       <div style={{ padding: "12px", borderTop: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <button onClick={logout} className="btn btn-ghost" style={{ justifyContent: "flex-start", gap: 8, fontSize: 13, color: "var(--text-muted)", flex: 1 }}>
           <LogOut size={14} /> Sign Out
         </button>
-        <NotificationBell role="employee" />
       </div>
     </aside>
   );
@@ -140,7 +139,19 @@ export default function PortalLayout({ children, employee }: { children: React.R
             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
           <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 24, objectFit: "contain" }} />
-          <NotificationBell role="employee" />
+          <NotificationBell />
+        </div>
+
+        {/* Desktop topbar */}
+        <div
+          className="desktop-topbar"
+          style={{
+            display: "flex", alignItems: "center", justifyContent: "flex-end",
+            padding: "16px 24px", borderBottom: "1px solid var(--border)",
+            background: "var(--bg-secondary)", position: "sticky", top: 0, zIndex: 40,
+          }}
+        >
+          <NotificationBell />
         </div>
 
         <main style={{ padding: "24px 20px", maxWidth: 1200, margin: "0 auto" }}>

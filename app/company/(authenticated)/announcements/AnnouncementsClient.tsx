@@ -33,6 +33,12 @@ export default function AnnouncementsClient({ announcements, teams, employees, t
   const [expiresAt, setExpiresAt] = useState("");
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
+
+  const showSuccess = (text: string) => {
+    setSuccessMsg(text);
+    setTimeout(() => setSuccessMsg(""), 3000);
+  };
 
   const handleSend = async () => {
     if (!message.trim()) { setMsg("Message is required."); return; }
@@ -58,6 +64,7 @@ export default function AnnouncementsClient({ announcements, teams, employees, t
     if (!res.ok) { setMsg(data.error || "Failed to send"); return; }
     
     setScope("Company"); setTeamId(""); setEmployeeId(""); setMessage(""); setSendEmail(false); setIsPinned(false); setExpiresAt(""); setShowCreate(false);
+    showSuccess("Announcement broadcasted successfully!");
     startTransition(() => router.refresh());
   };
 
@@ -66,6 +73,7 @@ export default function AnnouncementsClient({ announcements, teams, employees, t
     setLoading(true);
     await fetch(`/api/company/announcements/${id}`, { method: "DELETE" });
     setLoading(false);
+    showSuccess("Announcement deleted");
     startTransition(() => router.refresh());
   };
 
@@ -80,6 +88,7 @@ export default function AnnouncementsClient({ announcements, teams, employees, t
     setLoading(false);
     if (!res.ok) { setMsg("Failed to update"); return; }
     setEditingId(null); setMessage(""); setIsPinned(false); setExpiresAt(""); setShowCreate(false);
+    showSuccess("Announcement updated successfully");
     startTransition(() => router.refresh());
   };
 
@@ -228,6 +237,13 @@ export default function AnnouncementsClient({ announcements, teams, employees, t
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Success Toast */}
+      {successMsg && (
+        <div style={{ position: "fixed", bottom: 24, right: 24, background: "var(--green)", color: "#fff", padding: "12px 24px", borderRadius: 8, fontSize: 14, fontWeight: 600, boxShadow: "var(--shadow-xl)", zIndex: 10000, animation: "fadeUp 0.3s ease-out" }}>
+          {successMsg}
         </div>
       )}
     </div>

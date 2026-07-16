@@ -759,6 +759,9 @@ select.input option {
   .mobile-topbar {
     display: flex !important;
   }
+  .desktop-topbar {
+    display: none !important;
+  }
 
   /* Main content padding */
   .main-content main {
