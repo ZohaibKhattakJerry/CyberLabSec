@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
       const year = new Date().getFullYear();
       const code = `CL-${year}-${crypto.randomBytes(2).toString("hex").toUpperCase()}`;
       const rawPassword = crypto.randomBytes(4).toString("hex");
-      const passwordHash = await bcrypt.hash(rawPassword, 12);
+      const passwordHash = await bcrypt.hash(rawPassword, 10);
 
       const employee = await prisma.employee.create({
         data: {
@@ -91,17 +91,20 @@ export async function POST(req: NextRequest) {
       }
 
       const portalUrl = "https://cyberlabsec.tech/employee/login";
-      sendEmployeeCredentials(
-        applicant.email,
-        applicant.fullName,
-        code,
-        rawPassword,
-        portalUrl,
-        offerLetterFileBase64 || undefined,
-        customMessage || undefined
-      ).catch(e => {
+      try {
+        await sendEmployeeCredentials(
+          applicant.email,
+          applicant.fullName,
+          code,
+          rawPassword,
+          portalUrl,
+          offerLetterFileBase64 || undefined,
+          customMessage || undefined
+        );
+      } catch (e) {
         console.error("Failed to send hire email:", e);
-      });
+        return NextResponse.json({ error: "Applicant hired, but email failed to send. They can reset their password manually." }, { status: 500 });
+      }
     }
   } else if (status === "Rejected" && review.type === "Hire Request" && review.applicant) {
     // Move applicant to Rejected stage

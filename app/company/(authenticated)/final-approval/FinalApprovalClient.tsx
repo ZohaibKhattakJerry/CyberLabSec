@@ -30,6 +30,10 @@ export default function FinalApprovalClient({ reviews }: { reviews: Review[] }) 
       setActionMsg("Offer letter must be a PDF file.");
       return;
     }
+    if (file.size > 3 * 1024 * 1024) {
+      setActionMsg("Offer letter PDF must be smaller than 3MB.");
+      return;
+    }
     const reader = new FileReader();
     reader.onload = () => {
       const base64 = (reader.result as string).split(",")[1];
@@ -40,7 +44,10 @@ export default function FinalApprovalClient({ reviews }: { reviews: Review[] }) 
   };
 
   const handleAction = async (reviewId: string, status: "Approved" | "Rejected") => {
-    // Offer letter is optional now, they can upload it if they want.
+    if (status === "Approved" && selected?.type === "Hire Request" && !offerLetterFileBase64) {
+      setActionMsg("Offer letter PDF is required to approve a hire request.");
+      return;
+    }
 
     setActionLoading(true); setActionMsg("");
     try {
