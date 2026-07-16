@@ -25,7 +25,6 @@ const NAV = [
   { href: "/employee/attendance", label: "Attendance", icon: Calendar },
   { href: "/employee/leave", label: "Leave", icon: CalendarDays },
   { href: "/employee/support", label: "Support", icon: LifeBuoy },
-  { href: "/employee/announcements", label: "Announcements", icon: Bell },
   { href: "/employee/profile", label: "Profile", icon: User },
 ];
 
@@ -99,11 +98,12 @@ export default function PortalLayout({ children, employee }: { children: React.R
         })}
       </nav>
 
-      {/* Logout */}
+      {/* Logout + Notifications */}
       <div style={{ padding: "12px", borderTop: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <button onClick={logout} className="btn btn-ghost" style={{ justifyContent: "flex-start", gap: 8, fontSize: 13, color: "var(--text-muted)", flex: 1 }}>
           <LogOut size={14} /> Sign Out
         </button>
+        <NotificationBell />
       </div>
     </aside>
   );
@@ -139,19 +139,7 @@ export default function PortalLayout({ children, employee }: { children: React.R
             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
           <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 24, objectFit: "contain" }} />
-          <NotificationBell />
-        </div>
-
-        {/* Desktop topbar */}
-        <div
-          className="desktop-topbar"
-          style={{
-            display: "flex", alignItems: "center", justifyContent: "flex-end",
-            padding: "16px 24px", borderBottom: "1px solid var(--border)",
-            background: "var(--bg-secondary)", position: "sticky", top: 0, zIndex: 40,
-          }}
-        >
-          <NotificationBell />
+          <div style={{ width: 36 }} /> {/* Placeholder to balance the flex space */}
         </div>
 
         <main style={{ padding: "24px 20px", maxWidth: 1200, margin: "0 auto" }}>

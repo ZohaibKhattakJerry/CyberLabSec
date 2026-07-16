@@ -81,6 +81,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <button onClick={logout} className="btn btn-ghost" style={{ justifyContent: "flex-start", gap: 10, fontSize: 14, color: "var(--text-muted)", flex: 1 }}>
             <LogOut size={16} /> Sign Out
           </button>
+          <NotificationBell />
         </div>
       </aside>
 
@@ -114,19 +115,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
           <img src="/logo.png" alt="CyberLabSec" style={{ height: 24, objectFit: "contain" }} />
-          <NotificationBell />
-        </div>
-
-        {/* Desktop topbar */}
-        <div
-          className="desktop-topbar"
-          style={{
-            display: "flex", alignItems: "center", justifyContent: "flex-end",
-            padding: "16px 24px", borderBottom: "1px solid var(--border)",
-            background: "var(--bg-secondary)", position: "sticky", top: 0, zIndex: 40,
-          }}
-        >
-          <NotificationBell />
+          <div style={{ width: 36 }} /> {/* Placeholder to balance the flex space */}
         </div>
 
         <main style={{ padding: "24px 20px", maxWidth: 1280, margin: "0 auto" }}>
