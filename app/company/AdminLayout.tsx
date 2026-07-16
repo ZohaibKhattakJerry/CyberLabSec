@@ -20,7 +20,6 @@ const NAV = [
   { href: "/company/tasks", label: "Tasks", icon: ClipboardList },
   { href: "/company/leaderboard", label: "Leaderboard", icon: Trophy },
   { href: "/company/questions", label: "Question Bank", icon: BookOpen },
-  { href: "/company/meetings", label: "Meetings", icon: Video },
   { href: "/company/announcements", label: "Announcements", icon: Bell },
   { href: "/company/settings", label: "Settings", icon: Settings },
 ];

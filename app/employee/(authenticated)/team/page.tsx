@@ -3,6 +3,7 @@ import { getAuthFromCookies } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { Users, Mail, Shield } from "lucide-react";
 import TeamChatClient from "./TeamChatClient";
+import MeetingClient from "./MeetingClient";
 
 export default async function TeamPage() {
   const auth = await getAuthFromCookies();
@@ -40,10 +41,18 @@ export default async function TeamPage() {
 
   if (!team) return <div>Team not found</div>;
 
+  const meetings = await prisma.meetingRequest.findMany({
+    where: { teamId: employee.teamId },
+    orderBy: { createdAt: 'desc' },
+    include: { proposer: { select: { name: true, photoUrl: true } } }
+  }).catch(() => []);
+
   const serializedMessages = team.messages.map(m => ({
     ...m,
     createdAt: m.createdAt.toISOString()
   }));
+
+  const serializedMeetings = JSON.parse(JSON.stringify(meetings));
 
   return (
     <div>
@@ -58,7 +67,7 @@ export default async function TeamPage() {
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
-        {team.members.map((member: unknown) => (
+        {team.members.map((member: any) => (
           <div key={member.id} className="card" style={{ padding: 20 }}>
             <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
               <div style={{ width: 48, height: 48, borderRadius: "50%", background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, color: "var(--text-primary)", fontSize: 18 }}>
@@ -79,8 +88,14 @@ export default async function TeamPage() {
         ))}
       </div>
 
-      <div style={{ marginTop: 40 }}>
-        <TeamChatClient messages={serializedMessages} currentUserId={auth.sub} />
+      <div style={{ marginTop: 40, display: "grid", gridTemplateColumns: "1fr", gap: 40 }}>
+        <div>
+          <MeetingClient initialMeetings={serializedMeetings} currentUser={auth.sub} />
+        </div>
+        
+        <div>
+          <TeamChatClient messages={serializedMessages} currentUserId={auth.sub} />
+        </div>
       </div>
     </div>
   );

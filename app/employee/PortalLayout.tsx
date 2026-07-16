@@ -24,7 +24,6 @@ const NAV = [
   { href: "/employee/leaderboard", label: "Leaderboard", icon: Trophy },
   { href: "/employee/attendance", label: "Attendance", icon: Calendar },
   { href: "/employee/leave", label: "Leave", icon: CalendarDays },
-  { href: "/employee/meetings", label: "Meetings", icon: Video },
   { href: "/employee/support", label: "Support", icon: LifeBuoy },
   { href: "/employee/announcements", label: "Announcements", icon: Bell },
   { href: "/employee/profile", label: "Profile", icon: User },
