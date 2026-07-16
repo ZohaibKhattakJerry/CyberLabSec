@@ -41,6 +41,26 @@ export default async function TeamPage() {
 
   if (!team) return <div>Team not found</div>;
 
+  // Opportunistic cleanup: delete files older than 24 hours to save DB storage
+  try {
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    await prisma.teamMessage.updateMany({
+      where: {
+        teamId: employee.teamId,
+        fileUrl: { not: null },
+        createdAt: { lt: yesterday }
+      },
+      data: {
+        fileUrl: null,
+        fileName: null,
+        fileType: null,
+        fileSize: null
+      }
+    });
+  } catch (err) {
+    console.error("Failed to cleanup old chat files:", err);
+  }
+
   const meetings = await prisma.meetingRequest.findMany({
     where: { teamId: employee.teamId },
     orderBy: { createdAt: 'desc' },

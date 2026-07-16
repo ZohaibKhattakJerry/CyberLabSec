@@ -13,6 +13,8 @@ interface Notification {
   link: string;
   read: boolean;
   createdAt: string;
+  isAnnouncement?: boolean;
+  content?: string;
 }
 
 export default function NotificationBell() {
@@ -21,6 +23,7 @@ export default function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
   const fetchNotifications = async () => {
@@ -58,9 +61,13 @@ export default function NotificationBell() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
 
-  const markAsRead = async (id: string) => {
+  const markAsRead = async (id: string, isAnnouncement?: boolean) => {
     try {
-      await fetch(`/api/notifications/${id}/read`, { method: "POST" });
+      if (isAnnouncement) {
+        await fetch(`/api/employee/announcements/${id}/acknowledge`, { method: "POST" });
+      } else {
+        await fetch(`/api/notifications/${id}/read`, { method: "POST" });
+      }
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch {}
@@ -118,21 +125,31 @@ export default function NotificationBell() {
                     {!n.read ? <Circle size={10} color="var(--purple)" fill="var(--purple)" /> : <Check size={12} color="var(--text-muted)" />}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <p style={{ fontSize: 13, fontWeight: n.read ? 500 : 600, color: n.read ? "var(--text-secondary)" : "var(--text-primary)", marginBottom: 4 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: n.isAnnouncement ? "var(--purple)" : "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>{n.title}</span>
+                      <span style={{ fontSize: 10, color: "var(--text-muted)" }}>{formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}</span>
+                    </div>
+                    <p style={{ fontSize: 13, fontWeight: n.read ? 500 : 600, color: n.read ? "var(--text-secondary)" : "var(--text-primary)", marginBottom: 4, lineHeight: 1.4 }}>
                       {n.link ? (
-                        <Link href={n.link} onClick={() => { if (!n.read) markAsRead(n.id); setOpen(false); }} style={{ textDecoration: "none", color: "inherit" }}>
+                        <Link href={n.link} onClick={() => { if (!n.read) markAsRead(n.id, n.isAnnouncement); setOpen(false); }} style={{ textDecoration: "none", color: "inherit" }}>
                           {n.message}
                         </Link>
                       ) : (
                         <span 
-                          onClick={() => !n.read && markAsRead(n.id)} 
-                          style={{ cursor: "pointer" }}
+                          onClick={() => {
+                            if (!n.read) markAsRead(n.id, n.isAnnouncement);
+                            if (n.isAnnouncement) {
+                              setExpandedId(expandedId === n.id ? null : n.id);
+                            }
+                          }} 
+                          style={{ cursor: "pointer", display: "block" }}
                           role="button"
                           tabIndex={0}
                           onKeyDown={(e) => {
                             if (e.key === "Enter" || e.key === " ") {
                               e.preventDefault();
-                              if (!n.read) markAsRead(n.id);
+                              if (!n.read) markAsRead(n.id, n.isAnnouncement);
+                              if (n.isAnnouncement) setExpandedId(expandedId === n.id ? null : n.id);
                             }
                           }}
                         >
@@ -140,7 +157,11 @@ export default function NotificationBell() {
                         </span>
                       )}
                     </p>
-                    <p style={{ fontSize: 11, color: "var(--text-muted)" }}>{formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}</p>
+                    {n.isAnnouncement && expandedId === n.id && n.content && (
+                      <div style={{ marginTop: 8, padding: 12, background: "rgba(0,0,0,0.2)", borderRadius: 8, fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5, whiteSpace: "pre-wrap" }}>
+                        {n.content}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))

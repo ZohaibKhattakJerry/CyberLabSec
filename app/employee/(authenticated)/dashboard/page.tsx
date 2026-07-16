@@ -7,7 +7,6 @@ import {
   ArrowRight, ShieldCheck, Trophy, Bell, Star,
 } from "lucide-react";
 import Link from "next/link";
-import AnnouncementModal from "./AnnouncementModal";
 
 export const dynamic = "force-dynamic";
 
@@ -118,7 +117,6 @@ export default async function Dashboard() {
 
   return (
     <div>
-      <AnnouncementModal announcements={unreadAnnouncements} />
       {/* Welcome Banner */}
       <div
         style={{

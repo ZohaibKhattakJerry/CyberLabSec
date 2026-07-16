@@ -14,5 +14,61 @@ export async function GET(req: NextRequest) {
     take: 20,
   });
 
-  return NextResponse.json({ notifications });
+  let allItems = [...notifications.map(n => ({
+    id: n.id,
+    title: n.title,
+    message: n.message,
+    type: n.type,
+    link: n.link,
+    read: n.read,
+    createdAt: n.createdAt.toISOString(),
+    isAnnouncement: false,
+    content: null,
+  }))];
+
+  if (auth.role === "employee") {
+    const employee = await prisma.employee.findUnique({
+      where: { id: auth.sub },
+      select: { teamId: true }
+    });
+
+    if (employee) {
+      const now = new Date();
+      const rawAnnouncements = await prisma.announcement.findMany({
+        where: {
+          OR: [
+            { scope: "Company" },
+            { scope: "Team", teamId: employee.teamId || undefined },
+            { scope: "Individual", employeeId: auth.sub },
+          ],
+          AND: [{ OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] }],
+        },
+        orderBy: { sentAt: "desc" },
+        take: 10,
+        include: { sentBy: { select: { name: true } } },
+      });
+
+      const myReceipts = await prisma.announcementReadReceipt.findMany({
+        where: { employeeId: auth.sub },
+        select: { announcementId: true },
+      });
+      const readSet = new Set(myReceipts.map(r => r.announcementId));
+
+      const announcementItems = rawAnnouncements.map(a => ({
+        id: a.id,
+        title: "Announcement",
+        message: a.title,
+        type: "announcement",
+        link: "",
+        read: readSet.has(a.id),
+        createdAt: a.sentAt.toISOString(),
+        isAnnouncement: true,
+        content: a.content,
+      }));
+
+      allItems = [...allItems, ...announcementItems].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
+  }
+
+  return NextResponse.json({ notifications: allItems });
 }

@@ -12,6 +12,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No team assigned" }, { status: 403 });
     }
 
+    // Opportunistic cleanup: delete files older than 24 hours to save DB storage
+    try {
+      const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      await prisma.teamMessage.updateMany({
+        where: {
+          teamId: employee.teamId,
+          fileUrl: { not: null },
+          createdAt: { lt: yesterday }
+        },
+        data: {
+          fileUrl: null,
+          fileName: null,
+          fileType: null,
+          fileSize: null
+        }
+      });
+    } catch (err) {
+      console.error("Failed to cleanup old chat files:", err);
+    }
+
     const { message, fileUrl, fileName, fileType, fileSize } = await req.json();
     if ((!message || message.trim() === "") && !fileUrl) {
       return NextResponse.json({ error: "Message or file is required" }, { status: 400 });
