@@ -178,12 +178,19 @@ export default function QuestionBankTab() {
               </tr>
             ))}
             {questions.length === 0 && (
-              <tr>
-                <td colSpan={5} style={{ padding: 32, textAlign: "center", color: "var(--text-muted)" }}>No questions found. Add some!</td>
-              </tr>
+              <></>
             )}
           </tbody>
         </table>
+        {questions.length === 0 && (
+          <div className="empty-state">
+            <div className="empty-state-icon-wrapper">
+              <span style={{ fontSize: 28, fontWeight: 'bold' }}>?</span>
+            </div>
+            <div className="empty-state-title">No questions found</div>
+            <div className="empty-state-description">Add some questions to the bank to get started.</div>
+          </div>
+        )}
       </div>
 
       {showModal && (
@@ -192,7 +199,7 @@ export default function QuestionBankTab() {
             <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 24 }}>{editingId ? "Edit Question" : "New Question"}</h2>
             
             <div style={{ display: "grid", gap: 20 }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+              <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
                 <div>
                   <label className="label">Type</label>
                   <select className="input" value={type} onChange={e => setType(e.target.value)}>

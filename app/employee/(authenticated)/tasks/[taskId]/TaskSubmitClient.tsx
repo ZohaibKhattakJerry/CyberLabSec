@@ -183,6 +183,14 @@ export default function TaskSubmitClient({
             onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
             onDragLeave={() => setIsDragging(false)}
             onDrop={onDrop}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                fileInputRef.current?.click();
+              }
+            }}
             style={{
               border: `2px dashed ${isDragging ? "var(--purple)" : fileError ? "var(--red)" : "var(--border)"}`,
               borderRadius: 12,

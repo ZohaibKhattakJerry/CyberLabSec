@@ -190,6 +190,14 @@ export default function MeetingClient({ initialMeetings, currentUser }: { initia
                           <div 
                             key={i} 
                             onClick={() => handleVote(m.id, time)}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                handleVote(m.id, time);
+                              }
+                            }}
                             style={{ 
                               padding: '12px 16px', 
                               borderRadius: 8, 

@@ -98,7 +98,7 @@ export default function SettingsClient() {
       {tab === "company" && (
         <div className="card" style={{ padding: 28 }}>
           <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20 }}>Company Profile</h2>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+          <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
             <div style={{ gridColumn: "1/-1" }}>
               <label className="label">Company Name</label>
               <input className="input" value={company.name} onChange={(e) => setCompany((c) => ({ ...c, name: e.target.value }))} />
@@ -184,7 +184,13 @@ export default function SettingsClient() {
           {auditLoading ? (
             <div style={{ textAlign: "center", padding: 40 }}><Loader2 size={24} className="spin" style={{ color: "var(--text-muted)" }} /></div>
           ) : filteredLogs.length === 0 ? (
-            <div style={{ textAlign: "center", padding: 40, color: "var(--text-muted)", fontSize: 14 }}>No audit entries found.</div>
+            <div className="empty-state">
+              <div className="empty-state-icon-wrapper">
+                <Search size={28} />
+              </div>
+              <div className="empty-state-title">No audit entries found</div>
+              <div className="empty-state-description">We couldn't find any audit logs matching your search.</div>
+            </div>
           ) : (
             <div className="table-container">
               <table>
@@ -220,7 +226,7 @@ export default function SettingsClient() {
         <div className="card" style={{ padding: 28 }}>
           <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>Leaderboard Point Values</h2>
           <p style={{ color: "var(--text-secondary)", fontSize: 13, marginBottom: 24 }}>Points are awarded when a task submission is approved. All values are configurable.</p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+          <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
             {([
               { label: "Low Priority", key: "low", color: "var(--green)" },
               { label: "Medium Priority", key: "medium", color: "var(--blue)" },

@@ -124,7 +124,20 @@ export default function NotificationBell() {
                           {n.message}
                         </Link>
                       ) : (
-                        <span onClick={() => !n.read && markAsRead(n.id)} style={{ cursor: "pointer" }}>{n.message}</span>
+                        <span 
+                          onClick={() => !n.read && markAsRead(n.id)} 
+                          style={{ cursor: "pointer" }}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              if (!n.read) markAsRead(n.id);
+                            }
+                          }}
+                        >
+                          {n.message}
+                        </span>
                       )}
                     </p>
                     <p style={{ fontSize: 11, color: "var(--text-muted)" }}>{formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}</p>

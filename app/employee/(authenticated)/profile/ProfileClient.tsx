@@ -123,6 +123,14 @@ export default function ProfileClient({ employee, activityLogs }: { employee: Em
                 <div 
                   style={{ width: 90, height: 90, borderRadius: 16, background: "var(--bg-card)", border: "4px solid var(--bg-card)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, fontWeight: 800, color: "var(--purple)", position: "relative", overflow: "hidden", cursor: "pointer", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}
                   onClick={() => fileInputRef.current?.click()}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      fileInputRef.current?.click();
+                    }
+                  }}
                 >
                   {employee.photoUrl ? (
                     <img src={employee.photoUrl} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />

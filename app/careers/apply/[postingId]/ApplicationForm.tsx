@@ -305,7 +305,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                   
                   <Field label="Email Address" required error={errors.email}>
                     <div style={{ display: "flex", gap: 10 }}>
-                      <input className={`input${errors.email ? " input-error" : ""}`} type="email" value={form.email} onChange={(e) => { set("email", e.target.value); setOtpSent(false); setOtpVerified(false); }} placeholder="you@example.com" disabled={otpVerified || otpSent} />
+                      <input className={`input${errors.email ? " input-error" : ""}`} type="email" value={form.email} onChange={(e) => { set("email", e.target.value); setOtpSent(false); setOtpVerified(false); }} placeholder="you@example.com" disabled={otpVerified} />
                       {!otpVerified && (
                         <button className="btn btn-secondary" onClick={sendOtp} disabled={otpLoading || otpSent || !form.email}>
                           {otpLoading ? <Loader2 size={16} className="spinner" /> : otpSent ? "Sent" : "Verify"}
@@ -479,7 +479,15 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                         </>
                       )}
                     </div>
-                    <input ref={cvRef} type="file" hidden accept=".pdf,.doc,.docx" onChange={(e) => { const f = e.target.files?.[0]; if (f) setCvFile(f); }} />
+                    <input ref={cvRef} type="file" hidden accept=".pdf,.doc,.docx" onChange={(e) => { 
+                      const f = e.target.files?.[0]; 
+                      if (f && ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(f.type) && f.size <= 5*1024*1024) {
+                        setCvFile(f); 
+                      } else if (f) {
+                        toast.error("Invalid CV format or size > 5MB");
+                        e.target.value = '';
+                      }
+                    }} />
                   </Field>
 
                   <Field label="Why CyberLabSec?" required error={errors.motivation}>
@@ -523,7 +531,15 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                         </>
                       )}
                     </div>
-                    <input ref={photoRef} type="file" hidden accept=".jpg,.jpeg,.png,.webp" onChange={(e) => { const f = e.target.files?.[0]; if (f) setPhotoFile(f); }} />
+                    <input ref={photoRef} type="file" hidden accept=".jpg,.jpeg,.png,.webp" onChange={(e) => { 
+                      const f = e.target.files?.[0]; 
+                      if (f && f.type.startsWith("image/") && f.size <= 2*1024*1024) {
+                        setPhotoFile(f); 
+                      } else if (f) {
+                        toast.error("Invalid photo format or size > 2MB");
+                        e.target.value = '';
+                      }
+                    }} />
                   </Field>
 
                 </div>
@@ -549,7 +565,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                     ].map(([k, v]) => (
                       <div key={k} style={{ display: "flex", gap: 8 }}>
                         <span style={{ color: "var(--text-muted)", width: 80, flexShrink: 0 }}>{k}</span>
-                        <span style={{ color: "var(--text-primary)" }}>{v}</span>
+                        <span style={{ color: "var(--text-primary)", wordBreak: "break-word" }}>{v}</span>
                       </div>
                     ))}
                   </div>

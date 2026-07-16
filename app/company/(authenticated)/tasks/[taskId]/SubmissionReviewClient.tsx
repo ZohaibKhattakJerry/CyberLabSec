@@ -61,7 +61,7 @@ export default function SubmissionReviewClient({ submission }: { submission: unk
 
   return (
     <div className="card" style={{ padding: 24, border: status === "Approved" ? "1px solid var(--border-success)" : status === "Needs Revision" ? "1px solid var(--border-accent)" : "1px solid var(--border)" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
+      <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
           <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(168,85,247,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, color: "var(--purple)" }}>
             {submission.employee.name.charAt(0)}

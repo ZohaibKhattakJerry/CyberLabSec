@@ -63,7 +63,7 @@ export default async function AdminTaskReviewPage({ params }: { params: Promise<
       <div style={{ display: "grid", gridTemplateColumns: "1fr 350px", gap: 24, alignItems: "start" }}>
         <div>
           <div className="card" style={{ padding: 32, marginBottom: 24 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
+            <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
               <div>
                 <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 8 }}>{task.title}</h1>
                 <span className="badge badge-purple">{task.team.name}</span>
@@ -91,7 +91,7 @@ export default async function AdminTaskReviewPage({ params }: { params: Promise<
             )}
           </div>
 
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+          <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
             <h2 style={{ fontSize: 18, fontWeight: 700 }}>Employee Submissions ({task.submissions.length})</h2>
             {task.submissions.length > 0 && (
               <a href={`/api/company/tasks/${task.id}/bulk-download`} target="_blank" className="btn btn-secondary btn-sm" style={{ textDecoration: "none" }}>

@@ -13,6 +13,14 @@ export default function TaskCard({ task, statusStr }: { task: unknown; statusStr
       className="card card-hover" 
       style={{ padding: 16, cursor: "pointer", transition: "transform 0.1s" }}
       onClick={() => router.push(`/employee/tasks/${task.id}`)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          router.push(`/employee/tasks/${task.id}`);
+        }
+      }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
         <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text-primary)" }}>{task.title}</div>

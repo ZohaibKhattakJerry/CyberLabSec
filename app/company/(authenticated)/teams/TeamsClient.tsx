@@ -79,7 +79,7 @@ export default function TeamsClient({ teams, _employees }: { teams: Team[]; empl
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+      <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 4 }}>Teams</h1>
           <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>{teams.length} teams</p>
@@ -101,7 +101,7 @@ export default function TeamsClient({ teams, _employees }: { teams: Team[]; empl
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(380px, 1fr))", gap: 16 }}>
           {teams.map((team: unknown) => (
             <div key={team.id} className="card" style={{ padding: 24 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+              <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                 <div>
                   <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>{team.name}</h3>
                   <p style={{ fontSize: 12, color: "var(--text-muted)" }}>{team.members.length} members · {team._count.tasks} tasks</p>
@@ -161,7 +161,7 @@ export default function TeamsClient({ teams, _employees }: { teams: Team[]; empl
       {showCreate && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
           <div className="card" style={{ maxWidth: 420, width: "100%", padding: "clamp(16px, 5vw, 28px)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+            <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
               <h2 style={{ fontSize: 16, fontWeight: 700 }}>Create New Team</h2>
               <button onClick={() => setShowCreate(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}><X size={18} /></button>
             </div>
@@ -186,7 +186,7 @@ export default function TeamsClient({ teams, _employees }: { teams: Team[]; empl
       {showAddTask && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
           <div className="card" style={{ maxWidth: 500, width: "100%", padding: "clamp(16px, 5vw, 28px)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+            <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
               <h2 style={{ fontSize: 16, fontWeight: 700 }}>Add Task — {showAddTask.name}</h2>
               <button onClick={() => setShowAddTask(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}><X size={18} /></button>
             </div>

@@ -129,7 +129,7 @@ export default function FinalApprovalClient({ reviews }: { reviews: Review[] }) 
                   <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>{selected.applicant.fullName}</h3>
                   <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 12 }}>{selected.applicant.jobPosting.title} ({selected.applicant.jobPosting.type})</p>
                   
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                  <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                     <div style={{ padding: "12px", background: "var(--bg-card)", borderRadius: 6 }}>
                       <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 4 }}>AI Screening Score</div>
                       <div style={{ fontSize: 16, fontWeight: 700, color: selected.applicant.fitScore ? "var(--green)" : "var(--text-muted)" }}>

@@ -100,7 +100,7 @@ export default function LeaderboardClient({
 
   return (
     <div className="animate-fade-up">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 32, flexWrap: "wrap", gap: 16 }}>
+      <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 32, flexWrap: "wrap", gap: 16 }}>
         <div>
           <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 6, letterSpacing: "-0.02em", display: "flex", alignItems: "center", gap: 12 }}>
             <Trophy size={28} color="var(--amber)" /> Leaderboard
@@ -237,7 +237,7 @@ export default function LeaderboardClient({
       {showAdjust && (
         <div className="dialog-overlay">
           <div className="dialog">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+            <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
               <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Manual Point Adjustment</h2>
               <button onClick={() => setShowAdjust(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", display: "flex" }}><X size={18} /></button>
             </div>

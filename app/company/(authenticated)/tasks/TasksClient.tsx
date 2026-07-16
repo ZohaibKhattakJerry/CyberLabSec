@@ -137,7 +137,7 @@ export default function TasksClient({ initialTasks, teams }: { initialTasks: Tas
 
   return (
     <div className="animate-fade-up">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 32, gap: 20, flexWrap: "wrap" }}>
+      <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 32, gap: 20, flexWrap: "wrap" }}>
         <div>
           <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 6, letterSpacing: "-0.02em" }}>Task Management</h1>
           <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>Assign objectives, track progress, and review submissions.</p>
@@ -154,7 +154,7 @@ export default function TasksClient({ initialTasks, teams }: { initialTasks: Tas
             <Plus size={18} color="var(--purple)" /> Create Operational Task
           </h2>
           <form onSubmit={handleCreate} style={{ display: "grid", gap: 20 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+            <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
               <div>
                 <label className="label label-required">Task Title</label>
                 <input className="input" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="e.g. Initial Recon Report" required />
@@ -173,7 +173,7 @@ export default function TasksClient({ initialTasks, teams }: { initialTasks: Tas
               <textarea className="input" value={form.brief} onChange={e => setForm({ ...form, brief: e.target.value })} placeholder="Detailed objectives, scope, and deliverables..." rows={4} />
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+            <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
               <div>
                 <label className="label label-required">Priority</label>
                 <select className="input" value={form.priority} onChange={e => setForm({ ...form, priority: e.target.value })}>

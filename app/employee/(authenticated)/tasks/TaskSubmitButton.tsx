@@ -53,6 +53,14 @@ export default function TaskSubmitButton({ taskId, taskTitle }: { taskId: string
             <div
               style={{ border: "2px dashed var(--border)", borderRadius: 8, padding: 24, textAlign: "center", cursor: "pointer", transition: "all 0.2s" }}
               onClick={() => inputRef.current?.click()}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  inputRef.current?.click();
+                }
+              }}
             >
               <Upload size={24} color="var(--text-muted)" style={{ margin: "0 auto 8px" }} />
               <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Click to upload files</p>
