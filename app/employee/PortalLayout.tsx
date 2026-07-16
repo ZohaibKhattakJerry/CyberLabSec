@@ -5,9 +5,10 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, ClipboardList, Users, Bell, User, LogOut,
-  Menu, X, ChevronRight, Trophy, FileText,
+  Menu, X, ChevronRight, Trophy, FileText, Calendar, CalendarDays, LifeBuoy,
 } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
+import AttendanceTracker from "@/components/AttendanceTracker";
 
 interface Employee {
   id: string; name: string; email: string; designation: string; employeeCode: string;
@@ -21,6 +22,9 @@ const NAV = [
   { href: "/employee/documents", label: "My Documents", icon: FileText },
   { href: "/employee/team", label: "My Team", icon: Users },
   { href: "/employee/leaderboard", label: "Leaderboard", icon: Trophy },
+  { href: "/employee/attendance", label: "Attendance", icon: Calendar },
+  { href: "/employee/leave", label: "Leave", icon: CalendarDays },
+  { href: "/employee/support", label: "Support", icon: LifeBuoy },
   { href: "/employee/announcements", label: "Announcements", icon: Bell },
   { href: "/employee/profile", label: "Profile", icon: User },
 ];
@@ -107,6 +111,7 @@ export default function PortalLayout({ children, employee }: { children: React.R
 
   return (
     <div className="layout-sidebar">
+      <AttendanceTracker />
       {sidebarContent}
 
       {/* Mobile overlay */}

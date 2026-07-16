@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthFromCookies } from "@/lib/auth";
 
-export async function POST(req: NextRequest, { params }: { params: { announcementId: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ announcementId: string }> }) {
   const auth = await getAuthFromCookies();
   if (!auth || auth.role !== "employee") return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { announcementId } = await params;
 
   // Verify the announcement exists and is accessible to this employee
   const employee = await prisma.employee.findUnique({ where: { id: auth.sub }, select: { teamId: true } });
@@ -12,7 +14,7 @@ export async function POST(req: NextRequest, { params }: { params: { announcemen
 
   const announcement = await prisma.announcement.findFirst({
     where: {
-      id: params.announcementId,
+      id: announcementId,
       OR: [
         { scope: "Company" },
         { scope: "Team", teamId: employee.teamId || undefined },
@@ -24,10 +26,10 @@ export async function POST(req: NextRequest, { params }: { params: { announcemen
 
   // Upsert read receipt
   await prisma.announcementReadReceipt.upsert({
-    where: { announcementId_employeeId: { announcementId: params.announcementId, employeeId: auth.sub } },
-    create: { announcementId: params.announcementId, employeeId: auth.sub },
-    update: {},
+    where: { announcementId_employeeId: { announcementId, employeeId: auth.sub } },
+    create: { announcementId, employeeId: auth.sub },
+    update: { readAt: new Date() },
   });
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ success: true });
 }

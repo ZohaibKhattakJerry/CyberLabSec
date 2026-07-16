@@ -153,6 +153,10 @@ model Employee {
   announcementReads    AnnouncementReadReceipt[]
   badges               Badge[]
   pointTransactions    PointTransaction[]
+  supportTickets       SupportTicket[]
+  attendanceRecords    AttendanceRecord[]
+  leaveRequests        LeaveRequest[]
+  proposedMeetings     MeetingRequest[]          @relation("MeetingProposer")
 }
 
 model Team {
@@ -161,10 +165,11 @@ model Team {
   leadEmployeeId String?
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
-  announcements  Announcement[]
-  members        Employee[]
-  tasks          Task[]
-  messages       TeamMessage[]
+  announcements   Announcement[]
+  members         Employee[]
+  tasks           Task[]
+  messages        TeamMessage[]
+  meetingRequests MeetingRequest[]
 }
 
 model Task {
@@ -377,5 +382,71 @@ model TalentPool {
   id        String   @id @default(cuid())
   email     String   @unique
   createdAt DateTime @default(now())
+}
+
+model SupportTicket {
+  id           String    @id @default(cuid())
+  employeeId   String
+  category     String    @default("General")
+  title        String
+  description  String
+  priority     String    @default("Medium")
+  status       String    @default("Open")
+  response     String?
+  respondedBy  String?
+  respondedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  employee     Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+model AttendanceRecord {
+  id          String    @id @default(cuid())
+  employeeId  String
+  date        DateTime  @db.Date
+  loginTime   DateTime  @default(now())
+  logoutTime  DateTime?
+  status      String    @default("Present")
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  employee    Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, date])
+  @@index([employeeId])
+}
+
+model LeaveRequest {
+  id           String    @id @default(cuid())
+  employeeId   String
+  type         String
+  startDate    DateTime  @db.Date
+  endDate      DateTime  @db.Date
+  totalDays    Int       @default(1)
+  reason       String
+  status       String    @default("Pending")
+  reviewedBy   String?
+  reviewerNote String?
+  reviewedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  employee     Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+model MeetingRequest {
+  id             String    @id @default(cuid())
+  teamId         String
+  proposedBy     String
+  title          String
+  description    String?
+  proposedTimes  String    @default("[]")
+  votes          String    @default("{}")
+  confirmedTime  DateTime?
+  meetingLink    String?
+  status         String    @default("Voting")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  team           Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  proposer       Employee  @relation("MeetingProposer", fields: [proposedBy], references: [id])
 }
 

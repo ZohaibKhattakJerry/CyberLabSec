@@ -45,7 +45,7 @@ export default function FinalApprovalClient({ reviews }: { reviews: Review[] }) 
     }
     setActionLoading(true); setActionMsg("");
     try {
-      const res = await fetch(\`/api/company/final-approval/action\`, {
+      const res = await fetch(`/api/company/final-approval/action`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reviewId, status, customMessage, offerLetterFileBase64 }),
@@ -60,7 +60,7 @@ export default function FinalApprovalClient({ reviews }: { reviews: Review[] }) 
       
       if (!res.ok) { setActionMsg(data.error || "Failed to process review"); return; }
       
-      toast.success(\`Review \${status}\`);
+      toast.success(`Review ${status}`);
       startTransition(() => { router.refresh(); setSelected(null); });
     } catch (error: any) {
       setActionMsg(error.message || "An unexpected error occurred.");

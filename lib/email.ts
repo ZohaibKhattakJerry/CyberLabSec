@@ -13,7 +13,7 @@ const transporter = nodemailer.createTransport({
 const FROM = `CyberLabSec Careers <contact@cyberlabsec.tech>`;
 
 // ─── Shared design tokens ────────────────────────────────────────────────────
-const BASE = `font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f4f5; color: #18181b; margin: 0; padding: 0;`;
+const BASE = `font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f4f5 !important; color: #18181b; margin: 0; padding: 0;`;
 const WRAP = `max-width: 600px; margin: 0 auto; padding: 40px 20px;`;
 const BOX = `background-color: #ffffff; border: 1px solid #e4e4e7; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);`;
 const HEADER = `background-color: #ffffff; padding: 32px 40px 24px; border-bottom: 1px solid #f4f4f5;`;
@@ -369,6 +369,14 @@ export async function sendEmail({ to, subject, html, attachments }: { to: string
       <html>
       <head>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+        <style type="text/css">
+          body, table, td { background-color: #ffffff !important; color: #000000 !important; }
+          @media (prefers-color-scheme: dark) {
+            body { background-color: #f4f4f5 !important; }
+            .email-container { background-color: #ffffff !important; }
+            * { color: #000000 !important; }
+          }
+        </style>
       </head>
       <body style="${BASE}">
         <div style="${WRAP}">

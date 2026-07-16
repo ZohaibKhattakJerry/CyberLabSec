@@ -2,8 +2,10 @@
 
 import { useState, useTransition, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Send, Loader2, MessageSquare } from "lucide-react";
+import { Send, Loader2, MessageSquare, Smile } from "lucide-react";
 import { format } from "date-fns";
+
+const EMOJIS = ['😀','😂','🙏','👍','👎','❤️','🔥','✅','⚡','🎉','💯','🤝','😎','🤔','👀','💪','🚀','⚠️','💡','🛡️'];
 
 type Message = {
   id: string;
@@ -17,6 +19,7 @@ export default function TeamChatClient({ messages, currentUserId }: { messages: 
   const [isPending, startTransition] = useTransition();
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Auto scroll to bottom
@@ -45,10 +48,15 @@ export default function TeamChatClient({ messages, currentUserId }: { messages: 
         body: JSON.stringify({ message: text }),
       });
       setText("");
+      setShowPicker(false);
       startTransition(() => router.refresh());
     } finally {
       setLoading(false);
     }
+  };
+
+  const addEmoji = (emoji: string) => {
+    setText((prev) => prev + emoji);
   };
 
   return (
@@ -72,7 +80,7 @@ export default function TeamChatClient({ messages, currentUserId }: { messages: 
         ) : (
           messages.map((m, index) => {
             const isMe = m.employee.id === currentUserId;
-            const prevMsg = messages[index + 1]; // because it's reversed
+            const prevMsg = messages[index + 1];
             const showHeader = !prevMsg || prevMsg.employee.id !== m.employee.id || (new Date(m.createdAt).getTime() - new Date(prevMsg.createdAt).getTime() > 5 * 60000);
 
             return (
@@ -111,8 +119,20 @@ export default function TeamChatClient({ messages, currentUserId }: { messages: 
         )}
       </div>
 
-      <div style={{ padding: "16px 20px", borderTop: "1px solid var(--border-subtle)", background: "var(--bg-card)" }}>
+      <div style={{ padding: "16px 20px", borderTop: "1px solid var(--border-subtle)", background: "var(--bg-card)", position: "relative" }}>
+        {showPicker && (
+          <div style={{ position: "absolute", bottom: "100%", right: 20, marginBottom: 10, background: "var(--bg-elevated)", padding: 12, borderRadius: 12, border: "1px solid var(--border)", display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 8, boxShadow: "0 10px 40px rgba(0,0,0,0.3)" }}>
+            {EMOJIS.map(e => (
+              <button key={e} type="button" onClick={() => addEmoji(e)} style={{ background: "transparent", border: "none", fontSize: 24, cursor: "pointer", padding: 4, transition: "transform 0.1s" }} className="hover:scale-110">
+                {e}
+              </button>
+            ))}
+          </div>
+        )}
         <form onSubmit={sendMessage} style={{ display: "flex", gap: 12, position: "relative" }}>
+          <button type="button" onClick={() => setShowPicker(!showPicker)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}>
+            <Smile size={20} />
+          </button>
           <input 
             className="input" 
             style={{ flex: 1, paddingRight: 50, borderRadius: 24, background: "rgba(255,255,255,0.03)", border: "1px solid var(--border-subtle)" }} 

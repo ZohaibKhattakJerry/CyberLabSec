@@ -14,7 +14,7 @@ interface Posting {
 }
 
 interface FormData {
-  fullName: string; email: string; phone: string; cnic: string; city: string;
+  fullName: string; email: string; phone: string; city: string;
   universityName: string; semester: string; degree: string; cgpa: string;
   linkedIn: string; github: string; tryHackMe: string; hackTheBox: string;
   portfolio: string; bugBounty: string; cve: string; certifications: string; motivation: string;
@@ -22,7 +22,7 @@ interface FormData {
 }
 
 const initialForm: FormData = {
-  fullName: "", email: "", phone: "", cnic: "", city: "",
+  fullName: "", email: "", phone: "", city: "",
   universityName: "", semester: "", degree: "", cgpa: "",
   linkedIn: "", github: "", tryHackMe: "", hackTheBox: "",
   portfolio: "", bugBounty: "", cve: "", certifications: "", motivation: "",
@@ -31,7 +31,6 @@ const initialForm: FormData = {
 
 type ScreeningStatus = "idle" | "uploading" | "screening" | "done" | "error";
 
-const CNIC_REGEX = /^\d{5}-\d{7}-\d{1}$/;
 const PHONE_REGEX = /^(\+92|0)[0-9]{10}$/;
 
 export default function ApplicationForm({ posting }: { posting: Posting }) {
@@ -129,7 +128,6 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
     if (!form.fullName.trim()) e.fullName = "Required";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = "Valid email required";
     if (!PHONE_REGEX.test(form.phone.replace(/\s/g, ""))) e.phone = "Valid Pakistani phone required";
-    if (!CNIC_REGEX.test(form.cnic)) e.cnic = "Format: 12345-1234567-1";
     if (!form.city.trim()) e.city = "Required";
     setErrors(e);
     if (!otpVerified) {
@@ -334,21 +332,6 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                     </Field>
                   </div>
                   
-                  <Field label="CNIC Number" required error={errors.cnic}>
-                    <input 
-                      className={`input${errors.cnic ? " input-error" : ""}`} 
-                      value={form.cnic} 
-                      onChange={(e) => {
-                        let val = e.target.value.replace(/\D/g, "");
-                        if (val.length > 5) val = val.substring(0, 5) + "-" + val.substring(5);
-                        if (val.length > 13) val = val.substring(0, 13) + "-" + val.substring(13, 14);
-                        set("cnic", val);
-                      }} 
-                      placeholder="12345-1234567-1" 
-                      maxLength={15} 
-                    />
-                    <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4 }}>Used to prevent duplicate applications. Encrypted at rest.</p>
-                  </Field>
                 </div>
                 <div style={{ marginTop: 28, display: "flex", justifyContent: "flex-end" }}>
                   <button className="btn btn-primary" onClick={() => { if (validateStep1()) setStep(2); }}>Continue <ChevronRight size={16} /></button>
@@ -557,7 +540,6 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                   <div style={{ display: "grid", gap: 10, fontSize: 14 }}>
                     {[
                       ["Name", form.fullName], ["Email", form.email], ["Phone", form.phone],
-                      ["CNIC", form.cnic.replace(/(\d{5})-(\d{7})-(\d)/, "$1-*******-$3")],
                       ["Position", posting.title], ["CV", cvFile?.name || "—"],
                     ].map(([k, v]) => (
                       <div key={k} style={{ display: "flex", gap: 8 }}>

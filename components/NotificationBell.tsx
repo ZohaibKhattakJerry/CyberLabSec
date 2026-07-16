@@ -111,7 +111,7 @@ export default function NotificationBell({ role }: { role: "admin" | "employee" 
               </div>
             ) : (
               notifications.map((n, i) => (
-                <div key={n.id} style={{ padding: "12px 20px", display: "flex", gap: 12, transition: "background 0.2s", background: n.read ? "transparent" : "rgba(168,85,247,0.05)", animationDelay: \`\${i * 50}ms\` }} className="hover:bg-[rgba(255,255,255,0.02)] animate-fade-up">
+                <div key={n.id} style={{ padding: "12px 20px", display: "flex", gap: 12, transition: "background 0.2s", background: n.read ? "transparent" : "rgba(168,85,247,0.05)", animationDelay: `${i * 50}ms` }} className="hover:bg-[rgba(255,255,255,0.02)] animate-fade-up">
                   <div style={{ marginTop: 2 }}>
                     {!n.read ? <Circle size={10} color="var(--purple)" fill="var(--purple)" /> : <Check size={12} color="var(--text-muted)" />}
                   </div>

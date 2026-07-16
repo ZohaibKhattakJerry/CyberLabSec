@@ -110,29 +110,42 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
     };
   }, [phase]);
 
-  // Feature 1: Visibility change detection — tab switch logging
+  // Feature 1: Visibility change detection — immediate termination on tab switch
   useEffect(() => {
     if (phase !== "interview") return;
     const handleVisibility = () => {
       if (!document.hidden) return;
-      tabBlurCount.current += 1;
-      setTabSwitches((prev) => {
-        const newCount = prev + 1;
-        // Show toast warning
-        setTabSwitchToast(true);
-        setTimeout(() => setTabSwitchToast(false), 4000);
-        // Log to server
-        fetch("/api/interview/integrity", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sessionId, type: "tab_switch", count: newCount }),
-        }).catch(console.error);
-        return newCount;
-      });
+      // IMMEDIATELY terminate - do not wait
+      setPhase('terminated');
+      fetch('/api/interview/integrity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, type: 'tab_switch_terminate', count: 1 }),
+      }).catch(console.error);
+      // Submit with terminated flag
+      fetch('/api/interview/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId,
+          answers,
+          cheatingSignals: { pasteAttempts: pasteAttempts.current, tabBlurCount: tabBlurCount.current + 1, totalTimeSeconds: totalTime },
+          suspicionFlag: true,
+          terminated: true,
+        }),
+      }).catch(console.error);
     };
     document.addEventListener("visibilitychange", handleVisibility);
     return () => document.removeEventListener("visibilitychange", handleVisibility);
-  }, [phase, sessionId]);
+  }, [phase, sessionId, answers, totalTime]);
+
+  // Clear cached question timers on intro phase so 2nd attempt starts fresh
+  useEffect(() => {
+    if (phase !== 'intro') return;
+    for (let i = 0; i < questions.length; i++) {
+      localStorage.removeItem(`timer_${sessionId}_${i}`);
+    }
+  }, [phase, sessionId, questions.length]);
 
   const currentAnswer = answers[questions[currentQ]?.id] || "";
   const setAnswer = (val: string) => {

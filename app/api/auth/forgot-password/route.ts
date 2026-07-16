@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
+import { sendEmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,9 +22,25 @@ export async function POST(req: NextRequest) {
       data: { resetToken, resetTokenExpiry },
     });
 
-    // Simulate sending email (in a real app, send via SendGrid, Mailgun, etc.)
+    // Send actual password reset email
     const resetLink = `https://cyberlabsec.tech/employee/reset-password?token=${resetToken}`;
-    console.log(`[SIMULATED EMAIL] To: ${email} | Subject: Password Reset | Body: Click here to reset: ${resetLink}`);
+    await sendEmail({
+      to: email,
+      subject: "Reset Your CyberLabSec Password",
+      html: `
+        <h1 style="font-size:22px;font-weight:800;color:#000000;margin:0 0 12px 0;">Password Reset Request</h1>
+        <p style="color:#555555;font-size:15px;line-height:1.7;margin:0 0 24px 0;">
+          We received a request to reset the password for your CyberLabSec employee account.
+          Click the button below to set a new password. This link expires in <strong>1 hour</strong>.
+        </p>
+        <div style="text-align:center;margin:0 0 28px 0;">
+          <a href="${resetLink}" style="display:inline-block;background-color:#7e22ce;color:#ffffff !important;text-decoration:none !important;padding:12px 32px;border-radius:6px;font-weight:600;font-size:14px;">Reset My Password &rarr;</a>
+        </div>
+        <p style="color:#888888;font-size:13px;line-height:1.6;">
+          If you did not request a password reset, you can safely ignore this email. Your password will not change.
+        </p>
+      `,
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

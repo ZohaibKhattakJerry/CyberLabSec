@@ -52,6 +52,11 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
   const [offboardLoading, setOffboardLoading] = useState(false);
   const [offboardSuccessLinks, setOffboardSuccessLinks] = useState<{ cert: string | null, lor: string | null }>({ cert: null, lor: null });
 
+  // Manual Add State
+  const [showManualAdd, setShowManualAdd] = useState(false);
+  const [manualForm, setManualForm] = useState({ name: '', email: '', designation: '', employmentType: 'Full-Time', teamId: '', startDate: new Date().toISOString().split('T')[0] });
+  const [manualResult, setManualResult] = useState<{ employeeCode: string; tempPassword: string } | null>(null);
+
   const filtered = employees.filter(e => {
     const q = search.toLowerCase();
     const matchSearch = !q || e.name.toLowerCase().includes(q) || e.email.toLowerCase().includes(q) || e.employeeCode.toLowerCase().includes(q);
@@ -76,6 +81,21 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
     a.href = url; a.download = `employees_${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+
+  const submitManualAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true); setMsg("");
+    const res = await fetch('/api/company/employees/create-manual', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(manualForm),
+    });
+    const data = await res.json();
+    setLoading(false);
+    if (!res.ok) { setMsg(data.error || 'Failed to create employee.'); return; }
+    setManualResult({ employeeCode: data.employeeCode, tempPassword: data.tempPassword });
+    startTransition(() => router.refresh());
   };
 
   const openEdit = (e: Employee) => {
@@ -250,9 +270,14 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
           <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 4 }}>Employees & Teams</h1>
           <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>{employees.length} total employees</p>
         </div>
-        <button className="btn btn-primary" onClick={() => { setShowDirectHire(true); setMsg(""); }}>
-          <UserPlus size={14} /> Add Employee Directly
-        </button>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button className="btn btn-secondary" onClick={() => { setShowManualAdd(true); setManualForm({ name: '', email: '', designation: '', employmentType: 'Full-Time', teamId: '', startDate: new Date().toISOString().split('T')[0] }); setManualResult(null); setMsg(''); }}>
+            <UserPlus size={14} /> Add Employee
+          </button>
+          <button className="btn btn-primary" onClick={() => { setShowDirectHire(true); setMsg(""); }}>
+            <FileSignature size={14} /> From Applicant
+          </button>
+        </div>
       </div>
 
       <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
