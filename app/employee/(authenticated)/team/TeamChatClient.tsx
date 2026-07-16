@@ -16,7 +16,7 @@ type Message = {
 
 export default function TeamChatClient({ messages, currentUserId }: { messages: Message[], currentUserId: string }) {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const [_isPending, startTransition] = useTransition();
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPicker, setShowPicker] = useState(false);

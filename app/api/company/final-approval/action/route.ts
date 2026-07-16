@@ -78,19 +78,17 @@ export async function POST(req: NextRequest) {
       }).catch(() => {});
 
       const portalUrl = "https://cyberlabsec.tech/employee/login";
-      try {
-        await sendEmployeeCredentials(
-          applicant.email,
-          applicant.fullName,
-          code,
-          rawPassword,
-          portalUrl,
-          offerLetterFileBase64 || undefined,
-          customMessage || undefined
-        );
-      } catch (e) {
+      sendEmployeeCredentials(
+        applicant.email,
+        applicant.fullName,
+        code,
+        rawPassword,
+        portalUrl,
+        offerLetterFileBase64 || undefined,
+        customMessage || undefined
+      ).catch(e => {
         console.error("Failed to send hire email:", e);
-      }
+      });
     }
   } else if (status === "Rejected" && review.type === "Hire Request" && review.applicant) {
     // Move applicant to Rejected stage
@@ -99,15 +97,13 @@ export async function POST(req: NextRequest) {
       data: { status: "Rejected" }
     }).catch(() => {});
 
-    try {
-      await sendDeclineEmail(
-        review.applicant.email,
-        review.applicant.fullName,
-        review.applicant.jobPosting?.title || "Role"
-      );
-    } catch (e) {
+    sendDeclineEmail(
+      review.applicant.email,
+      review.applicant.fullName,
+      review.applicant.jobPosting?.title || "Role"
+    ).catch(e => {
       console.error("Failed to send rejection email:", e);
-    }
+    });
   }
 
   return NextResponse.json({ success: true });

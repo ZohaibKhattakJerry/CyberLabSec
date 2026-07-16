@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Bulk action error:", err);
     return NextResponse.json({ error: "Action failed" }, { status: 500 });
   }

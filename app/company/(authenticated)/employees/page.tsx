@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { format } from "date-fns";
+import { _format } from "date-fns";
 import EmployeesClient from "./EmployeesClient";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +15,7 @@ export default async function EmployeesPage() {
 
   const teams = await prisma.team.findMany({ select: { id: true, name: true } });
 
-  const serialized = employees.map((e: any) => ({
+  const serialized = employees.map((e: unknown) => ({
     ...e,
     startDate: e.startDate.toISOString(),
     endDate: e.endDate?.toISOString() ?? null,

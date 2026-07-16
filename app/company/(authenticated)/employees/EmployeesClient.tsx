@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { Search, UserX, UserCheck, Edit2, X, Loader2, Shield, Award, UserPlus, FileSignature, CheckCircle, UserMinus, Download } from "lucide-react";
+import { Search, UserX, UserCheck, Edit2, X, Loader2, Shield, Award, UserPlus, FileSignature, CheckCircle, UserMinus, Download, Star, Users } from "lucide-react";
 
 type Employee = {
   id: string; name: string; email: string; designation: string;
@@ -19,7 +19,7 @@ type Team = { id: string; name: string };
 
 export default function EmployeesClient({ employees, teams }: { employees: Employee[]; teams: Team[] }) {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const [_isPending, startTransition] = useTransition();
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
   const [filterTeam, setFilterTeam] = useState("All");
@@ -53,9 +53,15 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
   const [offboardSuccessLinks, setOffboardSuccessLinks] = useState<{ cert: string | null, lor: string | null }>({ cert: null, lor: null });
 
   // Manual Add State
-  const [showManualAdd, setShowManualAdd] = useState(false);
+  const [_showManualAdd, setShowManualAdd] = useState(false);
   const [manualForm, setManualForm] = useState({ name: '', email: '', designation: '', employmentType: 'Full-Time', teamId: '', startDate: new Date().toISOString().split('T')[0] });
-  const [manualResult, setManualResult] = useState<{ employeeCode: string; tempPassword: string } | null>(null);
+  const [_manualResult, setManualResult] = useState<{ employeeCode: string; tempPassword: string } | null>(null);
+
+  // Badge State
+  const [badgeEmployee, setBadgeEmployee] = useState<Employee | null>(null);
+  const [badgeType, setBadgeType] = useState("top_contributor");
+  const [badgeLabel, setBadgeLabel] = useState("Top Contributor");
+  const [badgeLoading, setBadgeLoading] = useState(false);
 
   const filtered = employees.filter(e => {
     const q = search.toLowerCase();
@@ -96,6 +102,26 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
     if (!res.ok) { setMsg(data.error || 'Failed to create employee.'); return; }
     setManualResult({ employeeCode: data.employeeCode, tempPassword: data.tempPassword });
     startTransition(() => router.refresh());
+  };
+
+  const submitAwardBadge = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!badgeEmployee) return;
+    setBadgeLoading(true); setMsg("");
+    const res = await fetch(`/api/company/employees/${badgeEmployee.id}/badges`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: badgeType, label: badgeLabel }),
+    });
+    const data = await res.json();
+    setBadgeLoading(false);
+    if (!res.ok) { setMsg(data.error || 'Failed to award badge.'); return; }
+    setMsg("Badge awarded successfully.");
+    setTimeout(() => {
+      setBadgeEmployee(null);
+      setMsg("");
+      startTransition(() => router.refresh());
+    }, 1500);
   };
 
   const openEdit = (e: Employee) => {
@@ -271,11 +297,8 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
           <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>{employees.length} total employees</p>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <button className="btn btn-secondary" onClick={() => { setShowManualAdd(true); setManualForm({ name: '', email: '', designation: '', employmentType: 'Full-Time', teamId: '', startDate: new Date().toISOString().split('T')[0] }); setManualResult(null); setMsg(''); }}>
-            <UserPlus size={14} /> Add Employee
-          </button>
           <button className="btn btn-primary" onClick={() => { setShowDirectHire(true); setMsg(""); }}>
-            <FileSignature size={14} /> From Applicant
+            <UserPlus size={14} /> Add Employee (Direct)
           </button>
         </div>
       </div>
@@ -300,7 +323,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
         </button>
       </div>
 
-      <div className="table-container">
+      <div style={{ overflowX: "auto" }}>
         <table>
           <thead>
             <tr>
@@ -316,7 +339,19 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
             </tr>
           </thead>
           <tbody>
-            {filtered.map((e: any) => (
+            {filtered.length === 0 ? (
+              <tr>
+                <td colSpan={9} style={{ textAlign: "center", padding: "40px 20px" }}>
+                  <div className="empty-state" style={{ padding: "40px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12 }}>
+                    <div style={{ width: 48, height: 48, borderRadius: "50%", background: "rgba(168,85,247,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--purple)", marginBottom: 8 }}>
+                      <Users size={24} />
+                    </div>
+                    <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: "var(--text-primary)" }}>No employees found</h3>
+                    <p style={{ color: "var(--text-muted)", fontSize: 14, margin: 0 }}>Try adjusting your search or filters.</p>
+                  </div>
+                </td>
+              </tr>
+            ) : filtered.map((e: unknown) => (
               <tr key={e.id}>
                 <td data-label="Employee">
                   <div style={{ fontWeight: 600, fontSize: 13, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 6 }}>
@@ -345,6 +380,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
                 </td>
                 <td data-label="Actions">
                   <div style={{ display: "flex", gap: 6 }}>
+                    <button className="btn btn-ghost btn-sm" onClick={() => { setBadgeEmployee(e); setMsg(""); }} title="Award Badge"><Star size={13} color="var(--amber)" /></button>
                     <button className="btn btn-ghost btn-sm" onClick={() => { setAnalyticsEmployee(e); setGeneratedReport(null); }} title="Performance Analytics"><Award size={13} /></button>
                     <button className="btn btn-ghost btn-sm" onClick={() => openEdit(e)} title="Edit"><Edit2 size={13} /></button>
                     {e.status === "Active" && (
@@ -378,7 +414,13 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
           </tbody>
         </table>
         {filtered.length === 0 && (
-          <div style={{ padding: 40, textAlign: "center", color: "var(--text-muted)", fontSize: 14 }}>No employees found.</div>
+          <div className="empty-state">
+            <div className="empty-state-icon-wrapper">
+              <Search size={28} />
+            </div>
+            <div className="empty-state-title">No employees found</div>
+            <div className="empty-state-description">We couldn't find any employees matching your current search or filter criteria.</div>
+          </div>
         )}
       </div>
 
@@ -474,7 +516,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
                 <label className="label">Team Assignment</label>
                 <select className="input" value={dhData.teamId} onChange={e => setDhData({...dhData, teamId: e.target.value})}>
                   <option value="">Unassigned</option>
-                  {teams.map((t: any) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                  {teams.map((t: unknown) => <option key={t.id} value={t.id}>{t.name}</option>)}
                 </select>
               </div>
 
@@ -523,7 +565,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
                   <label className="label">Team Assignment</label>
                   <select className="input" value={editTeam} onChange={e => setEditTeam(e.target.value)}>
                     <option value="">Unassigned</option>
-                    {teams.map((t: any) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                    {teams.map((t: unknown) => <option key={t.id} value={t.id}>{t.name}</option>)}
                   </select>
                 </div>
               </div>
@@ -711,6 +753,58 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
               </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Award Badge Modal */}
+      {badgeEmployee && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+          <div className="card" style={{ maxWidth: 480, width: "100%", padding: 32 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+              <h2 style={{ fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", gap: 8 }}>
+                <Star size={18} color="var(--amber)" /> Award Badge to {badgeEmployee.name}
+              </h2>
+              <button onClick={() => setBadgeEmployee(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}><X size={18} /></button>
+            </div>
+            
+            <form onSubmit={submitAwardBadge} style={{ display: "grid", gap: 16 }}>
+              <div>
+                <label className="label">Badge Type</label>
+                <select className="input" value={badgeType} onChange={e => {
+                  setBadgeType(e.target.value);
+                  const labels: Record<string, string> = {
+                    "top_contributor": "Top Contributor",
+                    "bug_hunter": "Bug Hunter",
+                    "mvp": "MVP",
+                    "security_champion": "Security Champion",
+                    "innovator": "Innovator"
+                  };
+                  setBadgeLabel(labels[e.target.value] || e.target.value);
+                }}>
+                  <option value="top_contributor">Top Contributor</option>
+                  <option value="bug_hunter">Bug Hunter</option>
+                  <option value="mvp">MVP</option>
+                  <option value="security_champion">Security Champion</option>
+                  <option value="innovator">Innovator</option>
+                </select>
+              </div>
+              <div>
+                <label className="label">Badge Label (Customizable)</label>
+                <input required className="input" value={badgeLabel} onChange={e => setBadgeLabel(e.target.value)} />
+              </div>
+
+              {msg && <div style={{ fontSize: 13, padding: "12px 16px", borderRadius: 8, background: msg.includes("success") ? "rgba(34,197,94,0.08)" : "rgba(239,68,68,0.08)", border: `1px solid ${msg.includes("success") ? "rgba(34,197,94,0.2)" : "rgba(239,68,68,0.2)"}`, color: msg.includes("success") ? "var(--green)" : "var(--red)" }}>
+                {msg}
+              </div>}
+
+              <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
+                <button type="button" className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setBadgeEmployee(null)} disabled={badgeLoading}>Cancel</button>
+                <button type="submit" className="btn btn-primary" style={{ flex: 1, background: "var(--amber)", borderColor: "var(--amber)", color: "#000" }} disabled={badgeLoading}>
+                  {badgeLoading ? <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> : "Award Badge"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

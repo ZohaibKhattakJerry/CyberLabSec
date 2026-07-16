@@ -9,7 +9,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const resolvedParams = await params;
   const body = await req.json();
 
-  const dataToUpdate: any = {};
+  const dataToUpdate: unknown = {};
   if (body.title !== undefined) dataToUpdate.title = body.title.trim();
   if (body.type !== undefined) dataToUpdate.type = body.type;
   if (body.department !== undefined) dataToUpdate.department = body.department.trim();
@@ -21,6 +21,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (body.status !== undefined) dataToUpdate.status = body.status;
   if (body.passMark !== undefined) dataToUpdate.passMark = Number(body.passMark) || 60;
   if (body.showApplicantCount !== undefined) dataToUpdate.showApplicantCount = !!body.showApplicantCount;
+  if (body.autoShortlist !== undefined) dataToUpdate.autoShortlist = !!body.autoShortlist;
 
   try {
     const posting = await prisma.jobPosting.update({
@@ -33,7 +34,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     }).catch(() => {});
 
     return NextResponse.json({ success: true, posting });
-  } catch (err: any) {
+  } catch {
     return NextResponse.json({ error: "Failed to update posting" }, { status: 500 });
   }
 }
@@ -68,7 +69,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     }).catch(() => {});
 
     return NextResponse.json({ success: true });
-  } catch (err: any) {
+  } catch {
     return NextResponse.json({ error: "Failed to delete posting" }, { status: 500 });
   }
 }

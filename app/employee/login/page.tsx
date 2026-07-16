@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { Shield, Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
+import {  Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 
 export default function PortalLogin() {
   const router = useRouter();

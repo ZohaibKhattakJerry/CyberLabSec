@@ -21,7 +21,7 @@ interface Props {
   currentUserRole: "admin" | "employee";
 }
 
-export default function TaskComments({ taskId, initialComments, currentUserId, currentUserRole }: Props) {
+export default function TaskComments({ taskId, initialComments, currentUserId, _currentUserRole }: Props) {
   const [comments, setComments] = useState<Comment[]>(initialComments);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -89,7 +89,14 @@ export default function TaskComments({ taskId, initialComments, currentUserId, c
                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4, flexDirection: isMe ? "row-reverse" : "row" }}>
                   <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)" }}>{isMe ? "You" : c.authorName}</span>
                   {isAdmin && !isMe && <span className="badge badge-purple" style={{ fontSize: 9 }}>Admin</span>}
-                  <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{format(new Date(c.timestamp), "MMM d, h:mm a")}</span>
+                  <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                    {(() => {
+                      try {
+                        const d = new Date(c.timestamp);
+                        return isNaN(d.getTime()) ? "" : format(d, "MMM d, h:mm a");
+                      } catch { return ""; }
+                    })()}
+                  </span>
                 </div>
                 <div style={{
                   padding: "10px 14px", borderRadius: 10, fontSize: 13, lineHeight: 1.6,

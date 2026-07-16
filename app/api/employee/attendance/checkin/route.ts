@@ -12,16 +12,16 @@ export async function POST(req: NextRequest) {
   const status = now > lateThreshold ? 'Late' : 'Present';
 
   try {
-    const existing = await (prisma as any).attendanceRecord.findUnique({
+    const existing = await (prisma as unknown).attendanceRecord.findUnique({
       where: { employeeId_date: { employeeId: auth.sub, date: today } }
     });
     if (existing) return NextResponse.json({ success: true, alreadyCheckedIn: true });
 
-    await (prisma as any).attendanceRecord.create({
+    await (prisma as unknown).attendanceRecord.create({
       data: { employeeId: auth.sub, date: today, loginTime: now, status }
     });
     return NextResponse.json({ success: true, status });
-  } catch (e) {
+  } catch {
     return NextResponse.json({ success: false });
   }
 }

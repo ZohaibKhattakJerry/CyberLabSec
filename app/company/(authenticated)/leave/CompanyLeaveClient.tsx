@@ -5,7 +5,7 @@ import { format, differenceInCalendarDays } from 'date-fns';
 import {
   CheckCircle,
   XCircle,
-  Clock,
+  _Clock,
   ChevronDown,
   ChevronUp,
   CalendarDays,

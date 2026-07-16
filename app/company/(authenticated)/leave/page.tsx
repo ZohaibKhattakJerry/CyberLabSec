@@ -9,7 +9,7 @@ export default async function CompanyLeavePage() {
   const auth = await getAuthFromCookies();
   if (!auth || auth.role !== 'admin') redirect('/company/login');
 
-  const leaves = await (prisma as any).leaveRequest.findMany({
+  const leaves = await (prisma as unknown).leaveRequest.findMany({
     orderBy: { createdAt: 'desc' },
     include: {
       employee: {

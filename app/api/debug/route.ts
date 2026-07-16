@@ -27,7 +27,7 @@ export async function GET() {
           subDateStr = sd.toString();
           formatB = format(sd, "MMM d, yyyy");
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
         error = e.message;
       }
       
@@ -35,7 +35,7 @@ export async function GET() {
     });
 
     return NextResponse.json({ success: true, count: tasks.length, results });
-  } catch(e: any) {
+  } catch(e: unknown) {
     return NextResponse.json({ error: e.message });
   }
 }

@@ -21,12 +21,12 @@ export default async function AnnouncementsPage() {
   const teams = await prisma.team.findMany({ select: { id: true, name: true } });
   const employees = await prisma.employee.findMany({ where: { status: "Active" }, select: { id: true, name: true, employeeCode: true } });
 
-  const serialized = announcements.map((a: any) => ({
+  const serialized = announcements.map((a: unknown) => ({
     ...a,
     sentAt: a.sentAt.toISOString(),
     expiresAt: a.expiresAt?.toISOString() || null,
     readCount: a._count?.reads || 0,
-    readers: a.reads.map((r: any) => ({ name: r.employee?.name || "Unknown", employeeCode: r.employee?.employeeCode || "", readAt: r.readAt.toISOString() })),
+    readers: a.reads.map((r: unknown) => ({ name: r.employee?.name || "Unknown", employeeCode: r.employee?.employeeCode || "", readAt: r.readAt.toISOString() })),
   }));
 
   return <AnnouncementsClient announcements={serialized} teams={teams} employees={employees} totalEmployees={totalEmployees} />;

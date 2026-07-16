@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Users, Briefcase, FileText, CheckCircle, AlertTriangle, Clock, Star, Plus, UserPlus, Megaphone, ArrowRight, TrendingUp, Activity } from "lucide-react";
+import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid } from "recharts";
 
 interface DashboardData {
   stats: { employees: number; openPostings: number; newApplications: number; activeTasks: number; overdueTasks: number; pendingApprovals: number; pendingReviews: number };
@@ -47,6 +48,19 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
   const funnelMap: Record<string, number> = {};
   hiringFunnel.forEach((f) => { funnelMap[f.status] = f._count.id; });
   const maxFunnel = Math.max(...Object.values(funnelMap), 1);
+
+  const taskData = [
+    { name: "Assigned", value: taskStatusMap["Assigned"] || 0, color: "var(--text-muted)" },
+    { name: "In Progress", value: taskStatusMap["InProgress"] || 0, color: "var(--blue)" },
+    { name: "Submitted", value: taskStatusMap["Submitted"] || 0, color: "var(--amber)" },
+    { name: "Revision", value: taskStatusMap["ChangesRequested"] || 0, color: "var(--red)" },
+    { name: "Completed", value: taskStatusMap["Completed"] || 0, color: "var(--green)" },
+  ].filter(d => d.value > 0);
+
+  const funnelData = funnelOrder.map(stage => ({
+    name: stage.replace("Interview ", "Int. "),
+    value: funnelMap[stage] || 0
+  }));
 
   return (
     <div style={{ display: "grid", gap: 24 }}>
@@ -124,52 +138,64 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
           <h2 style={{ fontSize: 13, fontWeight: 700, marginBottom: 14, display: "flex", alignItems: "center", gap: 6 }}>
             <Activity size={14} color="var(--purple)" /> Tasks by Status
           </h2>
-          <div style={{ display: "grid", gap: 8 }}>
-            {[
-              { key: "Assigned", label: "Assigned", color: "var(--text-muted)" },
-              { key: "InProgress", label: "In Progress", color: "var(--blue)" },
-              { key: "Submitted", label: "Submitted", color: "var(--amber)" },
-              { key: "ChangesRequested", label: "Revision", color: "var(--red)" },
-              { key: "Completed", label: "Completed", color: "var(--green)" },
-            ].map(({ key, label, color }) => {
-              const count = taskStatusMap[key] || 0;
-              const pct = Math.round((count / taskTotal) * 100);
-              return (
-                <div key={key}>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 3 }}>
-                    <span style={{ color: "var(--text-secondary)" }}>{label}</span>
-                    <span style={{ color, fontWeight: 700 }}>{count}</span>
-                  </div>
-                  <div style={{ height: 5, background: "rgba(255,255,255,0.05)", borderRadius: 4 }}>
-                    <div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: 4, transition: "width 0.6s ease" }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          {taskData.length > 0 ? (
+            <div style={{ height: 220, position: "relative" }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={taskData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {taskData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip 
+                    contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.95)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }} 
+                    itemStyle={{ color: '#fff', fontSize: 13, fontWeight: 600 }} 
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", textAlign: "center", pointerEvents: "none" }}>
+                <div style={{ fontSize: 24, fontWeight: 800 }}>{taskTotal}</div>
+                <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Total</div>
+              </div>
+            </div>
+          ) : (
+            <div style={{ height: 220, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)", fontSize: 13 }}>No task data available</div>
+          )}
         </div>
 
         <div className="card" style={{ padding: 18 }}>
           <h2 style={{ fontSize: 13, fontWeight: 700, marginBottom: 14, display: "flex", alignItems: "center", gap: 6 }}>
             <TrendingUp size={14} color="var(--purple)" /> Hiring Funnel
           </h2>
-          <div style={{ display: "grid", gap: 8 }}>
-            {funnelOrder.map((stage) => {
-              const count = funnelMap[stage] || 0;
-              if (count === 0) return null;
-              const pct = Math.round((count / maxFunnel) * 100);
-              return (
-                <div key={stage}>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 3 }}>
-                    <span style={{ color: "var(--text-secondary)" }}>{stage}</span>
-                    <span style={{ color: "var(--purple)", fontWeight: 700 }}>{count}</span>
-                  </div>
-                  <div style={{ height: 5, background: "rgba(255,255,255,0.05)", borderRadius: 4 }}>
-                    <div style={{ height: "100%", width: `${pct}%`, background: "var(--purple)", borderRadius: 4, opacity: 0.65 + 0.35 * (pct / 100) }} />
-                  </div>
-                </div>
-              );
-            })}
+          <div style={{ height: 220 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={funnelData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorPurple" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--purple)" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="var(--purple)" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                <XAxis dataKey="name" stroke="rgba(255,255,255,0.3)" fontSize={11} tickLine={false} axisLine={false} />
+                <YAxis stroke="rgba(255,255,255,0.3)" fontSize={11} tickLine={false} axisLine={false} />
+                <RechartsTooltip 
+                  contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.95)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }} 
+                  itemStyle={{ color: 'var(--purple)', fontSize: 13, fontWeight: 600 }} 
+                  labelStyle={{ color: 'var(--text-secondary)', fontSize: 12, marginBottom: 4 }}
+                />
+                <Area type="monotone" dataKey="value" stroke="var(--purple)" strokeWidth={2} fillOpacity={1} fill="url(#colorPurple)" />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>

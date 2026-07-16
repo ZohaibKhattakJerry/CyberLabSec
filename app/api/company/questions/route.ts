@@ -9,7 +9,7 @@ export async function GET() {
   try {
     const questions = await prisma.questionBank.findMany({ orderBy: { createdAt: "desc" } });
     return NextResponse.json(questions);
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: "Database error" }, { status: 500 });
   }
 }
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json(q, { status: 201 });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: "Database error" }, { status: 500 });
   }
 }

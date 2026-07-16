@@ -11,11 +11,11 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     newPassword = body.newPassword;
-  } catch (e) {
+  } catch {
     // Body might be empty
   }
 
-  const updateData: any = {
+  const updateData: unknown = {
     onboardingCompleted: true,
     policyAcknowledgedAt: new Date(),
   };

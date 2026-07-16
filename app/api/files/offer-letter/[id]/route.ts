@@ -11,7 +11,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const id = resolvedParams.id;
 
   // Try to find by employee ID first (when called from employee portal)
-  let applicant: any = null;
+  let applicant: unknown = null;
   let employeeData: { applicantId: string | null; name: string; email: string } | null = null;
 
   const employee = await prisma.employee.findUnique({

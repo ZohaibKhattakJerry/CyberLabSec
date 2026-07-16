@@ -53,7 +53,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ task
 
   const zipBuffer = await zip.generateAsync({ type: "nodebuffer" });
 
-  return new NextResponse(zipBuffer as any, {
+  return new NextResponse(zipBuffer as unknown, {
     status: 200,
     headers: {
       "Content-Type": "application/zip",

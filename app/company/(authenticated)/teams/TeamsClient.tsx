@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { Plus, Users, Trash2, X, Loader2, ClipboardList, Edit2 } from "lucide-react";
+import { Plus, Users, Trash2, X, Loader2, ClipboardList, _Edit2 } from "lucide-react";
 
 type Team = {
   id: string; name: string; leadEmployeeId: string | null;
@@ -15,7 +15,7 @@ type Team = {
 
 type Employee = { id: string; name: string; employeeCode: string; designation: string; teamId: string | null };
 
-export default function TeamsClient({ teams, employees }: { teams: Team[]; employees: Employee[] }) {
+export default function TeamsClient({ teams, _employees }: { teams: Team[]; employees: Employee[] }) {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [showCreate, setShowCreate] = useState(false);
@@ -96,7 +96,7 @@ export default function TeamsClient({ teams, employees }: { teams: Team[]; emplo
         </div>
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(380px, 1fr))", gap: 16 }}>
-          {teams.map((team: any) => (
+          {teams.map((team: unknown) => (
             <div key={team.id} className="card" style={{ padding: 24 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                 <div>
@@ -121,13 +121,13 @@ export default function TeamsClient({ teams, employees }: { teams: Team[]; emplo
                       disabled={loading}
                     >
                       <option value="">No Lead Assigned</option>
-                      {team.members.map((m: any) => (
+                      {team.members.map((m: unknown) => (
                         <option key={m.id} value={m.id}>{m.name}</option>
                       ))}
                     </select>
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                    {team.members.map((m: any) => (
+                    {team.members.map((m: unknown) => (
                       <span key={m.id} style={{ fontSize: 12, padding: "4px 10px", background: "rgba(255,255,255,0.04)", borderRadius: 999, border: "1px solid var(--border)", color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: 4 }}>
                         {m.name}
                         {team.leadEmployeeId === m.id && <span style={{ color: "var(--purple)", fontSize: 10, fontWeight: 700 }}>(Lead)</span>}
@@ -142,7 +142,7 @@ export default function TeamsClient({ teams, employees }: { teams: Team[]; emplo
               {team.tasks.length > 0 && (
                 <div>
                   <p style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>Recent Tasks</p>
-                  {team.tasks.map((t: any) => (
+                  {team.tasks.map((t: unknown) => (
                     <div key={t.id} style={{ fontSize: 12, color: "var(--text-secondary)", padding: "4px 0", borderTop: "1px solid var(--border-subtle)" }}>
                       {t.title} <span style={{ color: "var(--text-muted)" }}>· Due {format(new Date(t.deadline), "MMM d")}</span>
                     </div>

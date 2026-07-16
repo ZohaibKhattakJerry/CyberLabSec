@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle, X, FileText, Clock, AlertTriangle, Loader2, Shield } from "lucide-react";
+import { CheckCircle, X, Clock, AlertTriangle, Loader2, Shield } from "lucide-react";
 import { format } from "date-fns";
 import toast from "react-hot-toast";
 
@@ -19,7 +19,7 @@ interface Props {
   declineReason: string | null;
 }
 
-export default function OfferLetterClient({ offerId, token, content, status, expiresAt, candidateName, jobTitle, isExpired, isDecided, acceptedName, declineReason }: Props) {
+export default function OfferLetterClient({ token, content, status, expiresAt, candidateName, jobTitle, isExpired, isDecided, acceptedName }: Props) {
   const [action, setAction] = useState<"accept" | "decline" | null>(null);
   const [signatureName, setSignatureName] = useState("");
   const [declineNote, setDeclineNote] = useState("");
@@ -151,7 +151,7 @@ export default function OfferLetterClient({ offerId, token, content, status, exp
               <div style={{ display: "grid", gap: 16 }}>
                 <div style={{ background: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 10, padding: 16 }}>
                   <p style={{ fontSize: 14, color: "var(--text-secondary)", margin: 0 }}>
-                    By typing your full name below and clicking "Accept", you confirm that you have read and agree to the terms of this offer letter. This constitutes a digital signature and will be timestamped.
+                    By typing your full name below and clicking &quot;Accept&quot;, you confirm that you have read and agree to the terms of this offer letter. This constitutes a digital signature and will be timestamped.
                   </p>
                 </div>
                 <div>

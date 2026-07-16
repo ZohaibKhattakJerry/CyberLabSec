@@ -10,7 +10,7 @@ import {
   MapPin,
   Briefcase,
   Clock,
-  ExternalLink,
+  _ExternalLink,
   Shield,
   Search,
   ChevronRight,
@@ -86,7 +86,7 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
         const data = await res.json();
         toast.error(data.error || "Failed to join talent pool");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error(err.message || "Network error");
     }
   };

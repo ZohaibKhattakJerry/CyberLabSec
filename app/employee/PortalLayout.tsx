@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, ClipboardList, Users, Bell, User, LogOut,
-  Menu, X, ChevronRight, Trophy, FileText, Calendar, CalendarDays, LifeBuoy,
+  Menu, X, ChevronRight, Trophy, FileText, Calendar, CalendarDays, LifeBuoy, Video
 } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 import AttendanceTracker from "@/components/AttendanceTracker";
@@ -24,6 +24,7 @@ const NAV = [
   { href: "/employee/leaderboard", label: "Leaderboard", icon: Trophy },
   { href: "/employee/attendance", label: "Attendance", icon: Calendar },
   { href: "/employee/leave", label: "Leave", icon: CalendarDays },
+  { href: "/employee/meetings", label: "Meetings", icon: Video },
   { href: "/employee/support", label: "Support", icon: LifeBuoy },
   { href: "/employee/announcements", label: "Announcements", icon: Bell },
   { href: "/employee/profile", label: "Profile", icon: User },

@@ -161,16 +161,16 @@ Respond ONLY with a valid JSON array of objects, where each object has:
   // Fallback to database questions if AI generation failed or is disabled
   if (finalQuestions.length === 0) {
     finalQuestions = [
-      ...openQuestions.map((q, i) => ({
+      ...openQuestions.map((q, _i) => ({
         id: q.id, type: q.type as "open", prompt: q.prompt, rubric: q.rubric || "", points: q.points
       })),
-      ...mcqQuestions.map((q, i) => ({
+      ...mcqQuestions.map((q, _i) => ({
         id: q.id, type: q.type as "mcq", prompt: q.prompt, options: JSON.parse(q.options), correctOption: q.correctOption || 0, points: q.points
       }))
     ];
   } else {
     // If AI generation succeeded, append MCQs from the database pool
-    finalQuestions.push(...mcqQuestions.map((q, i) => ({
+    finalQuestions.push(...mcqQuestions.map((q, _i) => ({
       id: q.id, type: q.type as "mcq", prompt: q.prompt, options: JSON.parse(q.options), correctOption: q.correctOption || 0, points: q.points
     })));
   }
@@ -229,7 +229,7 @@ export async function gradeOpenAnswer(
   const ansLower = answer.toLowerCase();
   
   const dbQuestion = await prisma.questionBank.findFirst({ where: { prompt: questionText } });
-  let keywords = dbQuestion && dbQuestion.keywords ? JSON.parse(dbQuestion.keywords) : rubric.toLowerCase().split(/\W+/).filter(w => w.length > 4);
+  const keywords = dbQuestion && dbQuestion.keywords ? JSON.parse(dbQuestion.keywords) : rubric.toLowerCase().split(/\W+/).filter(w => w.length > 4);
   
   let matchCount = 0;
   for (const kw of keywords) {

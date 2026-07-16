@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { Search, Filter, X, Eye, UserCheck, UserX, Loader2, FileText, ChevronRight, Check, AlertTriangle, Clock, Star } from "lucide-react";
+import { Search, _Filter, X, Eye, UserCheck, _UserX, Loader2, FileText, ChevronRight, Check, AlertTriangle, Clock, Star } from "lucide-react";
 
 type Applicant = {
   id: string; fullName: string; email: string; phone: string;
@@ -53,7 +53,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function ApplicationsClient({ applicants, postings }: { applicants: Applicant[]; postings: Posting[] }) {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const [_isPending, startTransition] = useTransition();
   const [search, setSearch] = useState("");
   const [filterPosting, setFilterPosting] = useState("All");
   const [viewMode, setViewMode] = useState<"kanban" | "list">("kanban");
@@ -168,6 +168,27 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
     startTransition(() => { router.refresh(); });
   };
 
+  const manualShortlist = async (applicantId: string) => {
+    if (!confirm("Are you sure you want to shortlist this applicant and send them an interview invite?")) return;
+    setActionLoading(true); setActionMsg("");
+    
+    const res = await fetch(`/api/company/applications/${applicantId}/status`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "InterviewInvited" }), // This triggers the email and token refresh in the API
+    });
+    const data = await res.json();
+    setActionLoading(false);
+    if (!res.ok) { setActionMsg(data.error || "Failed to shortlist applicant"); return; }
+    setActionMsg(`Applicant shortlisted. Interview invite sent!`);
+    startTransition(() => { 
+      router.refresh(); 
+      if (selected) {
+        setSelected({...selected, status: "Interview"}); // normalize to Interview locally
+      }
+    });
+  };
+
   const renderKanban = () => {
     return (
       <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingBottom: 16, minHeight: 600 }}>
@@ -181,7 +202,13 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
               </div>
               
               {items.length === 0 ? (
-                <div style={{ padding: 20, textAlign: "center", color: "var(--text-muted)", fontSize: 13, background: "rgba(0,0,0,0.2)", borderRadius: 8 }}>No candidates</div>
+                <div className="empty-state empty-state-sm">
+                  <div className="empty-state-icon-wrapper">
+                    <FileText size={20} />
+                  </div>
+                  <div className="empty-state-title">No candidates</div>
+                  <div className="empty-state-description">Nothing to show in this stage yet.</div>
+                </div>
               ) : (
                 items.map(a => (
                   <div key={a.id} className={`card ${selectedIds.includes(a.id) ? 'selected' : ''}`} style={{ padding: 16, cursor: "pointer", transition: "transform 0.1s", position: "relative", border: selectedIds.includes(a.id) ? "1px solid var(--purple)" : "1px solid var(--border)" }} onClick={(e) => {
@@ -217,7 +244,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
 
   const renderList = () => {
     return (
-      <div className="table-container">
+      <div style={{ overflowX: "auto" }}>
         <table>
           <thead>
             <tr>
@@ -257,6 +284,15 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
             ))}
           </tbody>
         </table>
+        {filtered.length === 0 && (
+          <div className="empty-state">
+            <div className="empty-state-icon-wrapper">
+              <Search size={28} />
+            </div>
+            <div className="empty-state-title">No candidates found</div>
+            <div className="empty-state-description">Adjust your filters or search query to find candidates.</div>
+          </div>
+        )}
       </div>
     );
   };
@@ -432,7 +468,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                         </ul>
                       </div>
                     );
-                  } catch (e) {
+                  } catch {
                     return null;
                   }
                 })()}
@@ -505,6 +541,11 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                 <button className="btn btn-primary" onClick={() => hireApplicant(selected.id)} disabled={actionLoading}>
                   {actionLoading ? <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> : <UserCheck size={14} />}
                   Hire & Request CEO Approval
+                </button>
+              ) : selected.status === "Applied" ? (
+                <button className="btn btn-primary" onClick={() => manualShortlist(selected.id)} disabled={actionLoading}>
+                  {actionLoading ? <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> : <UserCheck size={14} />}
+                  Shortlist & Invite
                 </button>
               ) : null}
               <a href={`/api/files/${selected.id}/cv`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary">

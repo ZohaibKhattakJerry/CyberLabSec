@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ message: newMsg });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Team message error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }

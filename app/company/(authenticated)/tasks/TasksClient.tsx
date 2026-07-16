@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Search, Calendar, ChevronRight, FileText, CheckCircle, Clock, AlertTriangle, Star, X, Loader2, ExternalLink, Eye, Filter, LayoutList, LayoutGrid } from "lucide-react";
+import { Plus, Search, _Calendar, _ChevronRight, FileText, CheckCircle, Clock, AlertTriangle, Star, _X, Loader2, ExternalLink, Eye, _Filter, LayoutList, LayoutGrid } from "lucide-react";
 import { format, formatDistanceToNow, isPast } from "date-fns";
 import toast from "react-hot-toast";
 
@@ -72,6 +72,7 @@ export default function TasksClient({ initialTasks, teams }: { initialTasks: Tas
   const [form, setForm] = useState({ title: "", brief: "", deadline: "", teamId: "", priority: "Medium" });
   const [checklistItems, setChecklistItems] = useState<string[]>([]);
   const [checklistInput, setChecklistInput] = useState("");
+  const [attachments, setAttachments] = useState<{name: string, url: string}[]>([]);
 
   const filteredTasks = tasks.filter(t => {
     const q = search.toLowerCase();
@@ -89,7 +90,7 @@ export default function TasksClient({ initialTasks, teams }: { initialTasks: Tas
       const res = await fetch("/api/company/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, checklist: JSON.stringify(checklistItems) }),
+        body: JSON.stringify({ ...form, checklist: checklistItems, attachments }),
       });
       if (!res.ok) throw new Error("Failed");
       const { task } = await res.json();
@@ -98,6 +99,7 @@ export default function TasksClient({ initialTasks, teams }: { initialTasks: Tas
       setForm({ title: "", brief: "", deadline: "", teamId: "", priority: "Medium" });
       setChecklistItems([]);
       setChecklistInput("");
+      setAttachments([]);
       toast.success("Task assigned successfully");
     } catch {
       toast.error("Failed to assign task");
@@ -212,6 +214,40 @@ export default function TasksClient({ initialTasks, teams }: { initialTasks: Tas
                       <input type="checkbox" disabled style={{ width: 14, height: 14, flexShrink: 0 }} />
                       <span style={{ flex: 1, fontSize: 13, color: "var(--text-secondary)" }}>{item}</span>
                       <button type="button" onClick={() => setChecklistItems(checklistItems.filter((_, j) => j !== i))} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: 2 }}>✕</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Attachments */}
+            <div>
+              <label className="label">Attachments (PDF/Images)</label>
+              <input
+                type="file"
+                multiple
+                className="input"
+                accept="application/pdf,image/*"
+                onChange={e => {
+                  if (!e.target.files) return;
+                  Array.from(e.target.files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                      if (ev.target?.result) {
+                        setAttachments(prev => [...prev, { name: file.name, url: ev.target!.result as string }]);
+                      }
+                    };
+                    reader.readAsDataURL(file);
+                  });
+                  e.target.value = ''; // Reset input
+                }}
+              />
+              {attachments.length > 0 && (
+                <div style={{ display: "grid", gap: 6, marginTop: 8 }}>
+                  {attachments.map((att, i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px", background: "rgba(255,255,255,0.04)", borderRadius: 8, border: "1px solid var(--border-subtle)" }}>
+                      <span style={{ flex: 1, fontSize: 13, color: "var(--text-secondary)" }}>{att.name}</span>
+                      <button type="button" onClick={() => setAttachments(attachments.filter((_, j) => j !== i))} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: 2 }}>✕</button>
                     </div>
                   ))}
                 </div>

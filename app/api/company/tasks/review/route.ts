@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   const taskStatus = isApprove ? "Completed" : "ChangesRequested";
 
   // Update feedback history
-  let feedbackHistory: any[] = [];
+  let feedbackHistory: unknown[] = [];
   try { feedbackHistory = JSON.parse(submission.reviewerFeedbackHistory || "[]"); } catch {}
   if (feedback) {
     feedbackHistory.push({ feedback, action, reviewedAt: new Date().toISOString(), reviewedBy: auth.sub });

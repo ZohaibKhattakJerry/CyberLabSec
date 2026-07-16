@@ -20,7 +20,7 @@ export default function SettingsClient() {
 
   const [company, setCompany] = useState({ name: "CyberLabSec", email: "hr@cyberlabsec.tech", timezone: "Asia/Karachi", website: "https://cyberlabsec.tech" });
   const [points, setPoints] = useState({ low: 10, medium: 20, high: 35, critical: 50, onTimeBonus: 20, qualityPerStar: 5 });
-  const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [auditLogs, setAuditLogs] = useState<unknown[]>([]);
   const [auditSearch, setAuditSearch] = useState("");
   const [auditLoading, setAuditLoading] = useState(false);
 
@@ -229,7 +229,7 @@ export default function SettingsClient() {
             ] as const).map(({ label, key, color }) => (
               <div key={key}>
                 <label className="label" style={{ color }}>{label} (base pts)</label>
-                <input className="input" type="number" min={1} value={(points as any)[key]} onChange={(e) => setPoints((p) => ({ ...p, [key]: Number(e.target.value) }))} style={{ width: 120 }} />
+                <input className="input" type="number" min={1} value={(points as unknown)[key]} onChange={(e) => setPoints((p) => ({ ...p, [key]: Number(e.target.value) }))} style={{ width: 120 }} />
               </div>
             ))}
             <div>

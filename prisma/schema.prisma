@@ -75,6 +75,7 @@ model JobPosting {
   weeklyHours        Int?
   experienceLevel    String      @default("Any")
   openings           Int         @default(1)
+  autoShortlist      Boolean     @default(true)
   publishedDate      DateTime?
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
@@ -157,6 +158,9 @@ model Employee {
   attendanceRecords    AttendanceRecord[]
   leaveRequests        LeaveRequest[]
   proposedMeetings     MeetingRequest[]          @relation("MeetingProposer")
+  appraisalsReceived   PerformanceAppraisal[]    @relation("AppraisalSubject")
+  appraisalsGiven      PerformanceAppraisal[]    @relation("AppraisalReviewer")
+  documents            EmployeeDocument[]
 }
 
 model Team {
@@ -274,6 +278,19 @@ model OfferLetter {
   updatedAt     DateTime    @updatedAt
   applicant     Applicant   @relation(fields: [applicantId], references: [id])
   jobPosting    JobPosting? @relation(fields: [jobPostingId], references: [id])
+}
+
+model EmployeeDocument {
+  id           String    @id @default(cuid())
+  employeeId   String
+  title        String
+  type         String    @default("General") // Offer Letter, Contract, ID, Request, etc
+  fileUrl      String?
+  status       String    @default("Uploaded") // Uploaded, Requested, Approved, Rejected
+  uploadedBy   String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  employee     Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 }
 
 model ActivityLog {
@@ -450,3 +467,17 @@ model MeetingRequest {
   proposer       Employee  @relation("MeetingProposer", fields: [proposedBy], references: [id])
 }
 
+
+model PerformanceAppraisal {
+  id           String    @id @default(cuid())
+  employeeId   String
+  reviewerId   String
+  period       String
+  rating       Int       
+  feedback     String
+  status       String    @default("Draft")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  employee     Employee  @relation("AppraisalSubject", fields: [employeeId], references: [id], onDelete: Cascade)
+  reviewer     Employee  @relation("AppraisalReviewer", fields: [reviewerId], references: [id])
+}

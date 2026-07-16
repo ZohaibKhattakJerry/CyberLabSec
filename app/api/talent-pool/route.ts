@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
       await prisma.talentPool.create({
         data: { email }
       });
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (e.code !== 'P2002') { // Not a unique constraint error
         throw e;
       }

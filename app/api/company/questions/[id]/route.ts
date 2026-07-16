@@ -16,7 +16,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     });
 
     return NextResponse.json(q);
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: "Database error" }, { status: 500 });
   }
 }
@@ -28,7 +28,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   try {
     await prisma.questionBank.delete({ where: { id: params.id } });
     return NextResponse.json({ success: true });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: "Database error" }, { status: 500 });
   }
 }

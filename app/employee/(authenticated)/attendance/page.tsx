@@ -14,7 +14,7 @@ export default async function AttendancePage() {
   const monthStart = startOfMonth(now);
   const monthEnd = endOfMonth(now);
 
-  const records = await (prisma as any).attendanceRecord.findMany({
+  const records = await (prisma as unknown).attendanceRecord.findMany({
     where: {
       employeeId: auth.sub,
       date: { gte: monthStart, lte: monthEnd }
@@ -22,12 +22,12 @@ export default async function AttendancePage() {
     orderBy: { date: 'desc' }
   }).catch(() => []);
 
-  const presentCount = records.filter((r: any) => r.status === 'Present').length;
-  const lateCount = records.filter((r: any) => r.status === 'Late').length;
+  const presentCount = records.filter((r: unknown) => r.status === 'Present').length;
+  const lateCount = records.filter((r: unknown) => r.status === 'Late').length;
   const totalWorkDays = records.length;
 
   // Serialize dates
-  const serializedRecords = records.map((r: any) => ({
+  const serializedRecords = records.map((r: unknown) => ({
     ...r,
     date: r.date.toISOString(),
     loginTime: r.loginTime.toISOString(),
@@ -61,7 +61,7 @@ export default async function AttendancePage() {
           <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: 40 }}>No attendance records found for this month.</p>
         ) : (
           <div style={{ display: 'grid', gap: 10 }}>
-            {serializedRecords.map((r: any) => (
+            {serializedRecords.map((r: unknown) => (
               <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', background: 'rgba(255,255,255,0.02)', borderRadius: 8, border: '1px solid var(--border)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{ width: 8, height: 8, borderRadius: '50%', background: r.status === 'Present' ? 'var(--green)' : r.status === 'Late' ? 'var(--amber)' : 'var(--red)', flexShrink: 0 }} />

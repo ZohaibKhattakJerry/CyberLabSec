@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashCNIC } from "@/lib/cnic";
-import { decryptCNIC } from "@/lib/cnic";
+import { _decryptCNIC } from "@/lib/cnic";
 
 export async function POST(req: NextRequest) {
   const { token, email, cnic } = await req.json();

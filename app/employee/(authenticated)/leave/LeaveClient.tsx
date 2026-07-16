@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { Plus, Calendar, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-export default function LeaveClient({ initialLeaves }: { initialLeaves: any[] }) {
+export default function LeaveClient({ initialLeaves }: { initialLeaves: unknown[] }) {
   const [leaves, setLeaves] = useState(initialLeaves);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ type: 'Casual', startDate: '', endDate: '', reason: '' });
@@ -28,7 +28,7 @@ export default function LeaveClient({ initialLeaves }: { initialLeaves: any[] })
       setShowForm(false);
       setForm({ type: 'Casual', startDate: '', endDate: '', reason: '' });
       toast.success('Leave request submitted!');
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error(err.message);
     } finally {
       setLoading(false);
@@ -95,7 +95,7 @@ export default function LeaveClient({ initialLeaves }: { initialLeaves: any[] })
         </div>
       ) : (
         <div style={{ display: 'grid', gap: 12 }}>
-          {leaves.map((l: any) => (
+          {leaves.map((l: unknown) => (
             <div key={l.id} className="card" style={{ padding: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
               <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
                 <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(168,85,247,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>

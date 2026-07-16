@@ -15,7 +15,7 @@ interface Notification {
   createdAt: string;
 }
 
-export default function NotificationBell({ role }: { role: "admin" | "employee" }) {
+export default function NotificationBell() {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -23,7 +23,27 @@ export default function NotificationBell({ role }: { role: "admin" | "employee" 
   const [error, setError] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
+  const fetchNotifications = async () => {
+    try {
+      const res = await fetch("/api/notifications");
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(data.notifications);
+        setUnreadCount(data.notifications.filter((n: Notification) => !n.read).length);
+        setError(false);
+      } else {
+        setError(true);
+      }
+    } catch {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 60000); // Poll every minute
     return () => clearInterval(interval);
@@ -38,30 +58,12 @@ export default function NotificationBell({ role }: { role: "admin" | "employee" 
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
 
-  const fetchNotifications = async () => {
-    try {
-      const res = await fetch("/api/notifications");
-      if (res.ok) {
-        const data = await res.json();
-        setNotifications(data.notifications);
-        setUnreadCount(data.notifications.filter((n: Notification) => !n.read).length);
-        setError(false);
-      } else {
-        setError(true);
-      }
-    } catch (err) {
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const markAsRead = async (id: string) => {
     try {
       await fetch(`/api/notifications/${id}/read`, { method: "POST" });
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
       setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch (err) {}
+    } catch {}
   };
 
   const markAllAsRead = async () => {
@@ -69,7 +71,7 @@ export default function NotificationBell({ role }: { role: "admin" | "employee" 
       await fetch(`/api/notifications/read-all`, { method: "POST" });
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
       setUnreadCount(0);
-    } catch (err) {}
+    } catch {}
   };
 
   return (

@@ -5,7 +5,7 @@ import { Clock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import StartTaskButton from "./StartTaskButton";
 
-export default function TaskCard({ task, statusStr }: { task: any; statusStr: string }) {
+export default function TaskCard({ task, statusStr }: { task: unknown; statusStr: string }) {
   const router = useRouter();
 
   return (

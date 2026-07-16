@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { useEffect } from "react";
 import { Search, Loader2, CheckCircle, ChevronLeft, Briefcase, Calendar, AlertCircle } from "lucide-react";
 
 export default function StatusClient() {
@@ -10,6 +11,28 @@ export default function StatusClient() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [data, setData] = useState<any>(null);
+
+  // Poll for live status updates if we have a valid refId and data showing
+  useEffect(() => {
+    if (!data || !refId) return;
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch("/api/applications/status-check", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ referenceId: refId.trim().toUpperCase() })
+        });
+        const resData = await res.json();
+        if (res.ok && resData.application) {
+          setData(resData.application);
+        }
+      } catch {
+        // ignore network errors on background poll
+      }
+    }, 5000); // Check every 5 seconds for real-time feel
+    return () => clearInterval(interval);
+  }, [data, refId]);
+
 
   const handleCheck = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,7 +142,7 @@ export default function StatusClient() {
                       <div style={{ position: "relative", display: "flex", justifyContent: "space-between" }}>
                         <div style={{ position: "absolute", top: 12, left: 24, right: 24, height: 2, background: "var(--border)", zIndex: 0 }} />
                         
-                        {getPipeline(data.status).map((stage, i) => {
+                        {getPipeline(data.status).map((stage, _i) => {
                           const isDecision = stage.id === "Decision";
                           const showRejected = isDecision && isRejected;
                           return (

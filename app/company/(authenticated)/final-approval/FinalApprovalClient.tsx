@@ -3,22 +3,23 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { Shield, FileText, CheckCircle, Loader2, X, XCircle } from "lucide-react";
+import { _Shield, _FileText, CheckCircle, Loader2, X, XCircle } from "lucide-react";
 import toast from "react-hot-toast";
 
 type Review = {
   id: string; type: string; submitterId: string; applicantId: string | null;
   status: string; comments: string | null; createdAt: string;
   submitter: { name: string; designation: string };
-  applicant: any;
+  applicant: unknown;
 };
 
 export default function FinalApprovalClient({ reviews }: { reviews: Review[] }) {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const [_isPending, startTransition] = useTransition();
   const [selected, setSelected] = useState<Review | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionMsg, setActionMsg] = useState("");
+  const [successDialog, setSuccessDialog] = useState<{show: boolean; status: string; reviewType: string}>({show: false, status: "", reviewType: ""});
   const [customMessage, setCustomMessage] = useState("");
   const [offerLetterFileBase64, setOfferLetterFileBase64] = useState<string | null>(null);
 
@@ -39,10 +40,8 @@ export default function FinalApprovalClient({ reviews }: { reviews: Review[] }) 
   };
 
   const handleAction = async (reviewId: string, status: "Approved" | "Rejected") => {
-    if (status === "Approved" && selected?.type === "Hire Request" && !offerLetterFileBase64) {
-      setActionMsg("You must attach an offer letter PDF to approve a hire.");
-      return;
-    }
+    // Offer letter is optional now, they can upload it if they want.
+
     setActionLoading(true); setActionMsg("");
     try {
       const res = await fetch(`/api/company/final-approval/action`, {
@@ -54,15 +53,15 @@ export default function FinalApprovalClient({ reviews }: { reviews: Review[] }) 
       let data;
       try {
         data = await res.json();
-      } catch (e) {
+      } catch {
         throw new Error("The server took too long to respond. The action might have succeeded, please refresh the page to check.");
       }
       
       if (!res.ok) { setActionMsg(data.error || "Failed to process review"); return; }
       
-      toast.success(`Review ${status}`);
+      setSuccessDialog({ show: true, status, reviewType: selected?.type || "Request" });
       startTransition(() => { router.refresh(); setSelected(null); });
-    } catch (error: any) {
+    } catch (error: unknown) {
       setActionMsg(error.message || "An unexpected error occurred.");
     } finally {
       setActionLoading(false);
@@ -201,6 +200,23 @@ export default function FinalApprovalClient({ reviews }: { reviews: Review[] }) 
                 Reject Request
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {successDialog.show && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+          <div className="card" style={{ maxWidth: 400, width: "100%", padding: 32, textAlign: "center" }}>
+            <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(34,197,94,0.1)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+              <CheckCircle size={32} color="var(--green)" />
+            </div>
+            <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 12 }}>{successDialog.status}</h2>
+            <p style={{ color: "var(--text-secondary)", fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
+              The {successDialog.reviewType.toLowerCase()} has been successfully {successDialog.status.toLowerCase()}. The applicant will be notified of the decision automatically.
+            </p>
+            <button className="btn btn-primary" style={{ width: "100%", justifyContent: "center", padding: "14px" }} onClick={() => setSuccessDialog({show: false, status: "", reviewType: ""})}>
+              Close & Continue
+            </button>
           </div>
         </div>
       )}

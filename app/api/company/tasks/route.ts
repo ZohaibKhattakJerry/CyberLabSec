@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
   });
 
   // Notify team members
-  const teamMembers = await prisma.employee.findMany({ where: { teamId, status: "Active" } });
+  const teamMembers = await prisma.employee.findMany({ where: { teamId, status: "Active" }, select: { id: true } });
   if (teamMembers.length > 0) {
     await prisma.notification.createMany({
       data: teamMembers.map((member) => ({

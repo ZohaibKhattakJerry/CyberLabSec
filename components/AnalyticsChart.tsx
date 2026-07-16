@@ -2,7 +2,7 @@
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
-export default function AnalyticsChart({ data }: { data: any[] }) {
+export default function AnalyticsChart({ data }: { data: unknown[] }) {
   return (
     <div style={{ width: "100%", height: 300 }}>
       <ResponsiveContainer>

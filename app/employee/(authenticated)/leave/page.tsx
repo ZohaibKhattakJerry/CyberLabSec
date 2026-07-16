@@ -9,7 +9,7 @@ export default async function LeavePage() {
   const auth = await getAuthFromCookies();
   if (!auth) redirect('/employee/login');
 
-  const leaves = await (prisma as any).leaveRequest.findMany({
+  const leaves = await (prisma as unknown).leaveRequest.findMany({
     where: { employeeId: auth.sub },
     orderBy: { createdAt: 'desc' }
   }).catch(() => []);

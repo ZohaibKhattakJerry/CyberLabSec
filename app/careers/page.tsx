@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import Link from "next/link";
+import _Link from "next/link";
 import { Metadata } from "next";
 import CareersJobBoard from "./CareersJobBoard";
 
@@ -39,7 +39,7 @@ export default async function CareersPage() {
     }));
 
     return <CareersJobBoard postings={serialized} />;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Failed to load postings:", error);
     return <CareersJobBoard postings={[]} />;
   }

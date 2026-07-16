@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     // Parse existing integrity violations log
     let integrityLog: Array<{ type: string; count: number; timestamp: string }> = [];
     try {
-      integrityLog = JSON.parse((session as any).integrityViolations || "[]");
+      integrityLog = JSON.parse((session as unknown).integrityViolations || "[]");
     } catch {}
 
     integrityLog.push({ type, count, timestamp: new Date().toISOString() });
@@ -29,11 +29,11 @@ export async function POST(req: NextRequest) {
       data: {
         integrityViolations: JSON.stringify(integrityLog),
         ...(isTerminated ? { result: "IntegrityTerminated" } : {}),
-      } as any,
+      } as unknown,
     });
 
     return NextResponse.json({ success: true, isTerminated });
-  } catch (error) {
+  } catch {
     // Fallback: log to ActivityLog if session update fails
     try {
       const { sessionId, type, count } = await req.json().catch(() => ({

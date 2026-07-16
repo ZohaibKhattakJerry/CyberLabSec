@@ -25,7 +25,7 @@ const STATUS_COLOR: Record<string, string> = {
   Closed: 'badge-gray',
 };
 
-export default function SupportClient({ initialTickets }: { initialTickets: any[] }) {
+export default function SupportClient({ initialTickets }: { initialTickets: unknown[] }) {
   const [tickets, setTickets] = useState(initialTickets);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ category: 'General', title: '', description: '', priority: 'Medium' });
@@ -49,7 +49,7 @@ export default function SupportClient({ initialTickets }: { initialTickets: any[
       setShowForm(false);
       setForm({ category: 'General', title: '', description: '', priority: 'Medium' });
       toast.success('Support ticket submitted!');
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error(err.message || 'Failed to submit ticket');
     } finally {
       setLoading(false);
@@ -117,7 +117,7 @@ export default function SupportClient({ initialTickets }: { initialTickets: any[
         </div>
       ) : (
         <div style={{ display: 'grid', gap: 12 }}>
-          {tickets.map((t: any) => (
+          {tickets.map((t: unknown) => (
             <div key={t.id} className="card" style={{ padding: 20 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
                 <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', flex: 1, minWidth: 0 }}>

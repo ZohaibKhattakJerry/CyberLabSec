@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
-import { TrendingUp, Clock, CheckCircle, Award, Calendar } from 'lucide-react';
+import { TrendingUp, Clock, CheckCircle, Award } from 'lucide-react';
 
 interface PerformanceData {
   tasksCompleted: number;

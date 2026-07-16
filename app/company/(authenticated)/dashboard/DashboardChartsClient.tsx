@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell } from "recharts";
-import { motion } from "framer-motion";
+import { _motion } from "framer-_motion";
 
 interface ChartData {
-  applicationsData: any[];
-  tasksData: any[];
-  applicantStatusData: any[];
+  applicationsData: unknown[];
+  tasksData: unknown[];
+  applicantStatusData: unknown[];
 }
 
 const COLORS = ["var(--purple)", "var(--blue)", "var(--green)", "var(--amber)", "var(--text-muted)"];

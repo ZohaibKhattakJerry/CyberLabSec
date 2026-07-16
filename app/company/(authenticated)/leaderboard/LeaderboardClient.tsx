@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Trophy, Medal, Star, Users, TrendingUp, Plus, Minus, X, Loader2 } from "lucide-react";
+import { Trophy, _Medal, _Star, Users, TrendingUp, _Plus, _Minus, X, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
@@ -61,7 +61,7 @@ export default function LeaderboardClient({
   );
 
   const top3 = sorted.slice(0, 3);
-  const rest = sorted.slice(3);
+//   const rest = sorted.slice(3);
 
   const podiumOrder = top3.length === 3 ? [top3[1], top3[0], top3[2]] : top3;
 

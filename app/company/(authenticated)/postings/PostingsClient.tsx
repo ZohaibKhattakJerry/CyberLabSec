@@ -8,7 +8,7 @@ import { Plus, X, Loader2, Briefcase, ToggleLeft, ToggleRight, Edit2, Trash2, Us
 type Posting = {
   id: string; title: string; type: string; department: string; location: string;
   description: string; requirements: string; universityRequired: boolean;
-  deadline: string; status: string; passMark: number; showApplicantCount: boolean;
+  deadline: string; status: string; passMark: number; showApplicantCount: boolean; autoShortlist: boolean;
   createdAt: string; _count: { applicants: number };
 };
 
@@ -16,7 +16,7 @@ const EMPTY_FORM = {
   title: "", type: "Job", department: "", location: "Remote",
   description: "", requirements: "", niceToHave: "", whatYouGain: "",
   universityRequired: false, deadline: "", passMark: 60,
-  showApplicantCount: true, status: "Draft",
+  showApplicantCount: true, status: "Draft", autoShortlist: true,
   experienceLevel: "Any", openings: 1,
   stipend: "", duration: "", weeklyHours: "",
 };
@@ -36,15 +36,15 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
     setForm({
       title: p.title, type: p.type, department: p.department, location: p.location,
       description: p.description, requirements: p.requirements,
-      niceToHave: (p as any).niceToHave || "",
-      whatYouGain: (p as any).whatYouGain || "",
+      niceToHave: (p as unknown).niceToHave || "",
+      whatYouGain: (p as unknown).whatYouGain || "",
       universityRequired: p.universityRequired, deadline: p.deadline.slice(0, 16),
-      passMark: p.passMark, showApplicantCount: p.showApplicantCount ?? true, status: p.status,
-      experienceLevel: (p as any).experienceLevel || "Any",
-      openings: (p as any).openings || 1,
-      stipend: (p as any).stipend || "",
-      duration: (p as any).duration || "",
-      weeklyHours: (p as any).weeklyHours || "",
+      passMark: p.passMark, showApplicantCount: p.showApplicantCount ?? true, status: p.status, autoShortlist: p.autoShortlist ?? true,
+      experienceLevel: (p as unknown).experienceLevel || "Any",
+      openings: (p as unknown).openings || 1,
+      stipend: (p as unknown).stipend || "",
+      duration: (p as unknown).duration || "",
+      weeklyHours: (p as unknown).weeklyHours || "",
     });
     setMsg(""); setShowForm(true);
   };
@@ -101,7 +101,7 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
         </div>
       ) : (
         <div style={{ display: "grid", gap: 14 }}>
-          {postings.map((p: any) => (
+          {postings.map((p: unknown) => (
             <div key={p.id} className="card flex-mobile-col" style={{ padding: 22, display: "flex", alignItems: "flex-start", gap: 16 }}>
               <div style={{ flex: 1 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
@@ -230,6 +230,10 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <input type="checkbox" id="showCount" checked={form.showApplicantCount} onChange={e => setForm(f => ({ ...f, showApplicantCount: e.target.checked }))} style={{ width: 16, height: 16, accentColor: "var(--purple)" }} />
                   <label htmlFor="showCount" style={{ fontSize: 14, cursor: "pointer", color: "var(--text-secondary)" }}>Show applicant count publicly</label>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <input type="checkbox" id="autoShortlist" checked={form.autoShortlist} onChange={e => setForm(f => ({ ...f, autoShortlist: e.target.checked }))} style={{ width: 16, height: 16, accentColor: "var(--purple)" }} />
+                  <label htmlFor="autoShortlist" style={{ fontSize: 14, cursor: "pointer", color: "var(--text-secondary)" }}>Auto-shortlist via AI</label>
                 </div>
               </div>
             </div>

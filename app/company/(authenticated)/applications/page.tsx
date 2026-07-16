@@ -17,7 +17,7 @@ export default async function ApplicationsPage() {
     },
   });
 
-  const serialized = applicants.map((a: any) => ({
+  const serialized = applicants.map((a: unknown) => ({
     ...a,
     createdAt: a.createdAt.toISOString(),
     updatedAt: a.updatedAt.toISOString(),

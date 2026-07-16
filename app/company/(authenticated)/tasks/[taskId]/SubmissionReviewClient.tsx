@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { format } from "date-fns";
-import { FileDown, CheckCircle, XCircle, Loader2, Sparkles, Send, Type, Link as LinkIcon, MessageSquare } from "lucide-react";
+import { FileDown, CheckCircle, XCircle, Loader2, Sparkles, _Send, Type, Link as LinkIcon, MessageSquare } from "lucide-react";
 import toast from "react-hot-toast";
 
-export default function SubmissionReviewClient({ submission }: { submission: any }) {
+export default function SubmissionReviewClient({ submission }: { submission: unknown }) {
   const [status, setStatus] = useState(submission.status);
   const [loading, setLoading] = useState(false);
   const [aiSummary, setAiSummary] = useState(submission.aiSummary || "");
@@ -33,7 +33,7 @@ export default function SubmissionReviewClient({ submission }: { submission: any
       setStatus(newStatus);
       setShowFeedbackInput(false);
       toast.success(`Submission marked as ${newStatus}`);
-    } catch (error) {
+    } catch {
       toast.error("Error updating submission");
     } finally {
       setLoading(false);
@@ -52,7 +52,7 @@ export default function SubmissionReviewClient({ submission }: { submission: any
       const data = await res.json();
       setAiSummary(data.summary);
       toast.success("AI Summary generated");
-    } catch (error) {
+    } catch {
       toast.error("Error generating AI summary");
     } finally {
       setGeneratingAI(false);

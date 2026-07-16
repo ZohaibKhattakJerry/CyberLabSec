@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { format } from "date-fns";
-import { User, Shield, Calendar, KeyRound, Eye, EyeOff, Loader2, CheckCircle, Clock, Activity, Camera, Code, Link as LinkIcon, UploadCloud } from "lucide-react";
+import { User, Shield, Calendar, KeyRound, Eye, EyeOff, Loader2, Activity, Camera, Code, Link as LinkIcon, UploadCloud, Award } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface Employee {
@@ -12,6 +12,7 @@ interface Employee {
   teamId: string | null; policyAcknowledgedAt: string | null;
   githubUrl: string | null; linkedinUrl: string | null;
   team: { name: string } | null;
+  badges?: { id: string; type: string; label: string; awardedAt: string }[];
 }
 
 interface ActivityLog {
@@ -56,7 +57,7 @@ export default function ProfileClient({ employee, activityLogs }: { employee: Em
       });
       if (!res.ok) throw new Error("Failed to upload photo");
       router.refresh();
-    } catch (err: any) {
+    } catch (err: unknown) {
       alert(err.message);
     } finally {
       setUploadingPhoto(false);
@@ -154,7 +155,7 @@ export default function ProfileClient({ employee, activityLogs }: { employee: Em
                   { icon: <Shield size={14} />, label: "Squad Assignment", value: employee.team?.name || "Pending Assignment" },
                   { icon: <Activity size={14} />, label: "Clearance Level", value: employee.employmentType },
                   { icon: <Calendar size={14} />, label: "Induction Date", value: format(new Date(employee.startDate), "MMM d, yyyy") },
-                ].map((r: any) => (
+                ].map((r: unknown) => (
                   <div key={r.label} style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <div style={{ width: 28, height: 28, borderRadius: 8, background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)", flexShrink: 0 }}>
                       {r.icon}
@@ -242,9 +243,9 @@ export default function ProfileClient({ employee, activityLogs }: { employee: Em
                 <p style={{ fontSize: 13, color: "var(--text-muted)", textAlign: "center", padding: 20 }}>No logs recorded in the mainframe.</p>
               ) : (
                 <div style={{ display: "grid", gap: 12 }}>
-                  {activityLogs.map((log: any) => {
+                  {activityLogs.map((log: unknown) => {
                     let ip = "Unknown IP";
-                    try { ip = JSON.parse(log.metadata).ip || ip; } catch (e) {}
+                    try { ip = JSON.parse(log.metadata).ip || ip; } catch {}
                     
                     const isLogin = log.action === "LOGIN";
                     const isLogout = log.action === "LOGOUT";
@@ -269,7 +270,25 @@ export default function ProfileClient({ employee, activityLogs }: { employee: Em
             </div>
           </div>
 
-
+          {/* Verification Badges */}
+          {employee.badges && employee.badges.length > 0 && (
+            <div className="card" style={{ padding: 24 }}>
+              <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, display: "flex", alignItems: "center", gap: 8, color: "var(--text-primary)" }}>
+                <Award size={16} color="var(--amber)" /> Verification Badges
+              </h2>
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                {employee.badges.map(b => (
+                  <div key={b.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: 8 }}>
+                    <Award size={16} color="var(--amber)" />
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--amber)" }}>{b.label}</div>
+                      <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{format(new Date(b.awardedAt), "MMM d, yyyy")}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Account Security */}
           <div className="card" style={{ padding: 24 }}>

@@ -17,7 +17,7 @@ interface Props {
 
 type Phase = "verify" | "intro" | "interview" | "submitting" | "done" | "terminated" | "failed_retry" | "terminated_final";
 
-export default function InterviewClient({ sessionId, token, applicantName, applicantEmail, jobTitle, questions, initialAnswers = {}, passMark, emailVerified, attempts, maxAttempts }: Props) {
+export default function InterviewClient({ sessionId, _token, applicantName, _applicantEmail, jobTitle, questions, initialAnswers = {}, _passMark, _emailVerified, attempts, maxAttempts }: Props) {
   const [phase, setPhase] = useState<Phase>("intro");
   
   // Calculate starting question index based on existing answers
@@ -30,8 +30,8 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
   const [totalTime, setTotalTime] = useState(0);
 
   // Integrity state
-  const [tabSwitches, setTabSwitches] = useState(0);
-  const [tabSwitchToast, setTabSwitchToast] = useState(false);
+  const [tabSwitches, _setTabSwitches] = useState(0);
+  const [tabSwitchToast, _setTabSwitchToast] = useState(false);
   const [pasteWarning, setPasteWarning] = useState(false);
 
   // Anti-cheat signals
@@ -519,7 +519,7 @@ function IntroPhase({ applicantName, jobTitle, questions, attempts, maxAttempts,
             <div style={{ color: "var(--purple)", marginTop: 2 }}><ClipboardList size={20} /></div>
             <div>
               <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>Format</div>
-              <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>{questions.length} questions total ({questions.filter((q: any) => q.type === "open").length} written, {questions.filter((q: any) => q.type === "mcq").length} MCQ).</div>
+              <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>{questions.length} questions total ({questions.filter((q: unknown) => q.type === "open").length} written, {questions.filter((q: unknown) => q.type === "mcq").length} MCQ).</div>
             </div>
           </div>
           <div style={{ padding: 16, background: "rgba(255,255,255,0.02)", borderRadius: 12, border: "1px solid var(--border-subtle)", display: "flex", alignItems: "flex-start", gap: 12 }}>

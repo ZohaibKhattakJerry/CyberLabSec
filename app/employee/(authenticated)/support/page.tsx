@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 export default async function SupportPage() {
   const auth = await getAuthFromCookies();
   if (!auth) redirect('/employee/login');
-  const tickets = await (prisma as any).supportTicket.findMany({
+  const tickets = await (prisma as unknown).supportTicket.findMany({
     where: { employeeId: auth.sub },
     orderBy: { createdAt: 'desc' }
   }).catch(() => []);

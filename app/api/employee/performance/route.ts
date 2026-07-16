@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   const [submissions, employee, attendance] = await Promise.all([
     prisma.taskSubmission.findMany({ where: { employeeId: auth.sub, submittedAt: { gte: since } }, include: { task: { select: { deadline: true } } } }),
     prisma.employee.findUnique({ where: { id: auth.sub }, select: { points: true } }),
-    (prisma as any).attendanceRecord.findMany({ where: { employeeId: auth.sub, date: { gte: since } } }).catch(() => [])
+    (prisma as unknown).attendanceRecord.findMany({ where: { employeeId: auth.sub, date: { gte: since } } }).catch(() => [])
   ]);
   
   const approved = submissions.filter(s => s.status === 'Approved');
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   const scores = submissions.filter(s => s.reviewerScore != null).map(s => s.reviewerScore as number);
   const avgScore = scores.length > 0 ? Math.round(scores.reduce((a,b) => a+b, 0) / scores.length) : 0;
   const totalDays = Math.max(attendance.length, 1);
-  const presentDays = attendance.filter((a: any) => a.status !== 'Absent').length;
+  const presentDays = attendance.filter((a: unknown) => a.status !== 'Absent').length;
   
   return NextResponse.json({
     tasksCompleted: approved.length,

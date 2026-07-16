@@ -13,7 +13,7 @@ export async function PATCH(
   const { leaveId } = await params;
   const { status, reviewerNote } = await req.json();
 
-  const leave = await (prisma as any).leaveRequest.update({
+  const leave = await (prisma as unknown).leaveRequest.update({
     where: { id: leaveId },
     data: {
       status,

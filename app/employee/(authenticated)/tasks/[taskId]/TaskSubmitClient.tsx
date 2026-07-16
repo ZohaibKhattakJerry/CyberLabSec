@@ -38,8 +38,8 @@ export default function TaskSubmitClient({
   taskId,
   taskTitle,
   taskBrief,
-  taskStatus,
-  taskDeadline,
+  _taskStatus,
+  _taskDeadline,
   existingSubmission,
 }: TaskSubmitClientProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -106,7 +106,7 @@ export default function TaskSubmitClient({
       if (!res.ok) throw new Error(data.error || "Failed to submit");
       setSubmitted(true);
       toast.success("Work submitted successfully!");
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error(err.message);
     } finally {
       setSubmitting(false);

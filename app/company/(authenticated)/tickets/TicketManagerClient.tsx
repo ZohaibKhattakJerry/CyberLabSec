@@ -35,7 +35,7 @@ type Ticket = {
 type Props = { initialTickets: Ticket[] };
 
 const STATUS_OPTIONS = ['Open', 'In Progress', 'Resolved', 'Closed'] as const;
-type TicketStatus = (typeof STATUS_OPTIONS)[number];
+type _TicketStatus = (typeof STATUS_OPTIONS)[number];
 
 const PRIORITY_BADGE: Record<string, string> = {
   Low: 'badge-default',

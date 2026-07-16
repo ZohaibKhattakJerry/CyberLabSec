@@ -30,7 +30,7 @@ export async function POST(req: NextRequest, { params }: { params: { taskId: str
     senderRole = "employee";
   }
 
-  let comments: any[] = [];
+  let comments: unknown[] = [];
   try { comments = JSON.parse(task.comments || "[]"); } catch {}
 
   const newComment = {

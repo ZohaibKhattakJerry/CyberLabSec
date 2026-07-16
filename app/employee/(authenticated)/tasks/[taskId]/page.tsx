@@ -33,7 +33,7 @@ export default async function TaskDetailsPage({ params }: { params: Promise<{ ta
   const submission = task.submissions[0] ?? null;
 
   // Parse comments from JSON
-  let comments: any[] = [];
+  let comments: unknown[] = [];
   try { comments = JSON.parse(task.comments || "[]"); } catch {}
 
   const isLocked = submission && !["Needs Revision"].includes(submission.status);
@@ -50,9 +50,12 @@ export default async function TaskDetailsPage({ params }: { params: Promise<{ ta
       }
     : null;
 
-  // Parse checklist
+  // Parse checklist & attachments
   let checklist: string[] = [];
   try { checklist = JSON.parse(task.checklist || "[]"); } catch {}
+
+  let attachments: { name: string; url: string }[] = [];
+  try { attachments = JSON.parse(task.attachments || "[]"); } catch {}
 
   return (
     <div style={{ maxWidth: 760, margin: "0 auto", display: "grid", gap: 20 }}>
@@ -82,6 +85,21 @@ export default async function TaskDetailsPage({ params }: { params: Promise<{ ta
             </div>
           </div>
         )}
+
+        {/* Attachments */}
+        {attachments.length > 0 && (
+          <div style={{ marginTop: 20, borderTop: "1px solid var(--border-subtle)", paddingTop: 16 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-muted)", marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.06em" }}>Task Attachments</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+              {attachments.map((att: any, i: number) => (
+                <a key={i} href={att.url} download={att.name} className="btn btn-secondary btn-sm" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  {att.name}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Submission form or locked state */}
@@ -96,7 +114,14 @@ export default async function TaskDetailsPage({ params }: { params: Promise<{ ta
                 {submission?.status === "Approved" ? "Submission Approved" : "Submission Under Review"}
               </h2>
               <p style={{ margin: 0, fontSize: 12, color: "var(--text-muted)" }}>
-                Version {submission?.version} submitted on {format(new Date(submission!.submittedAt), "MMM d, yyyy 'at' h:mm a")}
+                Version {submission?.version} submitted on {
+                  (() => {
+                    try {
+                      const d = new Date(submission!.submittedAt);
+                      return isNaN(d.getTime()) ? "Unknown Date" : format(d, "MMM d, yyyy 'at' h:mm a");
+                    } catch { return "Unknown Date"; }
+                  })()
+                }
               </p>
             </div>
           </div>

@@ -42,7 +42,7 @@ export default async function AdminTaskReviewPage({ params }: { params: Promise<
   let checklist: string[] = [];
   try { checklist = JSON.parse(task.checklist || "[]"); } catch {}
 
-  let comments: any[] = [];
+  let comments: unknown[] = [];
   try { comments = JSON.parse(task.comments || "[]"); } catch {}
 
   const ACTION_LABELS: Record<string, string> = {
@@ -144,7 +144,7 @@ export default async function AdminTaskReviewPage({ params }: { params: Promise<
               <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 16, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Activity Timeline</h3>
               <div style={{ display: "grid", gap: 0 }}>
                 {taskActivity.map((log, i) => {
-                  let meta: any = {};
+                  let meta: unknown = {};
                   try { meta = JSON.parse(log.metadata || "{}"); } catch {}
                   const label = ACTION_LABELS[log.action] || log.action.replace(/_/g, " ").toLowerCase();
                   return (

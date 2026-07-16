@@ -66,7 +66,7 @@ export default function OnboardingWizard({ employee }: { employee: Employee }) {
       if (!res.ok) throw new Error("Failed to complete onboarding.");
       toast.success("Welcome aboard!");
       router.refresh();
-    } catch (error) {
+    } catch {
       toast.error("Error completing onboarding.");
       setLoading(false);
     }
@@ -95,16 +95,16 @@ export default function OnboardingWizard({ employee }: { employee: Employee }) {
               <Shield size={24} color="var(--purple)" /> CEO Welcome Message
             </h2>
             <div className="card" style={{ padding: 32, marginBottom: 24 }}>
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 20 }}>
-                <div style={{ width: 80, height: 80, borderRadius: "50%", background: "var(--purple)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, fontWeight: 800, color: "white", flexShrink: 0 }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 20, flexWrap: "wrap" }}>
+                <div style={{ width: 80, height: 80, borderRadius: "50%", background: "var(--purple)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, fontWeight: 800, color: "white", flexShrink: 0, margin: "0 auto" }}>
                   ZK
                 </div>
                 <div>
                   <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Zohaib Khattak</h3>
                   <p style={{ color: "var(--text-muted)", fontSize: 14, marginBottom: 16 }}>CEO & Founder, CyberLabSec</p>
                   <div style={{ color: "var(--text-secondary)", fontStyle: "italic", lineHeight: 1.7, fontSize: 15, paddingLeft: 16, borderLeft: "4px solid var(--border-accent)" }}>
-                    <p style={{ marginBottom: 12 }}>"Welcome to the team! We founded CyberLabSec with a singular vision: to build the most elite, proactive defense force in the digital realm. As you step into your new role, remember that you are now part of a family that values integrity, innovation, and relentless pursuit of security."</p>
-                    <p>"We rely on your expertise to secure the future. I am incredibly excited to see the impact you will make here. Let's build something extraordinary together."</p>
+                    <p style={{ marginBottom: 12 }}>&quot;Welcome to the team! We founded CyberLabSec with a singular vision: to build the most elite, proactive defense force in the digital realm. As you step into your new role, remember that you are now part of a family that values integrity, innovation, and relentless pursuit of security.&quot;</p>
+                    <p>&quot;We rely on your expertise to secure the future. I am incredibly excited to see the impact you will make here. Let&apos;s build something extraordinary together.&quot;</p>
                   </div>
                 </div>
               </div>

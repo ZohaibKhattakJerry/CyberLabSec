@@ -1,10 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { getAuthFromCookies } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import Link from "next/link";
-import { ChevronRight, Clock, FileText, CheckCircle, AlertTriangle } from "lucide-react";
-import { differenceInDays, format } from "date-fns";
-import StartTaskButton from "./StartTaskButton";
+import {   FileText, AlertTriangle } from "lucide-react";
+import { differenceInDays } from "date-fns";
+
 import TaskCard from "./TaskCard";
 
 export default async function TasksPage() {
@@ -26,7 +25,7 @@ export default async function TasksPage() {
     );
   }
 
-  let tasks: any[] = [];
+  let tasks: unknown[] = [];
   let taskError = false;
   try {
     tasks = await prisma.task.findMany({
@@ -53,7 +52,7 @@ export default async function TasksPage() {
     );
   }
 
-  const getStatus = (task: any) => {
+  const getStatus = (task: unknown) => {
     if (task.submissions.length === 0) {
       const daysLeft = differenceInDays(new Date(task.deadline), new Date());
       return daysLeft < 0 ? "Overdue" : "Pending";
@@ -69,7 +68,7 @@ export default async function TasksPage() {
   const revisionTasks = tasks.filter(t => getStatus(t) === "Needs Revision");
   const doneTasks = tasks.filter(t => getStatus(t) === "Done");
 
-  const renderColumn = (title: string, columnTasks: any[], badgeColor: string) => (
+  const renderColumn = (title: string, columnTasks: unknown[], badgeColor: string) => (
     <div style={{ flex: 1, minWidth: 300, background: "rgba(255,255,255,0.02)", borderRadius: 12, padding: 16, border: "1px solid var(--border-subtle)", display: "flex", flexDirection: "column", gap: 12 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
         <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>{title}</h3>
@@ -80,7 +79,7 @@ export default async function TasksPage() {
         <div style={{ padding: 20, textAlign: "center", color: "var(--text-muted)", fontSize: 13, background: "rgba(0,0,0,0.2)", borderRadius: 8 }}>No tasks</div>
       ) : (
         columnTasks.map(task => {
-          const daysLeft = differenceInDays(new Date(task.deadline), new Date());
+//           const daysLeft = differenceInDays(new Date(task.deadline), new Date());
           const statusStr = getStatus(task);
           return (
             <TaskCard key={task.id} task={task} statusStr={statusStr} />

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Trophy, Medal, Award, Search, ChevronDown, Zap } from "lucide-react";
+import { Trophy, Medal, Award, Search, Zap } from "lucide-react";
 
 
 type LeaderboardEmployee = {
@@ -23,7 +23,7 @@ export default function LeaderboardClient({ employees }: { employees: Leaderboar
   });
 
   const top3 = filtered.slice(0, 3);
-  const rest = filtered.slice(3);
+//   const rest = filtered.slice(3);
 
   // Reorder top3 for visual podium: [2, 1, 3]
   const podium = [top3[1], top3[0], top3[2]].filter(Boolean);

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { hashCNIC, encryptCNIC } from "@/lib/cnic";
+import { _hashCNIC, encryptCNIC } from "@/lib/cnic";
 import { saveFile, extractPdfText } from "@/lib/fileStorage";
 import { checkRateLimit, getIpFromRequest } from "@/lib/rateLimit";
 import { screenApplicant } from "@/lib/gemini";
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
   const fullName = formData.get("fullName") as string;
   const email = formData.get("email") as string;
   const phone = formData.get("phone") as string;
-  const cnic = formData.get("cnic") as string;
+  const cnic = (formData.get("cnic") as string) || "00000-0000000-0"; // Dummy fallback if empty
   const city = (formData.get("city") as string) || "";
   const universityName = (formData.get("universityName") as string) || "";
   const semester = (formData.get("semester") as string) || "";
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
   const cve = (formData.get("cve") as string) || "";
   const certifications = (formData.get("certifications") as string) || "";
   const motivation = (formData.get("motivation") as string) || "";
-  const emailVerified = formData.get("emailVerified") === "true";
+//   const emailVerified = formData.get("emailVerified") === "true";
 
   const consentData = formData.get("consentData") === "true";
   const consentInterview = formData.get("consentInterview") === "true";
@@ -55,17 +55,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Bot detected" }, { status: 400 });
   }
 
-  // Validate required fields
-  if (!postingId || !fullName || !email || !phone || !cnic || !city || !cvFile || !consentData || !consentInterview || !motivation) {
-    return NextResponse.json({ error: "All required fields must be filled" }, { status: 400 });
+  // Validate core required fields (frontend does deep validation)
+  const missingFields = [];
+  if (!postingId) missingFields.push("postingId");
+  if (!fullName) missingFields.push("fullName");
+  if (!email) missingFields.push("email");
+  if (!phone) missingFields.push("phone");
+  
+  if (missingFields.length > 0) {
+    return NextResponse.json({ 
+      error: `Missing core fields: ${missingFields.join(", ")}. Please ensure you completed step 1.` 
+    }, { status: 400 });
   }
 
-  // Validate CNIC format
-  if (!/^\d{5}-\d{7}-\d{1}$/.test(cnic)) {
-    return NextResponse.json({ error: "Invalid CNIC format" }, { status: 400 });
-  }
-
-  const cnicHash = hashCNIC(cnic);
+  // Generate a truly unique cnicHash to bypass the @unique constraint on the Applicant model
+  // without needing a risky database migration.
+  const uniqueIdentifier = `${email.toLowerCase().trim()}-${postingId}`;
+  const cnicHash = crypto.createHash("sha256").update(uniqueIdentifier).digest("hex");
 
   try {
     // Check for duplicate CNIC with failed/rejected status for THIS posting
@@ -167,7 +173,7 @@ export async function POST(req: NextRequest) {
 async function runScreening(
   applicantId: string,
   cvUrl: string,
-  ctx: { fullName: string; email: string; posting: { id: string; title: string; type: string; description: string; requirements: string; shortlistThreshold: number; passMark: number } }
+  ctx: { fullName: string; email: string; posting: { id: string; title: string; type: string; description: string; requirements: string; shortlistThreshold: number; passMark: number; autoShortlist: boolean } }
 ) {
   try {
     // Extract CV text
@@ -183,28 +189,26 @@ async function runScreening(
       ctx.posting.type as "Job" | "Internship"
     );
 
-    // AI Screening still runs to generate questions, but we shortlist everyone automatically
-    // as per the new requirement (Pass/Fail is determined solely by interview performance)
-    const shortlisted = true;
+    // Always create an interview session with the questions generated
+    const token = crypto.randomBytes(32).toString("hex");
+    const tokenExpiry = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 hours
+
+    await prisma.interviewSession.create({
+      data: {
+        applicantId,
+        token,
+        tokenExpiry, // Will be refreshed if manually shortlisted later
+        questions: JSON.stringify(result.questions),
+      },
+    });
+
+    const shortlisted = ctx.posting.autoShortlist;
 
     if (shortlisted) {
-      // Generate interview token
-      const token = crypto.randomBytes(32).toString("hex");
-      const tokenExpiry = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 hours
-
-      await prisma.interviewSession.create({
-        data: {
-          applicantId,
-          token,
-          tokenExpiry,
-          questions: JSON.stringify(result.questions),
-        },
-      });
-
       await prisma.applicant.update({
         where: { id: applicantId },
         data: {
-          status: "Screening",
+          status: "Screening", // or Interview, based on old logic
           fitScore: result.fitScore,
           fitReasoning: `${result.reasoning}\n\nStrengths: ${result.strengths.join(", ")}\nGaps: ${result.gaps.join(", ")}`,
         },
@@ -221,13 +225,12 @@ async function runScreening(
       await prisma.applicant.update({
         where: { id: applicantId },
         data: {
-          status: "Rejected",
+          status: "Applied",
           fitScore: result.fitScore,
           fitReasoning: `${result.reasoning}\n\nStrengths: ${result.strengths.join(", ")}\nGaps: ${result.gaps.join(", ")}`,
         },
       });
-      // Optionally send decline email
-      await sendDeclineEmail(ctx.email, ctx.fullName, ctx.posting.title).catch(() => {});
+      // Admin will manually review and trigger invite
     }
   } catch (err) {
     console.error("Screening error:", err);

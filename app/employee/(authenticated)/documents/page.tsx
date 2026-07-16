@@ -1,7 +1,7 @@
 import { getAuthFromCookies } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import { Shield, FileText, Download, Award, Briefcase, FileSignature, ClipboardList } from "lucide-react";
+import { Shield, FileText, Download, Award, Briefcase, FileSignature } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 

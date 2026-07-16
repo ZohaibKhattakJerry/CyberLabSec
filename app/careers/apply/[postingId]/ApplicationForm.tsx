@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { Shield, Upload, X, CheckCircle, Loader2, AlertCircle, ChevronLeft, ChevronRight, Check } from "lucide-react";
+import { Shield, Upload, X, CheckCircle, Loader2, AlertCircle, ChevronLeft, ChevronRight, _Check } from "lucide-react";
 
 interface Posting {
   id: string; title: string; type: string; department: string;
@@ -34,7 +34,7 @@ type ScreeningStatus = "idle" | "uploading" | "screening" | "done" | "error";
 const PHONE_REGEX = /^(\+92|0)[0-9]{10}$/;
 
 export default function ApplicationForm({ posting }: { posting: Posting }) {
-  const router = useRouter();
+//   const router = useRouter();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<FormData>(initialForm);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -57,7 +57,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
   // Status state
   const [status, setStatus] = useState<ScreeningStatus>("idle");
   const [statusMsg, setStatusMsg] = useState("");
-  const [applicationId, setApplicationId] = useState("");
+  const [_applicationId, setApplicationId] = useState("");
   const [referenceId, setReferenceId] = useState("");
 
   const set = (k: keyof FormData, v: string | boolean) => {
@@ -73,7 +73,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
     if (draft) {
       try {
         setForm({ ...initialForm, ...JSON.parse(draft) });
-      } catch (e) { }
+      } catch { }
     }
     setIsLoaded(true);
   }, [posting.id]);
@@ -127,7 +127,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
     const e: typeof errors = {};
     if (!form.fullName.trim()) e.fullName = "Required";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = "Valid email required";
-    if (!PHONE_REGEX.test(form.phone.replace(/\s/g, ""))) e.phone = "Valid Pakistani phone required";
+    if (!form.phone.trim()) e.phone = "Required";
     if (!form.city.trim()) e.city = "Required";
     setErrors(e);
     if (!otpVerified) {

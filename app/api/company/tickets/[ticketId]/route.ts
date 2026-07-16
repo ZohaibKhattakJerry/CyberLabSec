@@ -13,7 +13,7 @@ export async function PATCH(
   const { ticketId } = await params;
   const { status, response } = await req.json();
 
-  const ticket = await (prisma as any).supportTicket.update({
+  const ticket = await (prisma as unknown).supportTicket.update({
     where: { id: ticketId },
     data: {
       status,

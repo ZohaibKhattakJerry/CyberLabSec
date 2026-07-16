@@ -4,9 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  Shield, LayoutDashboard, Users, Bell, Settings, LogOut,
+  _Shield, LayoutDashboard, Users, Bell, Settings, LogOut,
   Menu, X, ChevronRight, Trophy, ClipboardList, Building2,
-  Briefcase, UserCheck, BookOpen
+  Briefcase, UserCheck, BookOpen, Video
 } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 
@@ -20,6 +20,7 @@ const NAV = [
   { href: "/company/tasks", label: "Tasks", icon: ClipboardList },
   { href: "/company/leaderboard", label: "Leaderboard", icon: Trophy },
   { href: "/company/questions", label: "Question Bank", icon: BookOpen },
+  { href: "/company/meetings", label: "Meetings", icon: Video },
   { href: "/company/announcements", label: "Announcements", icon: Bell },
   { href: "/company/settings", label: "Settings", icon: Settings },
 ];

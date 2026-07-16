@@ -46,8 +46,8 @@ export default async function Dashboard() {
     orderBy: { monthlyPoints: "desc" },
   });
   const myMonthlyRank = allEmployees.findIndex((e) => e.id === employee.id) + 1;
-  const allTimeRanked = [...allEmployees].sort((a, b) => b.points - a.points);
-  const myAllTimeRank = allTimeRanked.findIndex((e) => e.id === employee.id) + 1;
+  
+//   const myAllTimeRank = allTimeRanked.findIndex((e) => e.id === employee.id) + 1;
 
   const daysRemaining = employee.endDate
     ? differenceInDays(employee.endDate, new Date())

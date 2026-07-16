@@ -13,7 +13,7 @@ export default async function CompanyAttendancePage() {
   const todayStart = startOfDay(today);
   const todayEnd = endOfDay(today);
 
-  const todayRecords = await (prisma as any).attendanceRecord.findMany({
+  const todayRecords = await (prisma as unknown).attendanceRecord.findMany({
     where: { date: { gte: todayStart, lte: todayEnd } },
     include: {
       employee: {
@@ -33,11 +33,11 @@ export default async function CompanyAttendancePage() {
     select: { id: true, name: true, designation: true, employeeCode: true },
   });
 
-  const presentIds = new Set(todayRecords.map((r: any) => r.employeeId));
+  const presentIds = new Set(todayRecords.map((r: unknown) => r.employeeId));
   const absentEmployees = allEmployees.filter((e) => !presentIds.has(e.id));
 
-  const presentCount = todayRecords.filter((r: any) => r.status === 'Present').length;
-  const lateCount = todayRecords.filter((r: any) => r.status === 'Late').length;
+  const presentCount = todayRecords.filter((r: unknown) => r.status === 'Present').length;
+  const lateCount = todayRecords.filter((r: unknown) => r.status === 'Late').length;
   const absentCount = absentEmployees.length;
 
   return (
@@ -95,7 +95,7 @@ export default async function CompanyAttendancePage() {
             </p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {todayRecords.map((r: any) => (
+              {todayRecords.map((r: unknown) => (
                 <div
                   key={r.id}
                   style={{

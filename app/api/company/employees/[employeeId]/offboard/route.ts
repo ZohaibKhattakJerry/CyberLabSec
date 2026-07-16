@@ -9,7 +9,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ emp
   const resolvedParams = await params;
   const employeeId = resolvedParams.employeeId;
 
-  const { reason, effectiveDate, generateCertificate, generateLoR, customCertificateBase64, customLorBase64 } = await req.json();
+  const { reason, effectiveDate, _generateCertificate, _generateLoR, customCertificateBase64, customLorBase64 } = await req.json();
   if (!reason || !effectiveDate) return NextResponse.json({ error: "Reason and effective date required" }, { status: 400 });
 
   const employee = await prisma.employee.findUnique({
