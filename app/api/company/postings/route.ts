@@ -34,6 +34,9 @@ export async function POST(req: NextRequest) {
     slug = `${baseSlug}-${Math.random().toString(36).substring(2, 6)}`;
   }
 
+  const { generateQuestionsForJob } = await import("@/lib/questionDictionary");
+  const generatedQuestions = generateQuestionsForJob(title || "", description || "", requirements || "");
+
   const posting = await prisma.jobPosting.create({
     data: {
       id: slug,
@@ -50,6 +53,7 @@ export async function POST(req: NextRequest) {
       passMark: Number(passMark) || 60,
       showApplicantCount: showApplicantCount !== undefined ? !!showApplicantCount : true,
       autoShortlist: autoShortlist !== undefined ? !!autoShortlist : true,
+      screeningQuestions: JSON.stringify(generatedQuestions),
     },
   });
 

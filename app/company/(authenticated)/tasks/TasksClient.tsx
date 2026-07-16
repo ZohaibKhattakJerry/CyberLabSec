@@ -17,7 +17,7 @@ interface Submission {
   qualityRating: number | null;
   submittedAt: string;
   version: number;
-  employee: { id: string; name: string; employeeCode: string };
+  employee: { id: string; name: string; employeeCode: string; photoUrl?: string };
 }
 
 interface Task {
@@ -29,12 +29,17 @@ interface Task {
   priority: string;
   status: string;
   submissions: Submission[];
-  team: { id: string; name: string };
+  team: { 
+    id: string; 
+    name: string;
+    members?: { id: string; name: string; employeeCode: string; photoUrl?: string }[];
+  };
 }
 
 interface Team {
   id: string;
   name: string;
+  members?: { id: string; name: string; employeeCode: string; photoUrl?: string }[];
 }
 
 const PRIORITY_CONFIG: Record<string, { color: string; bg: string; label: string }> = {
@@ -392,121 +397,153 @@ export default function TasksClient({ initialTasks, teams }: { initialTasks: Tas
                 {/* Submissions Panel */}
                 {reviewTask?.id === task.id && (
                   <div style={{ marginTop: 20, paddingTop: 20, borderTop: "1px solid var(--border-subtle)" }}>
-                    {task.submissions.length === 0 ? (
-                      <p style={{ fontSize: 13, color: "var(--text-muted)", textAlign: "center", padding: "20px 0" }}>No submissions yet.</p>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                      <h4 style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>Team Submissions</h4>
+                      <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                        {task.submissions.length} of {task.team.members?.length || 0} submitted
+                      </div>
+                    </div>
+                    
+                    {(!task.team.members || task.team.members.length === 0) ? (
+                      <p style={{ fontSize: 13, color: "var(--text-muted)", textAlign: "center", padding: "20px 0" }}>No members in this team.</p>
                     ) : (
-                      <div style={{ display: "grid", gap: 12 }}>
-                        {task.submissions.map(sub => (
-                          <div key={sub.id} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border-subtle)", borderRadius: 10, padding: 16 }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-                              <div>
-                                <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text-primary)" }}>{sub.employee.name}</div>
-                                <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{sub.employee.employeeCode} · Submitted {format(new Date(sub.submittedAt), "MMM d, h:mm a")} · v{sub.version}</div>
-                              </div>
-                              <span className={`badge ${STATUS_CONFIG[sub.status]?.badge || "badge-gray"}`}>{STATUS_CONFIG[sub.status]?.label || sub.status}</span>
-                            </div>
-
-                            {sub.summary && (
-                              <div style={{ marginBottom: 12 }}>
-                                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Work Summary</div>
-                                <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6 }}>{sub.summary}</p>
-                              </div>
-                            )}
-
-                            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
-                              {sub.linkResponse && (
-                                <a href={sub.linkResponse} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm">
-                                  <ExternalLink size={13} /> View Work
-                                </a>
-                              )}
-                              {(() => {
-                                try {
-                                  const files = JSON.parse(sub.files);
-                                  return files.length > 0 ? (
-                                    <span className="badge badge-gray" style={{ padding: "5px 10px" }}>{files.length} file{files.length > 1 ? "s" : ""} attached</span>
-                                  ) : null;
-                                } catch { return null; }
-                              })()}
-                            </div>
-
-                            {sub.reviewerFeedback && (
-                              <div style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: 8, padding: 12, marginBottom: 12 }}>
-                                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--amber)", marginBottom: 4 }}>Previous Feedback</div>
-                                <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0 }}>{sub.reviewerFeedback}</p>
-                              </div>
-                            )}
-
-                            {(sub.status === "Pending" || sub.status === "Under Review") && (
-                              <div style={{ display: "flex", gap: 8 }}>
-                                <button
-                                  className="btn btn-sm"
-                                  style={{ background: "rgba(34,197,94,0.1)", color: "var(--green)", border: "1px solid rgba(34,197,94,0.3)" }}
-                                  onClick={() => { setReviewAction({ submissionId: sub.id, action: "approve" }); setFeedback(""); setQualityRating(0); }}
-                                >
-                                  <CheckCircle size={14} /> Approve
-                                </button>
-                                <button
-                                  className="btn btn-sm btn-secondary"
-                                  onClick={() => { setReviewAction({ submissionId: sub.id, action: "request_changes" }); setFeedback(""); setQualityRating(0); }}
-                                >
-                                  Request Changes
-                                </button>
-                              </div>
-                            )}
-
-                            {/* Review Action Panel */}
-                            {reviewAction?.submissionId === sub.id && (
-                              <div style={{ marginTop: 12, padding: 16, background: "rgba(168,85,247,0.05)", border: "1px solid var(--border-accent)", borderRadius: 10 }}>
-                                <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 12 }}>
-                                  {reviewAction.action === "approve" ? "✅ Approve Submission" : "🔄 Request Changes"}
+                      <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))" }}>
+                        {task.team.members.map(member => {
+                          const sub = task.submissions.find(s => s.employee.id === member.id);
+                          
+                          return (
+                            <div key={member.id} style={{ 
+                              background: "rgba(255,255,255,0.02)", 
+                              border: `1px solid ${sub ? 'var(--border-subtle)' : 'rgba(255,255,255,0.05)'}`, 
+                              borderRadius: 10, 
+                              padding: 16,
+                              opacity: sub ? 1 : 0.6
+                            }}>
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+                                <div>
+                                  <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text-primary)" }}>{member.name}</div>
+                                  <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{member.employeeCode} {sub ? `· v${sub.version}` : ''}</div>
                                 </div>
-
-                                {reviewAction.action === "approve" && (
-                                  <div style={{ marginBottom: 12 }}>
-                                    <label className="label">Quality Rating (affects bonus points)</label>
-                                    <div style={{ display: "flex", gap: 6 }}>
-                                      {[1, 2, 3, 4, 5].map(star => (
-                                        <button
-                                          key={star}
-                                          type="button"
-                                          onClick={() => setQualityRating(star === qualityRating ? 0 : star)}
-                                          style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}
-                                        >
-                                          <Star size={24} fill={star <= qualityRating ? "var(--amber)" : "none"} color={star <= qualityRating ? "var(--amber)" : "var(--text-muted)"} />
-                                        </button>
-                                      ))}
-                                      {qualityRating > 0 && <span style={{ fontSize: 13, color: "var(--amber)", alignSelf: "center" }}>+{qualityRating * 5} bonus pts</span>}
-                                    </div>
-                                  </div>
+                                {sub ? (
+                                  <span className={`badge ${STATUS_CONFIG[sub.status]?.badge || "badge-gray"}`}>{STATUS_CONFIG[sub.status]?.label || sub.status}</span>
+                                ) : (
+                                  <span className="badge badge-gray">Not Submitted</span>
                                 )}
-
-                                <div style={{ marginBottom: 12 }}>
-                                  <label className={`label ${reviewAction.action === "request_changes" ? "label-required" : ""}`}>
-                                    {reviewAction.action === "approve" ? "Optional feedback" : "Feedback (required)"}
-                                  </label>
-                                  <textarea
-                                    className="input"
-                                    rows={3}
-                                    value={feedback}
-                                    onChange={e => setFeedback(e.target.value)}
-                                    placeholder={reviewAction.action === "approve" ? "Great work! Specific notes..." : "What needs to be changed and why..."}
-                                  />
-                                </div>
-
-                                <div style={{ display: "flex", gap: 8 }}>
-                                  <button className="btn btn-secondary btn-sm" onClick={() => setReviewAction(null)}>Cancel</button>
-                                  <button
-                                    className="btn btn-primary btn-sm"
-                                    onClick={handleReview}
-                                    disabled={loading || (reviewAction.action === "request_changes" && !feedback.trim())}
-                                  >
-                                    {loading ? <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> : "Submit Review"}
-                                  </button>
-                                </div>
                               </div>
-                            )}
-                          </div>
-                        ))}
+
+                              {sub ? (
+                                <>
+                                  {sub.summary && (
+                                    <div style={{ marginBottom: 12 }}>
+                                      <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>Summary</div>
+                                      <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>{sub.summary}</p>
+                                    </div>
+                                  )}
+
+                                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+                                    {sub.linkResponse && (
+                                      <a href={sub.linkResponse} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm" style={{ padding: "4px 8px", fontSize: 12 }}>
+                                        <ExternalLink size={12} /> View Link
+                                      </a>
+                                    )}
+                                    {(() => {
+                                      try {
+                                        const files = JSON.parse(sub.files);
+                                        return files.map((file: any, i: number) => (
+                                          <a key={i} href={file.url} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm" style={{ padding: "4px 8px", fontSize: 12 }}>
+                                            <ExternalLink size={12} /> {file.name || `File ${i + 1}`}
+                                          </a>
+                                        ));
+                                      } catch { return null; }
+                                    })()}
+                                  </div>
+
+                                  {sub.reviewerFeedback && (
+                                    <div style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: 8, padding: 12, marginBottom: 12 }}>
+                                      <div style={{ fontSize: 12, fontWeight: 600, color: "var(--amber)", marginBottom: 4 }}>Feedback</div>
+                                      <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0 }}>{sub.reviewerFeedback}</p>
+                                    </div>
+                                  )}
+
+                                  {(sub.status === "Pending" || sub.status === "Under Review") && (
+                                    <div style={{ display: "flex", gap: 8, marginTop: "auto" }}>
+                                      <button
+                                        className="btn btn-sm"
+                                        style={{ background: "rgba(34,197,94,0.1)", color: "var(--green)", border: "1px solid rgba(34,197,94,0.3)", flex: 1, justifyContent: "center" }}
+                                        onClick={() => { setReviewAction({ submissionId: sub.id, action: "approve" }); setFeedback(""); setQualityRating(0); }}
+                                      >
+                                        <CheckCircle size={14} /> Approve
+                                      </button>
+                                      <button
+                                        className="btn btn-sm btn-secondary"
+                                        style={{ flex: 1, justifyContent: "center" }}
+                                        onClick={() => { setReviewAction({ submissionId: sub.id, action: "request_changes" }); setFeedback(""); setQualityRating(0); }}
+                                      >
+                                        <AlertTriangle size={14} /> Request Changes
+                                      </button>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Review Action Panel */}
+                                  {reviewAction?.submissionId === sub.id && (
+                                    <div style={{ marginTop: 12, padding: 16, background: "rgba(168,85,247,0.05)", border: "1px solid var(--border-accent)", borderRadius: 10 }}>
+                                      <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 12 }}>
+                                        {reviewAction.action === "approve" ? "✅ Approve Submission" : "🔄 Request Changes"}
+                                      </div>
+
+                                      {reviewAction.action === "approve" && (
+                                        <div style={{ marginBottom: 12 }}>
+                                          <label className="label">Quality Rating (affects bonus points)</label>
+                                          <div style={{ display: "flex", gap: 6 }}>
+                                            {[1, 2, 3, 4, 5].map(star => (
+                                              <button
+                                                key={star}
+                                                type="button"
+                                                onClick={() => setQualityRating(star === qualityRating ? 0 : star)}
+                                                style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}
+                                              >
+                                                <Star size={24} fill={star <= qualityRating ? "var(--amber)" : "none"} color={star <= qualityRating ? "var(--amber)" : "var(--text-muted)"} />
+                                              </button>
+                                            ))}
+                                            {qualityRating > 0 && <span style={{ fontSize: 13, color: "var(--amber)", alignSelf: "center" }}>+{qualityRating * 5} bonus pts</span>}
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      <div style={{ marginBottom: 12 }}>
+                                        <label className={`label ${reviewAction.action === "request_changes" ? "label-required" : ""}`}>
+                                          {reviewAction.action === "approve" ? "Optional feedback" : "Feedback (required)"}
+                                        </label>
+                                        <textarea
+                                          className="input"
+                                          rows={3}
+                                          value={feedback}
+                                          onChange={e => setFeedback(e.target.value)}
+                                          placeholder={reviewAction.action === "approve" ? "Great work! Specific notes..." : "What needs to be changed and why..."}
+                                        />
+                                      </div>
+
+                                      <div style={{ display: "flex", gap: 8 }}>
+                                        <button className="btn btn-secondary btn-sm" onClick={() => setReviewAction(null)}>Cancel</button>
+                                        <button
+                                          className="btn btn-primary btn-sm"
+                                          onClick={handleReview}
+                                          disabled={loading || (reviewAction.action === "request_changes" && !feedback.trim())}
+                                        >
+                                          {loading ? <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> : "Submit Review"}
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </>
+                              ) : (
+                                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 80, color: "var(--text-muted)", fontSize: 13, background: "rgba(0,0,0,0.2)", borderRadius: 6 }}>
+                                  Waiting for submission
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </div>

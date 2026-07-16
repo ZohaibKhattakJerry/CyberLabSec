@@ -11,7 +11,13 @@ export default async function AdminTasksPage() {
 
   const tasks = await prisma.task.findMany({
     include: {
-      team: { select: { id: true, name: true } },
+      team: { 
+        select: { 
+          id: true, 
+          name: true, 
+          members: { select: { id: true, name: true, employeeCode: true } } 
+        } 
+      },
       submissions: {
         include: {
           employee: { select: { id: true, name: true, employeeCode: true } }

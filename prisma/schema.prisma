@@ -380,20 +380,7 @@ model EmailVerification {
   createdAt DateTime @default(now())
 }
 
-model QuestionBank {
-  id            String   @id @default(cuid())
-  category      String
-  difficulty    String
-  type          String   // "mcq" or "open"
-  prompt        String
-  options       String   @default("[]")
-  correctOption Int?
-  rubric        String?
-  keywords      String   @default("[]")
-  points        Int      @default(10)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
+
 
 model TalentPool {
   id        String   @id @default(cuid())

@@ -19,7 +19,6 @@ const NAV = [
   { href: "/company/teams", label: "Teams", icon: Building2 },
   { href: "/company/tasks", label: "Tasks", icon: ClipboardList },
   { href: "/company/leaderboard", label: "Leaderboard", icon: Trophy },
-  { href: "/company/questions", label: "Question Bank", icon: BookOpen },
   { href: "/company/announcements", label: "Announcements", icon: Bell },
   { href: "/company/settings", label: "Settings", icon: Settings },
 ];

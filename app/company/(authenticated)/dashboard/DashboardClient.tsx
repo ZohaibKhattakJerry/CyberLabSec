@@ -73,20 +73,40 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
       <div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(155px, 1fr))", gap: 12 }}>
         {kpis.map((kpi) => (
           <Link key={kpi.label} href={kpi.href} style={{ textDecoration: "none", display: "block", height: "100%" }}>
-            <div className="card" style={{ height: "100%", display: "flex", flexDirection: "column", padding: "16px 18px", border: (kpi as any).urgent ? `1px solid ${kpi.color}35` : undefined, cursor: "pointer", transition: "transform 0.15s" }}
-              onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-2px)")}
-              onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
+            <div className="card" style={{ 
+              height: "100%", 
+              display: "flex", 
+              flexDirection: "column", 
+              padding: "20px 22px", 
+              background: `linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)`,
+              border: (kpi as any).urgent ? `1px solid ${kpi.color}50` : `1px solid rgba(255,255,255,0.05)`,
+              borderTop: `3px solid ${kpi.color}`,
+              backdropFilter: "blur(10px)",
+              cursor: "pointer", 
+              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+              position: "relative",
+              overflow: "hidden"
+            }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-4px)";
+                e.currentTarget.style.boxShadow = `0 12px 24px -10px ${kpi.color}40`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "none";
+              }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                <div style={{ width: 34, height: 34, borderRadius: 9, background: kpi.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <kpi.icon size={17} color={kpi.color} />
+              <div style={{ position: "absolute", top: -20, right: -20, width: 80, height: 80, background: `radial-gradient(circle, ${kpi.color}15 0%, transparent 70%)`, borderRadius: "50%", pointerEvents: "none" }} />
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+                <div style={{ width: 38, height: 38, borderRadius: 10, background: kpi.bg, display: "flex", alignItems: "center", justifyContent: "center", border: `1px solid ${kpi.color}20` }}>
+                  <kpi.icon size={18} color={kpi.color} />
                 </div>
-                {(kpi as any).urgent && <div style={{ width: 7, height: 7, borderRadius: "50%", background: kpi.color, marginLeft: "auto", boxShadow: `0 0 6px ${kpi.color}` }} />}
+                {(kpi as any).urgent && <div style={{ width: 8, height: 8, borderRadius: "50%", background: kpi.color, marginLeft: "auto", boxShadow: `0 0 10px ${kpi.color}` }} />}
               </div>
-              <div style={{ fontSize: 26, fontWeight: 800, color: (kpi as any).urgent ? kpi.color : "var(--text-primary)", lineHeight: 1 }}>{kpi.value}</div>
-              <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>{kpi.label}</div>
+              <div style={{ fontSize: 32, fontWeight: 800, color: (kpi as any).urgent ? kpi.color : "var(--text-primary)", lineHeight: 1, letterSpacing: "-0.03em" }}>{kpi.value}</div>
+              <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text-secondary)", marginTop: 8 }}>{kpi.label}</div>
               {(kpi as any).sublabel ? (
-                <div style={{ fontSize: 10, color: "var(--text-muted)", opacity: 0.7, marginTop: "auto" }}>{(kpi as any).sublabel}</div>
+                <div style={{ fontSize: 11, color: "var(--text-muted)", opacity: 0.8, marginTop: "auto", paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.05)" }}>{(kpi as any).sublabel}</div>
               ) : (
                 <div style={{ marginTop: "auto" }} />
               )}

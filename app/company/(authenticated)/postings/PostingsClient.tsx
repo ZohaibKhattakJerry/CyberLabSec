@@ -103,32 +103,42 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
           <div className="empty-state-description">No job postings yet.</div>
         </div>
       ) : (
-        <div style={{ display: "grid", gap: 14 }}>
+        <div style={{ display: "grid", gap: 20, gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))" }}>
           {postings.map((p: unknown) => (
-            <div key={p.id} className="card flex-mobile-col" style={{ padding: 22, display: "flex", alignItems: "flex-start", gap: 16 }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-                  <h3 style={{ fontSize: 15, fontWeight: 700 }}>{p.title}</h3>
-                  <span className={`badge ${p.status === "Published" ? "badge-green" : p.status === "Draft" ? "badge-gray" : "badge-amber"}`}>{p.status}</span>
-                  <span className={`badge ${p.type === "Job" ? "badge-blue" : "badge-purple"}`}>{p.type}</span>
+            <div key={p.id} className="card card-hover" style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16, height: "100%", borderTop: `4px solid ${p.status === "Published" ? "var(--green)" : p.status === "Draft" ? "var(--text-muted)" : "var(--amber)"}` }}>
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+                  <h3 style={{ fontSize: 18, fontWeight: 700, lineHeight: 1.3, color: "var(--text-primary)" }}>{p.title}</h3>
+                  <span className={`badge ${p.status === "Published" ? "badge-green" : p.status === "Draft" ? "badge-gray" : "badge-amber"}`} style={{ flexShrink: 0, padding: "4px 8px" }}>{p.status}</span>
                 </div>
-                <div style={{ fontSize: 12, color: "var(--text-muted)", display: "flex", gap: 16, flexWrap: "wrap", marginTop: 8 }}>
-                  <span>{p.department}</span>
-                  <span>{p.location}</span>
-                  <span style={{ display: "flex", alignItems: "center", gap: 4 }}><Users size={11} /> {p._count.applicants} applicants</span>
-                  <span>Deadline: {format(new Date(p.deadline), "MMM d, yyyy")}</span>
-                  <span>Pass ≥ {p.passMark}%</span>
+                
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+                  <span className={`badge ${p.type === "Job" ? "badge-blue" : "badge-purple"}`}>{p.type}</span>
+                  <span className="badge badge-gray" style={{ background: "rgba(255,255,255,0.03)" }}>{p.department}</span>
+                  <span className="badge badge-gray" style={{ background: "rgba(255,255,255,0.03)" }}>{p.location}</span>
+                </div>
+
+                <div style={{ display: "grid", gap: 8, fontSize: 13, color: "var(--text-secondary)" }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <Users size={14} color="var(--purple)" /> <strong>{p._count.applicants}</strong> applicants
+                  </span>
+                  <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <Briefcase size={14} color="var(--blue)" /> Deadline: {format(new Date(p.deadline), "MMM d, yyyy")}
+                  </span>
                 </div>
               </div>
-              <div style={{ display: "flex", gap: 8, flexShrink: 0, flexWrap: "wrap", width: "100%", justifyContent: "flex-start" }}>
+              
+              <div style={{ marginTop: "auto", paddingTop: 16, borderTop: "1px solid var(--border-subtle)", display: "flex", gap: 8, justifyContent: "space-between" }}>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button className="btn btn-secondary btn-sm" onClick={() => openEdit(p)} title="Edit"><Edit2 size={14} /> Edit</button>
+                  <button className="btn btn-danger btn-sm" onClick={() => deletePosting(p.id, p.title)} title="Delete"><Trash2 size={14} /></button>
+                </div>
                 {p.status !== "Draft" && (
-                  <button className="btn btn-ghost btn-sm" onClick={() => toggleStatus(p)} title={p.status === "Published" ? "Close" : "Publish"} style={{ color: p.status === "Published" ? "var(--amber)" : "var(--green)" }}>
-                    {p.status === "Published" ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
+                  <button className="btn btn-sm" onClick={() => toggleStatus(p)} title={p.status === "Published" ? "Close Posting" : "Publish"} style={{ background: p.status === "Published" ? "rgba(245,158,11,0.1)" : "rgba(34,197,94,0.1)", color: p.status === "Published" ? "var(--amber)" : "var(--green)", border: `1px solid ${p.status === "Published" ? "rgba(245,158,11,0.2)" : "rgba(34,197,94,0.2)"}` }}>
+                    {p.status === "Published" ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
                     {p.status === "Published" ? "Close" : "Publish"}
                   </button>
                 )}
-                <button className="btn btn-ghost btn-sm" onClick={() => openEdit(p)}><Edit2 size={13} /></button>
-                <button className="btn btn-danger btn-sm" onClick={() => deletePosting(p.id, p.title)}><Trash2 size={13} /></button>
               </div>
             </div>
           ))}
