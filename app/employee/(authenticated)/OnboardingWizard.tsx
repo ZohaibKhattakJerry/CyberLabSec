@@ -94,18 +94,20 @@ export default function OnboardingWizard({ employee }: { employee: Employee }) {
             <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 24, display: "flex", alignItems: "center", gap: 10 }}>
               <Shield size={24} color="var(--purple)" /> CEO Welcome Message
             </h2>
-            <div className="card" style={{ padding: 32, marginBottom: 24 }}>
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 20, flexWrap: "wrap" }}>
-                <div style={{ width: 80, height: 80, borderRadius: "50%", background: "var(--purple)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, fontWeight: 800, color: "white", flexShrink: 0, margin: "0 auto" }}>
-                  ZK
-                </div>
-                <div>
-                  <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Zohaib Khattak</h3>
-                  <p style={{ color: "var(--text-muted)", fontSize: 14, marginBottom: 16 }}>CEO & Founder, CyberLabSec</p>
-                  <div style={{ color: "var(--text-secondary)", fontStyle: "italic", lineHeight: 1.7, fontSize: 15, paddingLeft: 16, borderLeft: "4px solid var(--border-accent)" }}>
-                    <p style={{ marginBottom: 12 }}>&quot;Welcome to the team! We founded CyberLabSec with a singular vision: to build the most elite, proactive defense force in the digital realm. As you step into your new role, remember that you are now part of a family that values integrity, innovation, and relentless pursuit of security.&quot;</p>
-                    <p>&quot;We rely on your expertise to secure the future. I am incredibly excited to see the impact you will make here. Let&apos;s build something extraordinary together.&quot;</p>
+            <div className="card" style={{ padding: "clamp(20px, 4vw, 32px)", marginBottom: 24 }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 20, flexWrap: "wrap", flexDirection: "column" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 16, width: "100%" }}>
+                  <div style={{ width: 64, height: 64, borderRadius: "50%", background: "var(--purple)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, fontWeight: 800, color: "white", flexShrink: 0 }}>
+                    ZK
                   </div>
+                  <div>
+                    <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Zohaib Khattak</h3>
+                    <p style={{ color: "var(--text-muted)", fontSize: 14, margin: 0 }}>CEO & Founder, CyberLabSec</p>
+                  </div>
+                </div>
+                <div style={{ color: "var(--text-secondary)", fontStyle: "italic", lineHeight: 1.7, fontSize: 15, paddingLeft: 16, borderLeft: "4px solid var(--border-accent)" }}>
+                  <p style={{ marginBottom: 12 }}>&quot;Welcome to the team! We founded CyberLabSec with a singular vision: to build the most elite, proactive defense force in the digital realm. As you step into your new role, remember that you are now part of a family that values integrity, innovation, and relentless pursuit of security.&quot;</p>
+                  <p>&quot;We rely on your expertise to secure the future. I am incredibly excited to see the impact you will make here. Let&apos;s build something extraordinary together.&quot;</p>
                 </div>
               </div>
             </div>
@@ -136,7 +138,7 @@ export default function OnboardingWizard({ employee }: { employee: Employee }) {
             <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 24, display: "flex", alignItems: "center", gap: 10 }}>
               <BookOpen size={24} color="var(--purple)" /> Employee Portal Guide
             </h2>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24 }}>
               <div className="card" style={{ padding: 24 }}>
                 <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>📋 Tasks</h3>
                 <p style={{ color: "var(--text-muted)", fontSize: 14 }}>View active assignments, deadlines, and operational briefs. Always submit your reports before the deadline.</p>
@@ -248,15 +250,15 @@ export default function OnboardingWizard({ employee }: { employee: Employee }) {
     <div style={{ minHeight: "100vh", background: "var(--bg-primary)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
       <div style={{ width: "100%", maxWidth: 800 }}>
         {/* Progress Bar */}
-        <div style={{ display: "flex", gap: 8, marginBottom: 40 }}>
+        <div style={{ display: "flex", gap: 8, marginBottom: 40, flexWrap: "nowrap", overflowX: "auto", paddingBottom: 10, WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}>
           {STEPS.map((step, idx) => (
-            <div key={step.id} style={{ flex: 1 }}>
+            <div key={step.id} style={{ flex: "1 1 auto", minWidth: 60 }}>
               <div style={{ 
                 height: 4, borderRadius: 2, 
                 background: idx <= currentStep ? "var(--purple)" : "var(--border)",
                 transition: "background 0.3s"
               }} />
-              <div style={{ fontSize: 12, marginTop: 8, color: idx === currentStep ? "var(--purple)" : "var(--text-muted)", fontWeight: idx === currentStep ? 600 : 400, transition: "color 0.3s" }}>
+              <div className="hidden sm:block" style={{ fontSize: 11, marginTop: 8, color: idx === currentStep ? "var(--purple)" : "var(--text-muted)", fontWeight: idx === currentStep ? 600 : 400, transition: "color 0.3s", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                 {step.title}
               </div>
             </div>
@@ -279,22 +281,22 @@ export default function OnboardingWizard({ employee }: { employee: Employee }) {
         </div>
 
         {/* Navigation */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 40, borderTop: "1px solid var(--border)", paddingTop: 32 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 40, borderTop: "1px solid var(--border)", paddingTop: 32, gap: 16 }}>
           <button 
             onClick={handleBack} 
             disabled={currentStep === 0 || loading}
             className="btn btn-secondary"
-            style={{ visibility: currentStep === 0 ? "hidden" : "visible", gap: 8 }}
+            style={{ visibility: currentStep === 0 ? "hidden" : "visible", gap: 8, padding: "10px 16px" }}
           >
-            <ChevronLeft size={18} /> Back
+            <ChevronLeft size={18} /> <span className="hidden sm:inline">Back</span>
           </button>
 
           {currentStep === STEPS.length - 1 ? (
-            <button onClick={completeOnboarding} disabled={loading} className="btn btn-primary" style={{ padding: "12px 32px", fontSize: 16, gap: 10 }}>
+            <button onClick={completeOnboarding} disabled={loading} className="btn btn-primary" style={{ padding: "12px 24px", fontSize: 16, gap: 10, flex: 1, maxWidth: 220 }}>
               {loading ? "Processing..." : "Enter Workspace"} <ChevronRight size={18} />
             </button>
           ) : (
-            <button onClick={handleNext} className="btn btn-primary" style={{ gap: 8 }}>
+            <button onClick={handleNext} className="btn btn-primary" style={{ gap: 8, padding: "10px 24px", flex: 1, maxWidth: 220 }}>
               Next Step <ChevronRight size={18} />
             </button>
           )}

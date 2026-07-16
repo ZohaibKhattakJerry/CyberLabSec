@@ -264,26 +264,26 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
         </div>
       </nav>
 
-      <div style={{ maxWidth: 680, margin: "0 auto", padding: "40px 24px" }}>
+      <div style={{ maxWidth: 680, margin: "0 auto", padding: "clamp(24px, 5vw, 40px) clamp(16px, 4vw, 24px)" }}>
         {/* Header */}
         <div style={{ marginBottom: 32 }}>
           <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
             <span className={posting.type === "Job" ? "badge badge-purple" : "badge badge-purple"}>{posting.type}</span>
             <span className="badge badge-gray">{posting.department}</span>
           </div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 8 }}>Apply: {posting.title}</h1>
+          <h1 style={{ fontSize: "clamp(24px, 5vw, 28px)", fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 8 }}>Apply: {posting.title}</h1>
           <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>{posting.location}</p>
         </div>
 
         {/* Step indicator */}
-        <div style={{ display: "flex", gap: 8, marginBottom: 32, alignItems: "center", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 8, marginBottom: 32, alignItems: "center", overflowX: "auto", paddingBottom: 8, WebkitOverflowScrolling: "touch", scrollbarWidth: "none", flexWrap: "nowrap" }}>
           {[1, 2, 3, 4].map((s) => (
-            <div key={s} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div key={s} style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
               <div style={{ width: 28, height: 28, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, background: s <= step ? "var(--purple)" : "rgba(255,255,255,0.06)", color: s <= step ? "#fff" : "var(--text-muted)", transition: "all 0.3s" }}>{s}</div>
-              {s < 4 && <div style={{ width: 30, height: 2, background: s < step ? "var(--purple)" : "rgba(255,255,255,0.06)", transition: "all 0.3s" }} />}
+              {s < 4 && <div style={{ width: 24, height: 2, background: s < step ? "var(--purple)" : "rgba(255,255,255,0.06)", transition: "all 0.3s" }} />}
             </div>
           ))}
-          <span style={{ marginLeft: 8, fontSize: 13, color: "var(--text-muted)", whiteSpace: "nowrap" }}>
+          <span style={{ marginLeft: 8, fontSize: 13, color: "var(--text-primary)", fontWeight: 600, whiteSpace: "nowrap", flexShrink: 0 }}>
             {step === 1 ? "Personal Info" : step === 2 ? "Links & Profile" : step === 3 ? "Documents" : "Review & Consent"}
           </span>
         </div>
@@ -291,7 +291,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
         <AnimatePresence mode="wait">
           {step === 1 && (
             <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }}>
-              <div className="card" style={{ padding: 28 }}>
+              <div className="card" style={{ padding: "clamp(20px, 4vw, 28px)" }}>
                 <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 24 }}>Personal Information</h2>
                 <div style={{ display: "grid", gap: 20 }}>
                   <Field label="Full Name" required error={errors.fullName}>
@@ -342,7 +342,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
 
           {step === 2 && (
             <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }}>
-              <div className="card" style={{ padding: 28 }}>
+              <div className="card" style={{ padding: "clamp(20px, 4vw, 28px)" }}>
                 <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 24 }}>Education & Security Profiles</h2>
                 <div style={{ display: "grid", gap: 20 }}>
                   
@@ -439,7 +439,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
 
           {step === 3 && (
             <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }}>
-              <div className="card" style={{ padding: 28 }}>
+              <div className="card" style={{ padding: "clamp(20px, 4vw, 28px)" }}>
                 <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 24 }}>Documents & Motivation</h2>
                 <div style={{ display: "grid", gap: 20 }}>
                   
@@ -532,7 +532,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
 
           {step === 4 && (
             <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }}>
-              <div className="card" style={{ padding: 28 }}>
+              <div className="card" style={{ padding: "clamp(20px, 4vw, 28px)" }}>
                 <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Review & Consent</h2>
                 <p style={{ color: "var(--text-secondary)", fontSize: 14, marginBottom: 24 }}>Please review your details and accept the required consents before submitting.</p>
 
@@ -569,9 +569,9 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                   Please note: Multiple applications for the same role using identical credentials will be automatically flagged and may affect your candidacy.
                 </div>
 
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <button className="btn btn-secondary" onClick={() => setStep(3)}><ChevronLeft size={16} /> Back</button>
-                  <button className="btn btn-primary btn-lg" onClick={handleSubmit} disabled={!form.consentData || !form.consentInterview}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                  <button className="btn btn-secondary" onClick={() => setStep(3)} style={{ flex: "1 1 auto" }}><ChevronLeft size={16} /> Back</button>
+                  <button className="btn btn-primary btn-lg" onClick={handleSubmit} disabled={!form.consentData || !form.consentInterview} style={{ flex: "2 1 auto" }}>
                     Submit Application
                     <ChevronRight size={16} />
                   </button>

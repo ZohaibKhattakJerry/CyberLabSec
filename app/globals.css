@@ -975,3 +975,13 @@ select.input option {
     width: auto;
   }
 }
+
+/* Utility Classes for Responsive text in components */
+@media (max-width: 640px) {
+  .hidden.sm\:block { display: none !important; }
+  .hidden.sm\:inline { display: none !important; }
+}
+@media (min-width: 641px) {
+  .hidden.sm\:block { display: block !important; }
+  .hidden.sm\:inline { display: inline !important; }
+}

@@ -18,19 +18,35 @@ const GLOBAL_HEAD = `
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="light dark">
     <meta name="supported-color-schemes" content="light dark">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <style>
-      body { font-family: 'Inter', Helvetica, Arial, sans-serif; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; background-color: #ffffff; }
+      body { font-family: 'Inter', Helvetica, Arial, sans-serif; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; background-color: #050508; color: #e0e0e0; }
       table { border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
       a { text-decoration: none; }
+      .bg-body { background-color: #050508; }
+      .card-bg { background-color: #0f0f16; border: 1px solid #1f1f2e; }
       @media (max-width: 600px) {
         .responsive-table { width: 100% !important; border-radius: 0 !important; border-left: none !important; border-right: none !important; }
-        .body-cell { padding: 25px 20px !important; }
-        .header-cell { padding: 30px 20px 25px !important; }
+        .body-cell { padding: 30px 20px !important; }
+        .header-cell { padding: 35px 20px 25px !important; }
         .wrap-cell { padding: 0 !important; }
+        .footer-cell { padding: 30px 20px !important; }
+        h1 { font-size: 22px !important; }
+        h2 { font-size: 28px !important; }
       }
-      @media (prefers-color-scheme: dark) {
-        body { background-color: #000000 !important; }
+      @media (prefers-color-scheme: light) {
+        body { background-color: #f4f4f5 !important; color: #18181b !important; }
+        .bg-body { background-color: #f4f4f5 !important; }
+        .card-bg { background-color: #ffffff !important; border: 1px solid #e4e4e7 !important; }
+        .header-cell { background: #ffffff !important; border-bottom: 1px solid #e4e4e7 !important; }
+        .body-cell { background-color: #ffffff !important; color: #18181b !important; }
+        .footer-cell { background-color: #fafafa !important; border-top: 1px solid #e4e4e7 !important; }
+        .footer-text { color: #71717a !important; }
+        h1 { color: #09090b !important; }
+        p { color: #3f3f46 !important; }
+        .divider { background: #e4e4e7 !important; }
+        .info-label { color: #71717a !important; border-bottom: 1px solid #f4f4f5 !important; }
+        .info-value { color: #18181b !important; border-bottom: 1px solid #f4f4f5 !important; }
+        .code-box { background: #f4f4f5 !important; border: 1px solid #e4e4e7 !important; color: #7000ff !important; }
       }
     </style>
   </head>
@@ -40,10 +56,10 @@ const HTML_START = `<!DOCTYPE html><html>${GLOBAL_HEAD}<body>`;
 const HTML_END = `</body></html>`;
 
 const WRAP_START = `
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" class="bg-body" style="width: 100%; background-color: #050508;">
     <tr>
       <td class="wrap-cell" align="center" style="padding: 40px 20px;">
-        <table class="responsive-table" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%; background-color: #0a0a0f; border: 1px solid #1f1f2e; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);">
+        <table class="responsive-table card-bg" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%; background-color: #0f0f16; border: 1px solid #1f1f2e; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);">
 `;
 const WRAP_END = `
         </table>
@@ -54,64 +70,64 @@ const WRAP_END = `
 
 const headerSection = (subtitle: string) => `
   <tr>
-    <td class="header-cell" align="center" style="background: linear-gradient(180deg, #161622 0%, #0d0d12 100%); padding: 40px 40px 30px; border-bottom: 1px solid #1f1f2e;">
-      <h2 style="font-size: 34px; font-weight: 900; margin: 0; letter-spacing: -0.03em; font-family: 'Inter', sans-serif;">
-        <span style="color: #ffffff; text-shadow: 0 0 20px rgba(112, 0, 255, 0.5);">CyberLab</span><span style="color: #00f0ff; text-shadow: 0 0 20px rgba(0, 240, 255, 0.6);">Sec</span>
+    <td class="header-cell" align="center" style="background: linear-gradient(180deg, #161622 0%, #0f0f16 100%); padding: 40px 40px 30px; border-bottom: 1px solid #1f1f2e;">
+      <h2 style="font-size: 34px; font-weight: 900; margin: 0; letter-spacing: -0.03em; font-family: 'Inter', Helvetica, sans-serif;">
+        <span style="color: #7000ff;">CyberLab</span><span style="color: #00f0ff;">Sec</span>
       </h2>
-      <p style="color: #7000ff; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3em; margin: 12px 0 0 0; text-shadow: 0 0 10px rgba(112,0,255,0.3);">${subtitle}</p>
+      <p style="color: #7000ff; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.25em; margin: 12px 0 0 0;">${subtitle}</p>
     </td>
   </tr>
 `;
 
 const footerSection = (extra: string = "") => `
   <tr>
-    <td align="center" style="padding: 30px 40px; border-top: 1px solid #1f1f2e; background-color: #08080b;">
-      <p style="color: #606070; font-size: 12px; margin: 0 0 12px 0; line-height: 1.6;">
+    <td class="footer-cell" align="center" style="padding: 30px 40px; border-top: 1px solid #1f1f2e; background-color: #0a0a0f;">
+      <p class="footer-text" style="color: #606070; font-size: 12px; margin: 0 0 12px 0; line-height: 1.6;">
         ${extra ? extra + "<br/><br/>" : ""}
         © ${new Date().getFullYear()} CyberLabSec · Offensive Security & Pentesting Operations<br/>
-        <a href="https://cyberlabsec.tech" style="color: #7000ff; text-decoration: none;">cyberlabsec.tech</a>
+        <a href="https://cyberlabsec.tech" style="color: #7000ff; text-decoration: none; font-weight: 500;">cyberlabsec.tech</a>
         &nbsp;|&nbsp; <a href="mailto:contact@cyberlabsec.tech" style="color: #606070; text-decoration: none;">contact@cyberlabsec.tech</a>
       </p>
     </td>
   </tr>
 `;
 
-const BODY_START = `<tr><td class="body-cell" style="padding: 45px 40px; background-color: #0d0d12; color: #e0e0e0;">`;
+const BODY_START = `<tr><td class="body-cell" style="padding: 45px 40px; background-color: #0f0f16; color: #e0e0e0; font-family: 'Inter', Helvetica, Arial, sans-serif;">`;
 const BODY_END = `</td></tr>`;
 
 const divider = () => `
-  <div style="height: 1px; background: linear-gradient(90deg, rgba(31,31,46,0) 0%, rgba(31,31,46,1) 50%, rgba(31,31,46,0) 100%); margin: 30px 0;"></div>
+  <div class="divider" style="height: 1px; background: #1f1f2e; margin: 30px 0;"></div>
 `;
 
 const infoRow = (label: string, value: string) => `
   <tr>
-    <td style="padding: 14px 0; border-bottom: 1px solid #1f1f2e; color: #a0a0b0; font-size: 14px; font-weight: 600; width: 140px; vertical-align: top;">${label}</td>
-    <td style="padding: 14px 0; border-bottom: 1px solid #1f1f2e; color: #ffffff; font-size: 14px; vertical-align: top;">${value}</td>
+    <td class="info-label" style="padding: 14px 0; border-bottom: 1px solid #1f1f2e; color: #a0a0b0; font-size: 14px; font-weight: 600; width: 140px; vertical-align: top;">${label}</td>
+    <td class="info-value" style="padding: 14px 0; border-bottom: 1px solid #1f1f2e; color: #ffffff; font-size: 14px; vertical-align: top;">${value}</td>
   </tr>
 `;
 
 const btn = (text: string, url: string) => `
   <div style="text-align: center; margin: 35px 0 15px 0;">
-    <a href="${url}" style="display: inline-block; background: linear-gradient(90deg, #7000ff 0%, #00f0ff 100%); color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-weight: 700; font-size: 15px; letter-spacing: 0.05em; text-transform: uppercase; box-shadow: 0 8px 25px rgba(112,0,255,0.4), 0 0 15px rgba(0,240,255,0.2); border: 1px solid rgba(255,255,255,0.1);">
+    <a href="${url}" style="display: inline-block; background: #7000ff; color: #ffffff; text-decoration: none; padding: 14px 36px; border-radius: 8px; font-weight: 600; font-size: 15px; letter-spacing: 0.02em;">
       ${text}
     </a>
   </div>
 `;
 
 const heading1 = (text: string) => `<h1 style="font-size: 26px; font-weight: 800; color: #ffffff; margin: 0 0 16px 0; letter-spacing: -0.02em;">${text}</h1>`;
-const paragraph = (text: string, color: string = "#a0a0b0") => `<p style="color: ${color}; font-size: 16px; line-height: 1.7; margin: 0 0 24px 0;">${text}</p>`;
+const paragraph = (text: string, color: string = "#a0a0b0") => `<p style="color: ${color}; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">${text}</p>`;
 
 const callout = (title: string, content: string, type: 'info' | 'danger' | 'success' = 'info') => {
   const colors = {
-    info: { border: '#7000ff', bg: 'rgba(112,0,255,0.05)', glow: 'rgba(112,0,255,0.2)' },
-    danger: { border: '#ff0055', bg: 'rgba(255,0,85,0.05)', glow: 'rgba(255,0,85,0.2)' },
-    success: { border: '#00ff9d', bg: 'rgba(0,255,157,0.05)', glow: 'rgba(0,255,157,0.2)' },
+    info: { border: '#7000ff', bg: 'rgba(112,0,255,0.08)' },
+    danger: { border: '#ef4444', bg: 'rgba(239,68,68,0.08)' },
+    success: { border: '#22c55e', bg: 'rgba(34,197,94,0.08)' },
   };
   const c = colors[type];
   return `
-    <div style="background: ${c.bg}; border: 1px solid ${c.glow}; border-left: 4px solid ${c.border}; border-radius: 8px; padding: 24px; margin-bottom: 28px;">
-      ${title ? `<p style="color: ${c.border}; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 12px 0; text-shadow: 0 0 10px ${c.glow};">${title}</p>` : ''}
-      <div style="color: #e0e0e0; font-size: 15px; line-height: 1.7;">${content}</div>
+    <div style="background: ${c.bg}; border-left: 4px solid ${c.border}; border-radius: 6px; padding: 24px; margin-bottom: 28px;">
+      ${title ? `<p style="color: ${c.border}; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin: 0 0 12px 0;">${title}</p>` : ''}
+      <div style="font-size: 15px; line-height: 1.6;">${content}</div>
     </div>
   `;
 };
@@ -231,8 +247,8 @@ export async function sendEmployeeCredentials(
         
         ${callout("", `
           <table style="width: 100%; border-collapse: collapse;">
-            ${infoRow("Employee ID", `<code style="background: rgba(112,0,255,0.1); border: 1px solid rgba(112,0,255,0.3); padding: 6px 12px; border-radius: 6px; color: #00f0ff; font-size: 16px; font-weight: 800; letter-spacing: 2px;">${employeeCode}</code>`)}
-            ${infoRow("Temp Password", `<code style="background: rgba(112,0,255,0.1); border: 1px solid rgba(112,0,255,0.3); padding: 6px 12px; border-radius: 6px; color: #00f0ff; font-size: 15px; font-weight: 800; letter-spacing: 1px;">${temporaryPassword}</code>`)}
+            ${infoRow("Employee ID", `<code class="code-box" style="background: rgba(112,0,255,0.1); border: 1px solid rgba(112,0,255,0.2); padding: 4px 8px; border-radius: 4px; color: #00f0ff; font-size: 15px; font-weight: 700;">${employeeCode}</code>`)}
+            ${infoRow("Temp Password", `<code class="code-box" style="background: rgba(112,0,255,0.1); border: 1px solid rgba(112,0,255,0.2); padding: 4px 8px; border-radius: 4px; color: #00f0ff; font-size: 15px; font-weight: 700;">${temporaryPassword}</code>`)}
           </table>
         `, 'info')}
         
@@ -376,9 +392,9 @@ export async function sendApplicationReceivedEmail(
         
         ${callout("Application Summary", `
           <table style="width: 100%; border-collapse: collapse;">
-            ${infoRow("Reference ID", `<code style="background: rgba(0,240,255,0.1); border: 1px solid rgba(0,240,255,0.3); padding: 5px 10px; border-radius: 5px; color: #00f0ff; font-size: 14px; font-weight: 800;">${referenceId}</code>`)}
-            ${infoRow("Position", `<span style="color: #e0e0e0;">${jobTitle}</span>`)}
-            ${infoRow("Status", `<span style="color: #00ff9d; font-weight: 700; text-shadow: 0 0 10px rgba(0,255,157,0.5);">● Awaiting Review</span>`)}
+            ${infoRow("Reference ID", `<code class="code-box" style="background: rgba(112,0,255,0.1); border: 1px solid rgba(112,0,255,0.2); padding: 4px 8px; border-radius: 4px; color: #00f0ff; font-size: 14px; font-weight: 700;">${referenceId}</code>`)}
+            ${infoRow("Position", `<span class="info-value" style="color: #e0e0e0;">${jobTitle}</span>`)}
+            ${infoRow("Status", `<span style="color: #22c55e; font-weight: 600;">● Awaiting Review</span>`)}
           </table>
         `, 'info')}
 
@@ -424,8 +440,8 @@ export async function sendInterviewCompleteEmail(
         
         ${callout("Status Update", `
           <table style="width: 100%; border-collapse: collapse;">
-            ${infoRow("Position", `<span style="color: #e0e0e0;">${jobTitle}</span>`)}
-            ${infoRow("Status", `<span style="color: ${isRejected ? '#ff0055' : '#00ff9d'}; font-weight: 700; text-shadow: 0 0 10px ${isRejected ? 'rgba(255,0,85,0.5)' : 'rgba(0,255,157,0.5)'};">● ${status}</span>`)}
+            ${infoRow("Position", `<span class="info-value" style="color: #e0e0e0;">${jobTitle}</span>`)}
+            ${infoRow("Status", `<span style="color: ${isRejected ? '#ef4444' : '#22c55e'}; font-weight: 600;">● ${status}</span>`)}
           </table>
         `, isRejected ? 'danger' : 'success')}
 
@@ -535,7 +551,7 @@ export async function sendVerificationEmail(
         
         ${callout("Verification Code", `
           <div style="text-align: center; margin: 10px 0;">
-            <code style="background: rgba(112,0,255,0.1); border: 1px solid rgba(112,0,255,0.3); padding: 15px 25px; border-radius: 8px; color: #00f0ff; font-size: 28px; font-weight: 900; letter-spacing: 5px;">${verificationCode}</code>
+            <code class="code-box" style="background: rgba(112,0,255,0.1); border: 1px solid rgba(112,0,255,0.2); padding: 12px 24px; border-radius: 8px; color: #00f0ff; font-size: 24px; font-weight: 700; letter-spacing: 4px;">${verificationCode}</code>
           </div>
         `, 'info')}
 
@@ -568,7 +584,7 @@ export async function sendApplicantOTPEmail(toEmail: string, verificationCode: s
         
         ${callout("Verification Code", `
           <div style="text-align: center; margin: 10px 0;">
-            <code style="background: rgba(112,0,255,0.1); border: 1px solid rgba(112,0,255,0.3); padding: 15px 25px; border-radius: 8px; color: #00f0ff; font-size: 28px; font-weight: 900; letter-spacing: 5px;">${verificationCode}</code>
+            <code class="code-box" style="background: rgba(112,0,255,0.1); border: 1px solid rgba(112,0,255,0.2); padding: 12px 24px; border-radius: 8px; color: #00f0ff; font-size: 24px; font-weight: 700; letter-spacing: 4px;">${verificationCode}</code>
           </div>
         `, 'info')}
 
