@@ -321,6 +321,10 @@ model TeamMessage {
   teamId     String
   employeeId String
   message    String
+  fileUrl    String?
+  fileName   String?
+  fileType   String?
+  fileSize   Int?
   createdAt  DateTime @default(now())
   employee   Employee @relation(fields: [employeeId], references: [id])
   team       Team     @relation(fields: [teamId], references: [id])

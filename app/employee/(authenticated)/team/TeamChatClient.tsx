@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Send, Loader2, MessageSquare, Smile } from "lucide-react";
+import { Send, Loader2, MessageSquare, Smile, Paperclip, FileText, Download, Image as ImageIcon, FileArchive, X } from "lucide-react";
 import { format } from "date-fns";
 
 const EMOJIS = ['😀','😂','🙏','👍','👎','❤️','🔥','✅','⚡','🎉','💯','🤝','😎','🤔','👀','💪','🚀','⚠️','💡','🛡️'];
@@ -12,6 +12,10 @@ type Message = {
   message: string;
   createdAt: string;
   employee: { id: string; name: string; photoUrl: string | null };
+  fileUrl?: string | null;
+  fileName?: string | null;
+  fileType?: string | null;
+  fileSize?: number | null;
 };
 
 export default function TeamChatClient({ messages, currentUserId }: { messages: Message[], currentUserId: string }) {
@@ -21,6 +25,44 @@ export default function TeamChatClient({ messages, currentUserId }: { messages: 
   const [loading, setLoading] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // File state
+  const [selectedFile, setSelectedFile] = useState<{ file: File; base64: string } | null>(null);
+  const [fileError, setFileError] = useState("");
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setFileError("");
+    
+    // Validate size (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setFileError("File exceeds 10MB limit");
+      return;
+    }
+    
+    // Validate type (docx, pdf, zip, images)
+    const validTypes = [
+      "application/pdf", 
+      "application/zip", "application/x-zip-compressed",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // docx
+      "image/jpeg", "image/png", "image/webp", "image/gif"
+    ];
+    
+    if (!validTypes.includes(file.type)) {
+      setFileError("Unsupported file type. Please upload PDF, DOCX, ZIP, or images.");
+      return;
+    }
+
+    // Read as Base64
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setSelectedFile({ file, base64: reader.result as string });
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Auto scroll to bottom
   useEffect(() => {
@@ -39,15 +81,33 @@ export default function TeamChatClient({ messages, currentUserId }: { messages: 
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!text.trim()) return;
+    if (!text.trim() && !selectedFile) return;
     setLoading(true);
+    setFileError("");
     try {
-      await fetch("/api/employee/team/chat", {
+      const payload: any = { message: text };
+      if (selectedFile) {
+        payload.fileUrl = selectedFile.base64;
+        payload.fileName = selectedFile.file.name;
+        payload.fileType = selectedFile.file.type;
+        payload.fileSize = selectedFile.file.size;
+      }
+      
+      const res = await fetch("/api/employee/team/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify(payload),
       });
+      
+      if (!res.ok) {
+        const err = await res.json();
+        setFileError(err.error || "Failed to send message");
+        return;
+      }
+      
       setText("");
+      setSelectedFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
       setShowPicker(false);
       startTransition(() => router.refresh());
     } finally {
@@ -110,7 +170,22 @@ export default function TeamChatClient({ messages, currentUserId }: { messages: 
                     boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
                     border: isMe ? "none" : "1px solid rgba(255,255,255,0.05)"
                   }}>
-                    {m.message}
+                    {m.message && <div style={{ marginBottom: m.fileUrl ? 8 : 0 }}>{m.message}</div>}
+                    
+                    {m.fileUrl && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 12, background: isMe ? "rgba(0,0,0,0.15)" : "rgba(255,255,255,0.05)", padding: "8px 12px", borderRadius: 8, marginTop: 4 }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: 6, background: "rgba(255,255,255,0.1)" }}>
+                          {m.fileType?.includes("image") ? <ImageIcon size={16} /> : m.fileType?.includes("zip") ? <FileArchive size={16} /> : <FileText size={16} />}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 150 }}>{m.fileName}</div>
+                          <div style={{ fontSize: 11, opacity: 0.7 }}>{m.fileSize ? (m.fileSize / 1024 / 1024).toFixed(2) : "0"} MB</div>
+                        </div>
+                        <a href={m.fileUrl} download={m.fileName} style={{ color: "inherit", padding: 6, borderRadius: "50%", background: "rgba(255,255,255,0.1)", display: "flex" }}>
+                          <Download size={14} />
+                        </a>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -129,7 +204,23 @@ export default function TeamChatClient({ messages, currentUserId }: { messages: 
             ))}
           </div>
         )}
-        <form onSubmit={sendMessage} style={{ display: "flex", gap: 12, position: "relative" }}>
+        
+        {fileError && <div style={{ position: "absolute", top: -35, left: 20, right: 20, background: "#ef4444", color: "#fff", padding: "6px 12px", borderRadius: 8, fontSize: 12, zIndex: 10 }}>{fileError}</div>}
+        
+        {selectedFile && (
+          <div style={{ position: "absolute", top: -60, left: 20, background: "var(--bg-elevated)", border: "1px solid var(--border)", padding: "8px 12px", borderRadius: 8, display: "flex", alignItems: "center", gap: 10, fontSize: 13, zIndex: 10, boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}>
+            <Paperclip size={14} color="var(--purple)" />
+            <div style={{ maxWidth: 200, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{selectedFile.file.name}</div>
+            <button onClick={() => setSelectedFile(null)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", display: "flex" }}><X size={14} /></button>
+          </div>
+        )}
+        
+        <form onSubmit={sendMessage} style={{ display: "flex", gap: 12, position: "relative", alignItems: "center" }}>
+          <input type="file" ref={fileInputRef} onChange={handleFileChange} style={{ display: "none" }} accept=".pdf,.docx,.zip,.jpg,.jpeg,.png,.webp,.gif" />
+          <button type="button" onClick={() => fileInputRef.current?.click()} style={{ background: "none", border: "none", color: selectedFile ? "var(--purple)" : "var(--text-muted)", cursor: "pointer" }}>
+            <Paperclip size={20} />
+          </button>
+          
           <button type="button" onClick={() => setShowPicker(!showPicker)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}>
             <Smile size={20} />
           </button>
@@ -141,7 +232,7 @@ export default function TeamChatClient({ messages, currentUserId }: { messages: 
             onChange={(e) => setText(e.target.value)} 
             disabled={loading}
           />
-          <button type="submit" disabled={loading || !text.trim()} style={{ position: "absolute", right: 6, top: 6, bottom: 6, width: 36, borderRadius: "50%", background: text.trim() ? "var(--purple)" : "rgba(255,255,255,0.1)", color: "#fff", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: text.trim() ? "pointer" : "not-allowed", transition: "all 0.2s" }}>
+          <button type="submit" disabled={loading || (!text.trim() && !selectedFile)} style={{ position: "absolute", right: 6, top: "50%", transform: "translateY(-50%)", width: 36, height: 36, borderRadius: "50%", background: (text.trim() || selectedFile) ? "var(--purple)" : "rgba(255,255,255,0.1)", color: "#fff", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: (text.trim() || selectedFile) ? "pointer" : "not-allowed", transition: "all 0.2s" }}>
             {loading ? <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> : <Send size={16} style={{ marginLeft: -2 }} />}
           </button>
         </form>

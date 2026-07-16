@@ -12,16 +12,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No team assigned" }, { status: 403 });
     }
 
-    const { message } = await req.json();
-    if (!message || message.trim() === "") {
-      return NextResponse.json({ error: "Message cannot be empty" }, { status: 400 });
+    const { message, fileUrl, fileName, fileType, fileSize } = await req.json();
+    if ((!message || message.trim() === "") && !fileUrl) {
+      return NextResponse.json({ error: "Message or file is required" }, { status: 400 });
     }
 
     const newMsg = await prisma.teamMessage.create({
       data: {
         teamId: employee.teamId,
         employeeId: employee.id,
-        message: message.trim(),
+        message: message?.trim() || "",
+        fileUrl: fileUrl || null,
+        fileName: fileName || null,
+        fileType: fileType || null,
+        fileSize: fileSize || null,
       },
     });
 
