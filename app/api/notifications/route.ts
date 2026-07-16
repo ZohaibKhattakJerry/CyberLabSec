@@ -57,13 +57,13 @@ export async function GET(req: NextRequest) {
       const announcementItems = rawAnnouncements.map(a => ({
         id: a.id,
         title: "Announcement",
-        message: a.title,
+        message: a.message.substring(0, 50) + (a.message.length > 50 ? "..." : ""),
         type: "announcement",
         link: "",
         read: readSet.has(a.id),
         createdAt: a.sentAt.toISOString(),
         isAnnouncement: true,
-        content: a.content,
+        content: a.message,
       }));
 
       allItems = [...allItems, ...announcementItems].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
