@@ -51,6 +51,16 @@ export async function POST(req: NextRequest) {
   let base64Pdf = undefined;
   if (offerLetterBase64 && offerLetterBase64.startsWith("data:application/pdf;base64,")) {
     base64Pdf = offerLetterBase64.split(",")[1];
+    await prisma.employeeDocument.create({
+      data: {
+        employeeId: employee.id,
+        title: "Offer Letter",
+        type: "Offer Letter",
+        fileUrl: offerLetterBase64,
+        status: "Approved",
+        uploadedBy: auth.sub
+      }
+    });
   }
 
   const portalUrl = `https://cyberlabsec.tech/employee/login`;
