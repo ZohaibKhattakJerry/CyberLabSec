@@ -7,6 +7,7 @@ import {
   ArrowRight, ShieldCheck, Trophy, Bell, Star,
 } from "lucide-react";
 import Link from "next/link";
+import AnnouncementModal from "./AnnouncementModal";
 
 export const dynamic = "force-dynamic";
 
@@ -95,7 +96,8 @@ export default async function Dashboard() {
     select: { announcementId: true },
   });
   const readSet = new Set(myReceipts.map((r) => r.announcementId));
-  const unreadAnnouncementCount = announcements.filter((a) => !readSet.has(a.id)).length;
+  const unreadAnnouncements = announcements.filter((a) => !readSet.has(a.id));
+  const unreadAnnouncementCount = unreadAnnouncements.length;
 
   const activityLogs = await prisma.activityLog.findMany({
     where: { actorId: employee.id, actorType: "Employee" },
@@ -116,6 +118,7 @@ export default async function Dashboard() {
 
   return (
     <div>
+      <AnnouncementModal announcements={unreadAnnouncements} />
       {/* Welcome Banner */}
       <div
         style={{

@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   _Shield, LayoutDashboard, Users, Bell, Settings, LogOut,
   Menu, X, ChevronRight, Trophy, ClipboardList, Building2,
-  Briefcase, UserCheck, BookOpen, Video
+  Briefcase, UserCheck, BookOpen, Video, CalendarDays, LifeBuoy
 } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 
@@ -18,6 +18,8 @@ const NAV = [
   { href: "/company/employees", label: "Employees", icon: Users },
   { href: "/company/teams", label: "Teams", icon: Building2 },
   { href: "/company/tasks", label: "Tasks", icon: ClipboardList },
+  { href: "/company/leave", label: "Leave Requests", icon: CalendarDays },
+  { href: "/company/tickets", label: "Support Tickets", icon: LifeBuoy },
   { href: "/company/leaderboard", label: "Leaderboard", icon: Trophy },
   { href: "/company/announcements", label: "Announcements", icon: Bell },
   { href: "/company/settings", label: "Settings", icon: Settings },
