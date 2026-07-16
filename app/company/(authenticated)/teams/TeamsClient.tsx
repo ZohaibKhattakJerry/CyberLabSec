@@ -90,9 +90,12 @@ export default function TeamsClient({ teams, _employees }: { teams: Team[]; empl
       </div>
 
       {teams.length === 0 ? (
-        <div className="card" style={{ padding: 60, textAlign: "center" }}>
-          <Users size={40} color="var(--text-muted)" style={{ margin: "0 auto 16px" }} />
-          <p style={{ color: "var(--text-muted)" }}>No teams yet. Create your first team.</p>
+        <div className="empty-state">
+          <div className="empty-state-icon-wrapper">
+            <Users size={28} />
+          </div>
+          <div className="empty-state-title">No teams found</div>
+          <div className="empty-state-description">No teams yet. Create your first team.</div>
         </div>
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(380px, 1fr))", gap: 16 }}>

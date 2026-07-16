@@ -6,11 +6,12 @@ import Link from "next/link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import toast from "react-hot-toast";
+import PublicNav from "@/components/public/PublicNav";
 import {
   MapPin,
   Briefcase,
   Clock,
-  _ExternalLink,
+  ExternalLink,
   Shield,
   Search,
   ChevronRight,
@@ -93,25 +94,27 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
 
   return (
     <div style={{ background: "var(--bg-primary)", minHeight: "100vh" }}>
-      {/* NAV */}
-      <nav style={{ borderBottom: "1px solid var(--border)", padding: "0 24px", height: 72, display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(10,10,15,0.8)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 50 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <Link href="https://cyberlabsec.tech" style={{ display: "flex", alignItems: "center" }}>
+      <PublicNav 
+        left={
+          <Link href="/" style={{ display: "flex", alignItems: "center" }}>
             <Image src="/logo.png" alt="CyberLabSec Logo" width={180} height={40} style={{ height: 40, width: "auto", objectFit: "contain" }} priority />
           </Link>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-          <Link href="/careers/status" className="hide-mobile" style={{ fontSize: 14, color: "var(--text-secondary)", textDecoration: "none", fontWeight: 500, transition: "color 0.2s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-primary)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-secondary)"}>
-            Track Application
-          </Link>
-          <Link
-            href="/employee/login"
-            className="btn btn-secondary btn-sm"
-          >
-            Employee Login
-          </Link>
-        </div>
-      </nav>
+        }
+        center={<div />}
+        right={
+          <>
+            <Link href="/careers/status" className="hide-mobile" style={{ fontSize: 14, color: "var(--text-secondary)", textDecoration: "none", fontWeight: 500, transition: "color 0.2s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-primary)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-secondary)"}>
+              Track Application
+            </Link>
+            <Link
+              href="/employee/login"
+              className="btn btn-secondary btn-sm"
+            >
+              Employee Login
+            </Link>
+          </>
+        }
+      />
 
       {/* HERO */}
       <section

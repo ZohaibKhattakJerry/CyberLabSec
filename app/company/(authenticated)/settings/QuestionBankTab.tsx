@@ -145,31 +145,31 @@ export default function QuestionBankTab() {
         </button>
       </div>
 
-      <div className="card" style={{ overflow: "hidden" }}>
-        <table style={{ width: "100%", textAlign: "left", borderCollapse: "collapse" }}>
+      <div className="table-container">
+        <table>
           <thead>
-            <tr style={{ borderBottom: "1px solid var(--border)", color: "var(--text-muted)", fontSize: 12, textTransform: "uppercase" }}>
-              <th style={{ padding: "12px 16px" }}>Type</th>
-              <th style={{ padding: "12px 16px" }}>Category</th>
-              <th style={{ padding: "12px 16px" }}>Difficulty</th>
-              <th style={{ padding: "12px 16px" }}>Prompt</th>
-              <th style={{ padding: "12px 16px", textAlign: "right" }}>Actions</th>
+            <tr>
+              <th>Type</th>
+              <th>Category</th>
+              <th>Difficulty</th>
+              <th>Prompt</th>
+              <th style={{ textAlign: "right" }}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {questions.map(q => (
-              <tr key={q.id} style={{ borderBottom: "1px solid var(--border)", transition: "background 0.2s" }} className="hover:bg-[rgba(255,255,255,0.02)]">
-                <td style={{ padding: "16px", fontSize: 14, color: "var(--text-secondary)" }}>
+              <tr key={q.id}>
+                <td data-label="Type">
                   <span className="badge badge-gray">{q.type.toUpperCase()}</span>
                 </td>
-                <td style={{ padding: "16px", fontSize: 14 }}>{q.category}</td>
-                <td style={{ padding: "16px", fontSize: 14 }}>
+                <td data-label="Category">{q.category}</td>
+                <td data-label="Difficulty">
                   <span className={`badge ${q.difficulty === "Easy" ? "badge-green" : q.difficulty === "Medium" ? "badge-amber" : "badge-red"}`}>{q.difficulty}</span>
                 </td>
-                <td style={{ padding: "16px", fontSize: 14, maxWidth: 300, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                <td data-label="Prompt" style={{ maxWidth: 300, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {q.prompt}
                 </td>
-                <td style={{ padding: "16px", textAlign: "right" }}>
+                <td data-label="Actions" style={{ textAlign: "right" }}>
                   <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
                     <button onClick={() => openEdit(q)} className="btn btn-ghost btn-sm"><Edit2 size={14} /></button>
                     <button onClick={() => handleDelete(q.id)} className="btn btn-ghost btn-sm" style={{ color: "var(--red)" }}><Trash2 size={14} /></button>
@@ -222,13 +222,13 @@ export default function QuestionBankTab() {
               </div>
 
               <div>
-                <label className="label">Prompt</label>
+                <label className="label label-required">Prompt</label>
                 <textarea className="input" rows={3} value={prompt} onChange={e => setPrompt(e.target.value)} placeholder="Question text..." />
               </div>
 
               {type === "mcq" ? (
                 <div>
-                  <label className="label">Options</label>
+                  <label className="label label-required">Options</label>
                   <div style={{ display: "grid", gap: 12 }}>
                     {options.map((opt, idx) => (
                       <div key={idx} style={{ display: "flex", alignItems: "center", gap: 12 }}>

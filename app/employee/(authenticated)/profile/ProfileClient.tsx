@@ -213,7 +213,7 @@ export default function ProfileClient({ employee, activityLogs }: { employee: Em
                 <div key={i}>
                   <label className="label label-required">{f.label}</label>
                   <div style={{ position: "relative" }}>
-                    <input className="input" type={f.show ? "text" : "password"} value={f.val} onChange={e => f.setter(e.target.value)} style={{ paddingRight: 40, borderRadius: 8 }} required />
+                    <input className="input" type={f.show ? "text" : "password"} value={f.val} onChange={e => f.setter(e.target.value)} style={{ paddingRight: 40, borderRadius: 8 }} required minLength={8} />
                     {i < 2 && (
                       <button type="button" onClick={f.toggle} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", display: "flex" }}>
                         {f.show ? <EyeOff size={16} /> : <Eye size={16} />}

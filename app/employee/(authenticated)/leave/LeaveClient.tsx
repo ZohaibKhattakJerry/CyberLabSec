@@ -65,16 +65,16 @@ export default function LeaveClient({ initialLeaves }: { initialLeaves: unknown[
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div>
-                  <label className="label">Start Date</label>
+                  <label className="label label-required">Start Date</label>
                   <input type="date" className="input" value={form.startDate} onChange={e => setForm({ ...form, startDate: e.target.value })} required />
                 </div>
                 <div>
-                  <label className="label">End Date</label>
+                  <label className="label label-required">End Date</label>
                   <input type="date" className="input" value={form.endDate} onChange={e => setForm({ ...form, endDate: e.target.value })} required />
                 </div>
               </div>
               <div>
-                <label className="label">Reason</label>
+                <label className="label label-required">Reason</label>
                 <textarea className="input" value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })} rows={4} placeholder="Briefly explain your reason for leave..." required />
               </div>
               <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>

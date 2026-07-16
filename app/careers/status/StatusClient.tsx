@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect } from "react";
 import { Search, Loader2, CheckCircle, ChevronLeft, Briefcase, Calendar, AlertCircle } from "lucide-react";
+import PublicNav from "@/components/public/PublicNav";
 
 export default function StatusClient() {
   const [refId, setRefId] = useState("");
@@ -78,16 +79,13 @@ export default function StatusClient() {
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg-primary)" }}>
-      {/* Nav */}
-      <nav style={{ borderBottom: "1px solid var(--border)", padding: "0 24px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(10,10,15,0.9)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 50 }}>
-        <Link href="/careers" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", color: "var(--text-secondary)", fontSize: 14 }}>
-          <ChevronLeft size={16} /> <span className="hide-mobile-text">Back to Careers</span>
-        </Link>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-          <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 48, objectFit: "contain" }} />
-        </div>
-        <div className="hide-mobile" style={{ width: 100 }} />
-      </nav>
+      <PublicNav
+        left={
+          <Link href="/careers" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", color: "var(--text-secondary)", fontSize: 14 }}>
+            <ChevronLeft size={16} /> <span className="hide-mobile-text">Back to Careers</span>
+          </Link>
+        }
+      />
 
       <div style={{ maxWidth: 640, margin: "0 auto", padding: "60px 24px" }}>
         <div style={{ textAlign: "center", marginBottom: 40 }}>

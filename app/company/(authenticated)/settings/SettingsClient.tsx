@@ -186,12 +186,12 @@ export default function SettingsClient() {
           ) : filteredLogs.length === 0 ? (
             <div style={{ textAlign: "center", padding: 40, color: "var(--text-muted)", fontSize: 14 }}>No audit entries found.</div>
           ) : (
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+            <div className="table-container">
+              <table>
                 <thead>
-                  <tr style={{ borderBottom: "1px solid var(--border)" }}>
+                  <tr>
                     {["Action", "Actor", "Timestamp", "Details"].map((h) => (
-                      <th key={h} style={{ padding: "10px 12px", textAlign: "left", color: "var(--text-muted)", fontWeight: 600, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.05em" }}>{h}</th>
+                      <th key={h}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -200,11 +200,11 @@ export default function SettingsClient() {
                     let details = "";
                     try { const m = JSON.parse(log.metadata || "{}"); details = Object.entries(m).map(([k, v]) => `${k}: ${v}`).join(" · "); } catch { details = log.metadata || ""; }
                     return (
-                      <tr key={i} style={{ borderBottom: "1px solid var(--border-subtle)" }}>
-                        <td style={{ padding: "10px 12px" }}><span className="badge badge-gray" style={{ fontSize: 10 }}>{log.action}</span></td>
-                        <td style={{ padding: "10px 12px", color: "var(--text-secondary)", fontFamily: "monospace", fontSize: 12 }}>{log.actorId?.slice(0, 10)}…</td>
-                        <td style={{ padding: "10px 12px", color: "var(--text-muted)", whiteSpace: "nowrap", fontSize: 12 }}>{new Date(log.createdAt).toLocaleString()}</td>
-                        <td style={{ padding: "10px 12px", color: "var(--text-muted)", maxWidth: 280, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{details}</td>
+                      <tr key={i}>
+                        <td data-label="Action"><span className="badge badge-gray" style={{ fontSize: 10 }}>{log.action}</span></td>
+                        <td data-label="Actor" style={{ fontFamily: "monospace", fontSize: 12 }}>{log.actorId?.slice(0, 10)}…</td>
+                        <td data-label="Timestamp" style={{ whiteSpace: "nowrap" }}>{new Date(log.createdAt).toLocaleString()}</td>
+                        <td data-label="Details" style={{ maxWidth: 280, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{details}</td>
                       </tr>
                     );
                   })}

@@ -102,7 +102,7 @@ export default function MeetingClient({ initialMeetings, currentUser }: { initia
             <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 24 }}>New Meeting Request</h2>
             <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 16 }}>
               <div>
-                <label className="label">Meeting Title</label>
+                <label className="label label-required">Meeting Title</label>
                 <input type="text" className="input" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required placeholder="e.g., Q3 Planning or 1-on-1" />
               </div>
               
@@ -112,7 +112,7 @@ export default function MeetingClient({ initialMeetings, currentUser }: { initia
               </div>
 
               <div>
-                <label className="label">Proposed Times</label>
+                <label className="label label-required">Proposed Times</label>
                 <div style={{ display: 'grid', gap: 12 }}>
                   {form.proposedTimes.map((time, index) => (
                     <div key={index} style={{ display: 'flex', gap: 8 }}>

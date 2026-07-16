@@ -213,6 +213,7 @@ export default function OnboardingWizard({ employee }: { employee: Employee }) {
                     placeholder="Min 8 characters"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
+                    minLength={8}
                   />
                 </div>
                 <div>
@@ -223,6 +224,7 @@ export default function OnboardingWizard({ employee }: { employee: Employee }) {
                     placeholder="Retype password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
+                    minLength={8}
                   />
                 </div>
               </div>

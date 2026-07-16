@@ -91,11 +91,11 @@ export default function SupportClient({ initialTickets }: { initialTickets: unkn
                 </div>
               </div>
               <div>
-                <label className="label">Title</label>
+                <label className="label label-required">Title</label>
                 <input className="input" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="Brief summary of your issue" required />
               </div>
               <div>
-                <label className="label">Description</label>
+                <label className="label label-required">Description</label>
                 <textarea className="input" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={5} placeholder="Describe your issue in detail. Include any relevant steps, error messages, or context..." required />
               </div>
               <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>

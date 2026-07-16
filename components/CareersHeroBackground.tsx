@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { _motion } from "framer-_motion";
+import { motion } from "framer-motion";
 
 export default function CareersHeroBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);

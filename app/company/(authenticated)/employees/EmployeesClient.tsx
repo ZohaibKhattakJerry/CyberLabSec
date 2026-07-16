@@ -324,7 +324,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
         </button>
       </div>
 
-      <div style={{ overflowX: "auto" }}>
+      <div className="table-container">
         <table>
           <thead>
             <tr>
@@ -340,19 +340,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
             </tr>
           </thead>
           <tbody>
-            {filtered.length === 0 ? (
-              <tr>
-                <td colSpan={9} style={{ textAlign: "center", padding: "40px 20px" }}>
-                  <div className="empty-state" style={{ padding: "40px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12 }}>
-                    <div style={{ width: 48, height: 48, borderRadius: "50%", background: "rgba(168,85,247,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--purple)", marginBottom: 8 }}>
-                      <Users size={24} />
-                    </div>
-                    <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: "var(--text-primary)" }}>No employees found</h3>
-                    <p style={{ color: "var(--text-muted)", fontSize: 14, margin: 0 }}>Try adjusting your search or filters.</p>
-                  </div>
-                </td>
-              </tr>
-            ) : filtered.map((e: unknown) => (
+            {filtered.map((e: unknown) => (
               <tr key={e.id}>
                 <td data-label="Employee">
                   <div style={{ fontWeight: 600, fontSize: 13, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 6 }}>

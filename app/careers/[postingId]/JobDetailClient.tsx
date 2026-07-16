@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
+import PublicNav from "@/components/public/PublicNav";
 import { format } from "date-fns";
 
 interface Posting {
@@ -73,50 +74,38 @@ export default function JobDetailClient({ posting }: { posting: Posting }) {
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg-primary)" }}>
       {/* Sticky Nav */}
-      <nav
+      <PublicNav
         className="job-detail-nav"
-        style={{
-          borderBottom: "1px solid var(--border)",
-          padding: "0 24px",
-          height: 64,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          background: "rgba(10,10,15,0.92)",
-          backdropFilter: "blur(12px)",
-          position: "sticky",
-          top: 0,
-          zIndex: 50,
-          gap: 16,
-        }}
-      >
-        <Link
-          href="/careers"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            textDecoration: "none",
-            color: "var(--text-secondary)",
-            fontSize: 14,
-            whiteSpace: "nowrap",
-          }}
-        >
-          <ChevronLeft size={16} /> <span className="hide-mobile-text">Careers</span>
-        </Link>
-        <img src="/logo.png" alt="CyberLabSec" style={{ height: 44, objectFit: "contain" }} />
-        <div style={{ display: "flex", gap: 8 }}>
-          <button className="btn btn-ghost btn-sm" onClick={handleCopy} title="Copy link">
-            {copied ? <CheckCircle size={15} color="var(--green)" /> : <Copy size={15} />}
-          </button>
-          <button className="btn btn-ghost btn-sm" onClick={handleLinkedIn} title="Share on LinkedIn">
-            <Share2 size={15} />
-          </button>
-          <button className="btn btn-ghost btn-sm" onClick={handleWhatsApp} title="Share on WhatsApp">
-            <MessageCircle size={15} />
-          </button>
-        </div>
-      </nav>
+        left={
+          <Link
+            href="/careers"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              textDecoration: "none",
+              color: "var(--text-secondary)",
+              fontSize: 14,
+              whiteSpace: "nowrap",
+            }}
+          >
+            <ChevronLeft size={16} /> <span className="hide-mobile-text">Careers</span>
+          </Link>
+        }
+        right={
+          <>
+            <button className="btn btn-ghost btn-sm" onClick={handleCopy} title="Copy link">
+              {copied ? <CheckCircle size={15} color="var(--green)" /> : <Copy size={15} />}
+            </button>
+            <button className="btn btn-ghost btn-sm" onClick={handleLinkedIn} title="Share on LinkedIn">
+              <Share2 size={15} />
+            </button>
+            <button className="btn btn-ghost btn-sm" onClick={handleWhatsApp} title="Share on WhatsApp">
+              <MessageCircle size={15} />
+            </button>
+          </>
+        }
+      />
 
       <div className="job-detail-content" style={{ maxWidth: 840, margin: "0 auto", padding: "48px 24px 120px" }}>
 

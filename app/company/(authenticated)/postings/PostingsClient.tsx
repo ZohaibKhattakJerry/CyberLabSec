@@ -50,7 +50,7 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
   };
 
   const handleSave = async (saveAsDraft = false) => {
-    if (!form.title || !form.department || !form.deadline) { setMsg("Title, department and deadline are required."); return; }
+    if (!form.title || !form.department || !form.deadline || !form.location) { setMsg("Title, department, location and deadline are required."); return; }
     if (!form.description.trim() || !form.requirements.trim()) { setMsg("Job description and requirements are required."); return; }
     setLoading(true); setMsg("");
     
@@ -95,9 +95,12 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
       </div>
 
       {postings.length === 0 ? (
-        <div className="card" style={{ padding: 60, textAlign: "center" }}>
-          <Briefcase size={40} color="var(--text-muted)" style={{ margin: "0 auto 16px" }} />
-          <p style={{ color: "var(--text-muted)" }}>No job postings yet.</p>
+        <div className="empty-state">
+          <div className="empty-state-icon-wrapper">
+            <Briefcase size={28} />
+          </div>
+          <div className="empty-state-title">No job postings</div>
+          <div className="empty-state-description">No job postings yet.</div>
         </div>
       ) : (
         <div style={{ display: "grid", gap: 14 }}>
@@ -177,7 +180,7 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
                 <textarea className="input" rows={5} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Provide a detailed overview of the role, daily responsibilities, and team culture..." />
               </div>
               <div style={{ gridColumn: "1/-1" }}>
-                <label className="label">Requirements & Qualifications</label>
+                <label className="label label-required">Requirements & Qualifications</label>
                 <textarea className="input" rows={5} value={form.requirements} onChange={e => setForm(f => ({ ...f, requirements: e.target.value }))} placeholder="List required skills, minimum experience, desired certifications (OSCP, OSEP, etc.)..." />
               </div>
               <div style={{ gridColumn: "1/-1" }}>

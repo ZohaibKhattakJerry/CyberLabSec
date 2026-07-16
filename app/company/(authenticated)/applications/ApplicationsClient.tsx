@@ -244,7 +244,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
 
   const renderList = () => {
     return (
-      <div style={{ overflowX: "auto" }}>
+      <div className="table-container">
         <table>
           <thead>
             <tr>

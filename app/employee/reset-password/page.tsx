@@ -2,9 +2,9 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion } from "framer-motion";
 import Link from "next/link";
 import { Loader2, AlertCircle, CheckCircle, Eye, EyeOff } from "lucide-react";
+import AuthLayout from "@/components/AuthLayout";
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -80,7 +80,7 @@ function ResetPasswordForm() {
       <div>
         <label className="label label-required">New Password</label>
         <div style={{ position: "relative" }}>
-          <input className="input" type={showPw ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 8 characters" style={{ paddingRight: 40 }} required />
+          <input className="input" type={showPw ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 8 characters" style={{ paddingRight: 40 }} minLength={8} required />
           <button type="button" onClick={() => setShowPw(!showPw)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", display: "flex", alignItems: "center" }}>
             {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
@@ -89,7 +89,12 @@ function ResetPasswordForm() {
       
       <div>
         <label className="label label-required">Confirm Password</label>
-        <input className="input" type={showPw ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm your password" required />
+        <div style={{ position: "relative" }}>
+          <input className="input" type={showPw ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm your password" style={{ paddingRight: 40 }} minLength={8} required />
+          <button type="button" onClick={() => setShowPw(!showPw)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", display: "flex", alignItems: "center" }}>
+            {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -114,21 +119,10 @@ function ResetPasswordForm() {
 
 export default function ResetPassword() {
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg-primary)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24, position: "relative", overflow: "hidden" }}>
-      <div style={{ position: "fixed", inset: 0, backgroundImage: "linear-gradient(rgba(168,85,247,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(168,85,247,0.03) 1px, transparent 1px)", backgroundSize: "60px 60px", pointerEvents: "none" }} />
-
-      <motion.div className="card" style={{ maxWidth: 420, width: "100%", padding: 40, position: "relative", zIndex: 1 }} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-        <div style={{ display: "flex", alignItems: "center", marginBottom: 32 }}>
-          <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 40, objectFit: "contain" }} />
-        </div>
-
-        <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 6, letterSpacing: "-0.02em" }}>Set New Password</h1>
-        <p style={{ color: "var(--text-secondary)", fontSize: 14, marginBottom: 28 }}>Choose a strong password for your account.</p>
-
-        <Suspense fallback={<div style={{ textAlign: "center", padding: "20px 0" }}><Loader2 size={24} className="spin" style={{ margin: "0 auto", color: "var(--purple)" }} /></div>}>
-          <ResetPasswordForm />
-        </Suspense>
-      </motion.div>
-    </div>
+    <AuthLayout title="Set New Password" subtitle="Choose a strong password for your account.">
+      <Suspense fallback={<div style={{ textAlign: "center", padding: "20px 0" }}><Loader2 size={24} className="spin" style={{ margin: "0 auto", color: "var(--purple)" }} /></div>}>
+        <ResetPasswordForm />
+      </Suspense>
+    </AuthLayout>
   );
 }

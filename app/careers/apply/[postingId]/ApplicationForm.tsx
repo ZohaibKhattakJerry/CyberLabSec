@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { Shield, Upload, X, CheckCircle, Loader2, AlertCircle, ChevronLeft, ChevronRight, _Check } from "lucide-react";
+import { Shield, Upload, X, CheckCircle, Loader2, AlertCircle, ChevronLeft, ChevronRight, Check } from "lucide-react";
+import PublicNav from "@/components/public/PublicNav";
 
 interface Posting {
   id: string; title: string; type: string; department: string;
@@ -249,20 +250,24 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg-primary)" }}>
-      {/* Nav */}
-      <nav className="flex-mobile-col" style={{ padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, borderBottom: "1px solid var(--border)", background: "rgba(10,10,15,0.8)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 50, minHeight: 70 }}>
-        <Link href="/careers" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}>
-          <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 32 }} />
-        </Link>
-        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-          <Link href="/careers/status" style={{ fontSize: 14, color: "var(--text-secondary)", textDecoration: "none", fontWeight: 500, transition: "color 0.2s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-primary)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-secondary)"}>
-            Track Application
+      <PublicNav
+        left={
+          <Link href="/careers" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}>
+            <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 32 }} />
           </Link>
-          <Link href="/careers" style={{ fontSize: 14, color: "var(--text-secondary)", textDecoration: "none", display: "flex", alignItems: "center", gap: 6 }}>
-            <ChevronLeft size={16} /> Back to Jobs
-          </Link>
-        </div>
-      </nav>
+        }
+        center={<div />}
+        right={
+          <>
+            <Link href="/careers/status" className="hide-mobile" style={{ fontSize: 14, color: "var(--text-secondary)", textDecoration: "none", fontWeight: 500, transition: "color 0.2s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-primary)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-secondary)"}>
+              Track Application
+            </Link>
+            <Link href="/careers" style={{ fontSize: 14, color: "var(--text-secondary)", textDecoration: "none", display: "flex", alignItems: "center", gap: 6 }}>
+              <ChevronLeft size={16} /> Back to Jobs
+            </Link>
+          </>
+        }
+      />
 
       <div style={{ maxWidth: 680, margin: "0 auto", padding: "clamp(24px, 5vw, 40px) clamp(16px, 4vw, 24px)" }}>
         {/* Header */}
