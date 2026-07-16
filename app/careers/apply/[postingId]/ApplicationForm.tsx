@@ -208,7 +208,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
           clearInterval(interval);
           setStatus("done");
           setStatusMsg("shortlisted");
-        } else if (data.status === "Rejected") {
+        } else if (data.status === "Rejected" || data.status === "Applied") {
           clearInterval(interval);
           setStatus("done");
           setStatusMsg("reviewed");
@@ -639,8 +639,8 @@ function ScreeningScreen({ status, message, referenceId }: { status: ScreeningSt
         <div style={{ position: "relative", width: 96, height: 96, margin: "0 auto 32px" }}>
           {!isDone && (
             <>
-              <motion.div animate={{ scale: [1, 2.5], opacity: [0.3, 0] }} transition={{ repeat: Infinity, duration: 2, ease: "easeOut" }} style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "2px solid var(--purple)", zIndex: 0 }} />
-              <motion.div animate={{ scale: [1, 2.5], opacity: [0.3, 0] }} transition={{ repeat: Infinity, duration: 2, ease: "easeOut", delay: 1 }} style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "2px solid var(--purple)", zIndex: 0 }} />
+              <motion.div initial={{ scale: 0.8, opacity: 0.8 }} animate={{ scale: 2.5, opacity: 0 }} transition={{ repeat: Infinity, duration: 2.5, ease: "easeOut" }} style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "2px solid var(--purple)", zIndex: 0, transform: "translateZ(0)" }} />
+              <motion.div initial={{ scale: 0.8, opacity: 0.8 }} animate={{ scale: 2.5, opacity: 0 }} transition={{ repeat: Infinity, duration: 2.5, ease: "easeOut", delay: 1.25 }} style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "2px solid var(--purple)", zIndex: 0, transform: "translateZ(0)" }} />
             </>
           )}
           <div style={{ position: "relative", zIndex: 10, width: "100%", height: "100%", borderRadius: "50%", background: isDone ? (isShortlisted ? "rgba(34,197,94,0.1)" : "rgba(168,85,247,0.1)") : "var(--bg-card)", border: `2px solid ${isDone ? (isShortlisted ? "var(--green)" : "var(--purple)") : "var(--purple)"}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: isDone ? `0 0 30px ${isShortlisted ? "rgba(34,197,94,0.2)" : "var(--purple-glow)"}` : "var(--shadow-purple)", backdropFilter: "blur(4px)" }}>

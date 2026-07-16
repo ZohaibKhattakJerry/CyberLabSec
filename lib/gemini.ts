@@ -73,83 +73,52 @@ export async function screenApplicant(
     .map(x => x[0]);
 
 
-  // Format correctly
-  let finalQuestions: InterviewQuestion[] = [];
-
   if (genai) {
     try {
       const response = await genai.models.generateContent({
         model: "gemini-2.5-flash",
-        contents: `You are an expert technical interviewer at an offensive cybersecurity company.
-Generate 5 targeted, open-ended technical interview questions based on the candidate's CV.
-The questions should test the specific skills, experiences, and technologies mentioned in their resume, tailored for the role of ${jobTitle}.
-Do not ask generic behavioral questions. Ask deep technical questions.
-For each question, provide a brief rubric (keywords or concepts expected in a good answer).
+        contents: `You are an expert technical recruiter evaluating a candidate for the role of ${jobTitle}.
+Evaluate this candidate's CV against the job description and requirements.
+
+Job Description: ${jobDescription}
+Requirements: ${jobRequirements}
 
 Candidate CV:
 ${cvText.substring(0, 3000)}
 
-Respond ONLY with a valid JSON array of objects, where each object has:
-- id (a unique string)
-- type (must be "open")
-- prompt (the question text)
-- rubric (the grading rubric/expected concepts)
-- points (integer, typically 10)
+Respond ONLY with a valid JSON object containing:
+- fitScore (integer 0-100)
+- reasoning (short paragraph)
+- strengths (array of strings)
+- gaps (array of strings)
 `,
         config: {
           responseMimeType: "application/json",
           responseSchema: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                id: { type: Type.STRING },
-                type: { type: Type.STRING },
-                prompt: { type: Type.STRING },
-                rubric: { type: Type.STRING },
-                points: { type: Type.INTEGER },
-              },
+            type: Type.OBJECT,
+            properties: {
+              fitScore: { type: Type.INTEGER },
+              reasoning: { type: Type.STRING },
+              strengths: { type: Type.ARRAY, items: { type: Type.STRING } },
+              gaps: { type: Type.ARRAY, items: { type: Type.STRING } },
             },
           },
         },
       });
 
-      const generated = JSON.parse(response.text || "[]");
-      if (Array.isArray(generated) && generated.length > 0) {
-        finalQuestions = generated;
+      const generated = JSON.parse(response.text || "{}");
+      if (generated.fitScore !== undefined) {
+        return {
+          fitScore: generated.fitScore,
+          reasoning: generated.reasoning || "",
+          strengths: generated.strengths || [],
+          gaps: generated.gaps || [],
+          questions: [],
+        };
       }
     } catch (e) {
-      console.error("Failed to generate AI questions:", e);
+      console.error("Failed to generate AI screening:", e);
     }
-  }
-
-  // Fallback to database questions if AI generation failed or is disabled
-  if (finalQuestions.length === 0) {
-    finalQuestions = [
-      ...openQuestions.map((q, _i) => ({
-        id: q.id, type: q.type as "open", prompt: q.prompt, rubric: q.rubric || "", points: q.points
-      })),
-      ...mcqQuestions.map((q, _i) => ({
-        id: q.id, type: q.type as "mcq", prompt: q.prompt, options: JSON.parse(q.options), correctOption: q.correctOption || 0, points: q.points
-      }))
-    ];
-  } else {
-    // If AI generation succeeded, append MCQs from the database pool
-    finalQuestions.push(...mcqQuestions.map((q, _i) => ({
-      id: q.id, type: q.type as "mcq", prompt: q.prompt, options: JSON.parse(q.options), correctOption: q.correctOption || 0, points: q.points
-    })));
-  }
-
-  // FALLBACK: If database is completely empty, use hardcoded defaults
-  if (finalQuestions.length === 0) {
-    finalQuestions = [
-      { id: "fb1", type: "open", prompt: "Explain how Cross-Site Request Forgery (CSRF) works.", rubric: "Tokens, SameSite", points: 10 },
-      { id: "fb2", type: "open", prompt: "Describe the TCP three-way handshake.", rubric: "SYN, SYN-ACK, ACK", points: 10 },
-      { id: "fb3", type: "open", prompt: "What is Google Dorking?", rubric: "Search operators", points: 10 },
-      { id: "fb4", type: "mcq", prompt: "Which of the following is NOT a valid HTTP method?", options: ["GET", "POST", "UPDATE", "OPTIONS"], correctOption: 2, points: 2 },
-      { id: "fb5", type: "mcq", prompt: "What port does DNS typically run on?", options: ["21", "22", "53", "80"], correctOption: 2, points: 2 },
-      { id: "fb6", type: "mcq", prompt: "Which Nmap flag performs a SYN stealth scan?", options: ["-sT", "-sU", "-sV", "-sS"], correctOption: 3, points: 2 },
-    ];
   }
 
   // Advanced fit score calculation
@@ -180,7 +149,7 @@ Respond ONLY with a valid JSON array of objects, where each object has:
     reasoning,
     strengths,
     gaps: ["Advanced semantic evaluation not available"],
-    questions: finalQuestions
+    questions: []
   };
 }
 

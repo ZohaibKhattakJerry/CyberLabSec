@@ -6,6 +6,7 @@ import { checkRateLimit, getIpFromRequest } from "@/lib/rateLimit";
 import { screenApplicant } from "@/lib/gemini";
 import { sendInterviewInvite, sendDeclineEmail, sendApplicationReceivedEmail } from "@/lib/email";
 import crypto from "crypto";
+import { waitUntil } from "@vercel/functions";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -144,7 +145,7 @@ export async function POST(req: NextRequest) {
         universityName: universityName || null,
         semester: semester || null,
         jobPostingId: postingId,
-        status: "Applied",
+        status: "Reviewing",
         consentData: JSON.stringify({
           dataConsent: consentData,
           interviewConsent: consentInterview,
@@ -156,12 +157,10 @@ export async function POST(req: NextRequest) {
     });
 
     const trackingUrl = `https://cyberlabsec.tech/careers/status?ref=${applicant.referenceId}`;
-    await sendApplicationReceivedEmail(email, fullName, posting.title, applicant.referenceId, trackingUrl).catch(console.error);
+    waitUntil(sendApplicationReceivedEmail(email, fullName, posting.title, applicant.referenceId, trackingUrl).catch(console.error));
 
-    // Run AI screening asynchronously (don't block the response)
-    // Actually, we must await it on Vercel so the serverless function is not killed
-    // before the screening and email sending completes.
-    await runScreening(applicant.id, cvUrl, { fullName, email, posting });
+    // Run AI screening asynchronously without blocking the Vercel function
+    waitUntil(runScreening(applicant.id, cvUrl, { fullName, email, posting }));
 
     return NextResponse.json({ applicationId: applicant.id, referenceId: applicant.referenceId, message: "Application received and screened" }, { status: 201 });
   } catch (error) {
@@ -237,7 +236,7 @@ async function runScreening(
       await prisma.applicant.update({
         where: { id: applicantId },
         data: {
-          status: "Screening", // or Interview, based on old logic
+          status: "Interview",
           fitScore: result.fitScore,
           fitReasoning: `${result.reasoning}\n\nStrengths: ${result.strengths.join(", ")}\nGaps: ${result.gaps.join(", ")}`,
         },
@@ -249,11 +248,6 @@ async function runScreening(
         const interviewLink = `https://cyberlabsec.tech/careers/interview/${session.token}`;
         await sendInterviewInvite(ctx.email, ctx.fullName, ctx.posting.title, interviewLink, 48);
       }
-
-      await prisma.applicant.update({
-        where: { id: applicantId },
-        data: { status: "Interview" },
-      });
     } else {
       await prisma.applicant.update({
         where: { id: applicantId },
