@@ -107,7 +107,7 @@ export default function ProfileClient({ employee, activityLogs }: { employee: Em
     <div className="animate-fade-up">
       <div style={{ marginBottom: 32, display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
         <div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 6 }}>Operative Profile</h1>
+          <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 6 }}>Employee Profile</h1>
           <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>Manage identity, credentials, and access logs.</p>
         </div>
       </div>

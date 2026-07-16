@@ -67,7 +67,7 @@ export default async function AnnouncementsPage() {
             Announcements & Directives
           </h1>
           <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>
-            {announcements.length} total transmission{announcements.length !== 1 ? "s" : ""} 
+            {announcements.length} total announcement{announcements.length !== 1 ? "s" : ""} 
             {pinnedCount > 0 && <span style={{ marginLeft: 8, color: "var(--amber)" }}>( {pinnedCount} Pinned )</span>}
           </p>
         </div>
@@ -80,7 +80,7 @@ export default async function AnnouncementsPage() {
           </div>
           <h3 style={{ fontSize: 18, fontWeight: 600, color: "var(--text-primary)", marginBottom: 8 }}>All quiet on the network.</h3>
           <p style={{ color: "var(--text-secondary)", fontSize: 14, maxWidth: 400, margin: "0 auto" }}>
-            There are no active company or team directives at this time. New transmissions will appear here.
+            There are no active company or team directives at this time. New announcements will appear here.
           </p>
         </div>
       ) : (

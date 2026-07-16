@@ -9,11 +9,11 @@ export default async function MeetingsPage() {
   const auth = await getAuthFromCookies();
   if (!auth) redirect('/employee/login');
 
-  const employee = await (prisma as unknown).employee.findUnique({ where: { id: auth.sub } });
+  const employee = await prisma.employee.findUnique({ where: { id: auth.sub } });
 
   let meetings = [];
   if (employee?.teamId) {
-    meetings = await (prisma as unknown).meetingRequest.findMany({
+    meetings = await prisma.meetingRequest.findMany({
       where: { teamId: employee.teamId },
       orderBy: { createdAt: 'desc' },
       include: { proposer: { select: { name: true, photoUrl: true } } }

@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
   const auth = await getAuthFromCookies();
   if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const meetings = await (prisma as unknown).meetingRequest.findMany({
+  const meetings = await prisma.meetingRequest.findMany({
     orderBy: { createdAt: 'desc' },
     include: {
       team: { select: { name: true } },
@@ -26,7 +26,7 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: 'Meeting ID and status are required' }, { status: 400 });
   }
 
-  const updatedMeeting = await (prisma as unknown).meetingRequest.update({
+  const updatedMeeting = await prisma.meetingRequest.update({
     where: { id: meetingId },
     data: { status, confirmedTime: confirmedTime ? new Date(confirmedTime) : null, meetingLink },
     include: {

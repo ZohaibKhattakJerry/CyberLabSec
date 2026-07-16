@@ -118,7 +118,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <NotificationBell role="admin" />
         </div>
 
-        <main style={{ padding: "32px 24px", maxWidth: 1280, margin: "0 auto" }}>
+        <main style={{ padding: "24px 20px", maxWidth: 1280, margin: "0 auto" }}>
           {children}
         </main>
       </div>

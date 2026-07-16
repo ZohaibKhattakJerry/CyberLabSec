@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { format } from "date-fns";
 import { Search, UserX, UserCheck, Edit2, X, Loader2, Shield, Award, UserPlus, FileSignature, CheckCircle, UserMinus, Download, Star, Users } from "lucide-react";
 
@@ -383,6 +384,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
                     <button className="btn btn-ghost btn-sm" onClick={() => { setBadgeEmployee(e); setMsg(""); }} title="Award Badge"><Star size={13} color="var(--amber)" /></button>
                     <button className="btn btn-ghost btn-sm" onClick={() => { setAnalyticsEmployee(e); setGeneratedReport(null); }} title="Performance Analytics"><Award size={13} /></button>
                     <button className="btn btn-ghost btn-sm" onClick={() => openEdit(e)} title="Edit"><Edit2 size={13} /></button>
+                    <Link href={`/company/employees/${e.id}`} className="btn btn-ghost btn-sm" title="View Profile & Documents"><FileSignature size={13} /></Link>
                     {e.status === "Active" && (
                       <>
                         <button

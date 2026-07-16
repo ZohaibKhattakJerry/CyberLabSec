@@ -11,12 +11,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Title and at least one proposed time are required' }, { status: 400 });
   }
 
-  const employee = await (prisma as unknown).employee.findUnique({ where: { id: auth.sub } });
+  const employee = await prisma.employee.findUnique({ where: { id: auth.sub } });
   if (!employee?.teamId) {
     return NextResponse.json({ error: 'You must be assigned to a team to request meetings' }, { status: 400 });
   }
 
-  const meeting = await (prisma as unknown).meetingRequest.create({
+  const meeting = await prisma.meetingRequest.create({
     data: {
       teamId: employee.teamId,
       proposedBy: employee.id,
@@ -35,12 +35,12 @@ export async function GET(req: NextRequest) {
   const auth = await getAuthFromCookies();
   if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const employee = await (prisma as unknown).employee.findUnique({ where: { id: auth.sub } });
+  const employee = await prisma.employee.findUnique({ where: { id: auth.sub } });
   if (!employee?.teamId) {
     return NextResponse.json({ meetings: [] });
   }
 
-  const meetings = await (prisma as unknown).meetingRequest.findMany({
+  const meetings = await prisma.meetingRequest.findMany({
     where: { teamId: employee.teamId },
     orderBy: { createdAt: 'desc' },
     include: { proposer: { select: { name: true, photoUrl: true } } }
@@ -58,13 +58,13 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: 'Meeting ID and time slot are required' }, { status: 400 });
   }
 
-  const meeting = await (prisma as unknown).meetingRequest.findUnique({ where: { id: meetingId } });
+  const meeting = await prisma.meetingRequest.findUnique({ where: { id: meetingId } });
   if (!meeting) return NextResponse.json({ error: 'Meeting not found' }, { status: 404 });
 
   let votes = JSON.parse(meeting.votes || '{}');
   votes[auth.sub] = timeSlot;
 
-  const updatedMeeting = await (prisma as unknown).meetingRequest.update({
+  const updatedMeeting = await prisma.meetingRequest.update({
     where: { id: meetingId },
     data: { votes: JSON.stringify(votes) },
     include: { proposer: { select: { name: true, photoUrl: true } } }

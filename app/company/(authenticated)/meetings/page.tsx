@@ -9,7 +9,7 @@ export default async function CompanyMeetingsPage() {
   const auth = await getAuthFromCookies();
   if (!auth) redirect('/company/login');
 
-  const meetings = await (prisma as unknown).meetingRequest.findMany({
+  const meetings = await prisma.meetingRequest.findMany({
     orderBy: { createdAt: 'desc' },
     include: {
       team: { select: { name: true } },

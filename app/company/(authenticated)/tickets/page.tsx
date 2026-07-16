@@ -9,7 +9,7 @@ export default async function TicketsPage() {
   const auth = await getAuthFromCookies();
   if (!auth || auth.role !== 'admin') redirect('/company/login');
 
-  const tickets = await (prisma as unknown).supportTicket.findMany({
+  const tickets = await prisma.supportTicket.findMany({
     orderBy: { createdAt: 'desc' },
     include: {
       employee: {

@@ -25,10 +25,13 @@ export default async function DocumentsPage() {
 
   const employee = await prisma.employee.findUnique({
     where: { id: auth.sub },
-    select: { id: true, status: true, employmentType: true },
+    select: { id: true, status: true, employmentType: true, documents: true },
   });
 
   if (!employee) redirect("/employee/login");
+
+  const dbDocs = employee.documents || [];
+  const getDocUrl = (title: string) => dbDocs.find(d => d.title === title)?.fileUrl || null;
 
   const isCompleted = employee.status === "Inactive";
   const empType = employee.employmentType || "Employee";
@@ -45,7 +48,7 @@ export default async function DocumentsPage() {
       label: "Non-Disclosure Agreement (NDA)",
       desc: "Confidentiality agreement signed on joining",
       icon: "🔒",
-      url: null, // will be set if uploaded
+      url: getDocUrl("NDA") || null,
     },
     {
       label: "Policy Documents",
@@ -64,7 +67,7 @@ export default async function DocumentsPage() {
         label: "Employment Contract",
         desc: "Your full-time employment agreement",
         icon: "📝",
-        url: null,
+        url: getDocUrl("Employment Contract") || null,
       },
       {
         label: "Benefits & Compensation Info",
@@ -160,6 +163,17 @@ export default async function DocumentsPage() {
           },
         ]
       : []),
+    ...(dbDocs.filter(d => !["Offer Letter", "NDA", "Employment Contract"].includes(d.title)).length > 0 ? [{
+      heading: "Other Uploaded Documents",
+      icon: <FileText size={16} />,
+      color: "var(--text-primary)",
+      docs: dbDocs.filter(d => !["Offer Letter", "NDA", "Employment Contract"].includes(d.title)).map(d => ({
+        label: d.title,
+        desc: `Type: ${d.type}`,
+        icon: "📄",
+        url: d.fileUrl
+      }))
+    }] : [])
   ];
 
   const empTypeBadgeColor =

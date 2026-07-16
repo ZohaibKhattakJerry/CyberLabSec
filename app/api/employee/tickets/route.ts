@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
   if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const { category, title, description, priority } = await req.json();
   if (!title || !description) return NextResponse.json({ error: 'Title and description required' }, { status: 400 });
-  const ticket = await (prisma as unknown).supportTicket.create({
+  const ticket = await prisma.supportTicket.create({
     data: { employeeId: auth.sub, category: category || 'General', title, description, priority: priority || 'Medium' }
   });
   return NextResponse.json({ success: true, ticket });
@@ -16,6 +16,6 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   const auth = await getAuthFromCookies();
   if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const tickets = await (prisma as unknown).supportTicket.findMany({ where: { employeeId: auth.sub }, orderBy: { createdAt: 'desc' } });
+  const tickets = await prisma.supportTicket.findMany({ where: { employeeId: auth.sub }, orderBy: { createdAt: 'desc' } });
   return NextResponse.json({ tickets });
 }

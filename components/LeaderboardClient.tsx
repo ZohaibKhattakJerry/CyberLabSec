@@ -33,7 +33,7 @@ export default function LeaderboardClient({ employees }: { employees: Leaderboar
       <div style={{ display: "flex", gap: 12, marginBottom: 32, flexWrap: "wrap", alignItems: "center" }}>
         <div style={{ position: "relative", flex: 1, minWidth: 200, maxWidth: 400 }}>
           <Search size={16} style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)", pointerEvents: "none" }} />
-          <input className="input" style={{ paddingLeft: 44, borderRadius: 24, height: 44 }} placeholder="Search operatives..." value={search} onChange={e => setSearch(e.target.value)} />
+          <input className="input" style={{ paddingLeft: 44, borderRadius: 24, height: 44 }} placeholder="Search employees..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
         <select className="input" style={{ width: 220, borderRadius: 24, height: 44 }} value={filterTeam} onChange={e => setFilterTeam(e.target.value)}>
           <option value="All">All Squads</option>
@@ -80,7 +80,7 @@ export default function LeaderboardClient({ employees }: { employees: Leaderboar
           <thead style={{ background: "rgba(0,0,0,0.2)" }}>
             <tr>
               <th style={{ width: 80, textAlign: "center", padding: "16px 12px", color: "var(--text-muted)", fontSize: 12, textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600 }}>Rank</th>
-              <th style={{ padding: "16px 12px", color: "var(--text-muted)", fontSize: 12, textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600, textAlign: "left" }}>Operative</th>
+              <th style={{ padding: "16px 12px", color: "var(--text-muted)", fontSize: 12, textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600, textAlign: "left" }}>Employee</th>
               <th style={{ padding: "16px 12px", color: "var(--text-muted)", fontSize: 12, textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600, textAlign: "left" }}>Designation</th>
               <th style={{ padding: "16px 12px", color: "var(--text-muted)", fontSize: 12, textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600, textAlign: "left" }}>Squad</th>
               <th style={{ textAlign: "right", padding: "16px 12px", color: "var(--text-muted)", fontSize: 12, textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600 }}>Objectives</th>
@@ -100,7 +100,7 @@ export default function LeaderboardClient({ employees }: { employees: Leaderboar
                   <td data-label="Rank" style={{ textAlign: "center", padding: "16px 12px", fontWeight: 800, fontSize: 16, color: rank <= 3 ? "var(--text-primary)" : "var(--text-muted)" }}>
                     {RankIcon ? <div style={{ display: "flex", justifyContent: "center" }}>{RankIcon}</div> : <span style={{ opacity: 0.5 }}>#{rank}</span>}
                   </td>
-                  <td data-label="Operative" style={{ padding: "16px 12px" }}>
+                  <td data-label="Employee" style={{ padding: "16px 12px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                       <div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>
                         {e.name.charAt(0)}
@@ -129,7 +129,7 @@ export default function LeaderboardClient({ employees }: { employees: Leaderboar
             <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(255,255,255,0.02)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
               <Search size={24} opacity={0.5} />
             </div>
-            No operatives match filters.
+            No employees match filters.
           </div>
         )}
       </div>

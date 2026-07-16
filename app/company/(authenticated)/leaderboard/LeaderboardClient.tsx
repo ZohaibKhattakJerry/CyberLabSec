@@ -105,7 +105,7 @@ export default function LeaderboardClient({
           <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 6, letterSpacing: "-0.02em", display: "flex", alignItems: "center", gap: 12 }}>
             <Trophy size={28} color="var(--amber)" /> Leaderboard
           </h1>
-          <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>Operative performance rankings based on task approvals and quality.</p>
+          <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>Employee performance rankings based on task approvals and quality.</p>
         </div>
         <div style={{ display: "flex", gap: 10 }}>
           <button className="btn btn-secondary btn-sm" onClick={() => setShowAdjust(true)}>
@@ -154,7 +154,7 @@ export default function LeaderboardClient({
           {/* Full rankings */}
           <div className="card" style={{ overflow: "hidden" }}>
             <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", fontWeight: 600, fontSize: 13, color: "var(--text-muted)", display: "grid", gridTemplateColumns: "48px 1fr auto auto", gap: 12 }}>
-              <span>#</span><span>Operative</span><span style={{ textAlign: "right" }}>Badges</span><span style={{ textAlign: "right", minWidth: 80 }}>Points</span>
+              <span>#</span><span>Employee</span><span style={{ textAlign: "right" }}>Badges</span><span style={{ textAlign: "right", minWidth: 80 }}>Points</span>
             </div>
             {sorted.map((emp, i) => (
               <div key={emp.id}>

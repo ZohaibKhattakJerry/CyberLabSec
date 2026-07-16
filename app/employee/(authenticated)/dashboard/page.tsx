@@ -271,7 +271,7 @@ export default async function Dashboard() {
           icon={<Users size={18} color="var(--blue)" />}
           label="Squad"
           value={displayTeamName}
-          sub={`${employee.team?.members.length || 0} Operatives`}
+          sub={`${employee.team?.members.length || 0} Employees`}
         />
         <StatCard
           icon={<CheckSquare size={18} color="var(--green)" />}
@@ -782,7 +782,7 @@ export default async function Dashboard() {
                 gap: 8,
               }}
             >
-              <Bell size={16} color="var(--purple)" /> Latest Transmissions
+              <Bell size={16} color="var(--purple)" /> Latest Announcements
               {unreadAnnouncementCount > 0 && (
                 <span style={{
                   background: "var(--amber)", color: "#000",

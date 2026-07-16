@@ -284,7 +284,7 @@ export default function EmployeeLeaderboardClient({
           </button>
         </div>
         <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
-          {sorted.length} operatives
+          {sorted.length} employees
         </div>
       </div>
 
@@ -397,7 +397,7 @@ export default function EmployeeLeaderboardClient({
           }}
         >
           <span>#</span>
-          <span>Operative</span>
+          <span>Employee</span>
           <span style={{ textAlign: "center" }}>Badges</span>
           <span style={{ textAlign: "right" }}>XP</span>
         </div>
