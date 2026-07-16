@@ -173,7 +173,7 @@ export async function POST(req: NextRequest) {
 async function runScreening(
   applicantId: string,
   cvUrl: string,
-  ctx: { fullName: string; email: string; posting: { id: string; title: string; type: string; description: string; requirements: string; shortlistThreshold: number; passMark: number; autoShortlist: boolean } }
+  ctx: { fullName: string; email: string; posting: any }
 ) {
   try {
     // Extract CV text
@@ -189,18 +189,47 @@ async function runScreening(
       ctx.posting.type as "Job" | "Internship"
     );
 
-    // Always create an interview session with the questions generated
-    const token = crypto.randomBytes(32).toString("hex");
-    const tokenExpiry = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 hours
+    // Generate applicant-specific question variants from the Job Posting's Assessment Bank
+    let finalQuestions: any[] = [];
+    if (ctx.posting.assessmentBank && ctx.posting.answerKey) {
+      const { generateApplicantVariant } = await import("@/lib/assessmentEngine");
+      const bank = JSON.parse(ctx.posting.assessmentBank);
+      const answerKey = JSON.parse(ctx.posting.answerKey);
+      
+      const { applicantQuestions, applicantAnswers } = generateApplicantVariant(
+        bank, 
+        answerKey, 
+        20 // E.g., take 20 questions total for the applicant
+      );
+      
+      finalQuestions = applicantQuestions;
+      
+      const token = crypto.randomBytes(32).toString("hex");
+      const tokenExpiry = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 hours
 
-    await prisma.interviewSession.create({
-      data: {
-        applicantId,
-        token,
-        tokenExpiry, // Will be refreshed if manually shortlisted later
-        questions: JSON.stringify(result.questions),
-      },
-    });
+      await prisma.interviewSession.create({
+        data: {
+          applicantId,
+          token,
+          tokenExpiry,
+          questions: JSON.stringify(applicantQuestions),
+          answers: JSON.stringify(applicantAnswers)
+        },
+      });
+    } else {
+      // Fallback if no assessment generated yet
+      const token = crypto.randomBytes(32).toString("hex");
+      const tokenExpiry = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 hours
+      await prisma.interviewSession.create({
+        data: {
+          applicantId,
+          token,
+          tokenExpiry,
+          questions: "[]",
+          answers: "[]"
+        },
+      });
+    }
 
     const shortlisted = ctx.posting.autoShortlist;
 
@@ -214,8 +243,12 @@ async function runScreening(
         },
       });
 
-      const interviewLink = `https://cyberlabsec.tech/careers/interview/${token}`;
-      await sendInterviewInvite(ctx.email, ctx.fullName, ctx.posting.title, interviewLink, 48);
+      // We need to fetch the newly created token since it's scoped in the block above
+      const session = await prisma.interviewSession.findUnique({ where: { applicantId } });
+      if (session) {
+        const interviewLink = `https://cyberlabsec.tech/careers/interview/${session.token}`;
+        await sendInterviewInvite(ctx.email, ctx.fullName, ctx.posting.title, interviewLink, 48);
+      }
 
       await prisma.applicant.update({
         where: { id: applicantId },

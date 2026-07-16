@@ -10,6 +10,7 @@ type Posting = {
   description: string; requirements: string; universityRequired: boolean;
   deadline: string; status: string; passMark: number; showApplicantCount: boolean; autoShortlist: boolean;
   createdAt: string; _count: { applicants: number };
+  assessmentSettings?: string; assessmentBank?: string; answerKey?: string;
 };
 
 const EMPTY_FORM = {
@@ -29,6 +30,11 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
+  
+  // Assessment Generation State
+  const [genLoading, setGenLoading] = useState(false);
+  const [mcqCount, setMcqCount] = useState(15);
+  const [openCount, setOpenCount] = useState(5);
 
   const openCreate = () => { setEditPosting(null); setForm(EMPTY_FORM); setMsg(""); setShowForm(true); };
   const openEdit = (p: Posting) => {
@@ -81,6 +87,22 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
   const deletePosting = async (id: string, title: string) => {
     if (!confirm(`Delete posting "${title}"?`)) return;
     await fetch(`/api/company/postings/${id}`, { method: "DELETE" });
+    startTransition(() => router.refresh());
+  };
+
+  const generateAssessment = async () => {
+    if (!editPosting) return;
+    setGenLoading(true);
+    setMsg("");
+    const res = await fetch(`/api/company/postings/${editPosting.id}/generate-assessment`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mcqCount, openCount }),
+    });
+    const data = await res.json();
+    setGenLoading(false);
+    if (!res.ok) { setMsg(data.error || "Failed to generate assessment"); return; }
+    setMsg("Assessment generated successfully!");
     startTransition(() => router.refresh());
   };
 
@@ -249,6 +271,40 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
                   <label htmlFor="autoShortlist" style={{ fontSize: 14, cursor: "pointer", color: "var(--text-secondary)" }}>Auto-shortlist via AI</label>
                 </div>
               </div>
+
+              {editPosting && (
+                <>
+                  <div style={{ gridColumn: "1/-1", marginTop: 24 }}>
+                    <h3 style={{ fontSize: 14, fontWeight: 600, color: "var(--purple)", marginBottom: 12, borderBottom: "1px solid var(--border)", paddingBottom: 8 }}>Dynamic Assessment Generation</h3>
+                    <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 16 }}>
+                      Auto-generate a rich pool of MCQs and Scenarios tailored strictly to this job's title, requirements, and experience level.
+                    </p>
+                    <div style={{ display: "flex", gap: 16, alignItems: "flex-end" }}>
+                      <div>
+                        <label className="label">MCQ Count (Pool Size)</label>
+                        <input className="input" type="number" min={5} max={50} value={mcqCount} onChange={e => setMcqCount(Number(e.target.value))} />
+                      </div>
+                      <div>
+                        <label className="label">Scenario Count (Pool Size)</label>
+                        <input className="input" type="number" min={1} max={10} value={openCount} onChange={e => setOpenCount(Number(e.target.value))} />
+                      </div>
+                      <button 
+                        className="btn btn-primary" 
+                        onClick={(e) => { e.preventDefault(); generateAssessment(); }} 
+                        disabled={genLoading}
+                        style={{ height: 42 }}
+                      >
+                        {genLoading ? <Loader2 size={16} className="spin" /> : "Generate Assessment"}
+                      </button>
+                    </div>
+                    {editPosting.assessmentBank && editPosting.assessmentBank !== "[]" && (
+                      <div style={{ marginTop: 16, padding: 12, background: "var(--bg-secondary)", borderRadius: 8, fontSize: 13, color: "var(--green)" }}>
+                        ✅ Assessment Bank Generated! Current Pool Size: {JSON.parse(editPosting.assessmentBank).length} questions.
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
             {msg && <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444", padding: "10px 14px", borderRadius: 8, marginTop: 20, fontSize: 14 }}>{msg}</div>}
             <div style={{ display: "flex", gap: 10, marginTop: 20 }}>

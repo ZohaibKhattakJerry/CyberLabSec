@@ -9,7 +9,7 @@ export default async function PostingsPage() {
     include: { _count: { select: { applicants: true } } },
   });
 
-  const serialized = postings.map((p: unknown) => ({
+  const serialized = postings.map((p: any) => ({
     ...p,
     deadline: p.deadline.toISOString(),
     createdAt: p.createdAt.toISOString(),

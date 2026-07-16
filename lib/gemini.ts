@@ -72,41 +72,6 @@ export async function screenApplicant(
     .sort((a, b) => b[1] - a[1])
     .map(x => x[0]);
 
-  // Select questions from DB
-  const dbQuestions = await prisma.questionBank.findMany();
-  
-  const poolOpen = shuffle(dbQuestions.filter(q => q.type === "open"));
-  const poolMcq = shuffle(dbQuestions.filter(q => q.type === "mcq"));
-
-  type QuestionBankItem = typeof dbQuestions[number];
-  const openQuestions: QuestionBankItem[] = [];
-  const mcqQuestions: QuestionBankItem[] = [];
-
-  // Pick 5 Open
-  for (const cat of topCategories) {
-    if (openQuestions.length >= 5) break;
-    const qs = poolOpen.filter(q => q.category.toLowerCase() === cat && !openQuestions.find(o => o.id === q.id));
-    if (qs.length > 0) openQuestions.push(qs[0]);
-  }
-  for (const q of poolOpen) {
-    if (openQuestions.length >= 5) break;
-    if (!openQuestions.find(o => o.id === q.id)) openQuestions.push(q);
-  }
-
-  // Pick 15 MCQ
-  for (const cat of topCategories) {
-    if (mcqQuestions.length >= 15) break;
-    const qs = poolMcq.filter(q => q.category.toLowerCase() === cat && !mcqQuestions.find(m => m.id === q.id));
-    if (qs.length > 0) {
-      mcqQuestions.push(qs[0]);
-      if (qs[1] && mcqQuestions.length < 15) mcqQuestions.push(qs[1]);
-      if (qs[2] && mcqQuestions.length < 15) mcqQuestions.push(qs[2]);
-    }
-  }
-  for (const q of poolMcq) {
-    if (mcqQuestions.length >= 15) break;
-    if (!mcqQuestions.find(m => m.id === q.id)) mcqQuestions.push(q);
-  }
 
   // Format correctly
   let finalQuestions: InterviewQuestion[] = [];

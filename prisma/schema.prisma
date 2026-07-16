@@ -76,6 +76,9 @@ model JobPosting {
   experienceLevel    String      @default("Any")
   openings           Int         @default(1)
   autoShortlist      Boolean     @default(true)
+  assessmentSettings String      @default("{}")
+  assessmentBank     String      @default("[]")
+  answerKey          String      @default("{}")
   publishedDate      DateTime?
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
