@@ -19,10 +19,10 @@ const GLOBAL_HEAD = `
     <meta name="color-scheme" content="light dark">
     <meta name="supported-color-schemes" content="light dark">
     <style>
-      body { font-family: 'Inter', Helvetica, Arial, sans-serif; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; background-color: #050508; color: #e0e0e0; }
+      body { font-family: 'Inter', Helvetica, Arial, sans-serif; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; color: #e0e0e0; background: transparent; }
       table { border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
       a { text-decoration: none; }
-      .bg-body { background-color: #050508; }
+      .bg-body { background: transparent; }
       .card-bg { background-color: #0f0f16; border: 1px solid #1f1f2e; }
       @media (max-width: 600px) {
         .responsive-table { width: 100% !important; border-radius: 0 !important; border-left: none !important; border-right: none !important; }
@@ -34,8 +34,8 @@ const GLOBAL_HEAD = `
         h2 { font-size: 28px !important; }
       }
       @media (prefers-color-scheme: light) {
-        body { background-color: #f4f4f5 !important; color: #18181b !important; }
-        .bg-body { background-color: #f4f4f5 !important; }
+        body { color: #18181b !important; background: transparent !important; }
+        .bg-body { background: transparent !important; }
         .card-bg { background-color: #ffffff !important; border: 1px solid #e4e4e7 !important; }
         .header-cell { background: #ffffff !important; border-bottom: 1px solid #e4e4e7 !important; }
         .body-cell { background-color: #ffffff !important; color: #18181b !important; }
@@ -52,11 +52,11 @@ const GLOBAL_HEAD = `
   </head>
 `;
 
-const HTML_START = `<!DOCTYPE html><html>${GLOBAL_HEAD}<body>`;
+const HTML_START = `<!DOCTYPE html><html>${GLOBAL_HEAD}<body style="background: transparent; margin: 0; padding: 0;">`;
 const HTML_END = `</body></html>`;
 
 const WRAP_START = `
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" class="bg-body" style="width: 100%; background-color: #050508;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" class="bg-body" style="width: 100%; background: transparent;">
     <tr>
       <td class="wrap-cell" align="center" style="padding: 40px 20px;">
         <table class="responsive-table card-bg" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%; background-color: #0f0f16; border: 1px solid #1f1f2e; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);">
@@ -71,10 +71,10 @@ const WRAP_END = `
 const headerSection = (subtitle: string) => `
   <tr>
     <td class="header-cell" align="center" style="background: linear-gradient(180deg, #161622 0%, #0f0f16 100%); padding: 40px 40px 30px; border-bottom: 1px solid #1f1f2e;">
-      <h2 style="font-size: 34px; font-weight: 900; margin: 0; letter-spacing: -0.03em; font-family: 'Inter', Helvetica, sans-serif;">
-        <span style="color: #7000ff;">CyberLab</span><span style="color: #00f0ff;">Sec</span>
-      </h2>
-      <p style="color: #7000ff; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.25em; margin: 12px 0 0 0;">${subtitle}</p>
+      <a href="https://cyberlabsec.tech" style="display: inline-block;">
+        <img src="https://cyberlabsec.tech/logo.png" alt="CyberLabSec Logo" style="height: 48px; width: auto; max-width: 200px; display: block; margin: 0 auto;" />
+      </a>
+      <p style="color: #7000ff; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.25em; margin: 16px 0 0 0;">${subtitle}</p>
     </td>
   </tr>
 `;
