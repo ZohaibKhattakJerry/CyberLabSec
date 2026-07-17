@@ -67,7 +67,7 @@ export function fileExists(relativePath: string): boolean {
   return fs.existsSync(getFilePath(relativePath));
 }
 
-import { put, del } from "@vercel/blob";
+import { del } from "@vercel/blob";
 
 export async function deleteFile(fileUrl: string): Promise<void> {
   if (fileUrl.startsWith("data:")) return;
