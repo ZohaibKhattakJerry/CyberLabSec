@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { Search, _Filter, X, Eye, UserCheck, _UserX, Loader2, FileText, ChevronRight, Check, AlertTriangle, Clock, Star } from "lucide-react";
+import { Search, Filter, X, Eye, UserCheck, UserX, Loader2, FileText, ChevronRight, Check, AlertTriangle, Clock, Star } from "lucide-react";
 
 type Applicant = {
   id: string; fullName: string; email: string; phone: string;
@@ -107,6 +107,15 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
     if (!res.ok) { setActionMsg(data.error || "Failed"); return; }
     setSelected(null);
     startTransition(() => { router.refresh(); });
+  };
+
+  const safeFormatDate = (dateStr: string | null | undefined, fmt: string) => {
+    try {
+      if (!dateStr) return "N/A";
+      return format(new Date(dateStr), fmt);
+    } catch {
+      return "N/A";
+    }
   };
 
   const normalizedApplicants = applicants.map(a => ({ ...a, status: STATUS_NORMALIZE[a.status] || a.status }));
@@ -230,7 +239,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                         </span>
                       ) : <span style={{ fontSize: 12, color: "var(--text-muted)" }}>No Score</span>}
                       
-                      <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{format(new Date(a.createdAt), "MMM d")}</span>
+                      <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{safeFormatDate(a.createdAt, "MMM d")}</span>
                     </div>
                   </div>
                 ))
@@ -276,7 +285,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                   ) : <span style={{ color: "var(--text-muted)" }}>—</span>}
                 </td>
                 <td data-label="Stage"><span className={`badge ${STATUS_COLORS[a.status] || "badge-gray"}`}>{a.status}</span></td>
-                <td data-label="Applied" style={{ fontSize: 12, color: "var(--text-muted)" }}>{format(new Date(a.createdAt), "MMM d, yyyy")}</td>
+                <td data-label="Applied" style={{ fontSize: 12, color: "var(--text-muted)" }}>{safeFormatDate(a.createdAt, "MMM d, yyyy")}</td>
                 <td data-label="Actions">
                   <button className="btn btn-ghost btn-sm" onClick={() => { setSelected(a); setNotesDraft(a.privateNotes || ""); setRatingDraft(a.internalRating || 0); }}><Eye size={13} /> View</button>
                 </td>
@@ -383,7 +392,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
               </div>
               <div style={{ padding: "12px", background: "rgba(255,255,255,0.02)", borderRadius: 8 }}>
                 <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 3 }}>Applied</div>
-                <div style={{ fontSize: 14, fontWeight: 500 }}>{format(new Date(selected.createdAt), "MMM d, yyyy")}</div>
+                <div style={{ fontSize: 14, fontWeight: 500 }}>{safeFormatDate(selected.createdAt, "MMM d, yyyy")}</div>
               </div>
             </div>
 
@@ -448,9 +457,14 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
 
                 {(() => {
                   try {
-                    const signals = JSON.parse(selected.interviewSession.cheatingSignals);
-                    const violations = JSON.parse(selected.interviewSession.integrityViolations);
-                    const hasViolations = violations.length > 0 || (signals && (signals.pasteAttempts > 0 || signals.tabBlurCount > 0));
+                    const signals = selected.interviewSession?.cheatingSignals ? JSON.parse(selected.interviewSession.cheatingSignals) : {};
+                    const violations = selected.interviewSession?.integrityViolations ? JSON.parse(selected.interviewSession.integrityViolations) : [];
+                    
+                    const violationList = Array.isArray(violations) ? violations : [];
+                    const pasteAttempts = signals?.pasteAttempts || 0;
+                    const tabBlurCount = signals?.tabBlurCount || 0;
+                    
+                    const hasViolations = violationList.length > 0 || pasteAttempts > 0 || tabBlurCount > 0;
                     
                     if (!hasViolations) {
                       return <div style={{ fontSize: 13, color: "var(--green)" }}><Check size={14} style={{ display: "inline", marginRight: 4 }} /> No integrity violations detected.</div>;
@@ -462,14 +476,15 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                           <AlertTriangle size={14} /> <strong>Integrity Flags Detected</strong>
                         </div>
                         <ul style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0, paddingLeft: 20 }}>
-                          {signals?.pasteAttempts > 0 && <li>{signals.pasteAttempts} paste attempts</li>}
-                          {signals?.tabBlurCount > 0 && <li>{signals.tabBlurCount} tab switches</li>}
-                          {violations.map((v: string, i: number) => <li key={i}>{v}</li>)}
+                          {pasteAttempts > 0 && <li>{pasteAttempts} paste attempts</li>}
+                          {tabBlurCount > 0 && <li>{tabBlurCount} tab switches</li>}
+                          {violationList.map((v: string, i: number) => <li key={i}>{v}</li>)}
                         </ul>
                       </div>
                     );
-                  } catch {
-                    return null;
+                  } catch (e) {
+                    console.error(e);
+                    return <div style={{ fontSize: 13, color: "var(--text-muted)" }}>Failed to load integrity data.</div>;
                   }
                 })()}
               </div>

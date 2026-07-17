@@ -73,15 +73,19 @@ export async function POST(req: NextRequest) {
 
   if (isFail && hasMoreAttempts) {
     // Generate new questions for the next attempt
-    const cvText = await extractPdfText(session.applicant.cvFileUrl);
-    const screening = await screenApplicant(
-      cvText,
-      session.applicant.fullName,
-      session.applicant.jobPosting.title,
-      session.applicant.jobPosting.description,
-      session.applicant.jobPosting.requirements,
-      session.applicant.jobPosting.type as "Job" | "Internship"
-    );
+    const bank = session.applicant.jobPosting.assessmentBank ? JSON.parse(session.applicant.jobPosting.assessmentBank) : [];
+    const answerKey = session.applicant.jobPosting.answerKey ? JSON.parse(session.applicant.jobPosting.answerKey) : [];
+    const settings = session.applicant.jobPosting.assessmentSettings ? JSON.parse(session.applicant.jobPosting.assessmentSettings) : { mcqCount: 10, openCount: 5 };
+    
+    let nextQuestions: any[] = [];
+    let nextAnswers: any[] = [];
+    
+    if (bank.length > 0) {
+      const { generateApplicantVariant } = await import("@/lib/assessmentEngine");
+      const variant = generateApplicantVariant(bank, answerKey, settings);
+      nextQuestions = variant.applicantQuestions;
+      nextAnswers = variant.applicantAnswers;
+    }
 
     await prisma.interviewSession.update({
       where: { id: sessionId },
@@ -89,7 +93,7 @@ export async function POST(req: NextRequest) {
         attempts: newAttempts,
         tokenUsed: false,
         answers: "[]",
-        questions: JSON.stringify(screening.questions),
+        questions: JSON.stringify(nextQuestions),
         perQuestionScore: "[]",
         cheatingSignals: "{}",
         result: null,

@@ -194,11 +194,12 @@ async function runScreening(
       const { generateApplicantVariant } = await import("@/lib/assessmentEngine");
       const bank = JSON.parse(ctx.posting.assessmentBank);
       const answerKey = JSON.parse(ctx.posting.answerKey);
+      const settings = ctx.posting.assessmentSettings ? JSON.parse(ctx.posting.assessmentSettings) : { mcqCount: 10, openCount: 5 };
       
       const { applicantQuestions, applicantAnswers } = generateApplicantVariant(
         bank, 
         answerKey, 
-        20 // E.g., take 20 questions total for the applicant
+        settings
       );
       
       finalQuestions = applicantQuestions;

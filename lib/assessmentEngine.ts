@@ -160,8 +160,11 @@ export function generateAssessmentBank(
   rawScenarios = shuffleArray(rawScenarios);
 
   // Take requested counts (or max available)
-  const selectedMcqs = rawMcqs.slice(0, Math.min(settings.mcqCount, rawMcqs.length));
-  const selectedScenarios = rawScenarios.slice(0, Math.min(settings.openCount, rawScenarios.length));
+  // Multiply requested counts by 3 to create a larger pool for rotation across attempts/applicants
+  const poolMcqCount = settings.mcqCount * 3;
+  const poolOpenCount = settings.openCount * 3;
+  const selectedMcqs = rawMcqs.slice(0, Math.min(poolMcqCount, rawMcqs.length));
+  const selectedScenarios = rawScenarios.slice(0, Math.min(poolOpenCount, rawScenarios.length));
 
   const assessmentBank: GeneratedQuestion[] = [];
   const answerKey: AnswerKeyEntry[] = [];
@@ -217,9 +220,15 @@ export function generateAssessmentBank(
 export function generateApplicantVariant(
   bank: GeneratedQuestion[],
   masterAnswerKey: AnswerKeyEntry[],
-  totalQuestionsToSelect: number
+  settings: { mcqCount: number; openCount: number }
 ) {
-  let selected = shuffleArray(bank).slice(0, Math.min(totalQuestionsToSelect, bank.length));
+  const mcqs = bank.filter(q => q.type === "mcq");
+  const scenarios = bank.filter(q => q.type !== "mcq");
+
+  const selectedMcqs = shuffleArray(mcqs).slice(0, Math.min(settings.mcqCount, mcqs.length));
+  const selectedScenarios = shuffleArray(scenarios).slice(0, Math.min(settings.openCount, scenarios.length));
+
+  let selected = shuffleArray([...selectedMcqs, ...selectedScenarios]);
   
   const applicantQuestions: Omit<GeneratedQuestion, "correctOption" | "rubric">[] = [];
   const applicantAnswers: AnswerKeyEntry[] = [];

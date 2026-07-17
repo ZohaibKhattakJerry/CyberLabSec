@@ -277,15 +277,15 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
                   <div style={{ gridColumn: "1/-1", marginTop: 24 }}>
                     <h3 style={{ fontSize: 14, fontWeight: 600, color: "var(--purple)", marginBottom: 12, borderBottom: "1px solid var(--border)", paddingBottom: 8 }}>Dynamic Assessment Generation</h3>
                     <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 16 }}>
-                      Auto-generate a rich pool of MCQs and Scenarios tailored strictly to this job's title, requirements, and experience level.
+                      Specify how many questions each applicant will face in their interview. The AI will automatically generate a much larger pool to ensure every candidate gets a unique, randomized set of questions, and questions will rotate properly if they need to retake the interview.
                     </p>
                     <div style={{ display: "flex", gap: 16, alignItems: "flex-end" }}>
                       <div>
-                        <label className="label">MCQ Count (Pool Size)</label>
+                        <label className="label">Questions per Interview (MCQ)</label>
                         <input className="input" type="number" min={5} max={50} value={mcqCount} onChange={e => setMcqCount(Number(e.target.value))} />
                       </div>
                       <div>
-                        <label className="label">Scenario Count (Pool Size)</label>
+                        <label className="label">Questions per Interview (Open)</label>
                         <input className="input" type="number" min={1} max={10} value={openCount} onChange={e => setOpenCount(Number(e.target.value))} />
                       </div>
                       <button 
