@@ -58,7 +58,7 @@ const STATUS_CONFIG: Record<string, { badge: string; label: string }> = {
   Completed: { badge: "badge-green", label: "Completed" },
 };
 
-export default function TasksClient({ initialTasks, teams, employees }: { initialTasks: Task[]; teams: Team[]; employees: any[] }) {
+export default function TasksClient({ initialTasks, teams, employees, hideHeader = false }: { initialTasks: Task[]; teams: Team[]; employees: any[]; hideHeader?: boolean }) {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [tasks, setTasks] = useState(initialTasks);
@@ -160,11 +160,13 @@ export default function TasksClient({ initialTasks, teams, employees }: { initia
 
   return (
     <div className="animate-fade-up">
-      <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 32, gap: 20, flexWrap: "wrap" }}>
-        <div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 6, letterSpacing: "-0.02em" }}>Task Management</h1>
-          <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>Assign objectives, track progress, and review submissions.</p>
-        </div>
+      <div className="flex-mobile-col" style={{ display: "flex", justifyContent: hideHeader ? "flex-end" : "space-between", alignItems: "flex-end", marginBottom: 32, gap: 20, flexWrap: "wrap" }}>
+        {!hideHeader && (
+          <div>
+            <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 6, letterSpacing: "-0.02em" }}>Task Management</h1>
+            <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>Assign objectives, track progress, and review submissions.</p>
+          </div>
+        )}
         <button onClick={() => setShowCreate(!showCreate)} className="btn btn-primary">
           <Plus size={18} /> {showCreate ? "Cancel" : "Assign New Task"}
         </button>

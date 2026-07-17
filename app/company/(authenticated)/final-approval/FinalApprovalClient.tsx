@@ -95,7 +95,6 @@ export default function FinalApprovalClient({ reviews }: { reviews: Review[] }) 
               <h3 style={{ fontSize: 16, fontWeight: 700 }}>
                 {r.type === "Hire Request" && r.applicant ? r.applicant.fullName : "General Review"}
               </h3>
-              <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Submitted by {r.submitter.name}</p>
             </div>
             
             {r.applicant && (
@@ -123,7 +122,6 @@ export default function FinalApprovalClient({ reviews }: { reviews: Review[] }) 
             <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24, gap: 16 }}>
               <div>
                 <h2 style={{ fontSize: 20, fontWeight: 800 }}>{selected.type}</h2>
-                <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Requested by {selected.submitter.name} ({selected.submitter.designation})</p>
               </div>
               <button onClick={() => setSelected(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}>
                 <X size={20} />

@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { Search, Filter, X, Eye, UserCheck, UserX, Loader2, FileText, ChevronRight, Check, AlertTriangle, Clock, Star } from "lucide-react";
+import { Search, Filter, X, Eye, UserCheck, UserX, Loader2, FileText, ChevronRight, Check, AlertTriangle, Clock, Star, CheckSquare, Square } from "lucide-react";
 
 type Applicant = {
   id: string; fullName: string; email: string; phone: string;
@@ -226,8 +226,8 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                     setNotesDraft(a.privateNotes || "");
                     setRatingDraft(a.internalRating || 0);
                   }}>
-                    <div className="checkbox-container" style={{ position: "absolute", top: 12, right: 12 }}>
-                      <input type="checkbox" checked={selectedIds.includes(a.id)} onChange={() => toggleSelect(a.id)} style={{ width: 16, height: 16, accentColor: "var(--purple)", cursor: "pointer" }} />
+                    <div className="checkbox-container" style={{ position: "absolute", top: 12, right: 12, color: selectedIds.includes(a.id) ? "var(--purple)" : "var(--text-muted)", cursor: "pointer" }} onClick={(e) => { e.stopPropagation(); toggleSelect(a.id); }}>
+                      {selectedIds.includes(a.id) ? <CheckSquare size={18} /> : <Square size={18} />}
                     </div>
                     <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4, paddingRight: 24 }}>{a.fullName}</div>
                     <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 12 }}>{a.jobPosting.title}</div>
@@ -257,7 +257,9 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
         <table>
           <thead>
             <tr>
-              <th style={{ width: 40 }}><input type="checkbox" checked={filtered.length > 0 && selectedIds.length === filtered.length} onChange={selectAll} style={{ accentColor: "var(--purple)" }} /></th>
+              <th style={{ width: 40, cursor: "pointer", color: filtered.length > 0 && selectedIds.length === filtered.length ? "var(--purple)" : "var(--text-muted)" }} onClick={selectAll}>
+                {filtered.length > 0 && selectedIds.length === filtered.length ? <CheckSquare size={18} /> : <Square size={18} />}
+              </th>
               <th>Applicant</th>
               <th>Position</th>
               <th>AI Score</th>
@@ -269,7 +271,9 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
           <tbody>
             {filtered.map((a: Applicant) => (
               <tr key={a.id} style={{ background: selectedIds.includes(a.id) ? "rgba(168,85,247,0.05)" : undefined }}>
-                <td data-label="Select"><input type="checkbox" checked={selectedIds.includes(a.id)} onChange={() => toggleSelect(a.id)} style={{ accentColor: "var(--purple)" }} /></td>
+                <td data-label="Select" onClick={() => toggleSelect(a.id)} style={{ cursor: "pointer", color: selectedIds.includes(a.id) ? "var(--purple)" : "var(--text-muted)" }}>
+                  {selectedIds.includes(a.id) ? <CheckSquare size={18} /> : <Square size={18} />}
+                </td>
                 <td data-label="Applicant">
                   <div style={{ fontWeight: 600, fontSize: 13 }}>{a.fullName}</div>
                   <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{a.email}</div>
@@ -478,7 +482,9 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                         <ul style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0, paddingLeft: 20 }}>
                           {pasteAttempts > 0 && <li>{pasteAttempts} paste attempts</li>}
                           {tabBlurCount > 0 && <li>{tabBlurCount} tab switches</li>}
-                          {violationList.map((v: string, i: number) => <li key={i}>{v}</li>)}
+                          {violationList.map((v: any, i: number) => (
+                            <li key={i}>{v.type ? `${v.type} (${v.count})` : JSON.stringify(v)}</li>
+                          ))}
                         </ul>
                       </div>
                     );

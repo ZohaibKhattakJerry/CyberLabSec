@@ -3,7 +3,8 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { Plus, Users, Trash2, X, Loader2, ClipboardList, _Edit2 } from "lucide-react";
+import { Plus, Users, Trash2, X, Loader2, ClipboardList, _Edit2, LayoutDashboard } from "lucide-react";
+import TasksClient from "../tasks/TasksClient";
 
 type Team = {
   id: string; name: string; leadEmployeeId: string | null;
@@ -15,9 +16,10 @@ type Team = {
 
 type Employee = { id: string; name: string; employeeCode: string; designation: string; teamId: string | null };
 
-export default function TeamsClient({ teams, _employees }: { teams: Team[]; employees: Employee[] }) {
+export default function TeamsClient({ teams, employees, initialTasks = [] }: { teams: Team[]; employees: Employee[]; initialTasks?: any[] }) {
   const router = useRouter();
   const [, startTransition] = useTransition();
+  const [activeTab, setActiveTab] = useState<"teams" | "tasks">("teams");
   const [showCreate, setShowCreate] = useState(false);
   const [showAddTask, setShowAddTask] = useState<Team | null>(null);
   const [newTeamName, setNewTeamName] = useState("");
@@ -79,15 +81,30 @@ export default function TeamsClient({ teams, _employees }: { teams: Team[]; empl
 
   return (
     <div>
-      <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+      <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 24, gap: 16 }}>
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 4 }}>Teams</h1>
-          <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>{teams.length} teams</p>
+          <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 4 }}>Workspace</h1>
+          <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>Manage your teams and team tasks.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
-          <Plus size={16} /> Create Team
-        </button>
+        <div style={{ display: "flex", gap: 8, background: "rgba(255,255,255,0.05)", padding: 4, borderRadius: 8 }}>
+          <button className={`btn btn-sm ${activeTab === "teams" ? "btn-secondary" : "btn-ghost"}`} onClick={() => setActiveTab("teams")}>
+            <Users size={14} /> Teams
+          </button>
+          <button className={`btn btn-sm ${activeTab === "tasks" ? "btn-secondary" : "btn-ghost"}`} onClick={() => setActiveTab("tasks")}>
+            <ClipboardList size={14} /> Tasks
+          </button>
+        </div>
       </div>
+
+      {activeTab === "tasks" ? (
+        <TasksClient initialTasks={initialTasks} teams={teams} employees={employees} hideHeader />
+      ) : (
+        <div>
+          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
+            <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
+              <Plus size={16} /> Create Team
+            </button>
+          </div>
 
       {teams.length === 0 ? (
         <div className="empty-state">
@@ -197,7 +214,7 @@ export default function TeamsClient({ teams, _employees }: { teams: Team[]; empl
               </div>
               <div>
                 <label className="label">Task Brief / Description</label>
-                <textarea className="input" value={taskBrief} onChange={e => setTaskBrief(e.target.value)} placeholder="Describe what needs to be submitted..." style={{ minHeight: 90 }} />
+                <textarea className="input" value={taskBrief} onChange={e => setTaskBrief(e.target.value)} placeholder="Provide context and requirements..." style={{ minHeight: 90 }} />
               </div>
               <div>
                 <label className="label label-required">Deadline</label>
@@ -237,6 +254,8 @@ export default function TeamsClient({ teams, _employees }: { teams: Team[]; empl
               </div>
             </div>
           </div>
+        </div>
+      )}
         </div>
       )}
     </div>
