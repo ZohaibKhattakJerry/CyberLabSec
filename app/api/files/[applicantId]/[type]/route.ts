@@ -26,6 +26,10 @@ export async function GET(
   let contentType = "application/octet-stream";
   let ext = ".pdf";
 
+  if (relativePath.startsWith("http")) {
+    return NextResponse.redirect(relativePath);
+  }
+
   if (relativePath.startsWith("data:")) {
     const parts = relativePath.split(",");
     const meta = parts[0];

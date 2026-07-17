@@ -37,12 +37,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Message or file is required" }, { status: 400 });
     }
 
+    let finalFileUrl = fileUrl || null;
+    if (fileUrl && fileUrl.startsWith("data:")) {
+      const extMatch = fileUrl.match(/^data:(.*?);base64,/);
+      const ext = extMatch ? extMatch[1].split('/')[1] || 'bin' : 'bin';
+      const b64Data = fileUrl.split(",")[1];
+      const buffer = Buffer.from(b64Data, "base64");
+      
+      const { put } = await import("@vercel/blob");
+      const blobName = `chat-${employee.teamId}-${Date.now()}.${ext}`;
+      const blob = await put(blobName, buffer, { access: "private" });
+      finalFileUrl = `/api/blob?url=${encodeURIComponent(blob.url)}`;
+    }
+
     const newMsg = await prisma.teamMessage.create({
       data: {
         teamId: employee.teamId,
         employeeId: employee.id,
         message: message?.trim() || "",
-        fileUrl: fileUrl || null,
+        fileUrl: finalFileUrl,
         fileName: fileName || null,
         fileType: fileType || null,
         fileSize: fileSize || null,

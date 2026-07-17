@@ -83,7 +83,7 @@ export default function TeamsClient({ teams, employees, initialTasks = [] }: { t
     <div>
       <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 24, gap: 16 }}>
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 4 }}>Operations</h1>
+          <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 4 }}>Workspace</h1>
           <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>Command center for teams and operational tasks.</p>
         </div>
         <div style={{ display: "flex", gap: 8, background: "rgba(255,255,255,0.05)", padding: 4, borderRadius: 8 }}>

@@ -16,7 +16,7 @@ const NAV = [
   { href: "/company/applications", label: "Applications", icon: ClipboardList },
   { href: "/company/final-approval", label: "Final Approval", icon: UserCheck },
   { href: "/company/employees", label: "Employees", icon: Users },
-  { href: "/company/teams", label: "Operations", icon: Building2 },
+  { href: "/company/workspace", label: "Workspace", icon: Building2 },
   { href: "/company/leave", label: "Leave Requests", icon: CalendarDays },
   { href: "/company/tickets", label: "Support Tickets", icon: LifeBuoy },
   { href: "/company/leaderboard", label: "Leaderboard", icon: Trophy },

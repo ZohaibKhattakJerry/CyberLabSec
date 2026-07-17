@@ -78,12 +78,19 @@ export async function POST(req: NextRequest) {
       }).catch(() => {});
 
       if (offerLetterFileBase64) {
+        const { put } = await import("@vercel/blob");
+        const buffer = Buffer.from(offerLetterFileBase64, "base64");
+        const blob = await put(`offer-letter-${employee.id}.pdf`, buffer, {
+          access: "private",
+          contentType: "application/pdf"
+        });
+
         await prisma.employeeDocument.create({
           data: {
             employeeId: employee.id,
             title: "Offer Letter",
             type: "Offer Letter",
-            fileUrl: `data:application/pdf;base64,${offerLetterFileBase64}`,
+            fileUrl: `/api/blob?url=${encodeURIComponent(blob.url)}`,
             status: "Approved",
             uploadedBy: auth.sub
           }

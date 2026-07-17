@@ -21,13 +21,35 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ emp
   const effectiveDateObj = new Date(effectiveDate);
   const isImmediate = effectiveDateObj <= new Date();
 
+  const { put } = await import("@vercel/blob");
+  let customCertificateUrl = null;
+  let customLorUrl = null;
+
+  if (customCertificateBase64 && customCertificateBase64.startsWith("data:")) {
+    const extMatch = customCertificateBase64.match(/^data:(.*?);base64,/);
+    const ext = extMatch ? extMatch[1].split('/')[1] : "pdf";
+    const b64Data = customCertificateBase64.split(",")[1];
+    const buffer = Buffer.from(b64Data, "base64");
+    const blob = await put(`offboard-cert-${employeeId}-${Date.now()}.${ext}`, buffer, { access: "private" });
+    customCertificateUrl = `/api/blob?url=${encodeURIComponent(blob.url)}`;
+  }
+
+  if (customLorBase64 && customLorBase64.startsWith("data:")) {
+    const extMatch = customLorBase64.match(/^data:(.*?);base64,/);
+    const ext = extMatch ? extMatch[1].split('/')[1] : "pdf";
+    const b64Data = customLorBase64.split(",")[1];
+    const buffer = Buffer.from(b64Data, "base64");
+    const blob = await put(`offboard-lor-${employeeId}-${Date.now()}.${ext}`, buffer, { access: "private" });
+    customLorUrl = `/api/blob?url=${encodeURIComponent(blob.url)}`;
+  }
+
   await prisma.employee.update({
     where: { id: employeeId },
     data: {
       offboardedAt: effectiveDateObj,
       offboardReason: reason,
-      customCertificateUrl: customCertificateBase64 || null,
-      customLorUrl: customLorBase64 || null,
+      customCertificateUrl,
+      customLorUrl,
       ...(isImmediate ? { status: "Inactive" } : {}),
     },
   });

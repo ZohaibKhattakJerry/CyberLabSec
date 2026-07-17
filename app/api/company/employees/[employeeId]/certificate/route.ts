@@ -25,6 +25,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ empl
   let html = "";
   
   if (type === "completion" && employee.customCertificateUrl) {
+    if (employee.customCertificateUrl.startsWith("http")) {
+      return NextResponse.redirect(employee.customCertificateUrl);
+    }
     const dataUri = employee.customCertificateUrl;
     const mimeMatch = dataUri.match(/^data:(.*?);base64,(.*)$/);
     if (mimeMatch) {
@@ -39,6 +42,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ empl
   }
 
   if (type === "lor" && employee.customLorUrl) {
+    if (employee.customLorUrl.startsWith("http")) {
+      return NextResponse.redirect(employee.customLorUrl);
+    }
     const dataUri = employee.customLorUrl;
     const mimeMatch = dataUri.match(/^data:(.*?);base64,(.*)$/);
     if (mimeMatch) {

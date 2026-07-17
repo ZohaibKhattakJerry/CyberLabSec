@@ -134,6 +134,12 @@ export default function FinalApprovalClient({ reviews }: { reviews: Review[] }) 
                   <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>{selected.applicant.fullName}</h3>
                   <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 12 }}>{selected.applicant.jobPosting.title} ({selected.applicant.jobPosting.type})</p>
                   
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                    <div style={{ padding: "6px 12px", background: "var(--bg-elevated)", borderRadius: 6, fontSize: 12, color: "var(--text-secondary)", fontWeight: 600 }}>
+                      {selected.type === "Hire" || selected.type === "Hire Request" ? "New Hire Proposal" : "Promotion Proposal"}
+                    </div>
+                  </div>
+                  
                   <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                     <div style={{ padding: "12px", background: "var(--bg-card)", borderRadius: 6 }}>
                       <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 4 }}>AI Screening Score</div>
@@ -212,16 +218,16 @@ export default function FinalApprovalClient({ reviews }: { reviews: Review[] }) 
       {successDialog.show && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
           <div className="card" style={{ maxWidth: 400, width: "100%", padding: 32, textAlign: "center" }}>
-            <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(34,197,94,0.1)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
-              <CheckCircle size={32} color="var(--green)" />
+            <div style={{ textAlign: "center", padding: "40px 20px" }}>
+              <div style={{ fontSize: 48, marginBottom: 16 }}>🎉</div>
+              <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 12 }}>{successDialog.status}</h2>
+              <p style={{ color: "var(--text-secondary)", fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
+                The {successDialog.reviewType.toLowerCase()} has been successfully {successDialog.status.toLowerCase()}. The applicant will be notified of the decision automatically.
+              </p>
+              <button className="btn btn-primary" style={{ width: "100%", justifyContent: "center", padding: "14px" }} onClick={() => setSuccessDialog({show: false, status: "", reviewType: ""})}>
+                Close & Continue
+              </button>
             </div>
-            <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 12 }}>{successDialog.status}</h2>
-            <p style={{ color: "var(--text-secondary)", fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
-              The {successDialog.reviewType.toLowerCase()} has been successfully {successDialog.status.toLowerCase()}. The applicant will be notified of the decision automatically.
-            </p>
-            <button className="btn btn-primary" style={{ width: "100%", justifyContent: "center", padding: "14px" }} onClick={() => setSuccessDialog({show: false, status: "", reviewType: ""})}>
-              Close & Continue
-            </button>
           </div>
         </div>
       )}

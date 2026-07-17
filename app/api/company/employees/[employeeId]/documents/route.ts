@@ -25,12 +25,25 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ emp
 
   if (!title || !type) return NextResponse.json({ error: "Title and type are required" }, { status: 400 });
 
+  let finalFileUrl = fileUrl || "";
+  if (fileUrl && fileUrl.startsWith("data:")) {
+    const extMatch = fileUrl.match(/^data:(.*?);base64,/);
+    const ext = extMatch ? extMatch[1].split('/')[1] || 'pdf' : 'pdf';
+    const b64Data = fileUrl.split(",")[1];
+    const buffer = Buffer.from(b64Data, "base64");
+    
+    const { put } = await import("@vercel/blob");
+    const blobName = `employee-doc-${employeeId}-${Date.now()}.${ext}`;
+    const blob = await put(blobName, buffer, { access: "private" });
+    finalFileUrl = `/api/blob?url=${encodeURIComponent(blob.url)}`;
+  }
+
   const doc = await prisma.employeeDocument.create({
     data: {
       employeeId,
       title,
       type,
-      fileUrl,
+      fileUrl: finalFileUrl,
       status: "Approved",
       uploadedBy: auth.sub
     }

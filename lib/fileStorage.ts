@@ -39,17 +39,21 @@ export function validateFileUpload(
   return { valid: true };
 }
 
+import { put } from "@vercel/blob";
+
 export async function saveFile(
   file: File,
   namespace: string,
   category: UploadCategory
 ): Promise<string> {
-  const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
-  const base64 = buffer.toString("base64");
+  const extension = file.name.split(".").pop();
+  const filename = `${namespace}-${category}-${Date.now()}.${extension}`;
   
-  // Return a data URI (bypasses Vercel's read-only file system)
-  return `data:${file.type};base64,${base64}`;
+  const blob = await put(filename, file, {
+    access: "private",
+  });
+  
+  return `/api/blob?url=${encodeURIComponent(blob.url)}`;
 }
 
 export function getFilePath(relativePath: string): string {
@@ -79,6 +83,17 @@ export async function extractPdfText(fileUrl: string): Promise<string> {
     const base64Data = fileUrl.split(",")[1];
     if (!base64Data) return "";
     buffer = Buffer.from(base64Data, "base64");
+  } else if (fileUrl.startsWith("/api/blob?url=")) {
+    const realUrl = decodeURIComponent(fileUrl.split("url=")[1]);
+    const { get } = await import("@vercel/blob");
+    const result = await get(realUrl, { access: "private" });
+    if (!result) return "";
+    buffer = Buffer.from(await result.blob.arrayBuffer());
+  } else if (fileUrl.startsWith("http")) {
+    const res = await fetch(fileUrl);
+    if (!res.ok) return "";
+    const ab = await res.arrayBuffer();
+    buffer = Buffer.from(ab);
   } else {
     const fp = getFilePath(fileUrl);
     if (!fs.existsSync(fp)) return "";
