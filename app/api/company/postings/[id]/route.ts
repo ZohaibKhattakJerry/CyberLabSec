@@ -22,6 +22,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (body.passMark !== undefined) dataToUpdate.passMark = Number(body.passMark) || 60;
   if (body.showApplicantCount !== undefined) dataToUpdate.showApplicantCount = !!body.showApplicantCount;
   if (body.autoShortlist !== undefined) dataToUpdate.autoShortlist = !!body.autoShortlist;
+  if (body.assessmentBank !== undefined) dataToUpdate.assessmentBank = body.assessmentBank;
+  if (body.answerKey !== undefined) dataToUpdate.answerKey = body.answerKey;
 
   try {
     const posting = await prisma.jobPosting.update({

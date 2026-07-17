@@ -31,12 +31,25 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
   
-  // Assessment Generation State
+  // Assessment State
+  const [localAssessmentBank, setLocalAssessmentBank] = useState<any[]>([]);
+  const [localAnswerKey, setLocalAnswerKey] = useState<any[]>([]);
+  
+  // Auto-Gen State
   const [genLoading, setGenLoading] = useState(false);
-  const [mcqCount, setMcqCount] = useState(15);
-  const [openCount, setOpenCount] = useState(5);
+  const [autoGenMcqCount, setAutoGenMcqCount] = useState(5);
+  const [autoGenOpenCount, setAutoGenOpenCount] = useState(0);
 
-  const openCreate = () => { setEditPosting(null); setForm(EMPTY_FORM); setMsg(""); setShowForm(true); };
+  // Manual Question Entry State
+  const [showAddQuestion, setShowAddQuestion] = useState(false);
+  const [newQuestionType, setNewQuestionType] = useState<"mcq" | "open">("mcq");
+  const [newQuestionPrompt, setNewQuestionPrompt] = useState("");
+  const [newQuestionOptions, setNewQuestionOptions] = useState<string[]>(["", "", "", ""]);
+  const [newQuestionCorrectIndex, setNewQuestionCorrectIndex] = useState(0);
+  const [newQuestionRubric, setNewQuestionRubric] = useState("");
+  const [newQuestionPoints, setNewQuestionPoints] = useState(10);
+
+  const openCreate = () => { setEditPosting(null); setForm(EMPTY_FORM); setLocalAssessmentBank([]); setLocalAnswerKey([]); setMsg(""); setShowForm(true); };
   const openEdit = (p: Posting) => {
     setEditPosting(p);
     setForm({
@@ -52,6 +65,8 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
       duration: (p as unknown).duration || "",
       weeklyHours: (p as unknown).weeklyHours || "",
     });
+    setLocalAssessmentBank(p.assessmentBank && p.assessmentBank !== "[]" ? JSON.parse(p.assessmentBank) : []);
+    setLocalAnswerKey(p.answerKey && p.answerKey !== "{}" ? JSON.parse(p.answerKey) : []);
     setMsg(""); setShowForm(true);
   };
 
@@ -60,7 +75,12 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
     if (!form.description.trim() || !form.requirements.trim()) { setMsg("Job description and requirements are required."); return; }
     setLoading(true); setMsg("");
     
-    const payload = { ...form, status: saveAsDraft ? "Draft" : (form.status === "Draft" ? "Published" : form.status) };
+    const payload = { 
+      ...form, 
+      status: saveAsDraft ? "Draft" : (form.status === "Draft" ? "Published" : form.status),
+      assessmentBank: JSON.stringify(localAssessmentBank),
+      answerKey: JSON.stringify(localAnswerKey)
+    };
     
     const url = editPosting ? `/api/company/postings/${editPosting.id}` : "/api/company/postings";
     const method = editPosting ? "PATCH" : "POST";
@@ -91,19 +111,56 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
   };
 
   const generateAssessment = async () => {
-    if (!editPosting) return;
     setGenLoading(true);
     setMsg("");
-    const res = await fetch(`/api/company/postings/${editPosting.id}/generate-assessment`, {
+    const res = await fetch(`/api/company/postings/${editPosting?.id || "new"}/generate-assessment`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mcqCount, openCount }),
+      body: JSON.stringify({ 
+        mcqCount: autoGenMcqCount, 
+        openCount: autoGenOpenCount,
+        jobData: form
+      }),
     });
     const data = await res.json();
     setGenLoading(false);
     if (!res.ok) { setMsg(data.error || "Failed to generate assessment"); return; }
-    setMsg("Assessment generated successfully!");
-    startTransition(() => router.refresh());
+    
+    setLocalAssessmentBank(prev => [...prev, ...data.assessmentBank]);
+    setLocalAnswerKey(prev => [...prev, ...data.answerKey]);
+    setMsg("Assessment questions appended successfully! Please click 'Save Changes' to keep them.");
+  };
+
+  const handleAddManualQuestion = () => {
+    if (!newQuestionPrompt.trim()) return setMsg("Question prompt is required.");
+    const id = `man_${Date.now()}`;
+    const question = {
+      id,
+      type: newQuestionType,
+      category: "general",
+      difficulty: "Medium",
+      prompt: newQuestionPrompt,
+      points: newQuestionPoints,
+      ...(newQuestionType === "mcq" ? { options: newQuestionOptions } : {})
+    };
+    const answer = {
+      questionId: id,
+      ...(newQuestionType === "mcq" ? { correctOption: newQuestionCorrectIndex } : { rubric: newQuestionRubric })
+    };
+    
+    setLocalAssessmentBank(prev => [...prev, question]);
+    setLocalAnswerKey(prev => [...prev, answer]);
+    
+    // Reset form
+    setNewQuestionPrompt("");
+    setNewQuestionOptions(["", "", "", ""]);
+    setNewQuestionRubric("");
+    setShowAddQuestion(false);
+  };
+
+  const handleDeleteQuestion = (id: string) => {
+    setLocalAssessmentBank(prev => prev.filter(q => q.id !== id));
+    setLocalAnswerKey(prev => prev.filter(a => a.questionId !== id));
   };
 
   return (
@@ -272,39 +329,102 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
                 </div>
               </div>
 
-              {editPosting && (
                 <>
                   <div style={{ gridColumn: "1/-1", marginTop: 24 }}>
-                    <h3 style={{ fontSize: 14, fontWeight: 600, color: "var(--purple)", marginBottom: 12, borderBottom: "1px solid var(--border)", paddingBottom: 8 }}>Dynamic Assessment Generation</h3>
-                    <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 16 }}>
-                      Specify how many questions each applicant will face in their interview. The AI will automatically generate a much larger pool to ensure every candidate gets a unique, randomized set of questions, and questions will rotate properly if they need to retake the interview.
-                    </p>
-                    <div style={{ display: "flex", gap: 16, alignItems: "flex-end" }}>
-                      <div>
-                        <label className="label">Questions per Interview (MCQ)</label>
-                        <input className="input" type="number" min={5} max={50} value={mcqCount} onChange={e => setMcqCount(Number(e.target.value))} />
-                      </div>
-                      <div>
-                        <label className="label">Questions per Interview (Open)</label>
-                        <input className="input" type="number" min={1} max={10} value={openCount} onChange={e => setOpenCount(Number(e.target.value))} />
-                      </div>
-                      <button 
-                        className="btn btn-primary" 
-                        onClick={(e) => { e.preventDefault(); generateAssessment(); }} 
-                        disabled={genLoading}
-                        style={{ height: 42 }}
-                      >
-                        {genLoading ? <Loader2 size={16} className="spin" /> : "Generate Assessment"}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--border)", paddingBottom: 8, marginBottom: 16 }}>
+                      <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--purple)" }}>Job Question Bank</h3>
+                      <button type="button" className="btn btn-secondary btn-sm" onClick={() => setShowAddQuestion(!showAddQuestion)}>
+                        <Plus size={14} /> {showAddQuestion ? "Cancel" : "Add Manual Question"}
                       </button>
                     </div>
-                    {editPosting.assessmentBank && editPosting.assessmentBank !== "[]" && (
-                      <div style={{ marginTop: 16, padding: 12, background: "var(--bg-secondary)", borderRadius: 8, fontSize: 13, color: "var(--green)" }}>
-                        ✅ Assessment Bank Generated! Current Pool Size: {JSON.parse(editPosting.assessmentBank).length} questions.
+
+                    {showAddQuestion && (
+                      <div style={{ padding: 16, background: "var(--bg-secondary)", borderRadius: 8, marginBottom: 16, border: "1px solid var(--border-subtle)" }}>
+                        <div style={{ display: "grid", gap: 12 }}>
+                          <div style={{ display: "flex", gap: 12 }}>
+                            <div style={{ flex: 1 }}>
+                              <label className="label">Question Type</label>
+                              <select className="input" value={newQuestionType} onChange={(e) => setNewQuestionType(e.target.value as any)}>
+                                <option value="mcq">Multiple Choice (MCQ)</option>
+                                <option value="open">Open Ended / Scenario</option>
+                              </select>
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <label className="label">Points</label>
+                              <input className="input" type="number" min={1} value={newQuestionPoints} onChange={e => setNewQuestionPoints(Number(e.target.value))} />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="label">Question Prompt</label>
+                            <textarea className="input" rows={2} value={newQuestionPrompt} onChange={e => setNewQuestionPrompt(e.target.value)} placeholder="Type the question here..." />
+                          </div>
+                          
+                          {newQuestionType === "mcq" ? (
+                            <div>
+                              <label className="label">Options & Correct Answer</label>
+                              <div style={{ display: "grid", gap: 8 }}>
+                                {newQuestionOptions.map((opt, i) => (
+                                  <div key={i} style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                                    <input type="radio" name="correctOpt" checked={newQuestionCorrectIndex === i} onChange={() => setNewQuestionCorrectIndex(i)} style={{ width: 16, height: 16, accentColor: "var(--green)" }} />
+                                    <input className="input" style={{ flex: 1 }} value={opt} onChange={(e) => { const newOpts = [...newQuestionOptions]; newOpts[i] = e.target.value; setNewQuestionOptions(newOpts); }} placeholder={`Option ${i+1}`} />
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ) : (
+                            <div>
+                              <label className="label">Rubric / Ideal Answer</label>
+                              <textarea className="input" rows={2} value={newQuestionRubric} onChange={e => setNewQuestionRubric(e.target.value)} placeholder="Describe what makes a good answer..." />
+                            </div>
+                          )}
+                          <button type="button" className="btn btn-primary" onClick={handleAddManualQuestion} style={{ alignSelf: "flex-end" }}>Add Question</button>
+                        </div>
                       </div>
                     )}
+
+                    <div style={{ background: "rgba(168,85,247,0.05)", padding: 16, borderRadius: 8, border: "1px dashed var(--purple)", marginBottom: 16 }}>
+                      <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 12 }}>
+                        Or let AI instantly generate a batch of questions tailored to this job&apos;s description and requirements.
+                      </p>
+                      <div style={{ display: "flex", gap: 16, alignItems: "flex-end" }}>
+                        <div>
+                          <label className="label">Generate MCQs</label>
+                          <input className="input" type="number" min={0} max={20} value={autoGenMcqCount} onChange={e => setAutoGenMcqCount(Number(e.target.value))} />
+                        </div>
+                        <div>
+                          <label className="label">Generate Open</label>
+                          <input className="input" type="number" min={0} max={10} value={autoGenOpenCount} onChange={e => setAutoGenOpenCount(Number(e.target.value))} />
+                        </div>
+                        <button type="button" className="btn btn-secondary" onClick={(e) => { e.preventDefault(); generateAssessment(); }} disabled={genLoading} style={{ height: 42 }}>
+                          {genLoading ? <Loader2 size={16} className="spin" /> : "Auto Generate"}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div style={{ display: "grid", gap: 8 }}>
+                      {localAssessmentBank.length === 0 ? (
+                        <div style={{ padding: 24, textAlign: "center", color: "var(--text-muted)", fontSize: 14, border: "1px dashed var(--border)", borderRadius: 8 }}>
+                          No questions in the bank yet. Add manual questions or auto-generate.
+                        </div>
+                      ) : (
+                        localAssessmentBank.map((q, idx) => (
+                          <div key={q.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: 12, background: "rgba(255,255,255,0.03)", borderRadius: 8, border: "1px solid var(--border-subtle)" }}>
+                            <div>
+                              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                                <span className={`badge ${q.type === 'mcq' ? 'badge-blue' : 'badge-amber'}`}>{q.type.toUpperCase()}</span>
+                                <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{q.points || 10} pts</span>
+                              </div>
+                              <p style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)", margin: 0 }}>{idx + 1}. {q.prompt}</p>
+                            </div>
+                            <button type="button" onClick={() => handleDeleteQuestion(q.id)} style={{ background: "none", border: "none", color: "var(--red)", cursor: "pointer", padding: 4 }}>
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
                   </div>
                 </>
-              )}
             </div>
             {msg && <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444", padding: "10px 14px", borderRadius: 8, marginTop: 20, fontSize: 14 }}>{msg}</div>}
             <div style={{ display: "flex", gap: 10, marginTop: 20 }}>

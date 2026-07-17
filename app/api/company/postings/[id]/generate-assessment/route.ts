@@ -15,19 +15,20 @@ export async function POST(
 
     const { id } = await params;
     const body = await req.json();
-    const { mcqCount = 10, openCount = 5 } = body;
+    const { mcqCount = 10, openCount = 5, jobData } = body;
 
-    const posting = await prisma.jobPosting.findUnique({
-      where: { id },
-    });
+    let postingInfo = jobData;
 
-    if (!posting) {
-      return NextResponse.json({ error: "Job posting not found" }, { status: 404 });
-    }
+    if (!postingInfo || id !== "new") {
+      const posting = await prisma.jobPosting.findUnique({
+        where: { id },
+      });
 
-    // Call the local NLP/Heuristic engine
-    const { assessmentBank, answerKey } = generateAssessmentBank(
-      {
+      if (!posting) {
+        return NextResponse.json({ error: "Job posting not found and no job data provided" }, { status: 404 });
+      }
+
+      postingInfo = {
         title: posting.title,
         department: posting.department,
         description: posting.description,
@@ -35,23 +36,30 @@ export async function POST(
         experienceLevel: posting.experienceLevel,
         niceToHave: posting.niceToHave || "",
         type: posting.type,
+      };
+    }
+
+    // Call the local NLP/Heuristic engine
+    const { assessmentBank, answerKey } = generateAssessmentBank(
+      {
+        title: postingInfo.title || "",
+        department: postingInfo.department || "",
+        description: postingInfo.description || "",
+        requirements: postingInfo.requirements || "",
+        experienceLevel: postingInfo.experienceLevel || "",
+        niceToHave: postingInfo.niceToHave || "",
+        type: postingInfo.type || "",
       },
       { mcqCount, openCount }
     );
 
-    // Save generated bank and answer key back to the posting
-    const updated = await prisma.jobPosting.update({
-      where: { id },
-      data: {
-        assessmentSettings: JSON.stringify({ mcqCount, openCount }),
-        assessmentBank: JSON.stringify(assessmentBank),
-        answerKey: JSON.stringify(answerKey),
-      },
-    });
+    // Return generated bank and answer key to the client
+    // (Do not save immediately, allow the user to review and save)
 
     return NextResponse.json({
       message: "Assessment generated successfully",
       assessmentBank,
+      answerKey,
     });
   } catch (error: any) {
     console.error("Assessment generation error:", error);

@@ -54,6 +54,8 @@ export async function POST(req: NextRequest) {
       showApplicantCount: showApplicantCount !== undefined ? !!showApplicantCount : true,
       autoShortlist: autoShortlist !== undefined ? !!autoShortlist : true,
       screeningQuestions: JSON.stringify(generatedQuestions),
+      assessmentBank: body.assessmentBank || "[]",
+      answerKey: body.answerKey || "{}",
     },
   });
 
