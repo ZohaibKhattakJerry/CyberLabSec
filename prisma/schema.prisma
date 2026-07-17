@@ -50,6 +50,9 @@ model Applicant {
   interviewSession InterviewSession?
   ceoReviews       CEOReview[]
   offerLetter      OfferLetter?
+
+  @@index([jobPostingId])
+  @@index([status])
 }
 
 model JobPosting {
@@ -237,6 +240,9 @@ model Announcement {
   sentBy     Employee                  @relation("SentBy", fields: [sentById], references: [id])
   team       Team?                     @relation(fields: [teamId], references: [id])
   reads      AnnouncementReadReceipt[]
+
+  @@index([teamId])
+  @@index([employeeId])
 }
 
 model AnnouncementReadReceipt {
@@ -261,6 +267,9 @@ model CEOReview {
   updatedAt   DateTime   @updatedAt
   submitter   Employee   @relation("ReviewSubmitter", fields: [submitterId], references: [id])
   applicant   Applicant? @relation(fields: [applicantId], references: [id])
+
+  @@index([applicantId])
+  @@index([submitterId])
 }
 
 model OfferLetter {
@@ -281,6 +290,8 @@ model OfferLetter {
   updatedAt     DateTime    @updatedAt
   applicant     Applicant   @relation(fields: [applicantId], references: [id])
   jobPosting    JobPosting? @relation(fields: [jobPostingId], references: [id])
+
+  @@index([jobPostingId])
 }
 
 model EmployeeDocument {
@@ -294,6 +305,8 @@ model EmployeeDocument {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   employee     Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
 }
 
 model ActivityLog {
@@ -305,6 +318,8 @@ model ActivityLog {
   ipAddress String?
   timestamp DateTime  @default(now())
   employee  Employee? @relation(fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([actorId])
 }
 
 model PolicyDocument {
@@ -328,6 +343,8 @@ model TeamMessage {
   createdAt  DateTime @default(now())
   employee   Employee @relation(fields: [employeeId], references: [id])
   team       Team     @relation(fields: [teamId], references: [id])
+
+  @@index([teamId])
 }
 
 model Badge {
@@ -350,6 +367,8 @@ model PointTransaction {
   adjustedBy  String?
   createdAt   DateTime @default(now())
   employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
 }
 
 model AdminConfig {
