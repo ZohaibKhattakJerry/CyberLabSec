@@ -40,5 +40,11 @@ export default async function AdminTasksPage() {
     }))
   }));
 
-  return <TasksClient initialTasks={serializedTasks} teams={teams} />;
+  const employees = await prisma.employee.findMany({
+    where: { status: "Active" },
+    select: { id: true, name: true, employeeCode: true, teamId: true },
+    orderBy: { name: "asc" }
+  });
+
+  return <TasksClient initialTasks={serializedTasks} teams={teams} employees={employees} />;
 }

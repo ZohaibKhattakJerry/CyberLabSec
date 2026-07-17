@@ -19,21 +19,20 @@ export async function POST(req: NextRequest) {
   if (!taskId) return NextResponse.json({ error: "Task ID required" }, { status: 400 });
   if (!summary) return NextResponse.json({ error: "Work summary is required" }, { status: 400 });
 
-  const fileEntry = formData.get("file") as File | null;
+  const fileEntries = formData.getAll("file") as File[];
 
-  // Verify task belongs to employee's team
+  // Verify task belongs to employee's team OR is directly assigned
   const employee = await prisma.employee.findUnique({
     where: { id: auth.sub },
     select: { teamId: true, name: true },
   });
-  if (!employee?.teamId) return NextResponse.json({ error: "You are not assigned to a team" }, { status: 403 });
 
   const task = await prisma.task.findUnique({ where: { id: taskId } });
-  if (!task || task.teamId !== employee.teamId) {
-    return NextResponse.json({ error: "Task not found or not assigned to your team" }, { status: 404 });
+  if (!task || (task.teamId !== employee?.teamId && task.assigneeId !== auth.sub)) {
+    return NextResponse.json({ error: "Task not found or not assigned to you" }, { status: 404 });
   }
 
-  // Check for existing submission (compound unique removed, use findFirst)
+  // Check for existing submission
   const existing = await prisma.taskSubmission.findFirst({
     where: { taskId, employeeId: auth.sub },
     orderBy: { version: "desc" },
@@ -46,14 +45,16 @@ export async function POST(req: NextRequest) {
 
   const version = existing ? existing.version + 1 : 1;
 
-  // Save file if provided
+  // Save files if provided
   const savedPaths: string[] = existing ? JSON.parse(existing.files ?? "[]") : [];
-  if (fileEntry && fileEntry.size > 0) {
-    if (fileEntry.size > 50 * 1024 * 1024) {
-      return NextResponse.json({ error: `File "${fileEntry.name}" exceeds 50 MB limit` }, { status: 400 });
+  for (const fileEntry of fileEntries) {
+    if (fileEntry.size > 0) {
+      if (fileEntry.size > 50 * 1024 * 1024) {
+        return NextResponse.json({ error: `File "${fileEntry.name}" exceeds 50 MB limit` }, { status: 400 });
+      }
+      const path = await saveFile(fileEntry, `task-${taskId}`, "task");
+      savedPaths.push(path);
     }
-    const path = await saveFile(fileEntry, `task-${taskId}`, "task");
-    savedPaths.push(path);
   }
 
   // Require at least a file or a link

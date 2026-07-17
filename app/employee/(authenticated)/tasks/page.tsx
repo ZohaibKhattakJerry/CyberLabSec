@@ -25,11 +25,16 @@ export default async function TasksPage() {
     );
   }
 
-  let tasks: unknown[] = [];
+  let tasks: any[] = [];
   let taskError = false;
   try {
     tasks = await prisma.task.findMany({
-      where: { teamId: employee.teamId },
+      where: {
+        OR: [
+          { teamId: employee.teamId },
+          { assigneeId: auth.sub }
+        ]
+      },
       orderBy: { deadline: "asc" },
       include: {
         submissions: {

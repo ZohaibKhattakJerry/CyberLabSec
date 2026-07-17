@@ -58,7 +58,7 @@ const STATUS_CONFIG: Record<string, { badge: string; label: string }> = {
   Completed: { badge: "badge-green", label: "Completed" },
 };
 
-export default function TasksClient({ initialTasks, teams }: { initialTasks: Task[]; teams: Team[] }) {
+export default function TasksClient({ initialTasks, teams, employees }: { initialTasks: Task[]; teams: Team[]; employees: any[] }) {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [tasks, setTasks] = useState(initialTasks);
@@ -74,14 +74,14 @@ export default function TasksClient({ initialTasks, teams }: { initialTasks: Tas
   const [qualityRating, setQualityRating] = useState(0);
 
   // Create form state
-  const [form, setForm] = useState({ title: "", brief: "", deadline: "", teamId: "", priority: "Medium" });
+  const [form, setForm] = useState({ title: "", brief: "", deadline: "", teamId: "", assigneeId: "", priority: "Medium", assignType: "Team" });
   const [checklistItems, setChecklistItems] = useState<string[]>([]);
   const [checklistInput, setChecklistInput] = useState("");
   const [attachments, setAttachments] = useState<{name: string, url: string}[]>([]);
 
   const filteredTasks = tasks.filter(t => {
     const q = search.toLowerCase();
-    const matchSearch = !q || t.title.toLowerCase().includes(q) || t.team.name.toLowerCase().includes(q);
+    const matchSearch = !q || t.title.toLowerCase().includes(q) || (t.team?.name || "").toLowerCase().includes(q);
     const matchStatus = filterStatus === "All" || t.status === filterStatus;
     const matchPriority = filterPriority === "All" || t.priority === filterPriority;
     return matchSearch && matchStatus && matchPriority;
@@ -89,19 +89,37 @@ export default function TasksClient({ initialTasks, teams }: { initialTasks: Tas
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.title || !form.deadline || !form.teamId) return toast.error("Please fill all required fields");
+    if (!form.title || !form.deadline || (form.assignType === "Team" && !form.teamId) || (form.assignType === "Individual" && !form.assigneeId)) {
+      return toast.error("Please fill all required fields");
+    }
     setLoading(true);
     try {
+      const selectedEmp = form.assignType === "Individual" ? employees.find(e => e.id === form.assigneeId) : null;
+      const payload = {
+        ...form,
+        teamId: form.assignType === "Team" ? form.teamId : (selectedEmp?.teamId || form.teamId),
+        assigneeId: form.assignType === "Individual" ? form.assigneeId : undefined,
+        checklist: checklistItems,
+        attachments
+      };
+      if (!payload.teamId) {
+        toast.error("Employee must belong to a team, or select a team directly.");
+        setLoading(false);
+        return;
+      }
       const res = await fetch("/api/company/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, checklist: checklistItems, attachments }),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error("Failed");
       const { task } = await res.json();
-      setTasks([{ ...task, team: teams.find(t => t.id === form.teamId)!, submissions: [] }, ...tasks]);
+      
+      const newTeam = form.assignType === "Team" ? teams.find(t => t.id === form.teamId) : employees.find(e => e.id === form.assigneeId)?.teamId ? teams.find(t => t.id === employees.find(e => e.id === form.assigneeId)?.teamId) : { id: "no-team", name: "Direct Assignment" };
+      
+      setTasks([{ ...task, team: newTeam || { id: "no-team", name: "Direct Assignment" }, submissions: [] }, ...tasks]);
       setShowCreate(false);
-      setForm({ title: "", brief: "", deadline: "", teamId: "", priority: "Medium" });
+      setForm({ title: "", brief: "", deadline: "", teamId: "", assigneeId: "", priority: "Medium", assignType: "Team" });
       setChecklistItems([]);
       setChecklistInput("");
       setAttachments([]);
@@ -164,12 +182,28 @@ export default function TasksClient({ initialTasks, teams }: { initialTasks: Tas
                 <label className="label label-required">Task Title</label>
                 <input className="input" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="e.g. Initial Recon Report" required />
               </div>
-              <div>
-                <label className="label label-required">Assign to Team</label>
-                <select className="input" value={form.teamId} onChange={e => setForm({ ...form, teamId: e.target.value })} required>
-                  <option value="" disabled>Select a team...</option>
-                  {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                </select>
+              <div style={{ display: "flex", gap: 8 }}>
+                <div style={{ flex: 1 }}>
+                  <label className="label label-required">Assignment Target</label>
+                  <select className="input" value={form.assignType} onChange={e => setForm({ ...form, assignType: e.target.value })}>
+                    <option value="Team">Entire Team</option>
+                    <option value="Individual">Individual Employee</option>
+                  </select>
+                </div>
+                <div style={{ flex: 2 }}>
+                  <label className="label label-required">{form.assignType === "Team" ? "Select Team" : "Select Employee"}</label>
+                  {form.assignType === "Team" ? (
+                    <select className="input" value={form.teamId} onChange={e => setForm({ ...form, teamId: e.target.value })} required>
+                      <option value="" disabled>Select a team...</option>
+                      {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                    </select>
+                  ) : (
+                    <select className="input" value={form.assigneeId} onChange={e => setForm({ ...form, assigneeId: e.target.value })} required>
+                      <option value="" disabled>Select an employee...</option>
+                      {employees.map(emp => <option key={emp.id} value={emp.id}>{emp.name} ({emp.employeeCode})</option>)}
+                    </select>
+                  )}
+                </div>
               </div>
             </div>
 

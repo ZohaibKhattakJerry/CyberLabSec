@@ -49,11 +49,17 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  // Notify team members
-  const teamMembers = await prisma.employee.findMany({ where: { teamId, status: "Active" }, select: { id: true } });
-  if (teamMembers.length > 0) {
+  // Notify team members or specific assignee
+  let targetEmployees: { id: string }[] = [];
+  if (assigneeId) {
+    targetEmployees = [{ id: assigneeId }];
+  } else {
+    targetEmployees = await prisma.employee.findMany({ where: { teamId, status: "Active" }, select: { id: true } });
+  }
+
+  if (targetEmployees.length > 0) {
     await prisma.notification.createMany({
-      data: teamMembers.map((member) => ({
+      data: targetEmployees.map((member) => ({
         userId: member.id,
         title: "New Task Assigned",
         message: `New objective: ${task.title} — Due ${new Date(deadline).toLocaleDateString()}`,

@@ -45,7 +45,7 @@ export default function TaskSubmitClient({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [summary, setSummary] = useState("");
   const [link, setLink] = useState("");
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [fileError, setFileError] = useState("");
   const [isDragging, setIsDragging] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -65,30 +65,37 @@ export default function TaskSubmitClient({
     return null;
   };
 
-  const handleFileChange = (f: File) => {
-    const err = validateFile(f);
-    if (err) {
-      setFileError(err);
-      setFile(null);
-      return;
+  const handleFilesChange = (newFiles: FileList | File[]) => {
+    let error = "";
+    const validFiles: File[] = [];
+    Array.from(newFiles).forEach(f => {
+      const err = validateFile(f);
+      if (err) error = err;
+      else validFiles.push(f);
+    });
+    
+    if (error) setFileError(error);
+    else setFileError("");
+    
+    if (validFiles.length) {
+      setFiles(prev => [...prev, ...validFiles]);
     }
-    setFileError("");
-    setFile(f);
   };
 
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    const dropped = e.dataTransfer.files[0];
-    if (dropped) handleFileChange(dropped);
+    if (e.dataTransfer.files?.length) {
+      handleFilesChange(e.dataTransfer.files);
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!summary.trim()) { toast.error("Work summary is required"); return; }
-    if (!file && !link.trim()) {
-      toast.error("Please attach a file or provide a link to your work.");
+    if (files.length === 0 && !link.trim()) {
+      toast.error("Please attach at least one file or provide a link to your work.");
       return;
     }
 
@@ -97,7 +104,7 @@ export default function TaskSubmitClient({
     formData.append("taskId", taskId);
     formData.append("summary", summary.trim());
     if (link.trim()) formData.append("link", link.trim());
-    if (file) formData.append("file", file);
+    files.forEach(file => formData.append("file", file));
     formData.append("version", String(version));
 
     try {
@@ -201,26 +208,33 @@ export default function TaskSubmitClient({
               transition: "all 0.2s",
             }}
           >
-            {file ? (
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
-                <FileText size={20} color="var(--purple)" />
-                <div style={{ textAlign: "left" }}>
-                  <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text-primary)" }}>{file.name}</div>
-                  <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{(file.size / (1024 * 1024)).toFixed(2)} MB</div>
-                </div>
-                <button
-                  type="button"
-                  onClick={e => { e.stopPropagation(); setFile(null); }}
-                  style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", display: "flex" }}
-                >
-                  <X size={16} />
-                </button>
+            {files.length > 0 ? (
+              <div style={{ display: "grid", gap: 8, width: "100%", textAlign: "left" }}>
+                {files.map((f, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(255,255,255,0.03)", padding: "8px 12px", borderRadius: 8, border: "1px solid var(--border-subtle)" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <FileText size={16} color="var(--purple)" />
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: 13, color: "var(--text-primary)" }}>{f.name}</div>
+                        <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{(f.size / (1024 * 1024)).toFixed(2)} MB</div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={e => { e.stopPropagation(); setFiles(files.filter((_, j) => j !== i)); }}
+                      style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", display: "flex", padding: 4 }}
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+                <div style={{ fontSize: 12, color: "var(--purple)", textAlign: "center", marginTop: 8, cursor: "pointer", fontWeight: 600 }}>+ Add more files</div>
               </div>
             ) : (
               <>
                 <Upload size={28} color="var(--text-muted)" style={{ margin: "0 auto 12px" }} />
                 <p style={{ fontSize: 14, color: "var(--text-secondary)", margin: "0 0 6px" }}>
-                  Drag & drop your file here, or <span style={{ color: "var(--purple)", fontWeight: 600 }}>browse</span>
+                  Drag & drop your files here, or <span style={{ color: "var(--purple)", fontWeight: 600 }}>browse</span>
                 </p>
                 <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0 }}>ZIP, PDF, DOCX · Max 50 MB</p>
               </>
@@ -228,10 +242,11 @@ export default function TaskSubmitClient({
           </div>
           <input
             type="file"
+            multiple
             ref={fileInputRef}
             style={{ display: "none" }}
             accept=".zip,.pdf,.docx,application/zip,application/pdf"
-            onChange={e => { const f = e.target.files?.[0]; if (f) handleFileChange(f); }}
+            onChange={e => { if (e.target.files) handleFilesChange(e.target.files); }}
           />
 
           {fileError && (
