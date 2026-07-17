@@ -25,14 +25,20 @@ export async function DELETE(
       return NextResponse.json({ error: "Applicant not found" }, { status: 404 });
     }
 
-    // Delete associated files from local disk if they exist (Base64 URIs are ignored by deleteFile automatically)
-    if (applicant.cvFileUrl) deleteFile(applicant.cvFileUrl);
-    if (applicant.photoUrl) deleteFile(applicant.photoUrl);
+    // Delete associated files from local disk or blob
+    if (applicant.cvFileUrl) await deleteFile(applicant.cvFileUrl);
+    if (applicant.photoUrl) await deleteFile(applicant.photoUrl);
 
     // Delete the interview session if it exists
     if (applicant.interviewSession) {
       await prisma.interviewSession.delete({ where: { applicantId: applicant.id } });
     }
+
+    // Delete CEOReviews if any exist
+    await prisma.cEOReview.deleteMany({ where: { applicantId: applicant.id } });
+
+    // Delete OfferLetter if it exists
+    await prisma.offerLetter.deleteMany({ where: { applicantId: applicant.id } });
 
     // If an employee record was created from this applicant, unlink it
     if (applicant.employeeRecord) {

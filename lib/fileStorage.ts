@@ -67,9 +67,20 @@ export function fileExists(relativePath: string): boolean {
   return fs.existsSync(getFilePath(relativePath));
 }
 
-export function deleteFile(relativePath: string): void {
-  if (relativePath.startsWith("data:")) return; // Nothing to delete from disk
-  const fp = getFilePath(relativePath);
+import { put, del } from "@vercel/blob";
+
+export async function deleteFile(fileUrl: string): Promise<void> {
+  if (fileUrl.startsWith("data:")) return;
+  if (fileUrl.startsWith("/api/blob?url=")) {
+    try {
+      const realUrl = decodeURIComponent(fileUrl.split("url=")[1]);
+      await del(realUrl);
+    } catch (e) {
+      console.error("Failed to delete blob:", e);
+    }
+    return;
+  }
+  const fp = getFilePath(fileUrl);
   if (fs.existsSync(fp)) fs.unlinkSync(fp);
 }
 
