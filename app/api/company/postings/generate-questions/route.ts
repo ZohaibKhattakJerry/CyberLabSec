@@ -4,7 +4,11 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 export async function POST(req: Request) {
   try {
     const { title, department, description, requirements, niceToHave, whatYouGain, experienceLevel, count, openCount } = await req.json();
-    const apiKey = process.env.GEMINI_API_KEY || "dummy";
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey || apiKey === "dummy") {
+      return NextResponse.json({ error: "GEMINI_API_KEY is missing. Please add a valid API key in your Vercel Environment Variables." }, { status: 401 });
+    }
+    
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
@@ -60,8 +64,9 @@ Do not use markdown blocks like \`\`\`json. Output raw JSON array.`;
     }
 
     return NextResponse.json(questions);
-  } catch (error) {
-    console.error("AI Generation error:", error);
-    return NextResponse.json({ error: "Failed to generate questions" }, { status: 500 });
+  } catch (error: any) {
+    console.error("Failed to generate assessment:", error);
+    const msg = error?.message || "Failed to generate assessment. Please check your API key.";
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
