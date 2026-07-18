@@ -16,6 +16,7 @@ export default async function Dashboard() {
   if (!auth) redirect("/employee/login");
 
   let employee: any;
+  const now = new Date(); // MUST be outside try block
   let countAhead = 0, rawAnnouncements: any[] = [], myReceipts: any[] = [], activityLogs: any[] = [];
   try {
     employee = await prisma.employee.findUnique({
@@ -47,7 +48,6 @@ export default async function Dashboard() {
       throw new Error("Employee not found");
     }
 
-    const now = new Date();
 
     [countAhead, rawAnnouncements, myReceipts, activityLogs] = await Promise.all([
       prisma.employee.count({ where: { status: 'Active', monthlyPoints: { gt: employee.monthlyPoints } } }),
