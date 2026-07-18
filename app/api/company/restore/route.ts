@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 import { getAuthFromCookies } from "@/lib/auth";
+const AdmZip = require("adm-zip");
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -102,9 +103,6 @@ async function insertAll(data: any) {
 
   if (d.talentPool?.length) for (const r of d.talentPool) { try { await prisma.talentPool.create({ data: { id: r.id, email: r.email, createdAt: safeDate(r.createdAt) ?? new Date() } }); } catch {} }
 }
-
-import AdmZip from "adm-zip";
-
 export async function POST(req: Request) {
   try {
     const auth = await getAuthFromCookies();

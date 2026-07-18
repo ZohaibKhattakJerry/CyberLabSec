@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 import { getAuthFromCookies } from "@/lib/auth";
 import { list } from "@vercel/blob";
-import archiver from "archiver";
+const archiver = require("archiver");
 import { PassThrough, Readable } from "stream";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
