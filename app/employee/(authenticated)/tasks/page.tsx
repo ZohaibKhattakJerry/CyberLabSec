@@ -57,7 +57,7 @@ export default async function TasksPage() {
     );
   }
 
-  const getStatus = (task: unknown) => {
+  const getStatus = (task: any) => {
     if (task.submissions.length === 0) {
       const daysLeft = differenceInDays(new Date(task.deadline), new Date());
       return daysLeft < 0 ? "Overdue" : "Pending";
@@ -73,8 +73,8 @@ export default async function TasksPage() {
   const revisionTasks = tasks.filter(t => getStatus(t) === "Needs Revision");
   const doneTasks = tasks.filter(t => getStatus(t) === "Done");
 
-  const renderColumn = (title: string, columnTasks: unknown[], badgeColor: string) => (
-    <div style={{ flex: 1, minWidth: 300, background: "rgba(255,255,255,0.02)", borderRadius: 12, padding: 16, border: "1px solid var(--border-subtle)", display: "flex", flexDirection: "column", gap: 12 }}>
+  const renderColumn = (title: string, columnTasks: any[], badgeColor: string) => (
+    <div style={{ flex: 1, minWidth: 0, background: "rgba(255,255,255,0.02)", borderRadius: 12, padding: 16, border: "1px solid var(--border-subtle)", display: "flex", flexDirection: "column", gap: 12, overflow: "hidden" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
         <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>{title}</h3>
         <span className={`badge ${badgeColor}`}>{columnTasks.length}</span>
@@ -104,7 +104,7 @@ export default async function TasksPage() {
           <p style={{ color: "var(--text-secondary)" }}>No tasks currently assigned to your team.</p>
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16, paddingBottom: 16, minHeight: 400 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 16, paddingBottom: 16, minHeight: 400 }}>
           {renderColumn("To-Do", pendingTasks, "badge-gray")}
           {renderColumn("In Review", inReviewTasks, "badge-amber")}
           {renderColumn("Needs Revision", revisionTasks, "badge-red")}

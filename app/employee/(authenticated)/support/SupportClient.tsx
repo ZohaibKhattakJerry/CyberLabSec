@@ -25,7 +25,7 @@ const STATUS_COLOR: Record<string, string> = {
   Closed: 'badge-gray',
 };
 
-export default function SupportClient({ initialTickets }: { initialTickets: unknown[] }) {
+export default function SupportClient({ initialTickets }: { initialTickets: any[] }) {
   const [tickets, setTickets] = useState(initialTickets);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ category: 'General', title: '', description: '', priority: 'Medium' });
@@ -76,14 +76,14 @@ export default function SupportClient({ initialTickets }: { initialTickets: unkn
               <LifeBuoy size={20} color="var(--purple)" /> New Support Ticket
             </h2>
             <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 16 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+                <div style={{ flex: '1 1 200px' }}>
                   <label className="label">Category</label>
                   <select className="input" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
                     {['General', 'IT', 'HR', 'Payroll', 'Other'].map(c => <option key={c}>{c}</option>)}
                   </select>
                 </div>
-                <div>
+                <div style={{ flex: '1 1 200px' }}>
                   <label className="label">Priority</label>
                   <select className="input" value={form.priority} onChange={e => setForm({ ...form, priority: e.target.value })}>
                     {['Low', 'Medium', 'High', 'Critical'].map(p => <option key={p}>{p}</option>)}
@@ -117,7 +117,7 @@ export default function SupportClient({ initialTickets }: { initialTickets: unkn
         </div>
       ) : (
         <div style={{ display: 'grid', gap: 12 }}>
-          {tickets.map((t: unknown) => (
+          {tickets.map((t: any) => (
             <div key={t.id} className="card" style={{ padding: 20 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
                 <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', flex: 1, minWidth: 0 }}>

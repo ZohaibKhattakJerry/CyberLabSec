@@ -112,7 +112,7 @@ export default function ProfileClient({ employee, activityLogs }: { employee: Em
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 24, alignItems: "start" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 24, alignItems: "start" }}>
         
         {/* Left Column */}
         <div style={{ display: "grid", gap: 24 }}>
@@ -163,7 +163,7 @@ export default function ProfileClient({ employee, activityLogs }: { employee: Em
                   { icon: <Shield size={14} />, label: "Squad Assignment", value: employee.team?.name || "Pending Assignment" },
                   { icon: <Activity size={14} />, label: "Clearance Level", value: employee.employmentType },
                   { icon: <Calendar size={14} />, label: "Induction Date", value: format(new Date(employee.startDate), "MMM d, yyyy") },
-                ].map((r: unknown) => (
+                ].map((r: any) => (
                   <div key={r.label} style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <div style={{ width: 28, height: 28, borderRadius: 8, background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)", flexShrink: 0 }}>
                       {r.icon}
@@ -193,11 +193,11 @@ export default function ProfileClient({ employee, activityLogs }: { employee: Em
                 <input className="input" placeholder="https://linkedin.com/in/username" value={linkedinUrl} onChange={e => setLinkedinUrl(e.target.value)} style={{ borderRadius: 8 }} />
               </div>
               {socialMsg && (
-                <div style={{ fontSize: 13, padding: "12px 16px", borderRadius: 8, background: socialMsg.type === "ok" ? "rgba(34,197,94,0.08)" : "rgba(168,85,247,0.08)", border: `1px solid ${socialMsg.type === "ok" ? "rgba(34,197,94,0.2)" : "rgba(168,85,247,0.2)"}`, color: socialMsg.type === "ok" ? "var(--green)" : "#fca5a5" }}>
+                <div style={{ fontSize: 13, padding: "12px 16px", borderRadius: 8, background: socialMsg.type === "ok" ? "rgba(34,197,94,0.08)" : "rgba(168,85,247,0.08)", border: `1px solid ${socialMsg.type === "ok" ? "rgba(34,197,94,0.2)" : "rgba(168,85,247,0.2)"}`, color: socialMsg.type === "ok" ? "var(--green)" : "#fca5a5", transition: "all 0.3s ease" }}>
                   {socialMsg.text}
                 </div>
               )}
-              <button className="btn btn-primary" type="submit" disabled={socialLoading} style={{ marginTop: 4, height: 40 }}>
+              <button className="btn btn-primary" type="submit" disabled={socialLoading} style={{ marginTop: 4, height: 40, transition: "all 0.2s" }}>
                 {socialLoading ? <><Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> Syncing...</> : <><UploadCloud size={16} /> Sync Profiles</>}
               </button>
             </form>
@@ -231,11 +231,11 @@ export default function ProfileClient({ employee, activityLogs }: { employee: Em
                 </div>
               ))}
               {pwMsg && (
-                <div style={{ fontSize: 13, padding: "12px 16px", borderRadius: 8, background: pwMsg.type === "ok" ? "rgba(34,197,94,0.08)" : "rgba(168,85,247,0.08)", border: `1px solid ${pwMsg.type === "ok" ? "rgba(34,197,94,0.2)" : "rgba(168,85,247,0.2)"}`, color: pwMsg.type === "ok" ? "var(--green)" : "#fca5a5" }}>
+                <div style={{ fontSize: 13, padding: "12px 16px", borderRadius: 8, background: pwMsg.type === "ok" ? "rgba(34,197,94,0.08)" : "rgba(168,85,247,0.08)", border: `1px solid ${pwMsg.type === "ok" ? "rgba(34,197,94,0.2)" : "rgba(168,85,247,0.2)"}`, color: pwMsg.type === "ok" ? "var(--green)" : "#fca5a5", transition: "all 0.3s ease" }}>
                   {pwMsg.text}
                 </div>
               )}
-              <button className="btn" type="submit" disabled={loading} style={{ marginTop: 4, height: 40, background: "rgba(245, 158, 11, 0.1)", color: "var(--amber)", border: "1px solid rgba(245, 158, 11, 0.3)" }}>
+              <button className="btn" type="submit" disabled={loading} style={{ marginTop: 4, height: 40, background: "rgba(245, 158, 11, 0.1)", color: "var(--amber)", border: "1px solid rgba(245, 158, 11, 0.3)", transition: "all 0.2s" }}>
                 {loading ? <><Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> Generating Hash...</> : "Rotate Credentials"}
               </button>
             </form>
@@ -251,7 +251,7 @@ export default function ProfileClient({ employee, activityLogs }: { employee: Em
                 <p style={{ fontSize: 13, color: "var(--text-muted)", textAlign: "center", padding: 20 }}>No logs recorded in the mainframe.</p>
               ) : (
                 <div style={{ display: "grid", gap: 12 }}>
-                  {activityLogs.map((log: unknown) => {
+                  {activityLogs.map((log: any) => {
                     let ip = "Unknown IP";
                     try { ip = JSON.parse(log.metadata).ip || ip; } catch {}
                     
