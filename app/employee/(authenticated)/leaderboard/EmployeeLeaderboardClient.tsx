@@ -78,7 +78,7 @@ export default function EmployeeLeaderboardClient({
     return (
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", position: "relative", zIndex: place === 1 ? 10 : 1, transform: place === 1 ? "translateY(-20px)" : "none", animation: "float 6s ease-in-out infinite" }}>
         <div style={{ position: "relative" }}>
-          <div style={{ width: size, height: size, borderRadius: "50%", border: \`4px solid \${colors[place].border}\`, padding: 4, background: colors[place].bg, boxShadow: colors[place].glow, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+          <div style={{ width: size, height: size, borderRadius: "50%", border: `4px solid ${colors[place as keyof typeof colors].border}`, padding: 4, background: colors[place as keyof typeof colors].bg, boxShadow: colors[place as keyof typeof colors].glow, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
             {e.photoUrl ? (
               <img src={e.photoUrl} alt={e.name} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
             ) : (
