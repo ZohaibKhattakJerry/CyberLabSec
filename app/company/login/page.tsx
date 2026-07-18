@@ -23,11 +23,16 @@ export default function AdminLogin() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ adminId, password }),
       });
-      const data = await res.json();
-      if (!res.ok) { setError(data.error || "Login failed"); return; }
+      let data;
+      try { data = await res.json(); } catch (e) { data = null; }
+      
+      if (!res.ok) { 
+        setError(data?.error || `Server Error (${res.status})`); 
+        return; 
+      }
       router.push("/company/dashboard");
       router.refresh();
-    } catch { setError("Network error. Please try again."); }
+    } catch { setError("Connection failed. Please check your internet."); }
     finally { setLoading(false); }
   };
 
