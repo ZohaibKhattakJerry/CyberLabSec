@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getCompanyAuth } from "@/lib/auth";
 import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60; // Allow more time for backup
 
 export async function GET() {
   try {
@@ -11,28 +11,53 @@ export async function GET() {
     const token = cookieStore.get("company_token")?.value;
     if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const [employees, teams, postings, announcements] = await Promise.all([
-      prisma.employee.findMany({
-        select: {
-          id: true, name: true, email: true, designation: true,
-          employeeCode: true, employmentType: true, status: true,
-          startDate: true, endDate: true, points: true, teamId: true,
-        },
-      }),
-      prisma.team.findMany({ select: { id: true, name: true, createdAt: true } }),
-      prisma.jobPosting.findMany({ select: { id: true, title: true, status: true, createdAt: true } }),
-      prisma.announcement.findMany({ select: { id: true, title: true, message: true, scope: true, sentAt: true } }),
+    // Fetch all relevant platform data
+    const [
+      employees, teams, jobPostings, applicants, announcements,
+      tasks, taskSubmissions, offerLetters, interviewSessions, 
+      activityLogs, employeeDocuments
+    ] = await Promise.all([
+      prisma.employee.findMany(),
+      prisma.team.findMany(),
+      prisma.jobPosting.findMany(),
+      prisma.applicant.findMany(),
+      prisma.announcement.findMany(),
+      prisma.task.findMany(),
+      prisma.taskSubmission.findMany(),
+      prisma.offerLetter.findMany(),
+      prisma.interviewSession.findMany(),
+      prisma.activityLog.findMany(),
+      prisma.employeeDocument.findMany()
     ]);
 
     const backup = {
       exportedAt: new Date().toISOString(),
       version: "1.0",
-      data: { employees, teams, postings, announcements },
+      data: {
+        employees,
+        teams,
+        jobPostings,
+        applicants,
+        announcements,
+        tasks,
+        taskSubmissions,
+        offerLetters,
+        interviewSessions,
+        activityLogs,
+        employeeDocuments
+      },
       counts: {
         employees: employees.length,
         teams: teams.length,
-        postings: postings.length,
+        jobPostings: jobPostings.length,
+        applicants: applicants.length,
         announcements: announcements.length,
+        tasks: tasks.length,
+        taskSubmissions: taskSubmissions.length,
+        offerLetters: offerLetters.length,
+        interviewSessions: interviewSessions.length,
+        activityLogs: activityLogs.length,
+        employeeDocuments: employeeDocuments.length
       },
     };
 
@@ -43,6 +68,7 @@ export async function GET() {
       },
     });
   } catch (error) {
+    console.error("Backup generation failed:", error);
     return NextResponse.json({ error: "Backup failed" }, { status: 500 });
   }
 }
