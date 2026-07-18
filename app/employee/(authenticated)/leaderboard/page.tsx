@@ -33,6 +33,7 @@ export default async function EmployeeLeaderboardPage() {
       monthlyPoints: true,
       teamId: true,
       team: { select: { name: true } },
+      badges: { select: { id: true } },
     },
     orderBy: { points: "desc" },
     take: 100
@@ -49,10 +50,8 @@ export default async function EmployeeLeaderboardPage() {
   const myOnTimeCount = mySubmissions.filter((s) => s.reviewedAt && s.submittedAt <= s.reviewedAt).length;
   const myOnTimeRate = myCompletedTasks > 0 ? Math.round((myOnTimeCount / myCompletedTasks) * 100) : 0;
 
-  // Add default properties since we optimized them out
   const serializedEmployees = allEmployees.map((e) => ({
     ...e,
-    badges: [],
     submissionsCount: 0
   }));
 

@@ -635,6 +635,37 @@ function ScreeningScreen({ status, message, referenceId }: { status: ScreeningSt
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg-primary)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+      <style>{`
+        @keyframes confettiFall {
+          0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+          100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+        }
+        @keyframes pulseGlow {
+          0%, 100% { box-shadow: 0 0 20px rgba(168,85,247,0.3); }
+          50% { box-shadow: 0 0 50px rgba(168,85,247,0.7), 0 0 80px rgba(37,99,235,0.3); }
+        }
+        @keyframes shimmer {
+          0% { background-position: -200% center; }
+          100% { background-position: 200% center; }
+        }
+      `}</style>
+      {isShortlisted && isDone && (
+        <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
+          {[...Array(20)].map((_, i) => (
+            <div key={i} style={{
+              position: 'absolute',
+              width: Math.random() * 8 + 4,
+              height: Math.random() * 8 + 4,
+              borderRadius: '50%',
+              background: ['#7c3aed', '#2563eb', '#22c55e', '#f59e0b', '#ec4899'][i % 5],
+              left: `${Math.random() * 100}%`,
+              top: '-20px',
+              animation: `confettiFall ${2 + Math.random() * 3}s ${Math.random() * 2}s linear infinite`,
+              opacity: 0.8
+            }} />
+          ))}
+        </div>
+      )}
       <motion.div className="card-glass scan-effect" style={{ maxWidth: 520, width: "100%", padding: 48, textAlign: "center", position: "relative", overflow: "hidden" }} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
         <div style={{ position: "relative", width: 96, height: 96, margin: "0 auto 32px" }}>
           {!isDone && (
@@ -662,8 +693,21 @@ function ScreeningScreen({ status, message, referenceId }: { status: ScreeningSt
 
         {isDone && referenceId && (
           <div style={{ background: "rgba(168,85,247,0.08)", border: "1px solid rgba(168,85,247,0.2)", borderRadius: 12, padding: 16, marginBottom: 24 }}>
+            {isShortlisted && (
+              <div style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 12, padding: '12px 16px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
+                <CheckCircle size={18} color="var(--green)" />
+                <span style={{ fontSize: 13, color: 'var(--green)', fontWeight: 600 }}>Interview invitation sent to your email!</span>
+              </div>
+            )}
             <p style={{ fontSize: 12, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>Application Reference ID</p>
-            <p style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)", fontFamily: "monospace" }}>{referenceId}</p>
+            <p style={{ 
+              fontSize: 20, fontWeight: 800, fontFamily: 'monospace',
+              background: 'linear-gradient(90deg, #a78bfa, #60a5fa, #a78bfa)',
+              backgroundSize: '200% auto',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              animation: 'shimmer 3s linear infinite'
+            }}>{referenceId}</p>
             <p style={{ fontSize: 13, color: "var(--text-secondary)", marginTop: 8 }}>
               You can track your status anytime at <Link href="/careers/status" style={{ color: "var(--purple)" }}>/careers/status</Link> using this ID.
             </p>

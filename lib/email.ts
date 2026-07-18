@@ -18,10 +18,10 @@ const GLOBAL_HEAD = `
     <meta name="color-scheme" content="dark">
     <meta name="supported-color-schemes" content="dark">
     <style>
-      body { font-family: Helvetica, Arial, sans-serif; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; color: #e4e4e7; background-color: #0a0a0f; }
+      body { font-family: Helvetica, Arial, sans-serif; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; color: #e4e4e7; background-color: #f0f0f5; }
       table { border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
       a { text-decoration: none; }
-      .bg-body { background-color: #0a0a0f; }
+      .bg-body { background-color: #f0f0f5; }
       .card-bg { background-color: #12121a; border: 1px solid #27272a; }
       .header-cell { background: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%); padding: 35px 40px 25px; }
       .body-cell { background-color: #12121a; padding: 45px 40px; color: #e4e4e7; }
@@ -44,11 +44,11 @@ const GLOBAL_HEAD = `
   </head>
 `;
 
-const HTML_START = `<!DOCTYPE html><html>${GLOBAL_HEAD}<body style="background-color: #0a0a0f; margin: 0; padding: 0;">`;
+const HTML_START = `<!DOCTYPE html><html>${GLOBAL_HEAD}<body style="background-color: #f0f0f5; margin: 0; padding: 0;">`;
 const HTML_END = `</body></html>`;
 
 const WRAP_START = `
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" class="bg-body" style="width: 100%; background-color: #0a0a0f;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" class="bg-body" style="width: 100%; background-color: #f0f0f5;">
     <tr>
       <td class="wrap-cell" align="center" style="padding: 40px 20px;">
         <table class="responsive-table card-bg" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%; background-color: #12121a; border: 1px solid #27272a; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);">

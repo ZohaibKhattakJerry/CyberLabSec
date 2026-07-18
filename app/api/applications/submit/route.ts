@@ -243,14 +243,16 @@ async function runScreening(
       });
 
       // We need to fetch the newly created token since it's scoped in the block above
-      const session = await prisma.interviewSession.findUnique({ where: { applicantId } });
+      const session = await prisma.interviewSession.findFirst({ where: { applicantId } });
       if (session) {
         const interviewLink = `https://cyberlabsec.tech/careers/interview/${session.token}`;
-        await sendEmail({
-           to: ctx.email, 
-           subject: `Interview Invitation: ${ctx.posting.title}`, 
-           html: `<h1>Congratulations!</h1><p>You have been shortlisted. Start your interview here: <a href="${interviewLink}">${interviewLink}</a></p>`
-        });
+        await sendInterviewInvite(
+          ctx.email,
+          ctx.fullName,
+          ctx.posting.title,
+          interviewLink,
+          168 // 7 days in hours
+        );
       }
     } else {
       await prisma.applicant.update({

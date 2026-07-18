@@ -15,53 +15,62 @@ export default async function Dashboard() {
   const auth = await getAuthFromCookies();
   if (!auth) redirect("/employee/login");
 
-  const employee = await prisma.employee.findUnique({
-    where: { id: auth.sub },
-    select: {
-      id: true, name: true, email: true, designation: true,
-      employeeCode: true, employmentType: true, tier: true,
-      status: true, photoUrl: true, startDate: true, endDate: true,
-      points: true, monthlyPoints: true, teamId: true,
-      team: {
-        select: {
-          id: true, name: true,
-          members: { select: { id: true, name: true, designation: true, status: true }, where: { status: "Active" } },
-          tasks: {
-            select: { 
-              id: true, title: true, deadline: true, status: true, 
-              submissions: { where: { employeeId: auth.sub }, select: { status: true } } 
+  let employee: any;
+  let countAhead = 0, rawAnnouncements: any[] = [], myReceipts: any[] = [], activityLogs: any[] = [];
+  try {
+    employee = await prisma.employee.findUnique({
+      where: { id: auth.sub },
+      select: {
+        id: true, name: true, email: true, designation: true,
+        employeeCode: true, employmentType: true, tier: true,
+        status: true, photoUrl: true, startDate: true, endDate: true,
+        points: true, monthlyPoints: true, teamId: true,
+        team: {
+          select: {
+            id: true, name: true,
+            members: { select: { id: true, name: true, designation: true, status: true }, where: { status: "Active" } },
+            tasks: {
+              select: { 
+                id: true, title: true, deadline: true, status: true, 
+                submissions: { where: { employeeId: auth.sub }, select: { status: true } } 
+              },
+              orderBy: { deadline: 'asc' },
             },
-            orderBy: { deadline: 'asc' },
           },
         },
+        badges: { orderBy: { awardedAt: 'desc' }, take: 5, select: { id: true, type: true, label: true, awardedAt: true } },
+        pointTransactions: { orderBy: { createdAt: 'desc' }, take: 3, select: { points: true, reason: true, createdAt: true } },
       },
-      badges: { orderBy: { awardedAt: 'desc' }, take: 5, select: { id: true, type: true, label: true, awardedAt: true } },
-      pointTransactions: { orderBy: { createdAt: 'desc' }, take: 3, select: { points: true, reason: true, createdAt: true } },
-    },
-  });
+    });
 
-  if (!employee) redirect("/employee/login");
+    if (!employee) {
+      throw new Error("Employee not found");
+    }
 
-  const now = new Date();
+    const now = new Date();
 
-  const [countAhead, rawAnnouncements, myReceipts, activityLogs] = await Promise.all([
-    prisma.employee.count({ where: { status: 'Active', monthlyPoints: { gt: employee.monthlyPoints } } }),
-    prisma.announcement.findMany({
-      where: { 
-        OR: [
-          { scope: "Company" },
-          { scope: "Team", teamId: employee.teamId || undefined },
-          { scope: "Individual", employeeId: auth.sub },
-        ],
-        AND: [{ OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] }],
-        sentAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } 
-      },
-      orderBy: { sentAt: 'desc' }, take: 5,
-      select: { id: true, title: true, message: true, scope: true, sentAt: true, isPinned: true, sentBy: { select: { name: true } } },
-    }),
-    prisma.announcementReadReceipt.findMany({ where: { employeeId: auth.sub }, select: { announcementId: true } }),
-    prisma.activityLog.findMany({ where: { actorId: auth.sub }, orderBy: { timestamp: 'desc' }, take: 5, select: { id: true, action: true, timestamp: true } }),
-  ]);
+    [countAhead, rawAnnouncements, myReceipts, activityLogs] = await Promise.all([
+      prisma.employee.count({ where: { status: 'Active', monthlyPoints: { gt: employee.monthlyPoints } } }),
+      prisma.announcement.findMany({
+        where: { 
+          OR: [
+            { scope: "Company" },
+            { scope: "Team", teamId: employee.teamId || undefined },
+            { scope: "Individual", employeeId: auth.sub },
+          ],
+          AND: [{ OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] }],
+          sentAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } 
+        },
+        orderBy: { sentAt: 'desc' }, take: 5,
+        select: { id: true, title: true, message: true, scope: true, sentAt: true, isPinned: true, sentBy: { select: { name: true } } },
+      }),
+      prisma.announcementReadReceipt.findMany({ where: { employeeId: auth.sub }, select: { announcementId: true } }),
+      prisma.activityLog.findMany({ where: { actorId: auth.sub }, orderBy: { timestamp: 'desc' }, take: 5, select: { id: true, action: true, timestamp: true } }),
+    ]);
+  } catch (err) {
+    console.error('Dashboard error:', err);
+    redirect('/employee/login');
+  }
 
   const hour = new Date().getUTCHours() + 5; // UTC+5
   const greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
@@ -425,7 +434,7 @@ export default async function Dashboard() {
                     {a.message.length > 80 ? a.message.slice(0, 80) + '...' : a.message}
                   </p>
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                    From {a.sentBy.name} • {format(a.sentAt, 'MMM d, yyyy')}
+                    From {a.sentBy?.name ?? 'CyberLabSec'} • {format(new Date(a.sentAt), 'MMM d, yyyy')}
                   </div>
                 </div>
               );
@@ -483,7 +492,7 @@ export default async function Dashboard() {
                       {log.action.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}
                     </div>
                     <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                      {format(log.timestamp, "MMM d, h:mm a")}
+                      {format(new Date(log.timestamp), "MMM d, h:mm a")}
                     </div>
                   </div>
                 </div>
