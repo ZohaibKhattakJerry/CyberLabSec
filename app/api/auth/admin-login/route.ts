@@ -23,9 +23,22 @@ export async function POST(req: NextRequest) {
   }
 
   // Check admin employee record
-  const admin = await prisma.employee.findUnique({ where: { employeeCode: ADMIN_CODE } });
+  let admin = await prisma.employee.findUnique({ where: { employeeCode: ADMIN_CODE } });
   if (!admin) {
-    return NextResponse.json({ error: "Admin not configured. Run database seed." }, { status: 503 });
+    // Auto-bootstrap the admin if it doesn't exist
+    const defaultPassword = await bcrypt.hash("admin", 10);
+    admin = await prisma.employee.create({
+      data: {
+        employeeCode: ADMIN_CODE,
+        email: "admin@cyberlabsec.com",
+        name: "Administrator",
+        jobTitle: "System Admin",
+        department: "IT",
+        status: "Active",
+        role: "admin",
+        passwordHash: defaultPassword
+      }
+    });
   }
 
   const valid = await bcrypt.compare(password, admin.passwordHash);
