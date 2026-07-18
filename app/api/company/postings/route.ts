@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
       shortlistThreshold: 0, // Ignored, kept for DB schema compatibility
       passMark: Number(passMark) || 60,
       showApplicantCount: showApplicantCount !== undefined ? !!showApplicantCount : true,
-      autoShortlist: autoShortlist !== undefined ? !!autoShortlist : true,
+      autoShortlist: autoShortlist !== undefined ? !!autoShortlist : false,
       screeningQuestions: JSON.stringify(generatedQuestions),
       assessmentBank: body.assessmentBank || "[]",
       answerKey: body.answerKey || "{}",

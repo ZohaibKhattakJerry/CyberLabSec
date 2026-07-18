@@ -25,7 +25,7 @@ async function wipeDatabase() {
   await prisma.cEOReview.deleteMany();
   await prisma.offerLetter.deleteMany();
   await prisma.applicant.deleteMany();
-  await prisma.employee.deleteMany();
+  await prisma.employee.deleteMany({ where: { employeeCode: { not: "CyberLabSec" } } });
   await prisma.team.deleteMany();
   await prisma.jobPosting.deleteMany();
   await prisma.emailVerification.deleteMany();

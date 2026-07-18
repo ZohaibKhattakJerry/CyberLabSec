@@ -6,9 +6,13 @@ import { checkRateLimit, getIpFromRequest } from "@/lib/rateLimit";
 
 export async function POST(req: NextRequest) {
   const ip = getIpFromRequest(req);
-  const { blocked, resetAt } = await checkRateLimit(`login:${ip}`, 5, 15);
-  if (blocked) {
-    return NextResponse.json({ error: `Too many login attempts. Try again after ${resetAt.toLocaleTimeString()}.` }, { status: 429 });
+  try {
+    const { blocked, resetAt } = await checkRateLimit(`login:${ip}`, 5, 15);
+    if (blocked) {
+      return NextResponse.json({ error: `Too many login attempts. Try again after ${resetAt.toLocaleTimeString()}.` }, { status: 429 });
+    }
+  } catch (err) {
+    console.error("Rate limit check failed, proceeding anyway", err);
   }
 
   const { employeeCode, password } = await req.json();

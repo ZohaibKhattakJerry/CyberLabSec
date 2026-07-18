@@ -19,10 +19,16 @@ export default function SettingsClient() {
   const [msgType, setMsgType] = useState<"success" | "error">("success");
 
   const [company, setCompany] = useState({ name: "CyberLabSec", email: "hr@cyberlabsec.tech", timezone: "Asia/Karachi", website: "https://cyberlabsec.tech" });
+  const [newPassword, setNewPassword] = useState("");
   const [points, setPoints] = useState({ low: 10, medium: 20, high: 35, critical: 50, onTimeBonus: 20, qualityPerStar: 5 });
   const [auditLogs, setAuditLogs] = useState<unknown[]>([]);
   const [auditSearch, setAuditSearch] = useState("");
   const [auditLoading, setAuditLoading] = useState(false);
+
+  // OTP Modal State
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
+  const [otpLoading, setOtpLoading] = useState(false);
 
   const templates = [
     { id: "app_received", name: "Application Received", subject: "We received your application — CyberLabSec", status: "Active" },
@@ -49,11 +55,47 @@ export default function SettingsClient() {
 
   useEffect(() => { if (tab === "audit") fetchAuditLogs(); }, [tab]);
 
-  const saveCompany = async () => {
+  const requestOtp = async () => {
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 500));
+    try {
+      const res = await fetch("/api/company/settings/request-otp", { method: "POST" });
+      if (res.ok) {
+        setShowOtpModal(true);
+      } else {
+        showMsg("Failed to request OTP. Try again.", "error");
+      }
+    } catch {
+      showMsg("Network error. Try again.", "error");
+    }
     setSaving(false);
-    showMsg("Company profile saved.");
+  };
+
+  const verifyOtpAndSave = async () => {
+    if (!otpCode || otpCode.length !== 6) return showMsg("Enter a valid 6-digit OTP", "error");
+    setOtpLoading(true);
+    try {
+      const payload: any = { otp: otpCode, companyData: company };
+      if (newPassword) payload.newPassword = newPassword;
+      
+      const res = await fetch("/api/company/settings/verify-otp", { 
+        method: "POST", 
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      
+      if (res.ok && data.success) {
+        showMsg("Profile and settings securely updated.");
+        setShowOtpModal(false);
+        setOtpCode("");
+        setNewPassword("");
+      } else {
+        showMsg(data.error || "Invalid OTP or expired.", "error");
+      }
+    } catch {
+      showMsg("Network error during verification.", "error");
+    }
+    setOtpLoading(false);
   };
 
   const savePoints = async () => {
@@ -94,7 +136,7 @@ export default function SettingsClient() {
         ))}
       </div>
 
-      {/* Company Profile */}
+    {/* Company Profile */}
       {tab === "company" && (
         <div className="card" style={{ padding: 28 }}>
           <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20 }}>Company Profile</h2>
@@ -120,9 +162,43 @@ export default function SettingsClient() {
                 <option value="Europe/London">Europe/London (GMT)</option>
               </select>
             </div>
-            <div style={{ gridColumn: "1/-1" }}>
-              <button className="btn btn-primary" onClick={saveCompany} disabled={saving} style={{ gap: 8 }}>
-                {saving ? <Loader2 size={14} className="spin" /> : <Save size={14} />} Save Profile
+            <div>
+              <label className="label">Change Admin Password (Optional)</label>
+              <input className="input" type="password" placeholder="Leave blank to keep current" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+            </div>
+            <div style={{ gridColumn: "1/-1", marginTop: 8 }}>
+              <button className="btn btn-primary" onClick={requestOtp} disabled={saving} style={{ gap: 8 }}>
+                {saving ? <Loader2 size={14} className="spin" /> : <Shield size={14} />} Save Profile (Requires OTP)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* OTP Modal */}
+      {showOtpModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div className="card" style={{ padding: 24, width: 400, maxWidth: "90%", background: "#fff", border: "1px solid var(--border)", boxShadow: "0 10px 25px rgba(0,0,0,0.1)" }}>
+            <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
+              <Shield size={18} style={{ color: "var(--brand)" }} /> Verify Action
+            </h3>
+            <p style={{ fontSize: 14, color: "var(--text-secondary)", marginBottom: 20 }}>
+              To protect sensitive company settings, we've sent a 6-digit OTP to your verified email: <strong>mrzohaibkhattak@gmail.com</strong>
+            </p>
+            <div style={{ marginBottom: 20 }}>
+              <label className="label">Enter 6-Digit OTP</label>
+              <input 
+                className="input" 
+                value={otpCode} 
+                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').substring(0, 6))}
+                placeholder="000000"
+                style={{ fontSize: 24, letterSpacing: 4, textAlign: "center", padding: "12px 16px" }}
+              />
+            </div>
+            <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+              <button className="btn btn-secondary" onClick={() => setShowOtpModal(false)} disabled={otpLoading}>Cancel</button>
+              <button className="btn btn-primary" onClick={verifyOtpAndSave} disabled={otpLoading || otpCode.length !== 6}>
+                {otpLoading ? <Loader2 size={14} className="spin" /> : "Verify & Save"}
               </button>
             </div>
           </div>
