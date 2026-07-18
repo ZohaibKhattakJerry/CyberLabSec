@@ -41,36 +41,39 @@ Use the following inputs:
 
 Rules:
 - Generate questions only from the provided form fields.
-- The number of MCQs must exactly match ${totalMcq}.
-- The number of open-ended / scenario questions must exactly match ${totalOpen}.
+- The number of MCQs must exactly match the requested MCQ count.
+- The number of open-ended / scenario questions must exactly match the requested open-ended count.
 - Make the questions highly relevant to the job title, role level, department, responsibilities, and qualifications.
 - For cybersecurity/offensive security internships, focus on safe, job-relevant topics such as networking basics, Linux, web security, OWASP Top 10, Burp Suite, Nmap, reconnaissance, reporting, vulnerability identification, and ethical hacking fundamentals.
 - Keep difficulty appropriate for the selected experience level.
 - If the role is internship-level or beginner-friendly, do not make the questions overly advanced.
 - Make MCQs practical and realistic, with 4 options each and only one correct answer.
 - Make open-ended questions professional, screening-oriented, and suitable for evaluating mindset, learning ability, communication, and role fit.
-- You must include the correct answer for MCQs and a grading rubric for open-ended questions so the system can auto-grade the applicant.
 - Do not generate generic questions that are not tied to the job data.
 - Do not include unsafe, illegal, or harmful instructions.
 - Do not mention policies or internal reasoning.
-- Return ONLY a valid JSON array.
+- Return valid JSON only.
 
-Output format must be a flat JSON array of objects. Each object must follow this exact structure:
-
-For MCQs:
+Output format:
 {
-  "question": "string",
-  "options": ["string", "string", "string", "string"],
-  "correctAnswer": "string (must exactly match one of the options)",
-  "type": "MCQ"
+  "job_title": "",
+  "mcqs": [
+    {
+      "question": "",
+      "options": ["", "", "", ""],
+      "correctAnswer": "" // Explicitly asked: required for the system to grade
+    }
+  ],
+  "open_ended": [
+    {
+      "question": "",
+      "rubric": "" // Explicitly asked: required for grading criteria
+    }
+  ]
 }
 
-For Open-Ended Questions:
-{
-  "question": "string",
-  "rubric": "string (A detailed grading rubric or expected answer key for the evaluator)",
-  "type": "OPEN"
-}`;
+Input data:
+Job Details provided in the fields above.`;
 
     const result = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
@@ -78,17 +81,30 @@ For Open-Ended Questions:
     });
     const text = result.response.text().trim();
     
-    let questions;
+    let parsedData;
     try {
-      questions = JSON.parse(text);
+      parsedData = JSON.parse(text);
     } catch (e) {
       // Fallback manual parse if JSON.parse still fails
-      const match = text.match(/\[\s*\{[\s\S]*\}\s*\]/);
-      if (match) questions = JSON.parse(match[0]);
+      const match = text.match(/\{[\s\S]*\}/);
+      if (match) parsedData = JSON.parse(match[0]);
       else throw e;
     }
 
-    return NextResponse.json(questions);
+    const flatQuestions: any[] = [];
+    if (parsedData.mcqs && Array.isArray(parsedData.mcqs)) {
+      parsedData.mcqs.forEach((mcq: any) => flatQuestions.push({ ...mcq, type: "MCQ" }));
+    }
+    if (parsedData.open_ended && Array.isArray(parsedData.open_ended)) {
+      parsedData.open_ended.forEach((open: any) => flatQuestions.push({ ...open, type: "OPEN" }));
+    }
+    
+    // Fallback if AI returned a flat array despite instructions
+    if (flatQuestions.length === 0 && Array.isArray(parsedData)) {
+      parsedData.forEach(q => flatQuestions.push(q));
+    }
+
+    return NextResponse.json(flatQuestions);
   } catch (error: any) {
     console.error("Failed to generate assessment:", error);
     const msg = error?.message || "Failed to generate assessment. Please check your API key.";
