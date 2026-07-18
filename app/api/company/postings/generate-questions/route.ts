@@ -52,7 +52,7 @@ export async function POST(req: Request) {
 
     // REAL-TIME ANALYSIS ENGINE (Offline Context Extraction)
     // Combine all fields to analyze the full context
-    const fullText = \`\${title} \${department} \${description} \${requirements} \${niceToHave} \${whatYouGain}\`.toLowerCase();
+    const fullText = `${title} ${department} ${description} ${requirements} ${niceToHave} ${whatYouGain}`.toLowerCase();
     
     const rankQuestions = (qBank: any[]) => {
       return qBank.map(q => {
