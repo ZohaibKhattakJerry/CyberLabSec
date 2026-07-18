@@ -1,94 +1,37 @@
 import { NextResponse } from "next/server";
 
-const CYBER_MCQS = [
-  {
-    question: "As a {{JOB_TITLE}} in the {{DEPARTMENT}} department, you will often need to secure web applications. What is the primary purpose of a Web Application Firewall (WAF) in this context?",
-    options: ["To encrypt database traffic", "To filter and monitor HTTP traffic", "To manage internal IP routing", "To act as a VPN gateway"],
-    correctAnswer: "To filter and monitor HTTP traffic",
-    tags: ["web", "owasp", "network"]
-  },
-  {
-    question: "Given your {{EXPERIENCE_LEVEL}} experience level, which OWASP Top 10 vulnerability should you immediately recognize when user-supplied input is executed as code in the browser?",
-    options: ["SQL Injection", "Cross-Site Scripting (XSS)", "Insecure Direct Object Reference", "CSRF"],
-    correctAnswer: "Cross-Site Scripting (XSS)",
-    tags: ["web", "owasp"]
-  },
-  {
-    question: "While working your {{WEEKLY_HOURS}} hours a week, you might use Nmap for reconnaissance. What does the '-sS' flag signify?",
-    options: ["SYN Stealth Scan", "UDP Scan", "Ping Scan", "Version Detection Scan"],
-    correctAnswer: "SYN Stealth Scan",
-    tags: ["network", "nmap"]
-  },
-  {
-    question: "You will be dealing with Linux environments. Which Linux command is strictly used to change file permissions?",
-    options: ["chown", "chmod", "passwd", "ps"],
-    correctAnswer: "chmod",
-    tags: ["linux", "fundamentals"]
-  },
-  {
-    question: "To meet our requirement of '{{REQUIREMENTS_SNIPPET}}', what does the Principle of Least Privilege (PoLP) dictate?",
-    options: ["Give users max access temporarily", "Give users minimum access required to do their job", "Only admins should use passwords", "Disable all network ports"],
-    correctAnswer: "Give users minimum access required to do their job",
-    tags: ["general", "compliance", "security"]
-  },
-  {
-    question: "In this {{POSITION_TYPE}} role, you'll work with encryption. Which of the following is considered a symmetric encryption algorithm?",
-    options: ["RSA", "Diffie-Hellman", "AES", "ECC"],
-    correctAnswer: "AES",
-    tags: ["crypto", "encryption"]
-  },
-  {
-    question: "For a {{JOB_TITLE}} monitoring infrastructure, what is the main function of an Intrusion Detection System (IDS)?",
-    options: ["To block malicious traffic automatically", "To encrypt network traffic", "To monitor network traffic for suspicious activity", "To host a honeypot"],
-    correctAnswer: "To monitor network traffic for suspicious activity",
-    tags: ["network", "soc"]
-  },
-  {
-    question: "Working from {{LOCATION}}, you must secure our frontend. What HTTP header is commonly used to defend against Cross-Site Request Forgery (CSRF)?",
-    options: ["Content-Security-Policy", "X-Frame-Options", "SameSite attribute in Cookies", "X-XSS-Protection"],
-    correctAnswer: "SameSite attribute in Cookies",
-    tags: ["web", "frontend"]
-  },
-  {
-    question: "If you find a directory traversal vulnerability during an assessment, what are you likely trying to achieve?",
-    options: ["Execute remote commands", "Access unauthorized files on the server", "Crash the application", "Hijack a user session"],
-    correctAnswer: "Access unauthorized files on the server",
-    tags: ["web", "pentesting"]
-  },
-  {
-    question: "For Windows enterprise environments, what is the golden ticket attack targeting?",
-    options: ["The domain controller's KRBTGT account", "The local administrator hash", "The SAM database", "The DNS server"],
-    correctAnswer: "The domain controller's KRBTGT account",
-    tags: ["windows", "active directory"]
-  }
+const ADVANCED_BANK = [
+  // Web & App Sec
+  { q: "As a {{JOB_TITLE}}, how do you secure web applications against SQL Injection according to the requirements mentioned for this role?", a: "Using Parameterized Queries", opts: ["Using Parameterized Queries", "Encoding HTML", "Using WAF only", "Obfuscating DB names"], tags: ["web", "sql", "application", "developer", "react", "node"] },
+  { q: "Given the responsibilities in {{DEPARTMENT}}, what is the most effective defense against Cross-Site Scripting (XSS)?", a: "Context-aware output encoding", opts: ["Network firewalls", "Context-aware output encoding", "Disabling JavaScript", "Using HTTPS"], tags: ["web", "xss", "frontend", "react", "javascript", "application"] },
+  { q: "Your role involves web security. How do you prevent Cross-Site Request Forgery (CSRF)?", a: "Using Anti-CSRF tokens and SameSite cookies", opts: ["Using Anti-CSRF tokens and SameSite cookies", "Encrypting passwords", "Using a VPN", "Blocking IP addresses"], tags: ["web", "csrf", "frontend"] },
+  // Network & Infra
+  { q: "Working in the {{DEPARTMENT}} department, which port and protocol does SSH use by default?", a: "TCP Port 22", opts: ["TCP Port 22", "UDP Port 53", "TCP Port 443", "TCP Port 21"], tags: ["network", "infrastructure", "linux", "sysadmin", "aws", "cloud"] },
+  { q: "To fulfill the requirement of network monitoring, what does a SIEM do?", a: "Collects and analyzes security logs from across the network", opts: ["Collects and analyzes security logs from across the network", "Blocks unauthorized physical access", "Encrypts internal communications", "Routes internet traffic"], tags: ["network", "siem", "soc", "analyst", "monitoring", "splunk"] },
+  { q: "As a {{JOB_TITLE}}, what is the primary purpose of subnetting?", a: "To divide a large network into smaller, more manageable sub-networks", opts: ["To hide IP addresses", "To divide a large network into smaller, more manageable sub-networks", "To bypass firewalls", "To increase internet speed"], tags: ["network", "cisco", "infrastructure", "routing"] },
+  // Pentesting & Offensive
+  { q: "During an engagement as a {{JOB_TITLE}}, what is the purpose of a reverse shell?", a: "To force the target machine to initiate a connection back to the attacker", opts: ["To encrypt data at rest", "To force the target machine to initiate a connection back to the attacker", "To bypass web application firewalls", "To crack passwords offline"], tags: ["pentest", "offensive", "red team", "exploit", "hacker"] },
+  { q: "When using Nmap for this {{POSITION_TYPE}} position, what does the -sV flag do?", a: "Probes open ports to determine service and version info", opts: ["Probes open ports to determine service and version info", "Performs a stealth SYN scan", "Scans for UDP ports", "Disables ping sweep"], tags: ["pentest", "nmap", "offensive", "red team"] },
+  { q: "Which tool is considered the industry standard for intercepting and modifying web traffic?", a: "Burp Suite", opts: ["Burp Suite", "Wireshark", "Metasploit", "Nmap"], tags: ["pentest", "burp", "web", "offensive"] },
+  // Cloud & DevOps
+  { q: "For a role demanding cloud expertise, what is the shared responsibility model in AWS/Azure?", a: "The cloud provider secures the infrastructure, the customer secures the data and apps", opts: ["The cloud provider secures the infrastructure, the customer secures the data and apps", "The provider handles all security", "The customer handles all security", "It only applies to billing"], tags: ["cloud", "aws", "azure", "devops", "kubernetes", "docker"] },
+  { q: "As a {{JOB_TITLE}}, how do you secure a Docker container?", a: "Run containers as non-root and scan images for vulnerabilities", opts: ["Run containers as non-root and scan images for vulnerabilities", "Disable the network interface", "Encrypt the host OS", "Use only public images"], tags: ["cloud", "docker", "kubernetes", "devsecops"] },
+  // General Security & Governance
+  { q: "To meet the {{EXPERIENCE_LEVEL}} expectations for this role, explain the CIA triad.", a: "Confidentiality, Integrity, Availability", opts: ["Confidentiality, Integrity, Availability", "Control, Identity, Authentication", "Cyber, Intelligence, Analytics", "Compliance, Integrity, Authorization"], tags: ["governance", "compliance", "general", "manager", "auditor"] },
+  { q: "What is the Principle of Least Privilege?", a: "Users are granted only the minimum access necessary to perform their job", opts: ["Users are granted only the minimum access necessary to perform their job", "All users get admin access temporarily", "Passwords are not required for internal networks", "Data is encrypted at rest"], tags: ["governance", "iam", "general", "security"] }
 ];
 
-const CYBER_OPEN = [
-  {
-    question: "As a {{JOB_TITLE}}, explain the difference between a False Positive and a False Negative in a SIEM. Which is generally considered more dangerous and why?",
-    rubric: "Candidate should explain that False Positive is an alert for non-malicious activity, while False Negative is a missed malicious activity. False Negatives are more dangerous because real attacks go undetected.",
-    tags: ["soc", "general"]
-  },
-  {
-    question: "Given your {{EXPERIENCE_LEVEL}} background, walk us through the steps you would take to secure a newly deployed Ubuntu Linux server exposed to the internet for the {{DEPARTMENT}} department.",
-    rubric: "Candidate should mention: changing default SSH port, disabling root login, setting up SSH keys, configuring a firewall (UFW/iptables), keeping packages updated, and installing fail2ban.",
-    tags: ["linux", "sysadmin"]
-  },
-  {
-    question: "How would you explain a SQL Injection vulnerability to a non-technical manager, and what mitigation strategies would you recommend to a developer to meet our requirement of '{{REQUIREMENTS_SNIPPET}}'?",
-    rubric: "Explanation should be simple (e.g., 'tricking the database into giving up info'). Mitigation must mention Prepared Statements or Parameterized Queries, and input validation.",
-    tags: ["web", "communication"]
-  },
-  {
-    question: "As a {{POSITION_TYPE}} team member, describe your methodology for conducting an initial network reconnaissance on a target scope. What tools and techniques do you use?",
-    rubric: "Candidate should mention passive recon (OSINT, DNS enumeration, WHOIS) and active recon (Nmap, port scanning, service enumeration).",
-    tags: ["network", "pentesting"]
-  },
-  {
-    question: "If you discover a high-severity vulnerability that could take down a critical system, what is your immediate course of action to ensure safety before the {{DEADLINE}} deadline?",
-    rubric: "Candidate should prioritize communication and safety: stop exploiting, immediately document the finding, and report it to the client/point-of-contact immediately rather than proceeding.",
-    tags: ["general", "ethics"]
-  }
+const ADVANCED_OPEN = [
+  // Web
+  { q: "As a {{JOB_TITLE}}, how would you design a secure authentication system for a new web application from scratch?", r: "Candidate should mention password hashing (bcrypt/Argon2), MFA/2FA, secure session management, rate limiting, and password policies.", tags: ["web", "developer", "react", "node", "architecture"] },
+  // Pentest
+  { q: "Describe your methodology for a penetration test on a corporate network. What phases do you follow?", r: "Reconnaissance, Scanning/Enumeration, Exploitation, Post-Exploitation, and Reporting.", tags: ["pentest", "offensive", "red team"] },
+  // SOC/IR
+  { q: "You receive a critical alert from the SIEM at 2 AM regarding suspicious lateral movement. What is your incident response plan?", r: "Identification/Triage, Containment (isolating hosts), Eradication, Recovery, and Lessons Learned.", tags: ["soc", "ir", "incident", "analyst", "blue team"] },
+  // Cloud
+  { q: "We host critical data in the cloud. How do you ensure our S3 buckets or Azure Blob Storage are secure against data leaks?", r: "Disable public access, implement strict IAM policies, enable logging/monitoring, and use encryption at rest (KMS).", tags: ["cloud", "aws", "azure", "devops"] },
+  // General/Managerial
+  { q: "Given your {{EXPERIENCE_LEVEL}} experience, how do you balance strict security compliance with developer productivity in the {{DEPARTMENT}} department?", r: "Candidate should discuss DevSecOps, shifting left, automated security testing in CI/CD, and fostering a security culture rather than acting as a blocker.", tags: ["manager", "governance", "devsecops", "lead"] }
 ];
 
 function shuffle(array: any[]) {
@@ -107,67 +50,68 @@ export async function POST(req: Request) {
     const totalMcq = count || 5;
     const totalOpen = openCount || 2;
 
-    // Helper to extract a short meaningful snippet from requirements (fallback if empty)
-    let reqSnippet = "maintaining strong security practices";
-    if (requirements && requirements.length > 5) {
-      const words = requirements.split(" ").slice(0, 6);
-      reqSnippet = words.join(" ") + (words.length >= 6 ? "..." : "");
-    }
-
-    // Keyword matching for relevance
-    const textLower = ((title || "") + " " + (description || "") + " " + (requirements || "")).toLowerCase();
+    // REAL-TIME ANALYSIS ENGINE (Offline Context Extraction)
+    // Combine all fields to analyze the full context
+    const fullText = \`\${title} \${department} \${description} \${requirements} \${niceToHave} \${whatYouGain}\`.toLowerCase();
     
     const rankQuestions = (qBank: any[]) => {
       return qBank.map(q => {
         let score = 0;
+        let matchedKeywords: string[] = [];
+        
         q.tags.forEach((tag: string) => {
-          if (textLower.includes(tag)) score += 2;
+          // If the tag exists as a standalone word or within the text, increase score
+          if (fullText.includes(tag)) {
+            score += 10; // High weight for exact tag matches (e.g., 'react', 'aws', 'pentest')
+            matchedKeywords.push(tag);
+          }
         });
-        return { ...q, score: score + Math.random() }; // Random jitter for variety
+
+        // Add a slight random jitter to prevent the exact same questions every time for identical jobs
+        return { ...q, score: score + Math.random(), matchedKeywords };
       }).sort((a, b) => b.score - a.score);
     };
 
-    const rankedMcqs = rankQuestions(CYBER_MCQS);
-    const rankedOpen = rankQuestions(CYBER_OPEN);
+    const rankedMcqs = rankQuestions(ADVANCED_BANK);
+    const rankedOpen = rankQuestions(ADVANCED_OPEN);
 
     let selectedMcqs = rankedMcqs.slice(0, totalMcq);
     let selectedOpen = rankedOpen.slice(0, totalOpen);
 
     const flatQuestions: any[] = [];
     
-    // Replace templates with actual job form field data
+    // Dynamic Template Injection
     const injectTemplates = (text: string) => {
       return text
-        .replace(/\{\{JOB_TITLE\}\}/g, title || "Cybersecurity Professional")
-        .replace(/\{\{DEPARTMENT\}\}/g, department || "Security")
-        .replace(/\{\{EXPERIENCE_LEVEL\}\}/g, experienceLevel || "Mid-Level")
-        .replace(/\{\{POSITION_TYPE\}\}/g, type || "Full-Time")
-        .replace(/\{\{WEEKLY_HOURS\}\}/g, weeklyHours || "40")
+        .replace(/\{\{JOB_TITLE\}\}/g, title || "Professional")
+        .replace(/\{\{DEPARTMENT\}\}/g, department || "the department")
+        .replace(/\{\{EXPERIENCE_LEVEL\}\}/g, experienceLevel || "your")
+        .replace(/\{\{POSITION_TYPE\}\}/g, type || "this")
+        .replace(/\{\{WEEKLY_HOURS\}\}/g, weeklyHours || "working")
         .replace(/\{\{LOCATION\}\}/g, location || "our office")
-        .replace(/\{\{DEADLINE\}\}/g, deadline || "project")
-        .replace(/\{\{REQUIREMENTS_SNIPPET\}\}/g, reqSnippet);
+        .replace(/\{\{DEADLINE\}\}/g, deadline || "the deadline");
     };
 
     selectedMcqs.forEach(mcq => {
       flatQuestions.push({
         type: "MCQ",
-        question: injectTemplates(mcq.question),
-        options: shuffle(mcq.options),
-        correctAnswer: mcq.correctAnswer
+        question: injectTemplates(mcq.q),
+        options: shuffle(mcq.opts),
+        correctAnswer: mcq.a
       });
     });
 
     selectedOpen.forEach(open => {
       flatQuestions.push({
         type: "OPEN",
-        question: injectTemplates(open.question),
-        rubric: open.rubric
+        question: injectTemplates(open.q),
+        rubric: open.r
       });
     });
 
     return NextResponse.json(flatQuestions);
   } catch (error: any) {
-    console.error("Failed to generate assessment internally:", error);
-    return NextResponse.json({ error: "Failed to generate assessment offline." }, { status: 500 });
+    console.error("Failed to generate offline assessment:", error);
+    return NextResponse.json({ error: "Failed to generate assessment internally." }, { status: 500 });
   }
 }
