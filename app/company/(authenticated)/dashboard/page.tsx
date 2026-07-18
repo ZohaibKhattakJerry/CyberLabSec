@@ -19,6 +19,10 @@ export default async function DashboardPage() {
     tasksByStatus,
     hiringFunnel,
     topEmployees,
+    totalTasks,
+    totalCompletedTasks,
+    totalHired,
+    totalApplicants,
   ] = await Promise.all([
     prisma.employee.count({ where: { status: "Active" } }),
     prisma.jobPosting.count({ where: { status: "Published" } }),
@@ -36,6 +40,10 @@ export default async function DashboardPage() {
       take: 5,
       select: { id: true, name: true, designation: true, points: true, monthlyPoints: true },
     }),
+    prisma.task.count(),
+    prisma.task.count({ where: { status: "Completed" } }),
+    prisma.applicant.count({ where: { status: "Hired" } }),
+    prisma.applicant.count(),
   ]);
 
   const data = {
@@ -47,6 +55,10 @@ export default async function DashboardPage() {
       overdueTasks,
       pendingApprovals,
       pendingReviews,
+      totalTasks,
+      totalCompletedTasks,
+      totalHired,
+      totalApplicants,
     },
     recentActivity: recentActivity.map((a) => ({
       id: a.id,

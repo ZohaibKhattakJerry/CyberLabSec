@@ -1,10 +1,11 @@
 import { getAuthFromCookies } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import { format, differenceInDays } from "date-fns";
+import { format, differenceInDays, differenceInMonths } from "date-fns";
 import {
   Briefcase, Users, Clock, CheckSquare, Zap, Activity,
   ArrowRight, ShieldCheck, Trophy, Bell, Star,
+  MessageSquare, FileText, User
 } from "lucide-react";
 import Link from "next/link";
 
@@ -16,947 +17,497 @@ export default async function Dashboard() {
 
   const employee = await prisma.employee.findUnique({
     where: { id: auth.sub },
-    include: {
+    select: {
+      id: true, name: true, email: true, designation: true,
+      employeeCode: true, employmentType: true, tier: true,
+      status: true, photoUrl: true, startDate: true, endDate: true,
+      points: true, monthlyPoints: true, teamId: true,
       team: {
-        include: {
-          members: {
-            select: { id: true, name: true, designation: true, employeeCode: true, status: true },
-          },
+        select: {
+          id: true, name: true,
+          members: { select: { id: true, name: true, designation: true, status: true }, where: { status: "Active" } },
           tasks: {
-            orderBy: { deadline: "asc" },
-            include: { submissions: { where: { employeeId: auth.sub } } },
+            select: { 
+              id: true, title: true, deadline: true, status: true, pointValue: true, 
+              submissions: { where: { employeeId: auth.sub }, select: { status: true } } 
+            },
+            orderBy: { deadline: 'asc' },
           },
         },
       },
-      badges: { orderBy: { awardedAt: "desc" }, take: 3 },
-      pointTransactions: {
-        orderBy: { createdAt: "desc" },
-        take: 3,
-        select: { points: true, reason: true, createdAt: true },
-      },
+      badges: { orderBy: { awardedAt: 'desc' }, take: 5, select: { id: true, type: true, label: true, awardedAt: true } },
+      pointTransactions: { orderBy: { createdAt: 'desc' }, take: 3, select: { points: true, reason: true, createdAt: true } },
     },
   });
 
   if (!employee) redirect("/employee/login");
 
-  // Leaderboard rank
-  const countAhead = await prisma.employee.count({
-    where: { 
-      status: "Active", 
-      monthlyPoints: { gt: employee.monthlyPoints } 
-    }
-  });
-  const myMonthlyRank = countAhead + 1;
-
-  const daysRemaining = employee.endDate
-    ? differenceInDays(employee.endDate, new Date())
-    : null;
   const now = new Date();
 
-  // Tasks
+  const [countAhead, rawAnnouncements, myReceipts, activityLogs] = await Promise.all([
+    prisma.employee.count({ where: { status: 'Active', monthlyPoints: { gt: employee.monthlyPoints } } }),
+    prisma.announcement.findMany({
+      where: { 
+        OR: [
+          { scope: "Company" },
+          { scope: "Team", teamId: employee.teamId || undefined },
+          { scope: "Individual", employeeId: auth.sub },
+        ],
+        AND: [{ OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] }],
+        sentAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } 
+      },
+      orderBy: { sentAt: 'desc' }, take: 5,
+      select: { id: true, title: true, message: true, scope: true, sentAt: true, isPinned: true, sentBy: { select: { name: true } } },
+    }),
+    prisma.announcementReadReceipt.findMany({ where: { employeeId: auth.sub }, select: { announcementId: true } }),
+    prisma.activityLog.findMany({ where: { actorId: auth.sub }, orderBy: { timestamp: 'desc' }, take: 5, select: { id: true, action: true, timestamp: true } }),
+  ]);
+
+  const hour = new Date().getUTCHours() + 5; // UTC+5
+  const greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
+  const firstName = employee.name.split(" ")[0];
+
+  const myMonthlyRank = countAhead + 1;
+
+  const isIntern = employee.employmentType === "Intern";
+  const daysRemaining = employee.endDate ? differenceInDays(employee.endDate, now) : 0;
+  const tenureMonths = differenceInMonths(now, employee.startDate);
+
   const allTasks = employee.team?.tasks || [];
-  const completedTasks = allTasks.filter((t) =>
-    t.submissions.some((s) => s.status === "Approved")
-  ).length;
+  const completedTasks = allTasks.filter((t) => t.submissions.some((s) => s.status === "Approved")).length;
   const totalTasks = allTasks.length;
-  const progressPercent =
-    totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-  const upcomingTasks = allTasks
-    .filter((t) => t.deadline >= now && t.submissions.length === 0)
-    .slice(0, 4);
-  const overdueTasks = allTasks.filter(
-    (t) => t.deadline < now && !t.submissions.some((s) => s.status === "Approved")
-  ).length;
+  const progressPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
-  // Announcements
-  const rawAnnouncements = await prisma.announcement.findMany({
-    where: {
-      OR: [
-        { scope: "Company" },
-        { scope: "Team", teamId: employee.teamId || undefined },
-        { scope: "Individual", employeeId: auth.sub },
-      ],
-      AND: [{ OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] }],
-    },
-    orderBy: { sentAt: "desc" },
-    take: 3,
-    include: { sentBy: { select: { name: true } } },
-  });
-
+  const pendingTasks = allTasks.filter((t) => !t.submissions.some((s) => s.status === "Approved"));
+  
   const announcements = [...rawAnnouncements].sort((a, b) => {
     if (a.isPinned === b.isPinned) return 0;
     return a.isPinned ? -1 : 1;
   });
 
-  // Unread dots: which announcements has this employee NOT yet acknowledged
-  const myReceipts = await prisma.announcementReadReceipt.findMany({
-    where: { employeeId: auth.sub },
-    select: { announcementId: true },
-  });
   const readSet = new Set(myReceipts.map((r) => r.announcementId));
   const unreadAnnouncements = announcements.filter((a) => !readSet.has(a.id));
-  const unreadAnnouncementCount = unreadAnnouncements.length;
-
-  const activityLogs = await prisma.activityLog.findMany({
-    where: { actorId: employee.id, actorType: "Employee" },
-    orderBy: { timestamp: "desc" },
-    take: 4,
-  });
-
-  const isExecutive = employee.tier === "Executive" || auth.role === "admin";
-  const displayTeamName =
-    employee.team?.name || (isExecutive ? "Command Level" : "Unassigned");
+  const unreadCount = unreadAnnouncements.length;
 
   const BADGE_ICONS: Record<string, string> = {
-    FirstTask: "🎯",
-    TenTasks: "🔟",
-    PerfectMonth: "⭐",
-    TopPerformer: "🏆",
+    FirstTask: "🎯", TenTasks: "🔟", PerfectMonth: "⭐", TopPerformer: "🏆",
   };
 
   return (
-    <div>
-      {/* Welcome Banner */}
-      <div
-        style={{
-          marginBottom: 32,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-end",
-          flexWrap: "wrap",
-          gap: 16,
-        }}
-      >
-        <div>
-          <h1
-            style={{
-              fontSize: 28,
-              fontWeight: 800,
-              letterSpacing: "-0.02em",
-              marginBottom: 6,
-            }}
-          >
-            Welcome back,{" "}
-            <span style={{ color: "var(--purple)" }}>
-              {employee.name.split(" ")[0]}
-            </span>{" "}
-            👋
-          </h1>
-          <p
-            style={{
-              color: "var(--text-secondary)",
-              fontSize: 15,
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              flexWrap: "wrap",
-            }}
-          >
-            <strong style={{ color: "var(--text-primary)" }}>
-              {employee.designation}
-            </strong>
-            <span style={{ color: "var(--text-muted)" }}>·</span>
-            {employee.employeeCode}
-            {employee.employmentType === "Intern" && (
-              <span
-                style={{
-                  fontSize: 11,
-                  background: "rgba(168,85,247,0.15)",
-                  color: "var(--purple)",
-                  padding: "2px 8px",
-                  borderRadius: 999,
-                  fontWeight: 600,
-                }}
-              >
-                Intern
+    <>
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes fade-up { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-up { animation: fade-up 0.4s ease-out backwards; }
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        
+        .glass-card {
+          background: rgba(15, 20, 35, 0.4);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 16px;
+          box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+          transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .glass-card:hover {
+          border-color: rgba(255, 255, 255, 0.15);
+          transform: translateY(-2px);
+          box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
+        }
+
+        .action-btn {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 12px;
+          padding: 16px;
+          color: var(--text-primary);
+          text-decoration: none;
+          font-weight: 600;
+          font-size: 14px;
+          transition: all 0.2s ease;
+        }
+        .action-btn:hover {
+          background: rgba(255, 255, 255, 0.08);
+          border-color: var(--purple);
+          box-shadow: 0 0 15px rgba(168, 85, 247, 0.2);
+          transform: scale(1.02);
+        }
+
+        .task-card {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 16px;
+          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.02);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          transition: all 0.2s ease;
+          text-decoration: none;
+        }
+        .task-card:hover {
+          background: rgba(255, 255, 255, 0.05);
+          transform: translateX(4px);
+        }
+        
+        .hero-banner {
+          position: relative;
+          background: linear-gradient(135deg, rgba(15,20,35,0.8) 0%, rgba(30,20,50,0.8) 100%);
+          border-radius: 20px;
+          padding: 32px;
+          border: 1px solid rgba(168,85,247,0.3);
+          box-shadow: 0 0 40px rgba(168,85,247,0.1);
+          overflow: hidden;
+          margin-bottom: 24px;
+        }
+        .hero-banner::before {
+          content: '';
+          position: absolute;
+          top: -50%; left: -50%; width: 200%; height: 200%;
+          background: radial-gradient(circle, rgba(168,85,247,0.1) 0%, transparent 60%);
+          animation: pulse-glow 8s infinite alternate;
+          z-index: 0;
+        }
+        @keyframes pulse-glow {
+          0% { transform: scale(0.9); opacity: 0.5; }
+          100% { transform: scale(1.1); opacity: 1; }
+        }
+        .hero-content {
+          position: relative;
+          z-index: 1;
+        }
+        
+        .progress-circle {
+          width: 60px; height: 60px;
+          border-radius: 50%;
+          background: conic-gradient(var(--purple) calc(var(--p) * 1%), rgba(255,255,255,0.1) 0);
+          display: flex; align-items: center; justify-content: center;
+        }
+        .progress-inner {
+          width: 50px; height: 50px;
+          background: var(--bg-base);
+          border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          font-weight: 800; font-size: 14px;
+        }
+      `}} />
+
+      {/* Hero Welcome Banner */}
+      <div className="hero-banner fade-up">
+        <div className="hero-content" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '24px' }}>
+          <div>
+            <h1 style={{ fontSize: '32px', fontWeight: 800, margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              {greeting}, <span style={{ background: 'linear-gradient(90deg, #A855F7, #3B82F6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{firstName}</span> 👋
+            </h1>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+              <span style={{ background: 'rgba(255,255,255,0.1)', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 600 }}>
+                ID: {employee.employeeCode}
               </span>
-            )}
-            {overdueTasks > 0 && (
-              <span
-                style={{
-                  fontSize: 11,
-                  background: "rgba(239,68,68,0.12)",
-                  color: "var(--red)",
-                  padding: "2px 8px",
-                  borderRadius: 999,
-                  fontWeight: 600,
-                }}
-              >
-                ⚠ {overdueTasks} overdue task{overdueTasks > 1 ? "s" : ""}
+              <span style={{ background: isIntern ? 'rgba(168,85,247,0.2)' : 'rgba(59,130,246,0.2)', color: isIntern ? 'var(--purple)' : 'var(--blue)', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 600 }}>
+                {employee.employmentType}
               </span>
-            )}
-          </p>
+              <span style={{ background: 'rgba(245,158,11,0.2)', color: 'var(--amber)', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 600 }}>
+                {employee.tier} Tier
+              </span>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
+                {isIntern ? 'Internship Ends In' : 'Tenure'}
+              </div>
+              <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)' }}>
+                {isIntern ? `${daysRemaining} Days` : `${tenureMonths} Months`}
+              </div>
+            </div>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div className="progress-circle" style={{ '--p': progressPercent } as React.CSSProperties}>
+                <div className="progress-inner">{progressPercent}%</div>
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                Task<br/>Completion
+              </div>
+            </div>
+
+            <Link href="/employee/announcements" style={{ position: 'relative', background: 'rgba(255,255,255,0.1)', padding: '12px', borderRadius: '50%', color: 'var(--text-primary)', transition: 'transform 0.2s' }}>
+              <Bell size={24} />
+              {unreadCount > 0 && (
+                <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: 'var(--red)', color: 'white', fontSize: '10px', fontWeight: 'bold', width: '20px', height: '20px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 10px rgba(239,68,68,0.5)' }}>
+                  {unreadCount}
+                </span>
+              )}
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* 4 Key Metric Cards */}
+      <div className="fade-up delay-1" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px", marginBottom: "24px" }}>
+        <StatCard 
+          icon={<Trophy size={20} color="var(--amber)" />} 
+          label="Rank" 
+          value={`#${myMonthlyRank}`} 
+          sub="This Month" 
+        />
+        <StatCard 
+          icon={<Star size={20} color="var(--purple)" />} 
+          label="Points" 
+          value={String(employee.points)} 
+          sub={`${employee.monthlyPoints} this month`} 
+        />
+        <StatCard 
+          icon={<CheckSquare size={20} color="var(--green)" />} 
+          label="Tasks" 
+          value={`${completedTasks}/${totalTasks}`} 
+          sub="Completed / Total" 
+        />
+        <StatCard 
+          icon={<Clock size={20} color="var(--blue)" />} 
+          label={isIntern ? "Days Left" : "Tenure"} 
+          value={isIntern ? String(daysRemaining) : `${tenureMonths} mo`} 
+          sub={isIntern ? "Until internship ends" : "Total time with us"} 
+        />
+      </div>
+
+      {/* My Objectives */}
+      <div className="glass-card fade-up delay-1" style={{ padding: '24px', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <CheckSquare size={20} color="var(--blue)" /> My Objectives
+          </h2>
+          <Link href="/employee/tasks" style={{ fontSize: '14px', color: 'var(--purple)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
+            View All Tasks <ArrowRight size={14} />
+          </Link>
         </div>
 
         {employee.team && (
-          <div className="card" style={{ padding: "16px 24px", minWidth: 240 }}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                fontSize: 13,
-                marginBottom: 8,
-                fontWeight: 600,
-              }}
-            >
-              <span style={{ color: "var(--text-secondary)" }}>
-                Team Progress
-              </span>
-              <span style={{ color: "var(--text-primary)" }}>
-                {progressPercent}%
-              </span>
+          <div style={{ marginBottom: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '8px', color: 'var(--text-secondary)' }}>
+              <span>Team Overall Progress</span>
+              <span>{progressPercent}%</span>
             </div>
-            <div
-              style={{
-                height: 8,
-                background: "rgba(255,255,255,0.05)",
-                borderRadius: 4,
-                overflow: "hidden",
-              }}
-            >
-              <div
-                style={{
-                  height: "100%",
-                  width: `${progressPercent}%`,
-                  background:
-                    "linear-gradient(90deg, var(--blue), var(--purple))",
-                  borderRadius: 4,
-                  transition: "width 1s ease-in-out",
-                }}
-              />
+            <div style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${progressPercent}%`, background: 'linear-gradient(90deg, var(--blue), var(--purple))', transition: 'width 1s ease-in-out' }} />
             </div>
-            <div
-              style={{
-                fontSize: 12,
-                color: "var(--text-muted)",
-                marginTop: 8,
-              }}
-            >
-              {completedTasks} / {totalTasks} tasks completed
-            </div>
+          </div>
+        )}
+
+        {pendingTasks.length === 0 ? (
+          <div style={{ padding: '40px', textAlign: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px dashed rgba(255,255,255,0.1)' }}>
+            <ShieldCheck size={48} color="var(--green)" style={{ margin: '0 auto 16px', opacity: 0.8 }} />
+            <p style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>All caught up!</p>
+            <p style={{ color: 'var(--text-muted)' }}>You have completed all assigned tasks.</p>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {pendingTasks.map(task => {
+              const days = differenceInDays(task.deadline, now);
+              const isOverdue = days < 0;
+              const isDueSoon = days >= 0 && days <= 3;
+              const borderColor = isOverdue ? 'var(--red)' : isDueSoon ? 'var(--amber)' : 'rgba(255,255,255,0.1)';
+              const iconColor = isOverdue ? 'var(--red)' : isDueSoon ? 'var(--amber)' : 'var(--blue)';
+
+              return (
+                <Link key={task.id} href={`/employee/tasks/${task.id}`} className="task-card" style={{ borderLeft: `4px solid ${borderColor}` }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div style={{ background: `rgba(${isOverdue ? '239,68,68' : isDueSoon ? '245,158,11' : '59,130,246'}, 0.1)`, padding: '10px', borderRadius: '8px' }}>
+                      <Clock size={20} color={iconColor} />
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px', fontSize: '15px' }}>{task.title}</div>
+                      <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+                        {isOverdue ? `Overdue by ${Math.abs(days)} days` : days === 0 ? 'Due today' : `Due in ${days} days`}
+                        <span style={{ margin: '0 8px', opacity: 0.5 }}>|</span>
+                        <span style={{ color: 'var(--amber)' }}>{task.pointValue} Points</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ background: `rgba(${isOverdue ? '239,68,68' : isDueSoon ? '245,158,11' : '255,255,255'}, 0.1)`, color: isOverdue ? 'var(--red)' : isDueSoon ? 'var(--amber)' : 'var(--text-primary)', padding: '6px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 600 }}>
+                    {isOverdue ? 'Overdue' : isDueSoon ? 'Urgent' : 'Upcoming'}
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>
 
-      {/* Stat Cards */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
-          gap: 14,
-          marginBottom: 28,
-        }}
-      >
-        <StatCard
-          icon={<Briefcase size={18} color="var(--purple)" />}
-          label="Role"
-          value={employee.designation}
-          sub={
-            employee.employmentType === "Intern"
-              ? "Internship"
-              : `${employee.tier} Employee`
-          }
-        />
-        <StatCard
-          icon={<Clock size={18} color="var(--amber)" />}
-          label="Tenure"
-          value={format(employee.startDate, "MMM yyyy")}
-          sub={
-            employee.employmentType === "Intern" && daysRemaining !== null
-              ? `${daysRemaining} days remaining`
-              : "Full-time Active"
-          }
-        />
-        <StatCard
-          icon={<Users size={18} color="var(--blue)" />}
-          label="Squad"
-          value={displayTeamName}
-          sub={`${employee.team?.members.length || 0} Employees`}
-        />
-        <StatCard
-          icon={<CheckSquare size={18} color="var(--green)" />}
-          label="Objectives"
-          value={String(totalTasks)}
-          sub={`${completedTasks} Completed`}
-        />
-        <StatCard
-          icon={<Trophy size={18} color="var(--amber)" />}
-          label="Points"
-          value={String(employee.points)}
-          sub={`#${myMonthlyRank} this month`}
-          link="/employee/leaderboard"
-        />
-      </div>
-
-      {/* Main grid */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))",
-          gap: 20,
-          marginBottom: 20,
-        }}
-      >
-        {/* Left column */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          {/* Quick Actions */}
-          <div className="card" style={{ padding: 24 }}>
-            <h2
-              style={{
-                fontSize: 16,
-                fontWeight: 700,
-                marginBottom: 16,
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-              }}
-            >
-              <Zap size={16} color="var(--amber)" /> Quick Actions
-            </h2>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 10,
-              }}
-            >
-              {[
-                { href: "/employee/tasks", icon: <CheckSquare size={15} style={{ color: "var(--blue)" }} />, label: "My Tasks" },
-                { href: "/employee/team", icon: <Users size={15} style={{ color: "var(--purple)" }} />, label: "Team Chat" },
-                { href: "/employee/leaderboard", icon: <Trophy size={15} style={{ color: "var(--amber)" }} />, label: "Leaderboard" },
-                { href: "/employee/announcements", icon: <Bell size={15} style={{ color: "var(--green)" }} />, label: "Announcements" },
-                { href: "/employee/profile", icon: <Activity size={15} style={{ color: "var(--text-muted)" }} />, label: "My Profile" },
-              ].map((action) => (
-                <Link
-                  key={action.href}
-                  href={action.href}
-                  className="btn"
-                  style={{
-                    background: "rgba(255,255,255,0.03)",
-                    border: "1px solid var(--border-subtle)",
-                    justifyContent: "flex-start",
-                    padding: "11px 14px",
-                    fontSize: 13,
-                    gap: 8,
-                  }}
-                >
-                  {action.icon} {action.label}
-                </Link>
-              ))}
+      {/* 2-Column Grid */}
+      <div className="fade-up delay-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', marginBottom: '24px' }}>
+        
+        {/* Left: Performance & Badges */}
+        <div className="glass-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <h2 style={{ fontSize: '18px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+            <Star size={18} color="var(--amber)" /> Performance & Rewards
+          </h2>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '12px' }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--amber)' }}>#{myMonthlyRank}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Monthly Rank</div>
+            </div>
+            <div style={{ textAlign: 'center', borderLeft: '1px solid rgba(255,255,255,0.1)', borderRight: '1px solid rgba(255,255,255,0.1)' }}>
+              <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)' }}>{employee.monthlyPoints}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>This Month</div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--purple)' }}>{employee.points}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>All Time</div>
             </div>
           </div>
 
-          {/* Points & Badges */}
-          {(employee.points > 0 || employee.badges.length > 0) && (
-            <div className="card" style={{ padding: 24 }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: 16,
-                }}
-              >
-                <h2
-                  style={{
-                    fontSize: 16,
-                    fontWeight: 700,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                  }}
-                >
-                  <Star size={16} color="var(--amber)" /> Performance
-                </h2>
-                <Link
-                  href="/employee/leaderboard"
-                  style={{
-                    fontSize: 12,
-                    color: "var(--purple)",
-                    textDecoration: "none",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 4,
-                  }}
-                >
-                  Leaderboard <ArrowRight size={12} />
-                </Link>
-              </div>
-
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr 1fr",
-                  gap: 12,
-                  marginBottom: 16,
-                }}
-              >
-                <div style={{ textAlign: "center" }}>
-                  <div
-                    style={{
-                      fontSize: 22,
-                      fontWeight: 800,
-                      color: "var(--amber)",
-                    }}
-                  >
-                    #{myMonthlyRank}
-                  </div>
-                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
-                    Monthly
-                  </div>
-                </div>
-                <div style={{ textAlign: "center" }}>
-                  <div
-                    style={{
-                      fontSize: 22,
-                      fontWeight: 800,
-                      color: "var(--text-primary)",
-                    }}
-                  >
-                    {employee.monthlyPoints}
-                  </div>
-                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
-                    This Month
-                  </div>
-                </div>
-                <div style={{ textAlign: "center" }}>
-                  <div
-                    style={{
-                      fontSize: 22,
-                      fontWeight: 800,
-                      color: "var(--purple)",
-                    }}
-                  >
-                    {employee.points}
-                  </div>
-                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
-                    All Time
-                  </div>
-                </div>
-              </div>
-
-              {employee.badges.length > 0 && (
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                  {employee.badges.map((b) => (
-                    <div
-                      key={b.id}
-                      title={b.label}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 4,
-                        padding: "3px 10px",
-                        background: "rgba(168,85,247,0.1)",
-                        border: "1px solid rgba(168,85,247,0.2)",
-                        borderRadius: 20,
-                        fontSize: 12,
-                      }}
-                    >
-                      <span style={{ fontSize: 14 }}>
-                        {BADGE_ICONS[b.type] || "🏅"}
-                      </span>
-                      <span
-                        style={{
-                          color: "var(--text-primary)",
-                          fontWeight: 600,
-                        }}
-                      >
-                        {b.label}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {employee.pointTransactions.length > 0 && (
-                <div style={{ marginTop: 14 }}>
-                  <div
-                    style={{
-                      fontSize: 11,
-                      color: "var(--text-muted)",
-                      marginBottom: 8,
-                      fontWeight: 600,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.05em",
-                    }}
-                  >
-                    Recent Earnings
-                  </div>
-                  {employee.pointTransactions.map((tx, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        fontSize: 12,
-                        paddingBottom: 6,
-                        borderBottom:
-                          i < employee.pointTransactions.length - 1
-                            ? "1px solid var(--border-subtle)"
-                            : "none",
-                        marginBottom:
-                          i < employee.pointTransactions.length - 1 ? 6 : 0,
-                      }}
-                    >
-                      <span
-                        style={{
-                          color: "var(--text-secondary)",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                          flex: 1,
-                          marginRight: 8,
-                        }}
-                      >
-                        {tx.reason.replace("Task approved: ", "").split(" (")[0]}
-                      </span>
-                      <span
-                        style={{
-                          color: "var(--green)",
-                          fontWeight: 700,
-                          flexShrink: 0,
-                        }}
-                      >
-                        +{tx.points}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Recent Activity */}
-          <div className="card" style={{ padding: 24 }}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: 16,
-              }}
-            >
-              <h2
-                style={{
-                  fontSize: 16,
-                  fontWeight: 700,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                }}
-              >
-                <Activity size={16} color="var(--green)" /> Recent Activity
-              </h2>
-            </div>
-            {activityLogs.length === 0 ? (
-              <p style={{ color: "var(--text-muted)", fontSize: 13 }}>
-                No recent activity.
-              </p>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {activityLogs.map((log) => (
-                  <div
-                    key={log.id}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 12,
-                      fontSize: 13,
-                      paddingBottom: 10,
-                      borderBottom: "1px solid var(--border-subtle)",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: "50%",
-                        background:
-                          log.action === "LOGIN"
-                            ? "var(--green)"
-                            : log.action.includes("TASK")
-                            ? "var(--purple)"
-                            : "var(--blue)",
-                        flexShrink: 0,
-                      }}
-                    />
-                    <div
-                      style={{
-                        flex: 1,
-                        color: "var(--text-secondary)",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {log.action === "LOGIN"
-                        ? "Logged in"
-                        : log.action
-                            .replace(/_/g, " ")
-                            .toLowerCase()
-                            .replace(/\b\w/g, (c) => c.toUpperCase())}
-                    </div>
-                    <div style={{ color: "var(--text-muted)", fontSize: 11, flexShrink: 0 }}>
-                      {format(log.timestamp, "MMM d")}
-                    </div>
+          <div>
+            <h3 style={{ fontSize: '13px', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '1px', marginBottom: '12px' }}>Badges Earned</h3>
+            {employee.badges.length > 0 ? (
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {employee.badges.map(b => (
+                  <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(168,85,247,0.15)', border: '1px solid rgba(168,85,247,0.3)', padding: '6px 12px', borderRadius: '20px', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', boxShadow: '0 2px 10px rgba(168,85,247,0.1)' }}>
+                    <span>{BADGE_ICONS[b.type] || "🏅"}</span> {b.label}
                   </div>
                 ))}
               </div>
+            ) : (
+              <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>No badges earned yet.</div>
+            )}
+          </div>
+
+          <div>
+            <h3 style={{ fontSize: '13px', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '1px', marginBottom: '12px' }}>Recent Earnings</h3>
+            {employee.pointTransactions.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {employee.pointTransactions.map((tx, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', paddingBottom: '8px', borderBottom: i < 2 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>{tx.reason.replace("Task approved: ", "").split(" (")[0]}</span>
+                    <span style={{ color: 'var(--green)', fontWeight: 700 }}>+{tx.points} pts</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>No recent points.</div>
             )}
           </div>
         </div>
 
-        {/* Right: Tasks */}
-        <div className="card" style={{ padding: 24 }}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 16,
-            }}
-          >
-            <h2
-              style={{
-                fontSize: 16,
-                fontWeight: 700,
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-              }}
-            >
-              <CheckSquare size={16} color="var(--blue)" /> Pending Objectives
+        {/* Right: Latest Announcements */}
+        <div className="glass-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+              <Bell size={18} color="var(--purple)" /> Announcements
+              {unreadCount > 0 && (
+                <span style={{ background: 'var(--amber)', color: '#000', fontSize: '11px', fontWeight: 800, padding: '2px 8px', borderRadius: '12px' }}>
+                  {unreadCount} New
+                </span>
+              )}
             </h2>
-            <Link
-              href="/employee/tasks"
-              style={{
-                fontSize: 12,
-                color: "var(--purple)",
-                textDecoration: "none",
-                display: "flex",
-                alignItems: "center",
-                gap: 4,
-              }}
-            >
-              All <ArrowRight size={12} />
+            <Link href="/employee/announcements" style={{ fontSize: '13px', color: 'var(--purple)', textDecoration: 'none', fontWeight: 600 }}>
+              View All
             </Link>
           </div>
 
-          {!employee.team ? (
-            <div
-              style={{
-                padding: 32,
-                textAlign: "center",
-                background: "rgba(255,255,255,0.02)",
-                borderRadius: 12,
-                border: "1px dashed var(--border)",
-              }}
-            >
-              <Users size={28} color="var(--text-muted)" style={{ margin: "0 auto 12px" }} />
-              <p style={{ color: "var(--text-muted)", fontSize: 14 }}>
-                {isExecutive
-                  ? "You oversee all teams."
-                  : "Not assigned to a team yet."}
-              </p>
-            </div>
-          ) : upcomingTasks.length === 0 ? (
-            <div
-              style={{
-                padding: 32,
-                textAlign: "center",
-                background: "rgba(255,255,255,0.02)",
-                borderRadius: 12,
-                border: "1px dashed var(--border)",
-              }}
-            >
-              <ShieldCheck
-                size={32}
-                color="var(--green)"
-                style={{ margin: "0 auto 12px", opacity: 0.8 }}
-              />
-              <p
-                style={{
-                  color: "var(--text-secondary)",
-                  fontSize: 14,
-                  fontWeight: 600,
-                }}
-              >
-                All caught up!
-              </p>
-              <p style={{ color: "var(--text-muted)", fontSize: 13 }}>
-                No pending tasks in your queue.
-              </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {announcements.slice(0,3).map(a => {
+              const isUnread = !readSet.has(a.id);
+              return (
+                <div key={a.id} style={{ padding: '16px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', borderLeft: `3px solid ${a.isPinned ? 'var(--amber)' : 'var(--purple)'}`, border: isUnread ? '1px solid rgba(168,85,247,0.3)' : '1px solid rgba(255,255,255,0.05)', position: 'relative' }}>
+                  {isUnread && <div style={{ position: 'absolute', top: '12px', right: '12px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--purple)', boxShadow: '0 0 8px var(--purple)' }} />}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    {a.isPinned && <span style={{ fontSize: '10px', background: 'rgba(245,158,11,0.2)', color: 'var(--amber)', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>📌 Pinned</span>}
+                    <span style={{ fontSize: '10px', background: 'rgba(255,255,255,0.1)', color: 'var(--text-secondary)', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>{a.scope}</span>
+                  </div>
+                  <h4 style={{ fontSize: '15px', margin: '0 0 6px 0', color: 'var(--text-primary)' }}>{a.title}</h4>
+                  <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 10px 0', lineHeight: 1.4 }}>
+                    {a.message.length > 80 ? a.message.slice(0, 80) + '...' : a.message}
+                  </p>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                    From {a.sentBy.name} • {format(a.sentAt, 'MMM d, yyyy')}
+                  </div>
+                </div>
+              );
+            })}
+            {announcements.length === 0 && (
+              <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '14px' }}>No announcements.</div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions Grid & Activity Timeline */}
+      <div className="fade-up delay-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
+        
+        {/* Quick Actions */}
+        <div className="glass-card" style={{ padding: '24px' }}>
+          <h2 style={{ fontSize: '18px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
+            <Zap size={18} color="var(--amber)" /> Quick Actions
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <Link href="/employee/tasks" className="action-btn">
+              <CheckSquare size={18} color="var(--blue)" /> My Tasks
+            </Link>
+            <Link href="/employee/team" className="action-btn">
+              <MessageSquare size={18} color="var(--purple)" /> Team Chat
+            </Link>
+            <Link href="/employee/leaderboard" className="action-btn">
+              <Trophy size={18} color="var(--amber)" /> Leaderboard
+            </Link>
+            <Link href="/employee/announcements" className="action-btn">
+              <Bell size={18} color="var(--green)" /> Announcements
+            </Link>
+            <Link href="/employee/documents" className="action-btn">
+              <FileText size={18} color="var(--text-muted)" /> My Documents
+            </Link>
+            <Link href="/employee/profile" className="action-btn">
+              <User size={18} color="var(--text-primary)" /> My Profile
+            </Link>
+          </div>
+        </div>
+
+        {/* Recent Activity */}
+        <div className="glass-card" style={{ padding: '24px' }}>
+          <h2 style={{ fontSize: '18px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
+            <Activity size={18} color="var(--green)" /> Recent Activity
+          </h2>
+          {activityLogs.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', position: 'relative' }}>
+              <div style={{ position: 'absolute', left: '7px', top: '10px', bottom: '10px', width: '2px', background: 'rgba(255,255,255,0.1)' }} />
+              {activityLogs.map((log, i) => (
+                <div key={log.id} style={{ display: 'flex', gap: '16px', position: 'relative', zIndex: 1 }}>
+                  <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: 'var(--bg-base)', border: `2px solid ${log.action.includes('LOGIN') ? 'var(--green)' : log.action.includes('TASK') ? 'var(--blue)' : 'var(--purple)'}`, marginTop: '2px', flexShrink: 0 }} />
+                  <div>
+                    <div style={{ fontSize: '14px', color: 'var(--text-primary)', marginBottom: '2px', fontWeight: 500 }}>
+                      {log.action.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                      {format(log.timestamp, "MMM d, h:mm a")}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
-            <div style={{ display: "grid", gap: 10 }}>
-              {upcomingTasks.map((task) => {
-                const days = differenceInDays(task.deadline, new Date());
-                const isOverdue = days < 0;
-                return (
-                  <Link
-                    key={task.id}
-                    href={`/employee/tasks/${task.id}`}
-                    style={{ textDecoration: "none" }}
-                  >
-                    <div
-                      className="card-hover"
-                      style={{
-                        padding: "14px 16px",
-                        background: "rgba(255,255,255,0.02)",
-                        borderRadius: 10,
-                        border: `1px solid ${isOverdue ? "rgba(239,68,68,0.25)" : "var(--border)"}`,
-                        transition: "all 0.2s",
-                        borderLeft: `3px solid ${isOverdue ? "var(--red)" : "var(--purple)"}`,
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "flex-start",
-                          gap: 8,
-                        }}
-                      >
-                        <div style={{ minWidth: 0 }}>
-                          <p
-                            style={{
-                              fontSize: 14,
-                              fontWeight: 600,
-                              color: "var(--text-primary)",
-                              marginBottom: 4,
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              whiteSpace: "nowrap",
-                            }}
-                          >
-                            {task.title}
-                          </p>
-                          <p
-                            style={{
-                              fontSize: 12,
-                              color: isOverdue ? "var(--red)" : days <= 2 ? "var(--amber)" : "var(--text-muted)",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 4,
-                            }}
-                          >
-                            <Clock size={12} />
-                            {isOverdue
-                              ? `Overdue by ${Math.abs(days)} days`
-                              : days === 0
-                              ? "Due today"
-                              : `${days} days remaining`}
-                          </p>
-                        </div>
-                        <span className={`badge ${isOverdue ? "badge-red" : "badge-amber"}`}>
-                          {isOverdue ? "Overdue" : "Pending"}
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
+             <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '14px' }}>No recent activity.</div>
           )}
         </div>
       </div>
-
-      {/* Announcements */}
-      {announcements.length > 0 && (
-        <div className="card" style={{ padding: 24 }}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 16,
-            }}
-          >
-            <h2
-              style={{
-                fontSize: 16,
-                fontWeight: 700,
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-              }}
-            >
-              <Bell size={16} color="var(--purple)" /> Latest Announcements
-              {unreadAnnouncementCount > 0 && (
-                <span style={{
-                  background: "var(--amber)", color: "#000",
-                  fontSize: 10, fontWeight: 800, padding: "1px 6px",
-                  borderRadius: 10, lineHeight: 1.6,
-                }}>{unreadAnnouncementCount} new</span>
-              )}
-            </h2>
-            <Link
-              href="/employee/announcements"
-              style={{
-                fontSize: 12,
-                color: "var(--purple)",
-                textDecoration: "none",
-              }}
-            >
-              Read all
-            </Link>
-          </div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
-              gap: 14,
-            }}
-          >
-            {announcements.map((a) => (
-              <div
-                key={a.id}
-                style={{
-                  borderLeft: `3px solid ${!readSet.has(a.id) ? "var(--amber)" : "var(--purple)"}`,
-                  padding: "12px 16px",
-                  background: !readSet.has(a.id) ? "rgba(245,158,11,0.04)" : "rgba(255,255,255,0.02)",
-                  borderRadius: "0 8px 8px 0",
-                  position: "relative",
-                }}
-              >
-                {!readSet.has(a.id) && (
-                  <span style={{
-                    position: "absolute", top: 10, right: 10,
-                    width: 8, height: 8, borderRadius: "50%",
-                    background: "var(--amber)",
-                    boxShadow: "0 0 6px rgba(245,158,11,0.6)",
-                  }} />
-                )}
-                <p
-                  style={{
-                    fontSize: 14,
-                    color: "var(--text-primary)",
-                    lineHeight: 1.5,
-                    marginBottom: 8,
-                    fontWeight: 500,
-                  }}
-                >
-                  {a.isPinned && (
-                    <span
-                      style={{
-                        fontSize: 10,
-                        background: "rgba(245,158,11,0.15)",
-                        color: "#f59e0b",
-                        padding: "2px 6px",
-                        borderRadius: 4,
-                        marginRight: 8,
-                        verticalAlign: "middle",
-                      }}
-                    >
-                      📌 Pinned
-                    </span>
-                  )}
-                  {a.message.slice(0, 100)}
-                  {a.message.length > 100 ? "…" : ""}
-                </p>
-                <p
-                  style={{
-                    fontSize: 12,
-                    color: "var(--text-muted)",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                  }}
-                >
-                  <span
-                    style={{
-                      width: 16,
-                      height: 16,
-                      background: "var(--purple)",
-                      borderRadius: "50%",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "#fff",
-                      fontSize: 10,
-                      flexShrink: 0,
-                    }}
-                  >
-                    {a.sentBy.name[0]}
-                  </span>
-                  {a.sentBy.name}{" "}
-                  <span style={{ opacity: 0.5 }}>·</span>{" "}
-                  {format(a.sentAt, "MMM d")}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
+    </>
   );
 }
 
-function StatCard({
-  icon,
-  label,
-  value,
-  sub,
-  link,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  sub: string;
-  link?: string;
-}) {
-  const content = (
-    <div
-      className="card"
-      style={{
-        padding: "20px 22px",
-        display: "flex",
-        flexDirection: "column",
-        gap: 10,
-        position: "relative",
-        overflow: "hidden",
-        cursor: link ? "pointer" : "default",
-        transition: "border-color 0.2s",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          fontSize: 12,
-          color: "var(--text-muted)",
-          fontWeight: 600,
-          textTransform: "uppercase",
-          letterSpacing: "0.05em",
-        }}
-      >
+function StatCard({ icon, label, value, sub }: { icon: React.ReactNode, label: string, value: string, sub: string }) {
+  return (
+    <div className="glass-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
         {icon} {label}
       </div>
       <div>
-        <div
-          style={{
-            fontSize: 22,
-            fontWeight: 800,
-            color: "var(--text-primary)",
-            letterSpacing: "-0.02em",
-          }}
-        >
-          {value}
-        </div>
-        <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
-          {sub}
-        </div>
+        <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-primary)' }}>{value}</div>
+        <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>{sub}</div>
       </div>
     </div>
-  );
-
-  return link ? (
-    <Link href={link} style={{ textDecoration: "none" }}>
-      {content}
-    </Link>
-  ) : (
-    content
   );
 }

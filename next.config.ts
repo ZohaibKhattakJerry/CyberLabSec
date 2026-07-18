@@ -50,7 +50,12 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     memoryBasedWorkersCount: true,
-  }
+  },
+  images: {
+    remotePatterns: [
+      { protocol: 'https', hostname: '**' },
+    ],
+  },
 };
 
 export default nextConfig;

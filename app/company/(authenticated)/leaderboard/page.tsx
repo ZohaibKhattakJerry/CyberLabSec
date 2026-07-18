@@ -9,23 +9,13 @@ export default async function CompanyLeaderboardPage() {
     select: {
       id: true,
       name: true,
-      employeeCode: true,
       designation: true,
+      employeeCode: true,
       photoUrl: true,
       points: true,
       monthlyPoints: true,
-      team: { select: { id: true, name: true } },
-      badges: { orderBy: { awardedAt: "asc" }, select: { id: true, type: true, label: true, awardedAt: true } },
-      submissions: { 
-        where: { status: "Approved" }, 
-        select: { 
-          id: true, 
-          qualityRating: true, 
-          submittedAt: true,
-          task: { select: { title: true } },
-        },
-        orderBy: { submittedAt: "desc" },
-      },
+      teamId: true,
+      team: { select: { name: true } },
     },
     orderBy: { points: "desc" },
   });
@@ -56,11 +46,11 @@ export default async function CompanyLeaderboardPage() {
     }))
     .sort((a, b) => b.totalPoints - a.totalPoints);
 
-  // Serialize dates
+  // Add default empty arrays since we optimized them out
   const serializedEmployees = employees.map((e) => ({
     ...e,
-    badges: e.badges.map((b) => ({ ...b, awardedAt: b.awardedAt.toISOString() })),
-    submissions: e.submissions.map((s) => ({ ...s, submittedAt: s.submittedAt.toISOString() })),
+    badges: [],
+    submissions: [],
   }));
 
   return (
