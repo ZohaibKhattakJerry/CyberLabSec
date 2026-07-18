@@ -4,9 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  _Shield, LayoutDashboard, Users, Bell, Settings, LogOut,
+  LayoutDashboard, Users, Bell, Settings, LogOut,
   Menu, X, ChevronRight, Trophy, ClipboardList, Building2,
-  Briefcase, UserCheck, BookOpen, Video, CalendarDays, LifeBuoy
+  Briefcase, UserCheck, CalendarDays, LifeBuoy
 } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 
@@ -52,9 +52,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
 
         {/* Nav */}
-        <nav style={{ flex: 1, padding: "12px" }}>
+        <nav style={{ flex: 1, padding: "12px", overflowY: "auto" }}>
           {NAV.map(({ href, label, icon: Icon }) => {
-            const active = pathname.startsWith(href);
+            const active = href === "/company/dashboard" ? pathname === href : pathname.startsWith(href);
             return (
               <Link key={href} href={href} style={{ textDecoration: "none" }} onClick={() => setMobileOpen(false)}>
                 <div

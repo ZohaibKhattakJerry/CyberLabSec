@@ -857,38 +857,16 @@ select.input option {
     grid-template-columns: 1fr !important;
   }
 
-  /* Table mobile fix */
-  table, thead, tbody, th, td, tr {
-    display: block;
+  /* Grid columns for larger minmax values - 1 col on mobile */
+  div[style*="repeat(auto-fit, minmax(300px"],
+  div[style*="repeat(auto-fit, minmax(320px"],
+  div[style*="repeat(auto-fit, minmax(340px"] {
+    grid-template-columns: 1fr !important;
   }
-  thead tr {
-    position: absolute;
-    top: -9999px;
-    left: -9999px;
-  }
-  tbody tr {
-    margin-bottom: 16px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 12px;
-  }
-  tbody td {
-    border: none;
-    position: relative;
-    padding: 8px 0;
-    padding-left: 45%;
-    text-align: right;
-  }
-  tbody td::before {
-    content: attr(data-label);
-    position: absolute;
-    left: 0;
-    top: 8px;
-    font-weight: 600;
-    color: var(--text-muted);
-    font-size: 12px;
-    text-transform: uppercase;
+  /* Fix stat cards on mobile to 2 cols */
+  div[style*="repeat(auto-fit, minmax(200px"],
+  div[style*="repeat(auto-fill, minmax(160px"] {
+    grid-template-columns: repeat(2, 1fr) !important;
   }
   
   .btn, .input {
@@ -941,6 +919,29 @@ select.input option {
   .job-detail-apply-bar .badge-red {
     text-align: center;
   }
+
+  /* Grid columns for larger minmax values — 1 col on mobile */
+  div[style*="repeat(auto-fit, minmax(300px"],
+  div[style*="repeat(auto-fit, minmax(320px"],
+  div[style*="repeat(auto-fit, minmax(340px"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Stat cards — 2 cols on mobile so they fit */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Responsive table — horizontal scroll on mobile */
+  table {
+    min-width: 480px;
+  }
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: var(--radius-lg);
+    width: 100%;
+  }
 }
 
 /* Tablet (768px - 1024px) */
@@ -984,4 +985,12 @@ select.input option {
 @media (min-width: 641px) {
   .hidden.sm\:block { display: block !important; }
   .hidden.sm\:inline { display: inline !important; }
+}
+
+/* Responsive table wrapper */
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius-lg);
+  width: 100%;
 }

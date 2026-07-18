@@ -4,8 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  LayoutDashboard, ClipboardList, Users, Bell, User, LogOut,
-  Menu, X, ChevronRight, Trophy, FileText, Calendar, CalendarDays, LifeBuoy, Video
+  Menu, X, ChevronRight, Trophy, FileText, Calendar, CalendarDays, LifeBuoy, LayoutDashboard, ClipboardList, Users, Bell, User, LogOut
 } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 import AttendanceTracker from "@/components/AttendanceTracker";
@@ -42,7 +41,7 @@ export default function PortalLayout({ children, employee }: { children: React.R
   const sidebarContent = (
     <aside className={`sidebar ${mobileOpen ? "mobile-open" : ""}`}>
       {/* Brand */}
-      <div style={{ padding: "20px 20px 16px", borderBottom: "1px solid var(--border)" }}>
+      <div style={{ padding: "20px 20px 16px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <Link href="/employee/dashboard" style={{ display: "flex", alignItems: "center", textDecoration: "none", flex: 1 }}>
           <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 32, objectFit: "contain" }} />
         </Link>

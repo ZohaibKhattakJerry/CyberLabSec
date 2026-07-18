@@ -159,7 +159,8 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
             <Activity size={14} color="var(--purple)" /> Tasks by Status
           </h2>
           {taskData.length > 0 ? (
-            <div style={{ height: 220, position: "relative" }}>
+            <div style={{ height: 220, position: "relative", overflowX: "auto" }}>
+              <div style={{ minWidth: 280, height: "100%" }}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -182,6 +183,7 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
                   />
                 </PieChart>
               </ResponsiveContainer>
+              </div>
               <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", textAlign: "center", pointerEvents: "none" }}>
                 <div style={{ fontSize: 24, fontWeight: 800 }}>{taskTotal}</div>
                 <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Total</div>
@@ -196,7 +198,8 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
           <h2 style={{ fontSize: 13, fontWeight: 700, marginBottom: 14, display: "flex", alignItems: "center", gap: 6 }}>
             <TrendingUp size={14} color="var(--purple)" /> Hiring Funnel
           </h2>
-          <div style={{ height: 220 }}>
+          <div style={{ height: 220, overflowX: "auto" }}>
+            <div style={{ minWidth: 350, height: "100%" }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={funnelData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
@@ -216,6 +219,7 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
                 <Area type="monotone" dataKey="value" stroke="var(--purple)" strokeWidth={2} fillOpacity={1} fill="url(#colorPurple)" />
               </AreaChart>
             </ResponsiveContainer>
+            </div>
           </div>
         </div>
       </div>

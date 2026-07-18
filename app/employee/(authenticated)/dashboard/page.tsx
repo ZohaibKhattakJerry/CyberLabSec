@@ -242,7 +242,7 @@ export default async function Dashboard() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
           gap: 14,
           marginBottom: 28,
         }}
@@ -805,7 +805,7 @@ export default async function Dashboard() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
               gap: 14,
             }}
           >

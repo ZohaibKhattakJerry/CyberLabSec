@@ -8,13 +8,14 @@ import AcknowledgeButton from "./AcknowledgeButton";
 export const dynamic = "force-dynamic";
 
 export default async function AnnouncementsPage() {
-  const auth = await getAuthFromCookies();
-  if (!auth) redirect("/employee/login");
+  try {
+    const auth = await getAuthFromCookies();
+    if (!auth) redirect("/employee/login");
 
-  const employee = await prisma.employee.findUnique({
-    where: { id: auth.sub },
-    select: { teamId: true },
-  });
+    const employee = await prisma.employee.findUnique({
+      where: { id: auth.sub },
+      select: { teamId: true },
+    });
 
   if (!employee) redirect("/employee/login");
 
@@ -159,4 +160,8 @@ export default async function AnnouncementsPage() {
       )}
     </div>
   );
+  } catch (error) {
+    console.error(error);
+    return <div>This page couldn't load. Please try again.</div>;
+  }
 }
