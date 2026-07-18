@@ -306,7 +306,7 @@ export default async function Dashboard() {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {pendingTasks.map(task => {
+            {pendingTasks.map((task: any) => {
               const days = differenceInDays(task.deadline, now);
               const isOverdue = days < 0;
               const isDueSoon = days >= 0 && days <= 3;
@@ -366,7 +366,7 @@ export default async function Dashboard() {
             <h3 style={{ fontSize: '13px', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '1px', marginBottom: '12px' }}>Badges Earned</h3>
             {employee.badges.length > 0 ? (
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                {employee.badges.map(b => (
+                {employee.badges.map((b: any) => (
                   <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(168,85,247,0.15)', border: '1px solid rgba(168,85,247,0.3)', padding: '6px 12px', borderRadius: '20px', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', boxShadow: '0 2px 10px rgba(168,85,247,0.1)' }}>
                     <span>{BADGE_ICONS[b.type] || "🏅"}</span> {b.label}
                   </div>
@@ -381,7 +381,7 @@ export default async function Dashboard() {
             <h3 style={{ fontSize: '13px', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '1px', marginBottom: '12px' }}>Recent Earnings</h3>
             {employee.pointTransactions.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {employee.pointTransactions.map((tx, i) => (
+                {employee.pointTransactions.map((tx: any, i: number) => (
                   <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', paddingBottom: '8px', borderBottom: i < 2 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
                     <span style={{ color: 'var(--text-secondary)' }}>{tx.reason.replace("Task approved: ", "").split(" (")[0]}</span>
                     <span style={{ color: 'var(--green)', fontWeight: 700 }}>+{tx.points} pts</span>
@@ -411,7 +411,7 @@ export default async function Dashboard() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {announcements.slice(0,3).map(a => {
+            {announcements.slice(0,3).map((a: any) => {
               const isUnread = !readSet.has(a.id);
               return (
                 <div key={a.id} style={{ padding: '16px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', borderLeft: `3px solid ${a.isPinned ? 'var(--amber)' : 'var(--purple)'}`, border: isUnread ? '1px solid rgba(168,85,247,0.3)' : '1px solid rgba(255,255,255,0.05)', position: 'relative' }}>
@@ -475,7 +475,7 @@ export default async function Dashboard() {
           {activityLogs.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', position: 'relative' }}>
               <div style={{ position: 'absolute', left: '7px', top: '10px', bottom: '10px', width: '2px', background: 'rgba(255,255,255,0.1)' }} />
-              {activityLogs.map((log, i) => (
+              {activityLogs.map((log: any, i: number) => (
                 <div key={log.id} style={{ display: 'flex', gap: '16px', position: 'relative', zIndex: 1 }}>
                   <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: 'var(--bg-base)', border: `2px solid ${log.action.includes('LOGIN') ? 'var(--green)' : log.action.includes('TASK') ? 'var(--blue)' : 'var(--purple)'}`, marginTop: '2px', flexShrink: 0 }} />
                   <div>

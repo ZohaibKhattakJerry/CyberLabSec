@@ -95,7 +95,7 @@ export default async function CompanyAttendancePage() {
             </p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {todayRecords.map((r: unknown) => (
+              {todayRecords.map((r: any) => (
                 <div
                   key={r.id}
                   style={{

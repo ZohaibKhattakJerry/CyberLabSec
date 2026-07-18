@@ -352,7 +352,7 @@ export default function TasksClient({ initialTasks, teams, employees, hideHeader
                   <span style={{ fontSize: 11, background: "rgba(255,255,255,0.06)", padding: "2px 7px", borderRadius: 10, color: "var(--text-muted)" }}>{colTasks.length}</span>
                 </div>
                 <div style={{ display: "grid", gap: 8 }}>
-                  {colTasks.map(task => {
+                  {colTasks.map((task: any) => {
                     const pc = PRIORITY_CONFIG[task.priority] || PRIORITY_CONFIG.Medium;
                     const overdue = isPast(new Date(task.deadline)) && task.status !== "Completed";
                     return (
@@ -384,7 +384,7 @@ export default function TasksClient({ initialTasks, teams, employees, hideHeader
             </div>
           ) : (
             <>
-            {filteredTasks.map(task => {
+            {filteredTasks.map((task: any) => {
             const isOverdue = isPast(new Date(task.deadline)) && task.status !== "Completed";
             const pc = PRIORITY_CONFIG[task.priority] || PRIORITY_CONFIG.Medium;
             const sc = STATUS_CONFIG[task.status] || STATUS_CONFIG.Assigned;
@@ -444,7 +444,7 @@ export default function TasksClient({ initialTasks, teams, employees, hideHeader
                       <p style={{ fontSize: 13, color: "var(--text-muted)", textAlign: "center", padding: "20px 0" }}>No members in this team.</p>
                     ) : (
                       <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))" }}>
-                        {task.team.members.map(member => {
+                        {task.team.members.map((member: any) => {
                           const sub = task.submissions.find(s => s.employee.id === member.id);
                           
                           return (

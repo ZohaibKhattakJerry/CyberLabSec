@@ -148,7 +148,7 @@ export default function MeetingClient({ initialMeetings, currentUser }: { initia
         </div>
       ) : (
         <div style={{ display: 'grid', gap: 16 }}>
-          {meetings.map((m: unknown) => {
+          {meetings.map((m: any) => {
             const proposedTimes = JSON.parse(m.proposedTimes || '[]');
             const votes = JSON.parse(m.votes || '{}');
             const myVote = votes[currentUser];

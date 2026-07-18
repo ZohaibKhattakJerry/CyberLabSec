@@ -162,8 +162,8 @@ export async function gradeOpenAnswer(
 ): Promise<{ score: number; feedback: string; aiLikelihood: number }> {
   const ansLower = answer.toLowerCase();
   
-  const dbQuestion = await prisma.questionBank.findFirst({ where: { prompt: questionText } });
-  const keywords = dbQuestion && dbQuestion.keywords ? JSON.parse(dbQuestion.keywords) : rubric.toLowerCase().split(/\W+/).filter(w => w.length > 4);
+  // const dbQuestion = await prisma.questionBank.findFirst({ where: { prompt: questionText } });
+  const keywords = rubric.toLowerCase().split(/\W+/).filter(w => w.length > 4);
   
   let matchCount = 0;
   for (const kw of keywords) {

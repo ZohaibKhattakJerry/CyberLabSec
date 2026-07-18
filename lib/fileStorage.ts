@@ -1,6 +1,6 @@
 import path from "path";
 import fs from "fs";
-import _crypto from "_crypto";
+import crypto from "crypto";
 
 const UPLOAD_BASE = path.join(process.cwd(), "uploads");
 

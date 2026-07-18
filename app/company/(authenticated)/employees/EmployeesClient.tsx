@@ -340,7 +340,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
             </tr>
           </thead>
           <tbody>
-            {filtered.map((e: unknown) => (
+            {filtered.map((e: any) => (
               <tr key={e.id}>
                 <td data-label="Employee">
                   <div style={{ fontWeight: 600, fontSize: 13, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 6 }}>
@@ -506,7 +506,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
                 <label className="label">Team Assignment</label>
                 <select className="input" value={dhData.teamId} onChange={e => setDhData({...dhData, teamId: e.target.value})}>
                   <option value="">Unassigned</option>
-                  {teams.map((t: unknown) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                  {teams.map((t: any) => <option key={t.id} value={t.id}>{t.name}</option>)}
                 </select>
               </div>
 
@@ -555,7 +555,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
                   <label className="label">Team Assignment</label>
                   <select className="input" value={editTeam} onChange={e => setEditTeam(e.target.value)}>
                     <option value="">Unassigned</option>
-                    {teams.map((t: unknown) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                    {teams.map((t: any) => <option key={t.id} value={t.id}>{t.name}</option>)}
                   </select>
                 </div>
               </div>

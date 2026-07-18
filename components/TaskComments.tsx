@@ -21,7 +21,7 @@ interface Props {
   currentUserRole: "admin" | "employee";
 }
 
-export default function TaskComments({ taskId, initialComments, currentUserId, _currentUserRole }: Props) {
+export default function TaskComments({ taskId, initialComments, currentUserId }: Props) {
   const [comments, setComments] = useState<Comment[]>(initialComments);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
