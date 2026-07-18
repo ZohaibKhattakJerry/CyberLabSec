@@ -43,18 +43,21 @@ For Open-Ended Questions:
 Ensure the questions are highly relevant to the specific technologies and responsibilities mentioned in the job context.
 Do not use markdown blocks like \`\`\`json. Output raw JSON array.`;
 
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: "application/json" }
+    });
     const text = result.response.text().trim();
-    // Extract JSON block explicitly if the model still uses markdown
-    let cleanText = text;
-    const match = text.match(/\[\s*\{[\s\S]*\}\s*\]/);
-    if (match) {
-      cleanText = match[0];
-    } else {
-      cleanText = text.replace(/```json/g, "").replace(/```/g, "").trim();
-    }
     
-    const questions = JSON.parse(cleanText);
+    let questions;
+    try {
+      questions = JSON.parse(text);
+    } catch (e) {
+      // Fallback manual parse if JSON.parse still fails
+      const match = text.match(/\[\s*\{[\s\S]*\}\s*\]/);
+      if (match) questions = JSON.parse(match[0]);
+      else throw e;
+    }
 
     return NextResponse.json(questions);
   } catch (error) {

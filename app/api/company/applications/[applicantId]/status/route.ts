@@ -49,7 +49,7 @@ export async function PATCH(
     await sendDeclineEmail(updated.email, updated.fullName, updated.jobPosting.title).catch(console.error);
   }
 
-  if (status === "InterviewInvited" && updated.interviewSession?.token) {
+  if (status === "Interview" && updated.interviewSession?.token) {
     const { sendInterviewInvite } = await import("@/lib/email");
     const interviewLink = `${process.env.NEXT_PUBLIC_APP_URL || "https://cyberlabsec.tech"}/careers/interview/${updated.interviewSession.token}`;
     await sendInterviewInvite(

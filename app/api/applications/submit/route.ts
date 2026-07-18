@@ -230,7 +230,7 @@ async function runScreening(
       });
     }
 
-    const shortlisted = ctx.posting.autoShortlist;
+    const shortlisted = ctx.posting.autoShortlist && result.fitScore >= (ctx.posting.passMark || 60);
 
     if (shortlisted) {
       await prisma.applicant.update({

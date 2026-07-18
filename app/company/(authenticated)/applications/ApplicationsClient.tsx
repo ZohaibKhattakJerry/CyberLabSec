@@ -186,7 +186,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
     const res = await fetch(`/api/company/applications/${applicantId}/status`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: "InterviewInvited" }), // This triggers the email and token refresh in the API
+      body: JSON.stringify({ status: "Interview" }),
     });
     const data = await res.json();
     setActionLoading(false);
@@ -200,13 +200,56 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
     });
   };
 
+  const handleDragStart = (e: React.DragEvent, applicantId: string) => {
+    e.dataTransfer.setData("applicantId", applicantId);
+  };
+
+  const handleDrop = async (e: React.DragEvent, newStage: string) => {
+    e.preventDefault();
+    const applicantId = e.dataTransfer.getData("applicantId");
+    if (!applicantId) return;
+    
+    const applicant = applicants.find(a => a.id === applicantId);
+    if (!applicant || applicant.status === newStage) return;
+
+    if (newStage === "Interview") {
+      await manualShortlist(applicantId);
+      return;
+    }
+    
+    if (newStage === "Final Approval") {
+      await hireApplicant(applicantId);
+      return;
+    }
+
+    // Standard status update
+    setActionLoading(true);
+    setActionMsg("");
+    const res = await fetch(`/api/company/applications/${applicantId}/status`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: newStage }),
+    });
+    const data = await res.json();
+    setActionLoading(false);
+    if (!res.ok) {
+      setActionMsg(data.error || "Failed to update status");
+      return;
+    }
+    startTransition(() => { router.refresh(); });
+  };
+
   const renderKanban = () => {
     return (
       <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingBottom: 16, minHeight: 600 }}>
         {PIPELINE_STAGES.map(stage => {
           const items = filtered.filter(a => a.status === stage);
           return (
-            <div key={stage} style={{ flex: "0 0 320px", background: "rgba(255,255,255,0.02)", borderRadius: 12, padding: 16, border: "1px solid var(--border-subtle)", display: "flex", flexDirection: "column", gap: 12 }}>
+            <div 
+              key={stage} 
+              onDragOver={(e) => e.preventDefault()} 
+              onDrop={(e) => handleDrop(e, stage)}
+              style={{ flex: "0 0 320px", background: "rgba(255,255,255,0.02)", borderRadius: 12, padding: 16, border: "1px solid var(--border-subtle)", display: "flex", flexDirection: "column", gap: 12 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                 <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>{stage}</h3>
                 <span className={`badge ${STATUS_COLORS[stage]}`}>{items.length}</span>
@@ -222,7 +265,13 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                 </div>
               ) : (
                 items.map(a => (
-                  <div key={a.id} className={`card ${selectedIds.includes(a.id) ? 'selected' : ''}`} style={{ padding: 16, cursor: "pointer", transition: "transform 0.1s", position: "relative", border: selectedIds.includes(a.id) ? "1px solid var(--purple)" : "1px solid var(--border)" }} onClick={(e) => {
+                  <div 
+                    key={a.id} 
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, a.id)}
+                    className={`card ${selectedIds.includes(a.id) ? 'selected' : ''}`} 
+                    style={{ padding: 16, cursor: "grab", transition: "transform 0.1s", position: "relative", border: selectedIds.includes(a.id) ? "1px solid var(--purple)" : "1px solid var(--border)" }} 
+                    onClick={(e) => {
                     if ((e.target as HTMLElement).closest('.checkbox-container')) return;
                     setSelected(a);
                     setNotesDraft(a.privateNotes || "");
