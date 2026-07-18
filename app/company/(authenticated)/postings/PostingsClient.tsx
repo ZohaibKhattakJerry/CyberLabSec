@@ -145,9 +145,14 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ 
         title: form.title,
+        department: form.department,
         description: form.description,
+        requirements: form.requirements,
+        niceToHave: form.niceToHave,
+        whatYouGain: form.whatYouGain,
         experienceLevel: form.experienceLevel,
-        count: autoGenMcqCount
+        count: autoGenMcqCount,
+        openCount: autoGenOpenCount
       }),
     });
     const data = await res.json();
@@ -156,19 +161,20 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
     
     const newQuestions = data.map((q: any, i: number) => {
       const id = `ai_${Date.now()}_${i}`;
+      const isMcq = q.type !== "OPEN";
       return {
         question: {
           id,
-          type: "mcq",
+          type: isMcq ? "mcq" : "open",
           category: "ai-generated",
           difficulty: form.experienceLevel,
           prompt: q.question,
           points: 10,
-          options: q.options
+          ...(isMcq ? { options: q.options || [] } : { rubric: q.rubric || "" })
         },
         answer: {
           questionId: id,
-          correctOption: q.options.indexOf(q.correctAnswer) !== -1 ? q.options.indexOf(q.correctAnswer) : 0
+          ...(isMcq ? { correctOption: Array.isArray(q.options) ? q.options.indexOf(q.correctAnswer) : 0 } : {})
         }
       };
     });
@@ -429,6 +435,11 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
                       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 8 }}>
                         <span style={{ color: "var(--text-secondary)" }}>Total Points</span>
                         <span style={{ fontWeight: 700, color: "var(--green)" }}>{localAssessmentBank.reduce((sum, q) => sum + (q.points || 10), 0)}</span>
+                      </div>
+                      <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid var(--border-subtle)" }}>
+                        <label className="label" style={{ fontSize: 11 }}>Passing Score (%)</label>
+                        <input className="input" type="number" min={1} max={100} value={form.passMark} onChange={e => setForm(f => ({ ...f, passMark: Number(e.target.value) }))} />
+                        <p style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 4 }}>Applicants must score this percentage or higher to be auto-shortlisted.</p>
                       </div>
                     </div>
                   </div>

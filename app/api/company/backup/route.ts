@@ -3,7 +3,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 import { getAuthFromCookies } from "@/lib/auth";
-
+import { list } from "@vercel/blob";
+import archiver from "archiver";
+import { PassThrough, Readable } from "stream";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
@@ -143,24 +145,54 @@ export async function GET(req: Request) {
     const plainJson = JSON.stringify(backup);
     const date = new Date().toISOString().split("T")[0];
 
+    const archive = archiver("zip", { zlib: { level: 5 } });
+    const passThrough = new PassThrough();
+    archive.pipe(passThrough);
+
     if (encryptBackup) {
-      // Encrypt and return as .clsbackup binary-like file
       const encryptedPayload = encrypt(plainJson, password);
       const wrapper = JSON.stringify({ v: "3.0", enc: true, payload: encryptedPayload });
-      return new NextResponse(wrapper, {
-        headers: {
-          "Content-Type": "application/octet-stream",
-          "Content-Disposition": `attachment; filename="cyberlabsec-${date}.clsbackup"`,
-          "Cache-Control": "no-store",
-        },
-      });
+      archive.append(wrapper, { name: `cyberlabsec-${date}.clsbackup` });
+    } else {
+      archive.append(plainJson, { name: `cyberlabsec-${date}.json` });
     }
 
-    // Plain JSON (for debugging only)
-    return new NextResponse(plainJson, {
+    // Try to fetch all files from Vercel Blob
+    try {
+      const { blobs } = await list();
+      for (const blob of blobs) {
+        try {
+          const res = await fetch(blob.url);
+          if (res.ok && res.body) {
+            const nodeStream = Readable.fromWeb(res.body as any);
+            archive.append(nodeStream, { name: `uploads/${blob.pathname}` });
+          }
+        } catch (e) {
+          console.error("Failed to fetch blob for backup", blob.url);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to list blobs", e);
+    }
+
+    archive.finalize();
+
+    // Stream the ZIP response using Web Streams
+    const webStream = new ReadableStream({
+      start(controller) {
+        passThrough.on("data", (chunk) => controller.enqueue(chunk));
+        passThrough.on("end", () => controller.close());
+        passThrough.on("error", (err) => controller.error(err));
+      },
+      cancel() {
+        passThrough.destroy();
+      }
+    });
+
+    return new NextResponse(webStream, {
       headers: {
-        "Content-Type": "application/json",
-        "Content-Disposition": `attachment; filename="cyberlabsec-${date}.json"`,
+        "Content-Type": "application/zip",
+        "Content-Disposition": `attachment; filename="cyberlabsec-full-backup-${date}.zip"`,
         "Cache-Control": "no-store",
       },
     });

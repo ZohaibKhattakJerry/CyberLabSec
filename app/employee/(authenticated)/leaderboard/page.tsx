@@ -33,7 +33,7 @@ export default async function EmployeeLeaderboardPage() {
       monthlyPoints: true,
       teamId: true,
       team: { select: { name: true } },
-      badges: { select: { id: true } },
+      badges: { select: { id: true, type: true, label: true, awardedAt: true } },
     },
     orderBy: { points: "desc" },
     take: 100

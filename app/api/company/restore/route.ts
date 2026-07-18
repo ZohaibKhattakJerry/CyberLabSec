@@ -103,6 +103,8 @@ async function insertAll(data: any) {
   if (d.talentPool?.length) for (const r of d.talentPool) { try { await prisma.talentPool.create({ data: { id: r.id, email: r.email, createdAt: safeDate(r.createdAt) ?? new Date() } }); } catch {} }
 }
 
+import AdmZip from "adm-zip";
+
 export async function POST(req: Request) {
   try {
     const auth = await getAuthFromCookies();
@@ -114,7 +116,19 @@ export async function POST(req: Request) {
 
     if (!file) return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
 
-    const fileContent = await file.text();
+    let fileContent = "";
+    if (file.name.endsWith(".zip") || file.type === "application/zip" || file.type === "application/x-zip-compressed") {
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const zip = new AdmZip(buffer);
+      const zipEntries = zip.getEntries();
+      const backupEntry = zipEntries.find(e => e.entryName.endsWith(".clsbackup") || e.entryName.endsWith(".json"));
+      if (!backupEntry) {
+        return NextResponse.json({ error: "No valid backup file found inside ZIP" }, { status: 400 });
+      }
+      fileContent = backupEntry.getData().toString("utf8");
+    } else {
+      fileContent = await file.text();
+    }
 
     let parsedData: any;
 
