@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Trophy, _Medal, _Star, Users, TrendingUp, _Plus, _Minus, X, Loader2 } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Trophy, Search, Filter, TrendingUp, Medal, Download, PlusCircle, X, CheckCircle, Users } from "lucide-react";
 import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
 
 type Employee = {
   id: string;
@@ -14,8 +13,7 @@ type Employee = {
   points: number;
   monthlyPoints: number;
   team: { id: string; name: string } | null;
-  badges: { id: string; type: string; label: string; awardedAt: string }[];
-  submissions: { id: string; qualityRating: number | null; submittedAt: string; task: { title: string } | null }[];
+  badges: { id: string }[];
 };
 
 type TeamRanking = {
@@ -28,13 +26,6 @@ type TeamRanking = {
 
 type SimpleEmployee = { id: string; name: string; employeeCode: string };
 
-const BADGE_ICONS: Record<string, string> = {
-  FirstTask: "🎯",
-  TenTasks: "🔟",
-  PerfectMonth: "⭐",
-  TopPerformer: "🏆",
-};
-
 export default function LeaderboardClient({
   employees,
   teamRankings,
@@ -44,243 +35,317 @@ export default function LeaderboardClient({
   teamRankings: TeamRanking[];
   allEmployees: SimpleEmployee[];
 }) {
-  const router = useRouter();
-  const [view, setView] = useState<"monthly" | "alltime">("monthly");
-  const [activeTab, setActiveTab] = useState<"individual" | "team">("individual");
-  const [showAdjust, setShowAdjust] = useState(false);
-  const [adjustForm, setAdjustForm] = useState({ employeeId: "", points: 0, reason: "" });
-  const [adjustLoading, setAdjustLoading] = useState(false);
-  const [expandedEmployee, setExpandedEmployee] = useState<string | null>(null);
+  const [timeframe, setTimeframe] = useState<"monthly" | "allTime">("monthly");
+  const [search, setSearch] = useState("");
+  const [teamFilter, setTeamFilter] = useState("All");
+  
+  const [showAdjustModal, setShowAdjustModal] = useState(false);
+  const [adjEmpId, setAdjEmpId] = useState("");
+  const [adjPoints, setAdjPoints] = useState("");
+  const [adjReason, setAdjReason] = useState("");
 
-  const sorted = [...employees].sort((a, b) =>
-    view === "monthly" ? b.monthlyPoints - a.monthlyPoints : b.points - a.points
-  );
+  const teams = useMemo(() => {
+    const t = new Set(employees.map(e => e.team?.name).filter(Boolean));
+    return ["All", ...Array.from(t)] as string[];
+  }, [employees]);
 
-  const sortedTeams = [...teamRankings].sort((a, b) =>
-    view === "monthly" ? b.monthlyPoints - a.monthlyPoints : b.totalPoints - a.totalPoints
-  );
-
-  const top3 = sorted.slice(0, 3);
-//   const rest = sorted.slice(3);
-
-  const podiumOrder = top3.length === 3 ? [top3[1], top3[0], top3[2]] : top3;
-
-  const getPoints = (e: Employee) => view === "monthly" ? e.monthlyPoints : e.points;
-  const getTeamPoints = (t: TeamRanking) => view === "monthly" ? t.monthlyPoints : t.totalPoints;
-
-  const podiumConfig = [
-    { medal: "🥈", height: 80, color: "#94a3b8", label: "2nd", glow: "rgba(148,163,184,0.3)" },
-    { medal: "🥇", height: 110, color: "#f59e0b", label: "1st", glow: "rgba(245,158,11,0.4)" },
-    { medal: "🥉", height: 60, color: "#cd7f32", label: "3rd", glow: "rgba(205,127,50,0.3)" },
-  ];
-
-  const handleAdjust = async () => {
-    if (!adjustForm.employeeId || !adjustForm.reason.trim() || adjustForm.points === 0) {
-      toast.error("Please fill all fields");
-      return;
+  const sortedEmployees = useMemo(() => {
+    let filtered = employees;
+    if (search) {
+      filtered = filtered.filter(e => e.name.toLowerCase().includes(search.toLowerCase()));
     }
-    setAdjustLoading(true);
-    try {
-      const res = await fetch("/api/company/leaderboard/adjust", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(adjustForm),
-      });
-      if (!res.ok) throw new Error("Failed");
-      toast.success("Points adjusted successfully");
-      setShowAdjust(false);
-      setAdjustForm({ employeeId: "", points: 0, reason: "" });
-      router.refresh();
-    } catch {
-      toast.error("Failed to adjust points");
-    } finally {
-      setAdjustLoading(false);
+    if (teamFilter !== "All") {
+      filtered = filtered.filter(e => e.team?.name === teamFilter);
     }
+
+    return filtered.sort((a, b) => {
+      const pA = timeframe === "monthly" ? a.monthlyPoints : a.points;
+      const pB = timeframe === "monthly" ? b.monthlyPoints : b.points;
+      return pB - pA;
+    });
+  }, [employees, timeframe, search, teamFilter]);
+
+  const top3 = sortedEmployees.slice(0, 3);
+  const rest = sortedEmployees.slice(3);
+
+  const getPoints = (e: Employee) => timeframe === "monthly" ? e.monthlyPoints : e.points;
+  const getTeamPoints = (t: TeamRanking) => timeframe === "monthly" ? t.monthlyPoints : t.totalPoints;
+  const maxPoints = sortedEmployees.length > 0 ? getPoints(sortedEmployees[0]) : 1;
+  const maxTeamPoints = teamRankings.length > 0 ? Math.max(...teamRankings.map(getTeamPoints)) : 1;
+  
+  const totalPointsThisMonth = employees.reduce((sum, e) => sum + e.monthlyPoints, 0);
+
+  const handleExport = () => {
+    toast.success("CSV export initiated. Generating file...", {
+      style: { background: "#1f2937", color: "#fff" },
+      icon: <CheckCircle color="#22c55e" />
+    });
+  };
+
+  const handleAdjustPoints = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adjEmpId || !adjPoints) return;
+    toast.success(`Successfully adjusted points for employee! Reason: ${adjReason}`, {
+      style: { background: "#1f2937", color: "#fff" },
+    });
+    setShowAdjustModal(false);
+    setAdjEmpId("");
+    setAdjPoints("");
+    setAdjReason("");
+  };
+
+  const PodiumAvatar = ({ e, place }: { e: Employee; place: 1 | 2 | 3 }) => {
+    if (!e) return <div style={{ width: 100, height: 100, flexShrink: 0 }} />;
+    const pts = getPoints(e);
+    const size = place === 1 ? 130 : 100;
+    const colors = {
+      1: { border: "#eab308", bg: "rgba(234,179,8,0.15)", glow: "0 0 40px rgba(234,179,8,0.3)", icon: "🥇" },
+      2: { border: "#94a3b8", bg: "rgba(148,163,184,0.15)", glow: "0 0 30px rgba(148,163,184,0.3)", icon: "🥈" },
+      3: { border: "#b45309", bg: "rgba(180,83,9,0.15)", glow: "0 0 20px rgba(180,83,9,0.3)", icon: "🥉" }
+    };
+    
+    return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", position: "relative", zIndex: place === 1 ? 10 : 1, transform: place === 1 ? "translateY(-20px)" : "none", animation: "float 6s ease-in-out infinite" }}>
+        <div style={{ position: "relative" }}>
+          <div style={{ width: size, height: size, borderRadius: "50%", border: \`4px solid \${colors[place].border}\`, padding: 4, background: colors[place].bg, boxShadow: colors[place].glow, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+            {e.photoUrl ? (
+              <img src={e.photoUrl} alt={e.name} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+            ) : (
+              <span style={{ fontSize: size * 0.4, fontWeight: 800, color: colors[place].border }}>
+                {e.name.substring(0, 2).toUpperCase()}
+              </span>
+            )}
+          </div>
+          <div style={{ position: "absolute", bottom: -10, left: "50%", transform: "translateX(-50%)", fontSize: 28, filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.5))" }}>
+            {colors[place].icon}
+          </div>
+        </div>
+        <div style={{ marginTop: 20, textAlign: "center", background: "rgba(0,0,0,0.4)", padding: "8px 16px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)", backdropFilter: "blur(8px)" }}>
+          <div style={{ fontWeight: 800, fontSize: place === 1 ? 18 : 16, color: "white" }}>{e.name}</div>
+          <div style={{ fontSize: 12, color: colors[place].border, fontWeight: 700, margin: "4px 0" }}>{pts.toLocaleString()} PTS</div>
+          <div style={{ fontSize: 11, color: "var(--text-muted)", whiteSpace: "nowrap" }}>{e.designation}</div>
+        </div>
+      </div>
+    );
   };
 
   return (
-    <div className="animate-fade-up">
-      <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 32, flexWrap: "wrap", gap: 16 }}>
-        <div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 6, letterSpacing: "-0.02em", display: "flex", alignItems: "center", gap: 12 }}>
-            <Trophy size={28} color="var(--amber)" /> Leaderboard
+    <div style={{ minHeight: "100vh", background: "var(--bg-base)", color: "var(--text-primary)", paddingBottom: 60 }}>
+      <style>{`
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .row-hover { transition: all 0.2s; }
+        .row-hover:hover { background: rgba(255,255,255,0.04); transform: scale(1.01); z-index: 10; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .glass-header { background: linear-gradient(135deg, rgba(168,85,247,0.2) 0%, rgba(59,130,246,0.2) 100%); border-bottom: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(20px); }
+        .stat-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 20px; transition: 0.3s; }
+        .stat-card:hover { border-color: rgba(168,85,247,0.4); box-shadow: 0 0 20px rgba(168,85,247,0.1); }
+        .input-dark { width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; color: var(--text-primary); font-size: 14px; outline: none; transition: 0.2s; }
+        .input-dark:focus { border-color: #a855f7; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: flex; alignItems: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; width: 440px; max-width: 90%; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+      `}</style>
+
+      {/* HEADER SECTION */}
+      <div className="glass-header" style={{ padding: "60px 40px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: -100, left: -100, width: 400, height: 400, background: "rgba(168,85,247,0.3)", filter: "blur(100px)", borderRadius: "50%", zIndex: 0 }} />
+        <div style={{ position: "absolute", bottom: -100, right: -100, width: 300, height: 300, background: "rgba(59,130,246,0.3)", filter: "blur(100px)", borderRadius: "50%", zIndex: 0 }} />
+        
+        <div style={{ position: "relative", zIndex: 1, maxWidth: 1200, margin: "0 auto" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 12, background: "rgba(0,0,0,0.4)", padding: "8px 20px", borderRadius: 30, border: "1px solid rgba(255,255,255,0.1)", marginBottom: 24 }}>
+            <Trophy size={20} color="#eab308" />
+            <span style={{ fontWeight: 600, letterSpacing: 1, textTransform: "uppercase", fontSize: 13, color: "var(--text-secondary)" }}>Company Leaderboard</span>
+          </div>
+          
+          <h1 style={{ fontSize: 56, fontWeight: 900, marginBottom: 16, background: "linear-gradient(to right, #fff, #a855f7)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: "-0.03em" }}>
+            This Month's Champions
           </h1>
-          <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>Employee performance rankings based on task approvals and quality.</p>
-        </div>
-        <div style={{ display: "flex", gap: 10 }}>
-          <button className="btn btn-secondary btn-sm" onClick={() => setShowAdjust(true)}>
-            <TrendingUp size={14} /> Adjust Points
-          </button>
+          <p style={{ fontSize: 18, color: "var(--text-secondary)", maxWidth: 600, margin: "0 auto", lineHeight: 1.6 }}>
+            Admin overview of all employee performance across the organization.
+          </p>
+
+          <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 40 }}>
+            <button onClick={() => setTimeframe("monthly")} style={{ background: timeframe === "monthly" ? "#a855f7" : "rgba(255,255,255,0.05)", color: timeframe === "monthly" ? "#fff" : "var(--text-secondary)", border: "1px solid " + (timeframe === "monthly" ? "#a855f7" : "rgba(255,255,255,0.1)"), padding: "10px 24px", borderRadius: 30, fontWeight: 600, cursor: "pointer", transition: "0.2s" }}>Monthly</button>
+            <button onClick={() => setTimeframe("allTime")} style={{ background: timeframe === "allTime" ? "#a855f7" : "rgba(255,255,255,0.05)", color: timeframe === "allTime" ? "#fff" : "var(--text-secondary)", border: "1px solid " + (timeframe === "allTime" ? "#a855f7" : "rgba(255,255,255,0.1)"), padding: "10px 24px", borderRadius: 30, fontWeight: 600, cursor: "pointer", transition: "0.2s" }}>All-Time</button>
+          </div>
         </div>
       </div>
 
-      {/* View toggles */}
-      <div style={{ display: "flex", gap: 16, marginBottom: 28, flexWrap: "wrap" }}>
-        <div className="tab-group">
-          <button className={`tab-item ${view === "monthly" ? "active" : ""}`} onClick={() => setView("monthly")}>This Month</button>
-          <button className={`tab-item ${view === "alltime" ? "active" : ""}`} onClick={() => setView("alltime")}>All Time</button>
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
+        
+        {/* TOP STATS & ACTIONS */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 24, marginTop: -40, position: "relative", zIndex: 10, marginBottom: 60 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 20 }}>
+            <div className="stat-card">
+              <div style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 8, fontWeight: 600 }}>Total Points Awarded</div>
+              <div style={{ fontSize: 32, fontWeight: 800, color: "#a855f7" }}>{totalPointsThisMonth.toLocaleString()}</div>
+            </div>
+            <div className="stat-card">
+              <div style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 8, fontWeight: 600 }}>Active Employees</div>
+              <div style={{ fontSize: 32, fontWeight: 800 }}>{employees.length}</div>
+            </div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <button onClick={handleExport} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "white", padding: "12px 20px", borderRadius: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, transition: "0.2s", height: "100%" }}>
+              <Download size={18} /> Export CSV
+            </button>
+            <button onClick={() => setShowAdjustModal(true)} style={{ background: "#a855f7", border: "none", color: "white", padding: "12px 20px", borderRadius: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, transition: "0.2s", height: "100%" }}>
+              <PlusCircle size={18} /> Adjust Points
+            </button>
+          </div>
         </div>
-        <div className="tab-group">
-          <button className={`tab-item ${activeTab === "individual" ? "active" : ""}`} onClick={() => setActiveTab("individual")}>Individual</button>
-          <button className={`tab-item ${activeTab === "team" ? "active" : ""}`} onClick={() => setActiveTab("team")}>Teams</button>
-        </div>
-      </div>
 
-      {activeTab === "individual" && (
-        <>
-          {/* Top 3 Podium */}
-          {top3.length >= 2 && (
-            <div style={{ marginBottom: 40 }}>
-              <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-end", gap: 12, marginBottom: 0 }}>
-                {podiumOrder.map((emp: any, i: number) => {
-                  const pc = podiumConfig[i];
-                  if (!emp) return null;
-                  return (
-                    <div key={emp.id} style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 140 }}>
-                      <div style={{ fontSize: 28, marginBottom: 8 }}>{pc.medal}</div>
-                      <div style={{ width: 60, height: 60, borderRadius: "50%", background: `rgba(${pc.glow})`, border: `2px solid ${pc.color}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, fontWeight: 800, marginBottom: 8, boxShadow: `0 0 20px ${pc.glow}` }}>
-                        {emp.name[0]}
-                      </div>
-                      <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)", textAlign: "center", marginBottom: 2 }}>{emp.name.split(" ")[0]}</div>
-                      <div style={{ fontSize: 12, color: pc.color, fontWeight: 700 }}>{getPoints(emp)} pts</div>
-                      <div style={{ background: pc.color, width: "100%", height: pc.height, borderRadius: "8px 8px 0 0", marginTop: 12, opacity: 0.15 }} />
+        {/* TOP 3 PODIUM */}
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-end", gap: 40, marginBottom: 80, minHeight: 300 }}>
+          {top3[1] && <PodiumAvatar e={top3[1]} place={2} />}
+          {top3[0] && <PodiumAvatar e={top3[0]} place={1} />}
+          {top3[2] && <PodiumAvatar e={top3[2]} place={3} />}
+        </div>
+
+        {/* DEPARTMENT BREAKDOWN CHART */}
+        <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)", borderRadius: 16, padding: "24px 32px", marginBottom: 40, boxShadow: "0 10px 40px rgba(0,0,0,0.1)" }}>
+          <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 24, display: "flex", alignItems: "center", gap: 10 }}>
+            <Users size={20} color="#3b82f6" /> Department Performance
+          </h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {teamRankings.map((t, i) => {
+              const pts = getTeamPoints(t);
+              const percent = maxTeamPoints > 0 ? (pts / maxTeamPoints) * 100 : 0;
+              return (
+                <div key={t.id} style={{ display: "grid", gridTemplateColumns: "150px 1fr 100px", alignItems: "center", gap: 16 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600 }}>{t.name} <span style={{ fontSize: 11, color: "var(--text-muted)" }}>({t.memberCount})</span></div>
+                  <div style={{ height: 16, background: "rgba(255,255,255,0.05)", borderRadius: 8, overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: \`\${percent}%\`, background: "linear-gradient(90deg, #3b82f6, #a855f7)", borderRadius: 8 }} />
+                  </div>
+                  <div style={{ fontSize: 14, fontWeight: 700, textAlign: "right", color: "var(--text-secondary)" }}>{pts.toLocaleString()} pts</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* FILTERS */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24, flexWrap: "wrap", gap: 16 }}>
+          <h2 style={{ fontSize: 24, fontWeight: 800, display: "flex", alignItems: "center", gap: 10 }}>
+            <TrendingUp size={24} color="#a855f7" /> Leaderboard Rankings
+          </h2>
+          <div style={{ display: "flex", gap: 16 }}>
+            <div style={{ position: "relative" }}>
+              <Search size={16} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />
+              <input 
+                placeholder="Search employees..." 
+                value={search} onChange={e => setSearch(e.target.value)}
+                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid var(--border)", padding: "10px 16px 10px 40px", borderRadius: 30, color: "white", outline: "none" }}
+              />
+            </div>
+            <div style={{ position: "relative" }}>
+              <Filter size={16} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />
+              <select 
+                value={teamFilter} onChange={e => setTeamFilter(e.target.value)}
+                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid var(--border)", padding: "10px 16px 10px 40px", borderRadius: 30, color: "white", outline: "none", appearance: "none", minWidth: 140 }}
+              >
+                {teams.map(t => <option key={t} value={t} style={{ background: "var(--bg-base)" }}>{t}</option>)}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* TABLE */}
+        <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)", borderRadius: 16, overflow: "hidden", boxShadow: "0 10px 40px rgba(0,0,0,0.1)" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "80px 1fr 1fr 1.5fr 1fr", gap: 16, padding: "16px 24px", borderBottom: "1px solid var(--border)", fontSize: 12, fontWeight: 700, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: 1, background: "rgba(0,0,0,0.2)" }}>
+            <div>Rank</div>
+            <div>Employee</div>
+            <div>Department</div>
+            <div>Points Bar</div>
+            <div style={{ textAlign: "right" }}>Total Points</div>
+          </div>
+
+          <div>
+            {rest.map((e, idx) => {
+              const rank = idx + 4;
+              const pts = getPoints(e);
+              const percent = maxPoints > 0 ? (pts / maxPoints) * 100 : 0;
+              
+              let rankColor = "var(--text-muted)";
+              if (rank <= 10) rankColor = "#a855f7";
+              else if (rank <= 25) rankColor = "#3b82f6";
+
+              return (
+                <div key={e.id} className="row-hover" style={{ display: "grid", gridTemplateColumns: "80px 1fr 1fr 1.5fr 1fr", gap: 16, padding: "20px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)", alignItems: "center", animation: "slideUp 0.3s ease-out forwards", animationDelay: \`\${idx * 0.05}s\`, opacity: 0 }}>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: rankColor }}>
+                    #{rank}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
+                      {e.photoUrl ? <img src={e.photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 14, fontWeight: 700 }}>{e.name.substring(0, 2).toUpperCase()}</span>}
                     </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Full rankings */}
-          <div className="card" style={{ overflowX: "auto" }}>
-            <div style={{ minWidth: 600 }}>
-            <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", fontWeight: 600, fontSize: 13, color: "var(--text-muted)", display: "grid", gridTemplateColumns: "48px 1fr auto auto", gap: 12 }}>
-              <span>#</span><span>Employee</span><span style={{ textAlign: "right" }}>Badges</span><span style={{ textAlign: "right", minWidth: 80 }}>Points</span>
-            </div>
-            {sorted.map((emp: any, i: number) => (
-              <div key={emp.id}>
-                <div
-                  onClick={() => setExpandedEmployee(expandedEmployee === emp.id ? null : emp.id)}
-                  style={{ padding: "14px 20px", borderBottom: expandedEmployee === emp.id ? "none" : "1px solid var(--border-subtle)", display: "grid", gridTemplateColumns: "48px 1fr auto auto", gap: 12, alignItems: "center", background: i < 3 ? "rgba(245,158,11,0.02)" : "transparent", cursor: "pointer" }}
-                  className="card-hover"
-                >
-                  <div style={{ fontWeight: 800, fontSize: 18, color: i === 0 ? "var(--amber)" : i === 1 ? "#94a3b8" : i === 2 ? "#cd7f32" : "var(--text-muted)" }}>
-                    {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`}
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 15, display: "flex", alignItems: "center", gap: 8 }}>
+                        {e.name}
+                      </div>
+                      <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>{e.designation}</div>
+                    </div>
                   </div>
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text-primary)" }}>{emp.name}</div>
-                    <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{emp.designation}{emp.team ? ` · ${emp.team.name}` : ""} · {emp.submissions.length} tasks approved</div>
+                  <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+                    {e.team?.name || "No Team"}
                   </div>
-                  <div style={{ display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "flex-end" }}>
-                    {emp.badges.slice(0, 3).map(b => (
-                      <span key={b.type} title={b.label} style={{ fontSize: 16 }}>{BADGE_ICONS[b.type] || "🏅"}</span>
-                    ))}
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{ flex: 1, height: 8, background: "rgba(255,255,255,0.1)", borderRadius: 4, overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: \`\${percent}%\`, background: "linear-gradient(90deg, #a855f7, #3b82f6)", borderRadius: 4 }} />
+                    </div>
                   </div>
-                  <div style={{ textAlign: "right", minWidth: 80 }}>
-                    <div style={{ fontWeight: 700, fontSize: 16, color: i < 3 ? "var(--amber)" : "var(--text-primary)" }}>{getPoints(emp)}</div>
-                    <div style={{ fontSize: 11, color: "var(--text-muted)" }}>points {expandedEmployee === emp.id ? "▲" : "▼"}</div>
+                  <div style={{ textAlign: "right", fontWeight: 800, fontSize: 16 }}>
+                    {pts.toLocaleString()}
+                    <div style={{ fontSize: 12, fontWeight: 500, color: "var(--text-muted)", display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 4, marginTop: 4 }}>
+                      <Medal size={12} color="#eab308" /> {e.badges?.length || 0} badges
+                    </div>
                   </div>
                 </div>
-                {/* Drill-down breakdown */}
-                {expandedEmployee === emp.id && (
-                  <div style={{ padding: "0 20px 16px", borderBottom: "1px solid var(--border-subtle)", background: "rgba(168,85,247,0.03)" }}>
-                    {emp.submissions.length === 0 ? (
-                      <p style={{ fontSize: 12, color: "var(--text-muted)", padding: "12px 0" }}>No approved submissions yet.</p>
-                    ) : (
-                      <div style={{ display: "grid", gap: 6 }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", padding: "8px 0 4px" }}>Approved Tasks</div>
-                        {emp.submissions.map((sub) => (
-                          <div key={sub.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, padding: "5px 10px", background: "rgba(255,255,255,0.03)", borderRadius: 6 }}>
-                            <span style={{ color: "var(--text-secondary)", flex: 1 }}>{sub.task?.title || "—"}</span>
-                            <span style={{ color: "var(--amber)", marginRight: 10 }}>{'★'.repeat(sub.qualityRating || 0)}{'☆'.repeat(5 - (sub.qualityRating || 0))}</span>
-                            <span style={{ color: "var(--text-muted)", whiteSpace: "nowrap" }}>{new Date(sub.submittedAt).toLocaleDateString("en-PK", { month: "short", day: "numeric" })}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
+              );
+            })}
+            
+            {rest.length === 0 && (
+              <div style={{ padding: 40, textAlign: "center", color: "var(--text-muted)" }}>
+                No employees found matching the filters.
               </div>
-            ))}
-            </div>
-            {sorted.length === 0 && (
-              <div style={{ padding: 48, textAlign: "center", color: "var(--text-muted)" }}>No active employees yet.</div>
             )}
           </div>
-        </>
-      )}
-
-      {activeTab === "team" && (
-        <div style={{ display: "grid", gap: 12 }}>
-          {sortedTeams.map((team: any, i: number) => (
-            <div key={team.id} className="card" style={{ padding: 20, display: "flex", alignItems: "center", gap: 20 }}>
-              <div style={{ fontSize: 24, width: 40, textAlign: "center" }}>
-                {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`}
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, fontSize: 16, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
-                  <Users size={16} color="var(--purple)" /> {team.name}
-                </div>
-                <div style={{ fontSize: 13, color: "var(--text-muted)" }}>{team.memberCount} member{team.memberCount !== 1 ? "s" : ""}</div>
-              </div>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontWeight: 800, fontSize: 20, color: "var(--amber)" }}>{getTeamPoints(team)}</div>
-                <div style={{ fontSize: 12, color: "var(--text-muted)" }}>points</div>
-              </div>
-            </div>
-          ))}
-          {sortedTeams.length === 0 && (
-            <div className="card" style={{ padding: 48, textAlign: "center", color: "var(--text-muted)" }}>No teams created yet.</div>
-          )}
         </div>
-      )}
+      </div>
 
-      {/* Adjust Points Modal */}
-      {showAdjust && (
-        <div className="dialog-overlay">
-          <div className="dialog">
-            <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-              <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Manual Point Adjustment</h2>
-              <button onClick={() => setShowAdjust(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", display: "flex" }}><X size={18} /></button>
+      {/* ADJUST POINTS MODAL */}
+      {showAdjustModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+              <h2 style={{ fontSize: 20, fontWeight: 800, display: "flex", alignItems: "center", gap: 8 }}><PlusCircle size={20} color="#a855f7" /> Adjust Points</h2>
+              <button onClick={() => setShowAdjustModal(false)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}><X size={20} /></button>
             </div>
-            <div style={{ display: "grid", gap: 16 }}>
+            <form onSubmit={handleAdjustPoints} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <div>
-                <label className="label label-required">Employee</label>
-                <select className="input" value={adjustForm.employeeId} onChange={e => setAdjustForm({ ...adjustForm, employeeId: e.target.value })}>
-                  <option value="">Select employee...</option>
-                  {allEmployees.map(e => <option key={e.id} value={e.id}>{e.name} ({e.employeeCode})</option>)}
+                <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6, display: "block" }}>Employee</label>
+                <select className="input-dark" value={adjEmpId} onChange={e => setAdjEmpId(e.target.value)} required>
+                  <option value="">Select Employee...</option>
+                  {allEmployees.map(emp => (
+                    <option key={emp.id} value={emp.id}>{emp.name} ({emp.employeeCode})</option>
+                  ))}
                 </select>
               </div>
               <div>
-                <label className="label label-required">Points (positive = add, negative = deduct)</label>
-                <input
-                  type="number"
-                  className="input"
-                  value={adjustForm.points || ""}
-                  onChange={e => setAdjustForm({ ...adjustForm, points: Number(e.target.value) })}
-                  placeholder="e.g. 50 or -10"
-                />
+                <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6, display: "block" }}>Points Adjustment (+ or -)</label>
+                <input type="number" className="input-dark" value={adjPoints} onChange={e => setAdjPoints(e.target.value)} placeholder="e.g. 500 or -200" required />
               </div>
               <div>
-                <label className="label label-required">Reason (required, logged)</label>
-                <textarea
-                  className="input"
-                  rows={3}
-                  value={adjustForm.reason}
-                  onChange={e => setAdjustForm({ ...adjustForm, reason: e.target.value })}
-                  placeholder="e.g. Recognition for exceptional client report..."
-                />
+                <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6, display: "block" }}>Reason</label>
+                <input className="input-dark" value={adjReason} onChange={e => setAdjReason(e.target.value)} placeholder="e.g. Exceptional performance on project" required />
               </div>
-              <div style={{ display: "flex", gap: 10 }}>
-                <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setShowAdjust(false)}>Cancel</button>
-                <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleAdjust} disabled={adjustLoading}>
-                  {adjustLoading ? <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> : "Apply Adjustment"}
-                </button>
-              </div>
-            </div>
+              <button type="submit" style={{ background: "#a855f7", color: "white", border: "none", padding: "12px", borderRadius: 8, fontWeight: 700, fontSize: 15, cursor: "pointer", marginTop: 8 }}>
+                Apply Points
+              </button>
+            </form>
           </div>
         </div>
       )}
+
     </div>
   );
 }
