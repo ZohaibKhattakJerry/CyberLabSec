@@ -1,117 +1,173 @@
 import { NextResponse } from "next/server";
-import { GoogleGenAI } from "@google/genai";
+
+const CYBER_MCQS = [
+  {
+    question: "As a {{JOB_TITLE}} in the {{DEPARTMENT}} department, you will often need to secure web applications. What is the primary purpose of a Web Application Firewall (WAF) in this context?",
+    options: ["To encrypt database traffic", "To filter and monitor HTTP traffic", "To manage internal IP routing", "To act as a VPN gateway"],
+    correctAnswer: "To filter and monitor HTTP traffic",
+    tags: ["web", "owasp", "network"]
+  },
+  {
+    question: "Given your {{EXPERIENCE_LEVEL}} experience level, which OWASP Top 10 vulnerability should you immediately recognize when user-supplied input is executed as code in the browser?",
+    options: ["SQL Injection", "Cross-Site Scripting (XSS)", "Insecure Direct Object Reference", "CSRF"],
+    correctAnswer: "Cross-Site Scripting (XSS)",
+    tags: ["web", "owasp"]
+  },
+  {
+    question: "While working your {{WEEKLY_HOURS}} hours a week, you might use Nmap for reconnaissance. What does the '-sS' flag signify?",
+    options: ["SYN Stealth Scan", "UDP Scan", "Ping Scan", "Version Detection Scan"],
+    correctAnswer: "SYN Stealth Scan",
+    tags: ["network", "nmap"]
+  },
+  {
+    question: "You will be dealing with Linux environments. Which Linux command is strictly used to change file permissions?",
+    options: ["chown", "chmod", "passwd", "ps"],
+    correctAnswer: "chmod",
+    tags: ["linux", "fundamentals"]
+  },
+  {
+    question: "To meet our requirement of '{{REQUIREMENTS_SNIPPET}}', what does the Principle of Least Privilege (PoLP) dictate?",
+    options: ["Give users max access temporarily", "Give users minimum access required to do their job", "Only admins should use passwords", "Disable all network ports"],
+    correctAnswer: "Give users minimum access required to do their job",
+    tags: ["general", "compliance", "security"]
+  },
+  {
+    question: "In this {{POSITION_TYPE}} role, you'll work with encryption. Which of the following is considered a symmetric encryption algorithm?",
+    options: ["RSA", "Diffie-Hellman", "AES", "ECC"],
+    correctAnswer: "AES",
+    tags: ["crypto", "encryption"]
+  },
+  {
+    question: "For a {{JOB_TITLE}} monitoring infrastructure, what is the main function of an Intrusion Detection System (IDS)?",
+    options: ["To block malicious traffic automatically", "To encrypt network traffic", "To monitor network traffic for suspicious activity", "To host a honeypot"],
+    correctAnswer: "To monitor network traffic for suspicious activity",
+    tags: ["network", "soc"]
+  },
+  {
+    question: "Working from {{LOCATION}}, you must secure our frontend. What HTTP header is commonly used to defend against Cross-Site Request Forgery (CSRF)?",
+    options: ["Content-Security-Policy", "X-Frame-Options", "SameSite attribute in Cookies", "X-XSS-Protection"],
+    correctAnswer: "SameSite attribute in Cookies",
+    tags: ["web", "frontend"]
+  },
+  {
+    question: "If you find a directory traversal vulnerability during an assessment, what are you likely trying to achieve?",
+    options: ["Execute remote commands", "Access unauthorized files on the server", "Crash the application", "Hijack a user session"],
+    correctAnswer: "Access unauthorized files on the server",
+    tags: ["web", "pentesting"]
+  },
+  {
+    question: "For Windows enterprise environments, what is the golden ticket attack targeting?",
+    options: ["The domain controller's KRBTGT account", "The local administrator hash", "The SAM database", "The DNS server"],
+    correctAnswer: "The domain controller's KRBTGT account",
+    tags: ["windows", "active directory"]
+  }
+];
+
+const CYBER_OPEN = [
+  {
+    question: "As a {{JOB_TITLE}}, explain the difference between a False Positive and a False Negative in a SIEM. Which is generally considered more dangerous and why?",
+    rubric: "Candidate should explain that False Positive is an alert for non-malicious activity, while False Negative is a missed malicious activity. False Negatives are more dangerous because real attacks go undetected.",
+    tags: ["soc", "general"]
+  },
+  {
+    question: "Given your {{EXPERIENCE_LEVEL}} background, walk us through the steps you would take to secure a newly deployed Ubuntu Linux server exposed to the internet for the {{DEPARTMENT}} department.",
+    rubric: "Candidate should mention: changing default SSH port, disabling root login, setting up SSH keys, configuring a firewall (UFW/iptables), keeping packages updated, and installing fail2ban.",
+    tags: ["linux", "sysadmin"]
+  },
+  {
+    question: "How would you explain a SQL Injection vulnerability to a non-technical manager, and what mitigation strategies would you recommend to a developer to meet our requirement of '{{REQUIREMENTS_SNIPPET}}'?",
+    rubric: "Explanation should be simple (e.g., 'tricking the database into giving up info'). Mitigation must mention Prepared Statements or Parameterized Queries, and input validation.",
+    tags: ["web", "communication"]
+  },
+  {
+    question: "As a {{POSITION_TYPE}} team member, describe your methodology for conducting an initial network reconnaissance on a target scope. What tools and techniques do you use?",
+    rubric: "Candidate should mention passive recon (OSINT, DNS enumeration, WHOIS) and active recon (Nmap, port scanning, service enumeration).",
+    tags: ["network", "pentesting"]
+  },
+  {
+    question: "If you discover a high-severity vulnerability that could take down a critical system, what is your immediate course of action to ensure safety before the {{DEADLINE}} deadline?",
+    rubric: "Candidate should prioritize communication and safety: stop exploiting, immediately document the finding, and report it to the client/point-of-contact immediately rather than proceeding.",
+    tags: ["general", "ethics"]
+  }
+];
+
+function shuffle(array: any[]) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
 
 export async function POST(req: Request) {
   try {
     const { title, type, department, location, deadline, description, requirements, niceToHave, whatYouGain, experienceLevel, openings, duration, weeklyHours, universityRequired, autoShortlist, stipend, count, openCount } = await req.json();
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey || apiKey === "dummy") {
-      return NextResponse.json({ error: "GEMINI_API_KEY is missing. Please add a valid API key in your Vercel Environment Variables." }, { status: 401 });
-    }
-    
-    // Use the NEW SDK to avoid 404 API version errors!
-    const genAI = new GoogleGenAI({ apiKey });
 
     const totalMcq = count || 5;
     const totalOpen = openCount || 2;
 
-    const prompt = `You are the question-generation engine for a cybersecurity job posting system.
-
-Your job is to generate screening questions only from the information provided in the job posting form and the job bank settings. Do not use any external API, model name, or vendor-specific dependency in the output. Do not mention Gemini, Google, OpenAI, or any other service.
-
-Use the following inputs:
-1) Job Title: ${title}
-2) Position Type: ${type || "N/A"}
-3) Department: ${department || "N/A"}
-4) Location: ${location || "N/A"}
-5) Application Deadline: ${deadline || "N/A"}
-6) Job Description & Responsibilities: ${description}
-7) Requirements & Qualifications: ${requirements || "N/A"}
-8) Nice to Have: ${niceToHave || "N/A"}
-9) What You’ll Gain: ${whatYouGain || "N/A"}
-10) Experience Level: ${experienceLevel}
-11) Number of Openings: ${openings || "1"}
-12) Duration: ${duration || "N/A"}
-13) Weekly Hours: ${weeklyHours || "N/A"}
-14) University Degree Required: ${universityRequired ? "Yes" : "No"}
-15) Auto-Shortlist / AI Interview Immediately: ${autoShortlist ? "Yes" : "No"}
-16) Stipend / Salary: ${stipend || "N/A"}
-17) MCQ count requested by the user: ${totalMcq}
-18) Open-ended / scenario question count requested by the user: ${totalOpen}
-
-Rules:
-- Generate questions only from the provided form fields.
-- The number of MCQs must exactly match the requested MCQ count.
-- The number of open-ended / scenario questions must exactly match the requested open-ended count.
-- Make the questions highly relevant to the job title, role level, department, responsibilities, and qualifications.
-- For cybersecurity/offensive security internships, focus on safe, job-relevant topics such as networking basics, Linux, web security, OWASP Top 10, Burp Suite, Nmap, reconnaissance, reporting, vulnerability identification, and ethical hacking fundamentals.
-- Keep difficulty appropriate for the selected experience level.
-- If the role is internship-level or beginner-friendly, do not make the questions overly advanced.
-- Make MCQs practical and realistic, with 4 options each and only one correct answer.
-- Make open-ended questions professional, screening-oriented, and suitable for evaluating mindset, learning ability, communication, and role fit.
-- Do not generate generic questions that are not tied to the job data.
-- Do not include unsafe, illegal, or harmful instructions.
-- Do not mention policies or internal reasoning.
-- Return valid JSON only.
-
-Output format:
-{
-  "job_title": "",
-  "mcqs": [
-    {
-      "question": "",
-      "options": ["", "", "", ""],
-      "correctAnswer": "" // Explicitly asked: required for the system to grade
+    // Helper to extract a short meaningful snippet from requirements (fallback if empty)
+    let reqSnippet = "maintaining strong security practices";
+    if (requirements && requirements.length > 5) {
+      const words = requirements.split(" ").slice(0, 6);
+      reqSnippet = words.join(" ") + (words.length >= 6 ? "..." : "");
     }
-  ],
-  "open_ended": [
-    {
-      "question": "",
-      "rubric": "" // Explicitly asked: required for grading criteria
-    }
-  ]
-}
 
-Input data:
-Job Details provided in the fields above.`;
-
-    const result = await genAI.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json"
-      }
-    });
+    // Keyword matching for relevance
+    const textLower = ((title || "") + " " + (description || "") + " " + (requirements || "")).toLowerCase();
     
-    const text = result.text.trim();
-    
-    let parsedData;
-    try {
-      parsedData = JSON.parse(text);
-    } catch (e) {
-      // Fallback manual parse if JSON.parse still fails
-      const match = text.match(/\{[\s\S]*\}/);
-      if (match) parsedData = JSON.parse(match[0]);
-      else throw e;
-    }
+    const rankQuestions = (qBank: any[]) => {
+      return qBank.map(q => {
+        let score = 0;
+        q.tags.forEach((tag: string) => {
+          if (textLower.includes(tag)) score += 2;
+        });
+        return { ...q, score: score + Math.random() }; // Random jitter for variety
+      }).sort((a, b) => b.score - a.score);
+    };
+
+    const rankedMcqs = rankQuestions(CYBER_MCQS);
+    const rankedOpen = rankQuestions(CYBER_OPEN);
+
+    let selectedMcqs = rankedMcqs.slice(0, totalMcq);
+    let selectedOpen = rankedOpen.slice(0, totalOpen);
 
     const flatQuestions: any[] = [];
-    if (parsedData.mcqs && Array.isArray(parsedData.mcqs)) {
-      parsedData.mcqs.forEach((mcq: any) => flatQuestions.push({ ...mcq, type: "MCQ" }));
-    }
-    if (parsedData.open_ended && Array.isArray(parsedData.open_ended)) {
-      parsedData.open_ended.forEach((open: any) => flatQuestions.push({ ...open, type: "OPEN" }));
-    }
     
-    // Fallback if AI returned a flat array despite instructions
-    if (flatQuestions.length === 0 && Array.isArray(parsedData)) {
-      parsedData.forEach(q => flatQuestions.push(q));
-    }
+    // Replace templates with actual job form field data
+    const injectTemplates = (text: string) => {
+      return text
+        .replace(/\{\{JOB_TITLE\}\}/g, title || "Cybersecurity Professional")
+        .replace(/\{\{DEPARTMENT\}\}/g, department || "Security")
+        .replace(/\{\{EXPERIENCE_LEVEL\}\}/g, experienceLevel || "Mid-Level")
+        .replace(/\{\{POSITION_TYPE\}\}/g, type || "Full-Time")
+        .replace(/\{\{WEEKLY_HOURS\}\}/g, weeklyHours || "40")
+        .replace(/\{\{LOCATION\}\}/g, location || "our office")
+        .replace(/\{\{DEADLINE\}\}/g, deadline || "project")
+        .replace(/\{\{REQUIREMENTS_SNIPPET\}\}/g, reqSnippet);
+    };
+
+    selectedMcqs.forEach(mcq => {
+      flatQuestions.push({
+        type: "MCQ",
+        question: injectTemplates(mcq.question),
+        options: shuffle(mcq.options),
+        correctAnswer: mcq.correctAnswer
+      });
+    });
+
+    selectedOpen.forEach(open => {
+      flatQuestions.push({
+        type: "OPEN",
+        question: injectTemplates(open.question),
+        rubric: open.rubric
+      });
+    });
 
     return NextResponse.json(flatQuestions);
   } catch (error: any) {
-    console.error("Failed to generate assessment:", error);
-    const msg = error?.message || "Failed to generate assessment. Please check your API key.";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    console.error("Failed to generate assessment internally:", error);
+    return NextResponse.json({ error: "Failed to generate assessment offline." }, { status: 500 });
   }
 }
