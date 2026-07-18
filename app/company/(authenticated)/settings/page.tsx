@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Download, Upload, ShieldCheck, Database, Loader2, AlertTriangle, Trash2, Lock, Eye, EyeOff } from "lucide-react";
+import { Download, Upload, ShieldCheck, Database, Loader2, AlertTriangle, Trash2, Lock, Eye, EyeOff, Building, Linkedin } from "lucide-react";
 
 export default function SettingsPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -15,6 +15,11 @@ export default function SettingsPage() {
   const [restorePassword, setRestorePassword] = useState("CyberLabSec@2024");
   const [showBkPwd, setShowBkPwd] = useState(false);
   const [showRsPwd, setShowRsPwd] = useState(false);
+
+  // Company Profile states
+  const [companyName, setCompanyName] = useState("CyberLabSec");
+  const [companyDesc, setCompanyDesc] = useState("Advanced Offensive Security & Training Platform.");
+  const [linkedinUrl, setLinkedinUrl] = useState("https://www.linkedin.com/company/cyberlabsec");
 
   const handleDownload = async () => {
     setDownloading(true);
@@ -125,6 +130,31 @@ export default function SettingsPage() {
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+
+        {/* ── COMPANY PROFILE ─────────────────────────────────────────── */}
+        <div className="card s-section" style={{ padding: 24 }}>
+          <h2 style={{ fontSize: 15, fontWeight: 700, marginBottom: 18, display: "flex", alignItems: "center", gap: 8 }}>
+            <Building size={16} color="var(--purple)" /> Company Profile
+          </h2>
+          <div style={{ display: "grid", gap: 16 }}>
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6, display: "block" }}>Company Name</label>
+              <input value={companyName} onChange={e => setCompanyName(e.target.value)} style={inputStyle} />
+            </div>
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6, display: "block" }}>Description</label>
+              <textarea rows={3} value={companyDesc} onChange={e => setCompanyDesc(e.target.value)} style={{ ...inputStyle, fontFamily: "inherit" }} />
+            </div>
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6, display: "block" }}>LinkedIn Profile URL</label>
+              <div style={{ position: "relative" }}>
+                <Linkedin size={14} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />
+                <input style={{ ...inputStyle, paddingLeft: 36 }} value={linkedinUrl} onChange={e => setLinkedinUrl(e.target.value)} />
+              </div>
+            </div>
+            <button className="btn btn-primary" style={{ justifySelf: "flex-end", padding: "8px 16px", fontSize: 13, borderRadius: 6, border: "none", background: "var(--purple)", color: "white", cursor: "pointer" }}>Save Profile</button>
+          </div>
+        </div>
 
         {/* ── DOWNLOAD BACKUP ─────────────────────────────────────────── */}
         <div className="card s-section" style={{ padding: 24 }}>

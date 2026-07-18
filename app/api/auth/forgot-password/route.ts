@@ -28,17 +28,21 @@ export async function POST(req: NextRequest) {
       to: email,
       subject: "Reset Your CyberLabSec Password",
       html: `
-        <h1 style="font-size:22px;font-weight:800;color:#000000;margin:0 0 12px 0;">Password Reset Request</h1>
-        <p style="color:#555555;font-size:15px;line-height:1.7;margin:0 0 24px 0;">
-          We received a request to reset the password for your CyberLabSec employee account.
-          Click the button below to set a new password. This link expires in <strong>1 hour</strong>.
-        </p>
-        <div style="text-align:center;margin:0 0 28px 0;">
-          <a href="${resetLink}" style="display:inline-block;background-color:#7e22ce;color:#ffffff !important;text-decoration:none !important;padding:12px 32px;border-radius:6px;font-weight:600;font-size:14px;">Reset My Password &rarr;</a>
+        <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: 0 auto; background-color: #0f1423; padding: 40px; border-radius: 16px; border: 1px solid rgba(168, 85, 247, 0.2); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); color: #ffffff;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="font-size: 28px; font-weight: 800; background: linear-gradient(90deg, #A855F7, #3B82F6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0;">Password Reset</h1>
+          </div>
+          <p style="color: #cbd5e1; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
+            We received a request to reset the password for your CyberLabSec employee account.
+            Click the button below to securely set a new password. This highly sensitive link will expire in <strong>1 hour</strong>.
+          </p>
+          <div style="text-align: center; margin: 32px 0;">
+            <a href="${resetLink}" style="display: inline-block; background: linear-gradient(135deg, #A855F7 0%, #3B82F6 100%); color: #ffffff !important; text-decoration: none !important; padding: 14px 36px; border-radius: 8px; font-weight: 700; font-size: 15px; box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4); transition: transform 0.2s;">Securely Reset Password</a>
+          </div>
+          <p style="color: #64748b; font-size: 13px; line-height: 1.5; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 20px;">
+            If you did not request this reset, please ignore this email or contact the security team immediately.
+          </p>
         </div>
-        <p style="color:#888888;font-size:13px;line-height:1.6;">
-          If you did not request a password reset, you can safely ignore this email. Your password will not change.
-        </p>
       `,
     });
 

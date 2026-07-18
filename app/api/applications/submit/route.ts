@@ -5,7 +5,7 @@ import { _hashCNIC, encryptCNIC } from "@/lib/cnic";
 import { saveFile, extractPdfText } from "@/lib/fileStorage";
 import { checkRateLimit, getIpFromRequest } from "@/lib/rateLimit";
 import { screenApplicant } from "@/lib/gemini";
-import { sendInterviewInvite, sendDeclineEmail, sendApplicationReceivedEmail } from "@/lib/email";
+import { sendInterviewInvite, sendDeclineEmail, sendApplicationReceivedEmail, sendEmail } from "@/lib/email";
 import crypto from "crypto";
 import { waitUntil } from "@vercel/functions";
 
@@ -204,7 +204,7 @@ async function runScreening(
       finalQuestions = applicantQuestions;
       
       const token = crypto.randomBytes(32).toString("hex");
-      const tokenExpiry = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 hours
+      const tokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
       await prisma.interviewSession.create({
         data: {
@@ -218,7 +218,7 @@ async function runScreening(
     } else {
       // Fallback if no assessment generated yet
       const token = crypto.randomBytes(32).toString("hex");
-      const tokenExpiry = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 hours
+      const tokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
       await prisma.interviewSession.create({
         data: {
           applicantId,
@@ -246,7 +246,11 @@ async function runScreening(
       const session = await prisma.interviewSession.findUnique({ where: { applicantId } });
       if (session) {
         const interviewLink = `https://cyberlabsec.tech/careers/interview/${session.token}`;
-        await sendInterviewInvite(ctx.email, ctx.fullName, ctx.posting.title, interviewLink, 48);
+        await sendEmail({
+           to: ctx.email, 
+           subject: `Interview Invitation: ${ctx.posting.title}`, 
+           html: `<h1>Congratulations!</h1><p>You have been shortlisted. Start your interview here: <a href="${interviewLink}">${interviewLink}</a></p>`
+        });
       }
     } else {
       await prisma.applicant.update({

@@ -140,21 +140,41 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
   const generateAssessment = async () => {
     setGenLoading(true);
     setMsg("");
-    const res = await fetch(`/api/company/postings/${editPosting?.id || "new"}/generate-assessment`, {
+    const res = await fetch(`/api/company/postings/generate-questions`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ 
-        mcqCount: autoGenMcqCount, 
-        openCount: autoGenOpenCount,
-        jobData: form
+        title: form.title,
+        description: form.description,
+        experienceLevel: form.experienceLevel,
+        count: autoGenMcqCount
       }),
     });
     const data = await res.json();
     setGenLoading(false);
     if (!res.ok) { setMsg(data.error || "Failed to generate assessment"); return; }
     
-    setLocalAssessmentBank(prev => [...prev, ...data.assessmentBank]);
-    setLocalAnswerKey(prev => [...prev, ...data.answerKey]);
+    const newQuestions = data.map((q: any, i: number) => {
+      const id = `ai_${Date.now()}_${i}`;
+      return {
+        question: {
+          id,
+          type: "mcq",
+          category: "ai-generated",
+          difficulty: form.experienceLevel,
+          prompt: q.question,
+          points: 10,
+          options: q.options
+        },
+        answer: {
+          questionId: id,
+          correctOption: q.options.indexOf(q.correctAnswer) !== -1 ? q.options.indexOf(q.correctAnswer) : 0
+        }
+      };
+    });
+
+    setLocalAssessmentBank(prev => [...prev, ...newQuestions.map((n: any) => n.question)]);
+    setLocalAnswerKey(prev => [...prev, ...newQuestions.map((n: any) => n.answer)]);
     setMsg("Assessment questions added to the bank successfully!");
   };
 

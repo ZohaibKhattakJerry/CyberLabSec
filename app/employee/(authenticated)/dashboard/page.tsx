@@ -28,7 +28,7 @@ export default async function Dashboard() {
           members: { select: { id: true, name: true, designation: true, status: true }, where: { status: "Active" } },
           tasks: {
             select: { 
-              id: true, title: true, deadline: true, status: true, pointValue: true, 
+              id: true, title: true, deadline: true, status: true, 
               submissions: { where: { employeeId: auth.sub }, select: { status: true } } 
             },
             orderBy: { deadline: 'asc' },

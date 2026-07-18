@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
+import { getAuthFromCookies } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -36,9 +36,8 @@ async function wipeDatabase() {
 
 export async function POST() {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("company_token")?.value;
-    if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await getAuthFromCookies();
+    if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     await wipeDatabase();
 

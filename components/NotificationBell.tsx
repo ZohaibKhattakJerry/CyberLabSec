@@ -116,7 +116,7 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="card animate-fade-up notification-dropdown" style={{ position: "absolute", bottom: "calc(100% + 8px)", left: 0, width: 350, maxWidth: "calc(100vw - 32px)", maxHeight: 450, display: "flex", flexDirection: "column", zIndex: 9999, overflow: "hidden", boxShadow: "var(--shadow-xl)" }}>
+        <div className="card animate-fade-up notification-dropdown" style={{ position: "absolute", bottom: "calc(100% + 8px)", right: 0, transformOrigin: "top right", width: 350, maxWidth: "calc(100vw - 32px)", maxHeight: 450, display: "flex", flexDirection: "column", zIndex: 9999, overflow: "hidden", boxShadow: "var(--shadow-xl)" }}>
           <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--bg-elevated)" }}>
             <h3 style={{ fontSize: 14, fontWeight: 700 }}>Notifications</h3>
             {unreadCount > 0 && (
