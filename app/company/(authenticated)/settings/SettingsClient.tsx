@@ -65,7 +65,7 @@ export default function SettingsClient() {
 
   const exportCSV = () => {
     const rows = filteredLogs.slice(0, 500);
-    const csv = ["Action,Actor,Timestamp,Details", ...rows.map((l) => `${l.action},${l.actorId},${l.createdAt},"${String(l.metadata || "").replace(/"/g, "'")}"`)] ;
+    const csv = ["Action,Actor,Timestamp,Details", ...rows.map((l: any) => `${l.action},${l.actorId},${l.createdAt},"${String(l.metadata || "").replace(/"/g, "'")}"`)] ;
     const blob = new Blob([csv.join("\n")], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a"); a.href = url; a.download = `audit-${Date.now()}.csv`; a.click();
@@ -202,7 +202,7 @@ export default function SettingsClient() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredLogs.slice(0, 200).map((log, i) => {
+                  {filteredLogs.slice(0, 200).map((log: any, i: number) => {
                     let details = "";
                     try { const m = JSON.parse(log.metadata || "{}"); details = Object.entries(m).map(([k, v]) => `${k}: ${v}`).join(" · "); } catch { details = log.metadata || ""; }
                     return (
@@ -232,7 +232,7 @@ export default function SettingsClient() {
               { label: "Medium Priority", key: "medium", color: "var(--blue)" },
               { label: "High Priority", key: "high", color: "var(--amber)" },
               { label: "Critical Priority", key: "critical", color: "var(--red)" },
-            ] as const).map(({ label, key, color }) => (
+            ] as const).map(({ label, key, color }: any) => (
               <div key={key}>
                 <label className="label" style={{ color }}>{label} (base pts)</label>
                 <input className="input" type="number" min={1} value={(points as unknown)[key]} onChange={(e) => setPoints((p) => ({ ...p, [key]: Number(e.target.value) }))} style={{ width: 120 }} />
@@ -259,7 +259,7 @@ export default function SettingsClient() {
       {/* Email Templates */}
       {tab === "templates" && (
         <div style={{ display: "grid", gap: 10 }}>
-          {templates.map((t) => (
+          {templates.map((t: any) => (
             <div key={t.id} className="card" style={{ padding: "16px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
                 <div style={{ fontWeight: 600, fontSize: 14 }}>{t.name}</div>

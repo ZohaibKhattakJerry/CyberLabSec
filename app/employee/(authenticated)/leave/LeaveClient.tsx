@@ -4,8 +4,8 @@ import { format } from 'date-fns';
 import { Plus, Calendar, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-export default function LeaveClient({ initialLeaves }: { initialLeaves: unknown[] }) {
-  const [leaves, setLeaves] = useState(initialLeaves);
+export default function LeaveClient({ initialLeaves }: { initialLeaves: any[] }) {
+  const [leaves, setLeaves] = useState<any[]>(initialLeaves);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ type: 'Casual', startDate: '', endDate: '', reason: '' });
   const [loading, setLoading] = useState(false);
@@ -28,7 +28,7 @@ export default function LeaveClient({ initialLeaves }: { initialLeaves: unknown[
       setShowForm(false);
       setForm({ type: 'Casual', startDate: '', endDate: '', reason: '' });
       toast.success('Leave request submitted!');
-    } catch (err: unknown) {
+    } catch (err: any) {
       toast.error(err.message);
     } finally {
       setLoading(false);
@@ -63,12 +63,12 @@ export default function LeaveClient({ initialLeaves }: { initialLeaves: unknown[
                   {['Casual', 'Medical', 'Annual', 'Unpaid', 'Emergency'].map(t => <option key={t}>{t}</option>)}
                 </select>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+                <div style={{ flex: '1 1 200px' }}>
                   <label className="label label-required">Start Date</label>
                   <input type="date" className="input" value={form.startDate} onChange={e => setForm({ ...form, startDate: e.target.value })} required />
                 </div>
-                <div>
+                <div style={{ flex: '1 1 200px' }}>
                   <label className="label label-required">End Date</label>
                   <input type="date" className="input" value={form.endDate} onChange={e => setForm({ ...form, endDate: e.target.value })} required />
                 </div>
@@ -95,9 +95,9 @@ export default function LeaveClient({ initialLeaves }: { initialLeaves: unknown[
         </div>
       ) : (
         <div style={{ display: 'grid', gap: 12 }}>
-          {leaves.map((l: unknown) => (
-            <div key={l.id} className="card" style={{ padding: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
-              <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+          {leaves.map((l: any) => (
+            <div key={l.id} className="card" style={{ padding: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
                 <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(168,85,247,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <Calendar size={20} color="var(--purple)" />
                 </div>
@@ -109,7 +109,7 @@ export default function LeaveClient({ initialLeaves }: { initialLeaves: unknown[
                   {l.reviewerNote && <div style={{ fontSize: 12, color: 'var(--amber)', marginTop: 4 }}>Note: {l.reviewerNote}</div>}
                 </div>
               </div>
-              <span className={`badge ${statusColor(l.status)}`}>{l.status}</span>
+              <span className={`badge ${statusColor(l.status)}`} style={{ flexShrink: 0 }}>{l.status}</span>
             </div>
           ))}
         </div>

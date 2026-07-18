@@ -18,7 +18,7 @@ export default async function FinalApprovalPage() {
     orderBy: { createdAt: "desc" },
   });
 
-  const serializedReviews = reviews.map((r: unknown) => ({
+  const serializedReviews = reviews.map((r: any) => ({
     ...r,
     createdAt: r.createdAt.toISOString(),
     updatedAt: r.updatedAt.toISOString(),

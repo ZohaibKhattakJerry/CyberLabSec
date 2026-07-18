@@ -103,7 +103,7 @@ export default function SubmissionReviewClient({ submission }: { submission: unk
           <div>
             <h4 style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, color: "var(--text-secondary)" }}>Attached Files</h4>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {files.map((file: string, idx: number) => {
+              {files.map((file: any, idx: number) => {
                 const name = file.split("/").pop() || file;
                 return (
                   <a key={idx} href={`/api/company/tasks/files?path=${encodeURIComponent(file)}`} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 12px", background: "var(--bg-elevated)", border: "1px solid var(--border-subtle)", borderRadius: 6, fontSize: 13, color: "var(--text-primary)", textDecoration: "none" }} className="hover:border-[var(--purple)]">

@@ -68,7 +68,7 @@ export default function FinalApprovalClient({ reviews }: { reviews: Review[] }) 
       
       setSuccessDialog({ show: true, status, reviewType: selected?.type || "Request" });
       startTransition(() => { router.refresh(); setSelected(null); });
-    } catch (error: unknown) {
+    } catch (error: any) {
       setActionMsg(error.message || "An unexpected error occurred.");
     } finally {
       setActionLoading(false);
@@ -85,7 +85,7 @@ export default function FinalApprovalClient({ reviews }: { reviews: Review[] }) 
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 20 }}>
-        {reviews.map((r: Review) => (
+        {reviews.map((r: any) => (
           <div key={r.id} className="card" style={{ padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
             <div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>

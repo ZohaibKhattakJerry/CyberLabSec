@@ -15,24 +15,24 @@ const FROM = "CyberLabSec Systems <contact@cyberlabsec.tech>";
 const GLOBAL_HEAD = `
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="color-scheme" content="light">
-    <meta name="supported-color-schemes" content="light">
+    <meta name="color-scheme" content="dark">
+    <meta name="supported-color-schemes" content="dark">
     <style>
-      body { font-family: 'Inter', Helvetica, Arial, sans-serif; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; color: #18181b; background-color: #f4f4f5; }
+      body { font-family: Helvetica, Arial, sans-serif; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; color: #e4e4e7; background-color: #0a0a0f; }
       table { border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
       a { text-decoration: none; }
-      .bg-body { background-color: #f4f4f5; }
-      .card-bg { background-color: #ffffff; border: 1px solid #e4e4e7; }
-      .header-cell { background-color: #09090b; border-bottom: 1px solid #e4e4e7; padding: 35px 40px 25px; }
-      .body-cell { background-color: #ffffff; padding: 45px 40px; color: #18181b; }
-      .footer-cell { background-color: #fafafa; border-top: 1px solid #e4e4e7; padding: 30px 40px; }
-      .footer-text { color: #71717a; font-size: 12px; margin: 0 0 12px 0; line-height: 1.6; }
-      h1 { color: #09090b; font-size: 26px; font-weight: 800; margin: 0 0 16px 0; letter-spacing: -0.02em; }
-      p { color: #3f3f46; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0; }
-      .info-label { color: #71717a; border-bottom: 1px solid #f4f4f5; padding: 14px 0; font-size: 14px; font-weight: 600; width: 140px; vertical-align: top; }
-      .info-value { color: #09090b; border-bottom: 1px solid #f4f4f5; padding: 14px 0; font-size: 14px; vertical-align: top; }
-      .code-box { background: #f4f4f5; border: 1px solid #e4e4e7; padding: 4px 8px; border-radius: 4px; color: #7000ff; font-size: 15px; font-weight: 700; }
-      .divider { height: 1px; background: #e4e4e7; margin: 30px 0; }
+      .bg-body { background-color: #0a0a0f; }
+      .card-bg { background-color: #12121a; border: 1px solid #27272a; }
+      .header-cell { background: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%); padding: 35px 40px 25px; }
+      .body-cell { background-color: #12121a; padding: 45px 40px; color: #e4e4e7; }
+      .footer-cell { background-color: #0a0a0f; border-top: 1px solid #27272a; padding: 30px 40px; }
+      .footer-text { color: #a1a1aa; font-size: 12px; margin: 0 0 12px 0; line-height: 1.6; }
+      h1 { color: #ffffff; font-size: 26px; font-weight: 800; margin: 0 0 16px 0; letter-spacing: -0.02em; }
+      p { color: #d4d4d8; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0; }
+      .info-label { color: #a1a1aa; border-bottom: 1px solid #27272a; padding: 14px 0; font-size: 14px; font-weight: 600; width: 140px; vertical-align: top; }
+      .info-value { color: #ffffff; border-bottom: 1px solid #27272a; padding: 14px 0; font-size: 14px; vertical-align: top; }
+      .code-box { background: #18181b; border: 1px solid #27272a; padding: 4px 8px; border-radius: 4px; color: #a78bfa; font-size: 15px; font-weight: 700; }
+      .divider { height: 1px; background: #27272a; margin: 30px 0; }
       @media (max-width: 600px) {
         .responsive-table { width: 100% !important; border-radius: 0 !important; border-left: none !important; border-right: none !important; }
         .body-cell { padding: 30px 20px !important; }
@@ -44,14 +44,14 @@ const GLOBAL_HEAD = `
   </head>
 `;
 
-const HTML_START = `<!DOCTYPE html><html>${GLOBAL_HEAD}<body style="background-color: #f4f4f5; margin: 0; padding: 0;">`;
+const HTML_START = `<!DOCTYPE html><html>${GLOBAL_HEAD}<body style="background-color: #0a0a0f; margin: 0; padding: 0;">`;
 const HTML_END = `</body></html>`;
 
 const WRAP_START = `
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" class="bg-body" style="width: 100%; background-color: #f4f4f5;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" class="bg-body" style="width: 100%; background-color: #0a0a0f;">
     <tr>
       <td class="wrap-cell" align="center" style="padding: 40px 20px;">
-        <table class="responsive-table card-bg" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border: 1px solid #e4e4e7; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);">
+        <table class="responsive-table card-bg" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%; background-color: #12121a; border: 1px solid #27272a; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);">
 `;
 const WRAP_END = `
         </table>
@@ -63,10 +63,8 @@ const WRAP_END = `
 const headerSection = (subtitle: string) => `
   <tr>
     <td class="header-cell" align="center">
-      <a href="https://cyberlabsec.tech" style="display: inline-block; background: #09090b; padding: 8px; border-radius: 8px;">
-        <img src="https://cyberlabsec.tech/logo.png" alt="CyberLabSec Logo" style="height: 48px; width: auto; max-width: 200px; display: block; margin: 0 auto;" />
-      </a>
-      <p style="color: #a855f7; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.25em; margin: 16px 0 0 0;">${subtitle}</p>
+      <div style="color: #ffffff; font-size: 28px; font-weight: bold; margin: 0; padding: 0; letter-spacing: -0.02em;">CyberLabSec</div>
+      <p style="color: #e0e7ff; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.25em; margin: 16px 0 0 0;">${subtitle}</p>
     </td>
   </tr>
 `;
@@ -77,8 +75,8 @@ const footerSection = (extra: string = "") => `
       <p class="footer-text">
         ${extra ? extra + "<br/><br/>" : ""}
         © ${new Date().getFullYear()} CyberLabSec · Offensive Security & Pentesting Operations<br/>
-        <a href="https://cyberlabsec.tech" style="color: #7000ff; text-decoration: none; font-weight: 500;">cyberlabsec.tech</a>
-        &nbsp;|&nbsp; <a href="mailto:contact@cyberlabsec.tech" style="color: #71717a; text-decoration: none;">contact@cyberlabsec.tech</a>
+        <a href="https://cyberlabsec.tech" style="color: #a78bfa; text-decoration: none; font-weight: 500;">cyberlabsec.tech</a>
+        &nbsp;|&nbsp; <a href="mailto:contact@cyberlabsec.tech" style="color: #a1a1aa; text-decoration: none;">contact@cyberlabsec.tech</a>
       </p>
     </td>
   </tr>
@@ -89,14 +87,14 @@ const BODY_END = `</td></tr>`;
 
 const callout = (title: string, content: string, type: 'info' | 'danger' | 'success' = 'info') => {
   const colors = {
-    info: { border: '#7000ff', bg: '#f3e8ff', text: '#581c87' },
-    danger: { border: '#ef4444', bg: '#fef2f2', text: '#991b1b' },
-    success: { border: '#22c55e', bg: '#f0fdf4', text: '#166534' },
+    info: { border: '#7c3aed', bg: '#181825', text: '#d8b4fe' },
+    danger: { border: '#ef4444', bg: '#2a1215', text: '#fca5a5' },
+    success: { border: '#22c55e', bg: '#14251c', text: '#86efac' },
   };
   const c = colors[type];
   return `
-    <div style="background: ${c.bg}; border-left: 4px solid ${c.border}; border-radius: 6px; padding: 24px; margin-bottom: 28px; color: ${c.text};">
-      ${title ? `<p style="color: ${c.border}; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin: 0 0 12px 0;">${title}</p>` : ''}
+    <div style="background: ${c.bg}; border-left: 4px solid ${c.border}; border-radius: 6px; padding: 24px; margin-bottom: 28px; color: #e4e4e7;">
+      ${title ? `<p style="color: ${c.text}; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin: 0 0 12px 0;">${title}</p>` : ''}
       <div style="font-size: 15px; line-height: 1.6;">${content}</div>
     </div>
   `;
@@ -104,7 +102,7 @@ const callout = (title: string, content: string, type: 'info' | 'danger' | 'succ
 
 const btn = (text: string, url: string) => `
   <div style="text-align: center; margin: 35px 0 15px 0;">
-    <a href="${url}" style="display: inline-block; background: #09090b; color: #ffffff; text-decoration: none; padding: 14px 36px; border-radius: 8px; font-weight: 600; font-size: 15px; letter-spacing: 0.02em;">
+    <a href="${url}" style="display: inline-block; background: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%); color: #ffffff; text-decoration: none; padding: 14px 36px; border-radius: 8px; font-weight: bold; font-size: 15px; letter-spacing: 0.02em;">
       ${text}
     </a>
   </div>
@@ -117,7 +115,7 @@ const paragraph = (text: string) => `<p>${text}</p>`;
 const infoRow = (label: string, value: string) => `
   <tr>
     <td class="info-label">${label}</td>
-    <td class="info-value">${value}</td>
+    <td class="info-value" style="color: #ffffff;">${value}</td>
   </tr>
 `;
 

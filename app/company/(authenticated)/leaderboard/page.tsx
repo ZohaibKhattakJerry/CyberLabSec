@@ -47,7 +47,7 @@ export default async function CompanyLeaderboardPage() {
     .sort((a, b) => b.totalPoints - a.totalPoints);
 
   // Add default empty arrays since we optimized them out
-  const serializedEmployees = employees.map((e) => ({
+  const serializedEmployees = employees.map((e: any) => ({
     ...e,
     badges: [],
     submissions: [],

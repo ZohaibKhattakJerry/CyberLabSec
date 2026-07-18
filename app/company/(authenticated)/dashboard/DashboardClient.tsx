@@ -90,7 +90,7 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
   const utilization = stats.employees > 0 ? Math.min(100, Math.round(((stats.activeTasks + stats.overdueTasks) / (stats.employees * expectedTasksPerEmp)) * 100)) : 0;
 
   return (
-    <div style={{ display: "grid", gap: 24, paddingBottom: 40 }}>
+    <div className="animate-fade-up" style={{ display: "grid", gap: 24, paddingBottom: 40 }}>
       {/* Header */}
       <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-end", gap: 16 }}>
         <div>
@@ -128,7 +128,7 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
       )}
 
       {/* KPI Cards */}
-      <div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
+      <div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 16 }}>
         {kpis.map((kpi) => (
           <Link key={kpi.label} href={kpi.href} style={{ textDecoration: "none", display: "block", height: "100%" }}>
             <div className="card" style={{ 
@@ -190,8 +190,9 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
           <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20, display: "flex", alignItems: "center", gap: 8 }}>
             <Activity size={18} color="var(--purple)" /> Task Status Distribution
           </h2>
-          <div style={{ display: "grid", gap: 16 }}>
-            {taskData.map((t) => {
+          <div style={{ overflowX: "auto" }}>
+            <div style={{ minWidth: 300, display: "grid", gap: 16 }}>
+            {taskData.map((t: any) => {
               const percent = taskTotal > 0 ? (t.value / taskTotal) * 100 : 0;
               return (
                 <div key={t.name}>
@@ -205,6 +206,7 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
                 </div>
               );
             })}
+            </div>
           </div>
         </div>
 
@@ -252,7 +254,7 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
             <p style={{ fontSize: 14, color: "var(--text-muted)", flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>No performance data yet.</p>
           ) : (
             <div style={{ display: "grid", gap: 16 }}>
-              {topEmployees.map((emp, i) => {
+              {topEmployees.map((emp: any, i: number) => {
                 const percent = (emp.monthlyPoints / maxPoints) * 100;
                 return (
                   <div key={emp.id} style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", gap: 12, alignItems: "center", padding: "10px", background: "rgba(255,255,255,0.02)", borderRadius: 12 }}>
@@ -280,7 +282,7 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
             <p style={{ fontSize: 14, color: "var(--text-muted)" }}>No recent activity.</p>
           ) : (
             <div style={{ display: "grid", gap: 16, maxHeight: 360, overflowY: "auto", paddingRight: 8 }}>
-              {recentActivity.slice(0, 15).map((log) => {
+              {recentActivity.slice(0, 15).map((log: any) => {
                 let meta: Record<string, string> = {};
                 try { meta = JSON.parse(log.metadata || "{}"); } catch {}
                 const color = ACTION_COLORS[log.action] || "var(--blue)";

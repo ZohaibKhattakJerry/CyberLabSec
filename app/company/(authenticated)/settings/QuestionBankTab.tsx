@@ -157,7 +157,7 @@ export default function QuestionBankTab() {
             </tr>
           </thead>
           <tbody>
-            {questions.map(q => (
+            {questions.map((q: any) => (
               <tr key={q.id}>
                 <td data-label="Type">
                   <span className="badge badge-gray">{q.type.toUpperCase()}</span>
@@ -237,7 +237,7 @@ export default function QuestionBankTab() {
                 <div>
                   <label className="label label-required">Options</label>
                   <div style={{ display: "grid", gap: 12 }}>
-                    {options.map((opt, idx) => (
+                    {options.map((opt: any, idx: number) => (
                       <div key={idx} style={{ display: "flex", alignItems: "center", gap: 12 }}>
                         <input type="radio" checked={correctOption === idx} onChange={() => setCorrectOption(idx)} style={{ accentColor: "var(--purple)", width: 18, height: 18 }} />
                         <input className="input" style={{ flex: 1 }} value={opt} onChange={e => {

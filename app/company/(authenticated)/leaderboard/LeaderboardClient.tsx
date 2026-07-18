@@ -132,7 +132,7 @@ export default function LeaderboardClient({
           {top3.length >= 2 && (
             <div style={{ marginBottom: 40 }}>
               <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-end", gap: 12, marginBottom: 0 }}>
-                {podiumOrder.map((emp, i) => {
+                {podiumOrder.map((emp: any, i: number) => {
                   const pc = podiumConfig[i];
                   if (!emp) return null;
                   return (
@@ -152,11 +152,12 @@ export default function LeaderboardClient({
           )}
 
           {/* Full rankings */}
-          <div className="card" style={{ overflow: "hidden" }}>
+          <div className="card" style={{ overflowX: "auto" }}>
+            <div style={{ minWidth: 600 }}>
             <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", fontWeight: 600, fontSize: 13, color: "var(--text-muted)", display: "grid", gridTemplateColumns: "48px 1fr auto auto", gap: 12 }}>
               <span>#</span><span>Employee</span><span style={{ textAlign: "right" }}>Badges</span><span style={{ textAlign: "right", minWidth: 80 }}>Points</span>
             </div>
-            {sorted.map((emp, i) => (
+            {sorted.map((emp: any, i: number) => (
               <div key={emp.id}>
                 <div
                   onClick={() => setExpandedEmployee(expandedEmployee === emp.id ? null : emp.id)}
@@ -201,6 +202,7 @@ export default function LeaderboardClient({
                 )}
               </div>
             ))}
+            </div>
             {sorted.length === 0 && (
               <div style={{ padding: 48, textAlign: "center", color: "var(--text-muted)" }}>No active employees yet.</div>
             )}
@@ -210,7 +212,7 @@ export default function LeaderboardClient({
 
       {activeTab === "team" && (
         <div style={{ display: "grid", gap: 12 }}>
-          {sortedTeams.map((team, i) => (
+          {sortedTeams.map((team: any, i: number) => (
             <div key={team.id} className="card" style={{ padding: 20, display: "flex", alignItems: "center", gap: 20 }}>
               <div style={{ fontSize: 24, width: 40, textAlign: "center" }}>
                 {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`}

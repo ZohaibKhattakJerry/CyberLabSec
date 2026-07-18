@@ -1,14 +1,15 @@
 import { getAuthFromCookies } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import { format } from "date-fns";
-import { Megaphone, Building2, Users, Bell, Clock, Info } from "lucide-react";
+import { format, formatDistanceToNow } from "date-fns";
+import { Megaphone, Building2, Users, Bell, Clock, Info, Search } from "lucide-react";
 import AcknowledgeButton from "./AcknowledgeButton";
 
 export const dynamic = "force-dynamic";
 
-export default async function AnnouncementsPage() {
+export default async function AnnouncementsPage({ searchParams }: { searchParams: { q?: string } }) {
   try {
+    const q = searchParams.q || "";
     const auth = await getAuthFromCookies();
     if (!auth) redirect("/employee/login");
 
@@ -44,8 +45,13 @@ export default async function AnnouncementsPage() {
     },
   });
 
+  // Filter by search query if provided
+  const filteredAnnouncements = q 
+    ? rawAnnouncements.filter(a => a.message.toLowerCase().includes(q.toLowerCase()) || a.sentBy?.name?.toLowerCase().includes(q.toLowerCase()))
+    : rawAnnouncements;
+
   // Sort pinned first
-  const announcements = [...rawAnnouncements].sort((a, b) => {
+  const announcements = [...filteredAnnouncements].sort((a, b) => {
     if (a.isPinned === b.isPinned) return 0;
     return a.isPinned ? -1 : 1;
   });
@@ -61,7 +67,7 @@ export default async function AnnouncementsPage() {
 
   return (
     <div>
-      <div style={{ marginBottom: 32, display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+      <div style={{ marginBottom: 32, display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 16 }}>
         <div>
           <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 6, display: "flex", alignItems: "center", gap: 10 }}>
             <Bell size={24} color="var(--purple)" /> 
@@ -72,6 +78,13 @@ export default async function AnnouncementsPage() {
             {pinnedCount > 0 && <span style={{ marginLeft: 8, color: "var(--amber)" }}>( {pinnedCount} Pinned )</span>}
           </p>
         </div>
+        <form method="GET" action="/employee/announcements" style={{ display: "flex", gap: 8, alignItems: "center", flex: "1 1 300px", maxWidth: 400 }}>
+          <div style={{ position: "relative", width: "100%" }}>
+            <Search size={16} color="var(--text-muted)" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} />
+            <input name="q" defaultValue={q} placeholder="Search announcements..." className="input" style={{ paddingLeft: 36, width: "100%", borderRadius: 8 }} />
+          </div>
+          <button type="submit" className="btn btn-primary" style={{ height: 40 }}>Search</button>
+        </form>
       </div>
 
       {announcements.length === 0 ? (
@@ -110,7 +123,7 @@ export default async function AnnouncementsPage() {
                 )}
                 
                 <div style={{ padding: 24 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, marginBottom: 20 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, marginBottom: 20, flexWrap: "wrap" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                       <div style={{
                         width: 44, height: 44, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
@@ -124,13 +137,13 @@ export default async function AnnouncementsPage() {
                           <span>{a.sentBy?.designation || "Admin"}</span>
                           <span style={{ width: 4, height: 4, borderRadius: "50%", background: "var(--text-muted)", opacity: 0.5 }} />
                           <span style={{ color: isCompany ? "var(--blue)" : isTeam ? "var(--purple)" : "var(--green)", fontWeight: 600 }}>
-                            {isCompany ? "Company-wide" : isTeam ? `Team: ${a.team?.name}` : "Personal"}
+                            {isCompany ? "Company-wide" : isTeam ? `Team: ${a.team?.name || "Unknown"}` : "Personal"}
                           </span>
                         </div>
                       </div>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--text-muted)", background: "rgba(255,255,255,0.03)", padding: "4px 10px", borderRadius: 12 }}>
-                      <Clock size={12} /> {format(a.sentAt, "MMM d, yyyy · h:mm a")}
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--text-muted)", background: "rgba(255,255,255,0.03)", padding: "4px 10px", borderRadius: 12, flexShrink: 0 }}>
+                      <Clock size={12} /> {formatDistanceToNow(new Date(a.sentAt), { addSuffix: true })}
                     </div>
                   </div>
                   

@@ -80,7 +80,7 @@ export default async function AdminTaskReviewPage({ params }: { params: Promise<
               <div style={{ marginTop: 20 }}>
                 <h3 style={{ fontSize: 14, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 10 }}>Checklist</h3>
                 <div style={{ display: "grid", gap: 6 }}>
-                  {checklist.map((item, i) => (
+                  {checklist.map((item: any, i: number) => (
                     <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px", background: "rgba(255,255,255,0.02)", borderRadius: 8, border: "1px solid var(--border-subtle)", fontSize: 13, color: "var(--text-secondary)" }}>
                       <CheckCircle size={14} color="var(--purple)" style={{ flexShrink: 0 }} />
                       {item}
@@ -106,7 +106,7 @@ export default async function AdminTaskReviewPage({ params }: { params: Promise<
                 No reports submitted yet.
               </div>
             ) : (
-              task.submissions.map((sub) => (
+              task.submissions.map((sub: any) => (
                 <SubmissionReviewClient key={sub.id} submission={sub} />
               ))
             )}
@@ -143,7 +143,7 @@ export default async function AdminTaskReviewPage({ params }: { params: Promise<
             <div className="card" style={{ padding: 24 }}>
               <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 16, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Activity Timeline</h3>
               <div style={{ display: "grid", gap: 0 }}>
-                {taskActivity.map((log, i) => {
+                {taskActivity.map((log: any, i: number) => {
                   let meta: unknown = {};
                   try { meta = JSON.parse(log.metadata || "{}"); } catch {}
                   const label = ACTION_LABELS[log.action] || log.action.replace(/_/g, " ").toLowerCase();
