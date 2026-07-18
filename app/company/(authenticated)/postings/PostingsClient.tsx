@@ -10,13 +10,16 @@ type Posting = {
   description: string; requirements: string; 
   deadline: string; status: string; stipend: string;
   createdAt: string; _count: { applicants: number };
-  assessmentBank?: string; answerKey?: string;
+  assessmentBank?: string; answerKey?: string; assessmentSettings?: string;
 };
 
 const EMPTY_FORM = {
   title: "", type: "Job", department: "", location: "Remote",
   description: "", requirements: "", stipend: "",
-  deadline: "", status: "Draft"
+  deadline: "", status: "Draft",
+  universityRequired: false, showApplicantCount: true, autoShortlist: true,
+  passMark: 50, openings: 1, experienceLevel: "Any", duration: "", weeklyHours: 40,
+  niceToHave: "", whatYouGain: ""
 };
 
 export default function PostingsClient({ postings }: { postings: Posting[] }) {
@@ -64,10 +67,30 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
       description: p.description, requirements: p.requirements,
       deadline: p.deadline.slice(0, 16),
       status: p.status,
-      stipend: (p as unknown as any).stipend || "",
+      stipend: (p as any).stipend || "",
+      universityRequired: (p as any).universityRequired ?? false,
+      showApplicantCount: (p as any).showApplicantCount ?? true,
+      autoShortlist: (p as any).autoShortlist ?? true,
+      passMark: (p as any).passMark ?? 50,
+      openings: (p as any).openings ?? 1,
+      experienceLevel: (p as any).experienceLevel ?? "Any",
+      duration: (p as any).duration ?? "",
+      weeklyHours: (p as any).weeklyHours ?? 40,
+      niceToHave: (p as any).niceToHave ?? "",
+      whatYouGain: (p as any).whatYouGain ?? ""
     });
     setLocalAssessmentBank(p.assessmentBank && p.assessmentBank !== "[]" ? JSON.parse(p.assessmentBank) : []);
     setLocalAnswerKey(p.answerKey && p.answerKey !== "{}" ? JSON.parse(p.answerKey) : []);
+    
+    if (p.assessmentSettings && p.assessmentSettings !== "{}") {
+      const settings = JSON.parse(p.assessmentSettings);
+      setAutoGenMcqCount(settings.mcqCount || 5);
+      setAutoGenOpenCount(settings.openCount || 2);
+    } else {
+      setAutoGenMcqCount(5);
+      setAutoGenOpenCount(2);
+    }
+    
     setMsg(""); 
     setStep(1);
     setShowForm(true);
@@ -78,22 +101,12 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
     if (!form.description.trim() || !form.requirements.trim()) { setMsg("Job description and requirements are required."); return; }
     setLoading(true); setMsg("");
     
-    const payload = { 
+    const payload = {
       ...form, 
       status: saveAsDraft ? "Draft" : (form.status === "Draft" ? "Published" : form.status),
       assessmentBank: JSON.stringify(localAssessmentBank),
       answerKey: JSON.stringify(localAnswerKey),
-      // Set defaults for removed fields so prisma doesn't complain
-      universityRequired: false,
-      showApplicantCount: true,
-      autoShortlist: true,
-      passMark: 50,
-      openings: 1,
-      experienceLevel: "Any",
-      duration: "",
-      weeklyHours: 0,
-      niceToHave: "",
-      whatYouGain: ""
+      assessmentSettings: JSON.stringify({ mcqCount: autoGenMcqCount, openCount: autoGenOpenCount })
     };
     
     const url = editPosting ? `/api/company/postings/${editPosting.id}` : "/api/company/postings";
@@ -299,7 +312,48 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
                   </div>
                   <div style={{ gridColumn: "1/-1" }}>
                     <label className="label label-required">Requirements & Qualifications</label>
-                    <textarea className="input" rows={5} value={form.requirements} onChange={e => setForm(f => ({ ...f, requirements: e.target.value }))} placeholder="List required skills, minimum experience, desired certifications (OSCP, OSEP, etc.)..." />
+                    <textarea className="input" rows={4} value={form.requirements} onChange={e => setForm(f => ({ ...f, requirements: e.target.value }))} placeholder="List required skills, minimum experience, desired certifications (OSCP, OSEP, etc.)..." />
+                  </div>
+                  <div style={{ gridColumn: "1/-1" }}>
+                    <label className="label">Nice to Have (Optional)</label>
+                    <textarea className="input" rows={2} value={form.niceToHave as string} onChange={e => setForm(f => ({ ...f, niceToHave: e.target.value }))} placeholder="Bonus points for..." />
+                  </div>
+                  <div style={{ gridColumn: "1/-1" }}>
+                    <label className="label">What You'll Gain (Optional)</label>
+                    <textarea className="input" rows={2} value={form.whatYouGain as string} onChange={e => setForm(f => ({ ...f, whatYouGain: e.target.value }))} placeholder="Perks, learning opportunities..." />
+                  </div>
+                  
+                  <div>
+                    <label className="label">Experience Level</label>
+                    <select className="input" value={form.experienceLevel as string} onChange={e => setForm(f => ({ ...f, experienceLevel: e.target.value }))}>
+                      <option value="Any">Any</option>
+                      <option value="Entry Level">Entry Level</option>
+                      <option value="Mid Level">Mid Level</option>
+                      <option value="Senior Level">Senior Level</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="label">Number of Openings</label>
+                    <input className="input" type="number" min={1} value={form.openings as number} onChange={e => setForm(f => ({ ...f, openings: parseInt(e.target.value) }))} />
+                  </div>
+                  <div>
+                    <label className="label">Duration (Internship/Contract)</label>
+                    <input className="input" value={form.duration as string} onChange={e => setForm(f => ({ ...f, duration: e.target.value }))} placeholder="e.g. 6 Months" />
+                  </div>
+                  <div>
+                    <label className="label">Weekly Hours</label>
+                    <input className="input" type="number" min={1} value={form.weeklyHours as number} onChange={e => setForm(f => ({ ...f, weeklyHours: parseInt(e.target.value) }))} />
+                  </div>
+                  
+                  <div style={{ gridColumn: "1/-1", display: "flex", gap: 24, marginTop: 12 }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, cursor: "pointer" }}>
+                      <input type="checkbox" checked={form.universityRequired as boolean} onChange={e => setForm(f => ({ ...f, universityRequired: e.target.checked }))} style={{ width: 18, height: 18, accentColor: "var(--purple)" }} />
+                      University Degree Required
+                    </label>
+                    <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, cursor: "pointer" }}>
+                      <input type="checkbox" checked={form.autoShortlist as boolean} onChange={e => setForm(f => ({ ...f, autoShortlist: e.target.checked }))} style={{ width: 18, height: 18, accentColor: "var(--purple)" }} />
+                      Auto-Shortlist / AI Interview Immediately
+                    </label>
                   </div>
                   
                   <div style={{ gridColumn: "1/-1" }}>

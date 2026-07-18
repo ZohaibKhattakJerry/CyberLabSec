@@ -26,6 +26,7 @@ export default async function TeamsPage() {
   });
 
   const tasks = await prisma.task.findMany({
+    take: 200,
     include: {
       team: { 
         select: { 

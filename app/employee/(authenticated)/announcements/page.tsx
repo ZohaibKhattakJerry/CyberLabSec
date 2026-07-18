@@ -118,9 +118,9 @@ export default async function AnnouncementsPage() {
                         {isCompany ? <Building2 size={20} color="var(--blue)" /> : isTeam ? <Users size={20} color="var(--purple)" /> : <Info size={20} color="var(--green)" />}
                       </div>
                       <div>
-                        <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>{a.sentBy.name}</div>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>{a.sentBy?.name || "System"}</div>
                         <div style={{ fontSize: 12, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
-                          <span>{a.sentBy.designation}</span>
+                          <span>{a.sentBy?.designation || "Admin"}</span>
                           <span style={{ width: 4, height: 4, borderRadius: "50%", background: "var(--text-muted)", opacity: 0.5 }} />
                           <span style={{ color: isCompany ? "var(--blue)" : isTeam ? "var(--purple)" : "var(--green)", fontWeight: 600 }}>
                             {isCompany ? "Company-wide" : isTeam ? `Team: ${a.team?.name}` : "Personal"}

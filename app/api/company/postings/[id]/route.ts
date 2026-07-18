@@ -24,6 +24,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (body.autoShortlist !== undefined) dataToUpdate.autoShortlist = !!body.autoShortlist;
   if (body.assessmentBank !== undefined) dataToUpdate.assessmentBank = body.assessmentBank;
   if (body.answerKey !== undefined) dataToUpdate.answerKey = body.answerKey;
+  if (body.assessmentSettings !== undefined) dataToUpdate.assessmentSettings = body.assessmentSettings;
+  if (body.stipend !== undefined) dataToUpdate.stipend = body.stipend || null;
+  if (body.experienceLevel !== undefined) dataToUpdate.experienceLevel = body.experienceLevel || "Any";
+  if (body.duration !== undefined) dataToUpdate.duration = body.duration || null;
+  if (body.weeklyHours !== undefined) dataToUpdate.weeklyHours = body.weeklyHours ? parseInt(body.weeklyHours) : null;
+  if (body.niceToHave !== undefined) dataToUpdate.niceToHave = body.niceToHave || null;
+  if (body.whatYouGain !== undefined) dataToUpdate.whatYouGain = body.whatYouGain || null;
+  if (body.openings !== undefined) dataToUpdate.openings = body.openings ? parseInt(body.openings) : 1;
 
   try {
     const posting = await prisma.jobPosting.update({

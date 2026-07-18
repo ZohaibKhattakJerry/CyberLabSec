@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Bell, Check, Circle, Loader2 } from "lucide-react";
+import { toast } from "react-hot-toast";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 
@@ -25,6 +26,7 @@ export default function NotificationBell() {
   const [error, setError] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
+  const latestIdRef = useRef<string | null>(null);
 
   const fetchNotifications = async () => {
     try {
@@ -32,8 +34,24 @@ export default function NotificationBell() {
       if (res.ok) {
         const data = await res.json();
         setNotifications(data.notifications);
-        setUnreadCount(data.notifications.filter((n: Notification) => !n.read).length);
+        const unread = data.notifications.filter((n: Notification) => !n.read);
+        setUnreadCount(unread.length);
         setError(false);
+
+        if (data.notifications.length > 0) {
+          const latest = data.notifications[0]; // assuming sorted by newest first
+          if (latestIdRef.current && latestIdRef.current !== latest.id && !latest.read) {
+            toast.success(latest.isAnnouncement ? "New Announcement!" : "New Notification", {
+              icon: latest.isAnnouncement ? '📢' : '🔔',
+              style: {
+                background: "var(--bg-elevated)",
+                color: "var(--text-primary)",
+                border: "1px solid var(--border-accent)"
+              }
+            });
+          }
+          latestIdRef.current = latest.id;
+        }
       } else {
         setError(true);
       }
@@ -98,7 +116,7 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="card animate-fade-up notification-dropdown" style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, width: 350, maxWidth: "calc(100vw - 32px)", maxHeight: 450, display: "flex", flexDirection: "column", zIndex: 9999, overflow: "hidden", boxShadow: "var(--shadow-xl)" }}>
+        <div className="card animate-fade-up notification-dropdown" style={{ position: "absolute", bottom: "calc(100% + 8px)", left: 0, width: 350, maxWidth: "calc(100vw - 32px)", maxHeight: 450, display: "flex", flexDirection: "column", zIndex: 9999, overflow: "hidden", boxShadow: "var(--shadow-xl)" }}>
           <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--bg-elevated)" }}>
             <h3 style={{ fontSize: 14, fontWeight: 700 }}>Notifications</h3>
             {unreadCount > 0 && (

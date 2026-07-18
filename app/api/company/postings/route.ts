@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await req.json();
-  const { title, type, department, location, description, requirements, universityRequired, deadline, passMark, showApplicantCount, status, autoShortlist } = body;
+  const { title, type, department, location, description, requirements, universityRequired, deadline, passMark, showApplicantCount, status, autoShortlist, stipend, experienceLevel, duration, weeklyHours, niceToHave, whatYouGain, openings } = body;
 
   if (!title || !department || !deadline) {
     return NextResponse.json({ error: "title, department and deadline are required" }, { status: 400 });
@@ -56,6 +56,14 @@ export async function POST(req: NextRequest) {
       screeningQuestions: JSON.stringify(generatedQuestions),
       assessmentBank: body.assessmentBank || "[]",
       answerKey: body.answerKey || "{}",
+      assessmentSettings: body.assessmentSettings || "{}",
+      stipend: stipend || null,
+      experienceLevel: experienceLevel || "Any",
+      duration: duration || null,
+      weeklyHours: weeklyHours ? parseInt(weeklyHours) : null,
+      niceToHave: niceToHave || null,
+      whatYouGain: whatYouGain || null,
+      openings: openings ? parseInt(openings) : 1
     },
   });
 

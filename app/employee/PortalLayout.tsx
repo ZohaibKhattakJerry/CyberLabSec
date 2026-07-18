@@ -25,6 +25,7 @@ const NAV = [
   { href: "/employee/attendance", label: "Attendance", icon: Calendar },
   { href: "/employee/leave", label: "Leave", icon: CalendarDays },
   { href: "/employee/support", label: "Support", icon: LifeBuoy },
+  { href: "/employee/announcements", label: "Announcements", icon: Bell },
   { href: "/employee/profile", label: "Profile", icon: User },
 ];
 

@@ -33,34 +33,34 @@ export default async function EmployeeLeaderboardPage() {
       monthlyPoints: true,
       team: { select: { name: true } },
       badges: { select: { id: true, type: true, label: true, awardedAt: true } },
-      submissions: {
-        where: { status: "Approved" },
-        select: { id: true, submittedAt: true, reviewedAt: true },
-      },
+      _count: {
+        select: {
+          submissions: { where: { status: "Approved" } }
+        }
+      }
     },
     orderBy: { points: "desc" },
+    take: 100
   });
 
-  const myRow = allEmployees.find((e) => e.id === me.id);
-  const myCompletedTasks = myRow?.submissions.length ?? 0;
-  const myOnTimeCount =
-    myRow?.submissions.filter(
-      (s) => s.reviewedAt && s.submittedAt <= s.reviewedAt
-    ).length ?? 0;
-  const myOnTimeRate =
-    myCompletedTasks > 0
-      ? Math.round((myOnTimeCount / myCompletedTasks) * 100)
-      : 0;
+  const myCompletedTasks = await prisma.taskSubmission.count({
+    where: { employeeId: me.id, status: "Approved" }
+  });
+  
+  // On time rate is hard to calculate without loading all submissions, so we'll just set it to 100% or omit for performance if it gets too heavy, 
+  // but since it's just for 'me', we can fetch 'me's submissions!
+  const mySubmissions = await prisma.taskSubmission.findMany({
+    where: { employeeId: me.id, status: "Approved" },
+    select: { submittedAt: true, reviewedAt: true }
+  });
+  const myOnTimeCount = mySubmissions.filter((s) => s.reviewedAt && s.submittedAt <= s.reviewedAt).length;
+  const myOnTimeRate = myCompletedTasks > 0 ? Math.round((myOnTimeCount / myCompletedTasks) * 100) : 0;
 
   // Serialize dates to strings for client components
   const serializedEmployees = allEmployees.map((e) => ({
     ...e,
     badges: e.badges.map((b) => ({ ...b, awardedAt: b.awardedAt.toISOString() })),
-    submissions: e.submissions.map((s) => ({
-      ...s,
-      submittedAt: s.submittedAt.toISOString(),
-      reviewedAt: s.reviewedAt?.toISOString() ?? null,
-    })),
+    submissionsCount: e._count.submissions
   }));
 
   const serializedMyBadges = me.badges.map((b) => ({

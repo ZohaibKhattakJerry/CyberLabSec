@@ -6,6 +6,7 @@ export const dynamic = "force-dynamic";
 
 export default async function EmployeesPage() {
   const employees = await prisma.employee.findMany({
+    take: 500,
     orderBy: { createdAt: "desc" },
     include: {
       team: { select: { id: true, name: true } },

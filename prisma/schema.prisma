@@ -14,7 +14,7 @@ model Applicant {
   phone            String
   city             String?
   cnicEncrypted    String
-  cnicHash         String            @unique
+  cnicHash         String
   cvFileUrl        String
   photoUrl         String?
   linkedIn         String?

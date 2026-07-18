@@ -10,6 +10,7 @@ export default async function ApplicationsPage() {
   });
 
   const applicants = await prisma.applicant.findMany({
+    take: 300,
     orderBy: { createdAt: "desc" },
     include: {
       jobPosting: { select: { id: true, title: true, type: true } },

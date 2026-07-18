@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { Users, Mail, Shield } from "lucide-react";
 import TeamChatClient from "./TeamChatClient";
 import MeetingClient from "./MeetingClient";
+import { waitUntil } from "@vercel/functions";
 
 export default async function TeamPage() {
   const auth = await getAuthFromCookies();
@@ -44,19 +45,21 @@ export default async function TeamPage() {
   // Opportunistic cleanup: delete files older than 24 hours to save DB storage
   try {
     const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    await prisma.teamMessage.updateMany({
-      where: {
-        teamId: employee.teamId,
-        fileUrl: { not: null },
-        createdAt: { lt: yesterday }
-      },
-      data: {
-        fileUrl: null,
-        fileName: null,
-        fileType: null,
-        fileSize: null
-      }
-    });
+    waitUntil(
+      prisma.teamMessage.updateMany({
+        where: {
+          teamId: employee.teamId,
+          fileUrl: { not: null },
+          createdAt: { lt: yesterday }
+        },
+        data: {
+          fileUrl: null,
+          fileName: null,
+          fileType: null,
+          fileSize: null
+        }
+      })
+    );
   } catch (err) {
     console.error("Failed to cleanup old chat files:", err);
   }

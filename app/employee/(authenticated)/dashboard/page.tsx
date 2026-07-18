@@ -40,14 +40,13 @@ export default async function Dashboard() {
   if (!employee) redirect("/employee/login");
 
   // Leaderboard rank
-  const allEmployees = await prisma.employee.findMany({
-    where: { status: "Active" },
-    select: { id: true, points: true, monthlyPoints: true },
-    orderBy: { monthlyPoints: "desc" },
+  const countAhead = await prisma.employee.count({
+    where: { 
+      status: "Active", 
+      monthlyPoints: { gt: employee.monthlyPoints } 
+    }
   });
-  const myMonthlyRank = allEmployees.findIndex((e) => e.id === employee.id) + 1;
-  
-//   const myAllTimeRank = allTimeRanked.findIndex((e) => e.id === employee.id) + 1;
+  const myMonthlyRank = countAhead + 1;
 
   const daysRemaining = employee.endDate
     ? differenceInDays(employee.endDate, new Date())

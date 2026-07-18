@@ -37,6 +37,7 @@ const STATUS_NORMALIZE: Record<string, string> = {
   "Shortlisted": "Screening",
   "Failed": "Rejected",
   "Passed": "Interview",
+  "Needs Retry": "Interview",
   // Keep correct ones
   "Applied": "Applied",
   "Screening": "Screening",
@@ -49,6 +50,7 @@ const STATUS_NORMALIZE: Record<string, string> = {
 const STATUS_COLORS: Record<string, string> = {
   Applied: "badge-gray", Screening: "badge-amber", Interview: "badge-purple",
   "Final Approval": "badge-blue", Offer: "badge-green", Hired: "badge-green", Rejected: "badge-red", Withdrawn: "badge-gray",
+  "Needs Retry": "badge-amber",
 };
 
 export default function ApplicationsClient({ applicants, postings }: { applicants: Applicant[]; postings: Posting[] }) {

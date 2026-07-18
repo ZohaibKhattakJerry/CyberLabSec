@@ -69,14 +69,11 @@ export async function POST(req: NextRequest) {
     }, { status: 400 });
   }
 
-  // Generate a truly unique cnicHash to bypass the @unique constraint on the Applicant model
-  // without needing a risky database migration.
-  const uniqueIdentifier = `${email.toLowerCase().trim()}-${postingId}`;
-  const cnicHash = crypto.createHash("sha256").update(uniqueIdentifier).digest("hex");
+  const cnicHash = crypto.createHash("sha256").update(cnic).digest("hex");
 
   try {
     // Check for duplicate application for THIS posting based on email
-    const existing = await prisma.applicant.findFirst({ where: { cnicHash, jobPostingId: postingId } });
+    const existing = await prisma.applicant.findFirst({ where: { email: email.toLowerCase().trim(), jobPostingId: postingId } });
     if (existing) {
       const blockedStatuses = ["Failed", "Rejected", "Blocked"];
       if (blockedStatuses.includes(existing.status)) {
@@ -109,7 +106,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Save files
-    const namespace = `applicant-${cnicHash.slice(0, 12)}`;
+    const emailHash = crypto.createHash("sha256").update(email.toLowerCase().trim()).digest("hex");
+    const namespace = `applicant-${emailHash.slice(0, 12)}`;
     const cvUrl = await saveFile(cvFile, namespace, "cv");
     let photoUrl: string | undefined;
     if (photoFile && photoFile.size > 0) {
