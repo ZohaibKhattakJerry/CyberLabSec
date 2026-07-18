@@ -39,10 +39,10 @@ export async function POST(req: NextRequest) {
           employeeCode: ADMIN_CODE,
           email: "mrzohaibkhattak@gmail.com",
           name: "Administrator",
-          jobTitle: "System Admin",
-          department: "IT",
+          designation: "System Admin",
+          employmentType: "Full-Time",
+          startDate: new Date(),
           status: "Active",
-          role: "admin",
           passwordHash: defaultPassword
         }
       });

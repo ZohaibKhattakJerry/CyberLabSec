@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
-    const token = await signToken({ sub: employee.id, email: employee.email, role: employee.role, employeeCode });
+    const token = await signToken({ sub: employee.id, email: employee.email, role: "employee", employeeCode });
 
     await prisma.activityLog.create({
       data: { actorId: employee.id, actorType: "Employee", action: "LOGIN", metadata: JSON.stringify({ ip }) },
