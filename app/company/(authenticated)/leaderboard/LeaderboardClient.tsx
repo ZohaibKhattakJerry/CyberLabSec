@@ -214,7 +214,7 @@ export default function LeaderboardClient({
                 <div key={t.id} style={{ display: "grid", gridTemplateColumns: "150px 1fr 100px", alignItems: "center", gap: 16 }}>
                   <div style={{ fontSize: 14, fontWeight: 600 }}>{t.name} <span style={{ fontSize: 11, color: "var(--text-muted)" }}>({t.memberCount})</span></div>
                   <div style={{ height: 16, background: "rgba(255,255,255,0.05)", borderRadius: 8, overflow: "hidden" }}>
-                    <div style={{ height: "100%", width: \`\${percent}%\`, background: "linear-gradient(90deg, #3b82f6, #a855f7)", borderRadius: 8 }} />
+                    <div style={{ height: "100%", width: `\${percent}%`, background: "linear-gradient(90deg, #3b82f6, #a855f7)", borderRadius: 8 }} />
                   </div>
                   <div style={{ fontSize: 14, fontWeight: 700, textAlign: "right", color: "var(--text-secondary)" }}>{pts.toLocaleString()} pts</div>
                 </div>
@@ -270,7 +270,7 @@ export default function LeaderboardClient({
               else if (rank <= 25) rankColor = "#3b82f6";
 
               return (
-                <div key={e.id} className="row-hover" style={{ display: "grid", gridTemplateColumns: "80px 1fr 1fr 1.5fr 1fr", gap: 16, padding: "20px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)", alignItems: "center", animation: "slideUp 0.3s ease-out forwards", animationDelay: \`\${idx * 0.05}s\`, opacity: 0 }}>
+                <div key={e.id} className="row-hover" style={{ display: "grid", gridTemplateColumns: "80px 1fr 1fr 1.5fr 1fr", gap: 16, padding: "20px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)", alignItems: "center", animation: "slideUp 0.3s ease-out forwards", animationDelay: `\${idx * 0.05}s`, opacity: 0 }}>
                   <div style={{ fontSize: 18, fontWeight: 800, color: rankColor }}>
                     #{rank}
                   </div>
@@ -290,7 +290,7 @@ export default function LeaderboardClient({
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <div style={{ flex: 1, height: 8, background: "rgba(255,255,255,0.1)", borderRadius: 4, overflow: "hidden" }}>
-                      <div style={{ height: "100%", width: \`\${percent}%\`, background: "linear-gradient(90deg, #a855f7, #3b82f6)", borderRadius: 4 }} />
+                      <div style={{ height: "100%", width: `\${percent}%`, background: "linear-gradient(90deg, #a855f7, #3b82f6)", borderRadius: 4 }} />
                     </div>
                   </div>
                   <div style={{ textAlign: "right", fontWeight: 800, fontSize: 16 }}>

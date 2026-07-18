@@ -188,7 +188,7 @@ export default function SettingsPage() {
       {/* RIGHT CONTENT */}
       <div style={{ flex: 1, padding: "40px", overflowY: "auto" }}>
         {message && (
-          <div style={{ padding: "12px 16px", borderRadius: 8, marginBottom: 24, fontSize: 13, fontWeight: 500, background: message.type === "success" ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)", color: message.type === "success" ? "#22c55e" : "#ef4444", border: \`1px solid \${message.type === "success" ? "rgba(34,197,94,0.2)" : "rgba(239,68,68,0.2)"}\`, display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ padding: "12px 16px", borderRadius: 8, marginBottom: 24, fontSize: 13, fontWeight: 500, background: message.type === "success" ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)", color: message.type === "success" ? "#22c55e" : "#ef4444", border: `1px solid \${message.type === "success" ? "rgba(34,197,94,0.2)" : "rgba(239,68,68,0.2)"}`, display: "flex", alignItems: "center", gap: 10 }}>
             <AlertTriangle size={16} />
             {message.text}
           </div>
