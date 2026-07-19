@@ -31,16 +31,19 @@ export async function POST(req: NextRequest) {
   // Grade each question in parallel
   const passMark = session.applicant.jobPosting.passMark;
   
+  const sessionAnswerKey = JSON.parse(session.answers as string) || [];
+  
   const gradePromises = questions.map(async (q: any) => {
     const answer = answers[q.id] || "";
+    const keyEntry = sessionAnswerKey.find((k: any) => k.questionId === q.id) || {};
     
     if (q.type === "mcq") {
-      const correct = parseInt(answer) === q.correctOption;
+      const correct = parseInt(answer) === keyEntry.correctOption;
       const score = correct ? q.points : 0;
       return { type: "mcq", questionId: q.id, score, maxPoints: q.points, aiLikelihood: 0 };
     } else {
       try {
-        const grade = await gradeOpenAnswer(q.prompt, q.rubric || "", answer, q.points, passMark);
+        const grade = await gradeOpenAnswer(q.prompt, keyEntry.rubric || "", answer, q.points, passMark);
         return { type: "open", questionId: q.id, score: grade.score, maxPoints: q.points, aiLikelihood: grade.aiLikelihood };
       } catch {
         return { type: "open", questionId: q.id, score: 0, maxPoints: q.points, aiLikelihood: 0 };
@@ -107,7 +110,7 @@ export async function POST(req: NextRequest) {
       data: {
         attempts: newAttempts,
         tokenUsed: false,
-        answers: "[]",
+        answers: JSON.stringify(nextAnswers),
         questions: JSON.stringify(nextQuestions),
         perQuestionScore: "[]",
         cheatingSignals: "{}",
