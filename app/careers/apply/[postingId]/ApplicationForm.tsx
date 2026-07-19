@@ -666,17 +666,6 @@ function ScreeningScreen({ status, message, referenceId }: { status: ScreeningSt
     if (isDone) {
       setProgress(100);
       setCurrentStep(steps.length);
-      
-      if (isShortlisted) {
-        import("canvas-confetti").then((confetti) => {
-          confetti.default({
-            particleCount: 100,
-            spread: 70,
-            origin: { y: 0.6 },
-            colors: ['#7c3aed', '#2563eb', '#22c55e']
-          });
-        });
-      }
     }
   }, [isDone, isShortlisted]);
 
@@ -687,7 +676,30 @@ function ScreeningScreen({ status, message, referenceId }: { status: ScreeningSt
           0% { background-position: -200% center; }
           100% { background-position: 200% center; }
         }
+        @keyframes confettiFall {
+          0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+          100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+        }
       `}</style>
+
+      {/* CSS Confetti Celebration */}
+      {isShortlisted && isDone && (
+        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
+          {[...Array(30)].map((_, i) => (
+            <div key={i} style={{
+              position: 'absolute',
+              width: Math.random() * 10 + 6,
+              height: Math.random() * 10 + 6,
+              borderRadius: i % 3 === 0 ? '50%' : '2px',
+              background: ['#7c3aed', '#2563eb', '#22c55e', '#f59e0b', '#ec4899', '#06b6d4'][i % 6],
+              left: `${Math.random() * 100}%`,
+              top: '-20px',
+              animation: `confettiFall ${3 + Math.random() * 4}s ${Math.random() * 2}s linear infinite`,
+              opacity: 0.85
+            }} />
+          ))}
+        </div>
+      )}
       
       {/* Optimized Background without noise filter for zero lag */}
       <div style={{ position: "absolute", inset: 0, overflow: "hidden", zIndex: 0, background: "radial-gradient(circle at 50% -20%, rgba(124, 58, 237, 0.15), transparent 60%)" }} />
