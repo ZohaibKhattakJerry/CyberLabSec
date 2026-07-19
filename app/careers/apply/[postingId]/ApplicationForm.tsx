@@ -629,158 +629,221 @@ function ScreeningScreen({ status, message, referenceId }: { status: ScreeningSt
   const isDone = status === "done";
   const isShortlisted = message === "shortlisted";
   const [currentStep, setCurrentStep] = useState(0);
+  const [progress, setProgress] = useState(0);
+
+  const steps = [
+    "Receiving your application...",
+    "Verifying identity & documents...",
+    "Cross-checking technical experience...",
+    "Evaluating profile fit...",
+    "Running quality & fraud checks...",
+    "Finalizing review..."
+  ];
 
   useEffect(() => {
     if (status !== "screening") return;
-    const interval = setInterval(() => {
-      setCurrentStep(s => (s < 3 ? s + 1 : 3));
-    }, 2500);
-    return () => clearInterval(interval);
+    
+    // Animate progress smoothly to 99% over ~25 seconds
+    const duration = 25000;
+    const intervalTime = 50;
+    const stepsTotal = duration / intervalTime;
+    let currentTick = 0;
+
+    const progressInterval = setInterval(() => {
+      currentTick++;
+      const newProgress = Math.min(99, (currentTick / stepsTotal) * 100);
+      setProgress(newProgress);
+      
+      // Update steps based on progress
+      const stepIndex = Math.floor((newProgress / 100) * steps.length);
+      setCurrentStep(Math.min(stepIndex, steps.length - 1));
+    }, intervalTime);
+
+    return () => clearInterval(progressInterval);
   }, [status]);
 
-  const steps = ["Receiving your application...", "Processing documents...", "Evaluating profile fit...", "Finalizing review..."];
+  useEffect(() => {
+    if (isDone) {
+      setProgress(100);
+      setCurrentStep(steps.length);
+      
+      if (isShortlisted) {
+        import("canvas-confetti").then((confetti) => {
+          confetti.default({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#7c3aed', '#2563eb', '#22c55e']
+          });
+        });
+      }
+    }
+  }, [isDone, isShortlisted]);
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg-primary)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+    <div style={{ minHeight: "100vh", background: "var(--bg-primary)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24, position: "relative", overflow: "hidden" }}>
       <style>{`
-        @keyframes confettiFall {
-          0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
-          100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
-        }
-        @keyframes pulseGlow {
-          0%, 100% { box-shadow: 0 0 20px rgba(168,85,247,0.3); }
-          50% { box-shadow: 0 0 50px rgba(168,85,247,0.7), 0 0 80px rgba(37,99,235,0.3); }
-        }
         @keyframes shimmer {
           0% { background-position: -200% center; }
           100% { background-position: 200% center; }
         }
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-6px); }
-        }
       `}</style>
+      
+      {/* Premium Aurora Background */}
+      <div style={{ position: "absolute", inset: 0, overflow: "hidden", zIndex: 0 }}>
+        <motion.div 
+          animate={{ 
+            background: [
+              "radial-gradient(circle at 20% 30%, rgba(124, 58, 237, 0.15) 0%, transparent 50%)",
+              "radial-gradient(circle at 80% 70%, rgba(37, 99, 235, 0.15) 0%, transparent 50%)",
+              "radial-gradient(circle at 20% 30%, rgba(124, 58, 237, 0.15) 0%, transparent 50%)"
+            ] 
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+          style={{ position: "absolute", inset: 0 }}
+        />
+        <div style={{ position: "absolute", inset: 0, backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22 opacity=%220.03%22/%3E%3C/svg%3E")' }} />
+      </div>
 
-      {/* Confetti only on shortlisted */}
-      {isShortlisted && isDone && (
-        <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
-          {[...Array(25)].map((_, i) => (
-            <div key={i} style={{
-              position: 'absolute',
-              width: Math.random() * 10 + 4,
-              height: Math.random() * 10 + 4,
-              borderRadius: i % 3 === 0 ? '50%' : '2px',
-              background: ['#7c3aed', '#2563eb', '#22c55e', '#f59e0b', '#ec4899', '#06b6d4'][i % 6],
-              left: `${Math.random() * 100}%`,
-              top: '-20px',
-              animation: `confettiFall ${2 + Math.random() * 3}s ${Math.random() * 2}s linear infinite`,
-              opacity: 0.85
-            }} />
-          ))}
-        </div>
-      )}
-
-      <motion.div className="card-glass scan-effect" style={{ maxWidth: 540, width: "100%", padding: 48, textAlign: "center", position: "relative", overflow: "hidden", zIndex: 1 }} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
-
-        {/* Icon */}
-        <div style={{ position: "relative", width: 96, height: 96, margin: "0 auto 32px" }}>
+      <motion.div 
+        className="card" 
+        style={{ 
+          maxWidth: 600, width: "100%", padding: "48px 40px", textAlign: "center", position: "relative", zIndex: 1,
+          background: "rgba(10, 10, 10, 0.6)", backdropFilter: "blur(20px)",
+          border: "1px solid rgba(255, 255, 255, 0.05)",
+          boxShadow: "0 20px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
+        }} 
+        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      >
+        {/* Animated AI Core */}
+        <div style={{ position: "relative", width: 120, height: 120, margin: "0 auto 40px", display: "flex", alignItems: "center", justifyContent: "center" }}>
           {!isDone && (
             <>
-              <motion.div initial={{ scale: 0.8, opacity: 0.8 }} animate={{ scale: 2.5, opacity: 0 }} transition={{ repeat: Infinity, duration: 2.5, ease: "easeOut" }} style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "2px solid var(--purple)", zIndex: 0 }} />
-              <motion.div initial={{ scale: 0.8, opacity: 0.8 }} animate={{ scale: 2.5, opacity: 0 }} transition={{ repeat: Infinity, duration: 2.5, ease: "easeOut", delay: 1.25 }} style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "2px solid var(--purple)", zIndex: 0 }} />
+              <motion.div animate={{ rotate: 360 }} transition={{ duration: 8, repeat: Infinity, ease: "linear" }} style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "2px dashed rgba(168, 85, 247, 0.3)" }} />
+              <motion.div animate={{ rotate: -360 }} transition={{ duration: 12, repeat: Infinity, ease: "linear" }} style={{ position: "absolute", inset: -10, borderRadius: "50%", border: "1px solid rgba(37, 99, 235, 0.2)", borderTopColor: "rgba(37, 99, 235, 0.6)" }} />
+              <motion.div animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.8, 0.5] }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }} style={{ position: "absolute", inset: 15, borderRadius: "50%", background: "radial-gradient(circle, rgba(168,85,247,0.2) 0%, transparent 70%)" }} />
             </>
           )}
-          <div style={{ position: "relative", zIndex: 10, width: "100%", height: "100%", borderRadius: "50%", background: isDone ? (isShortlisted ? "rgba(34,197,94,0.1)" : "rgba(168,85,247,0.1)") : "var(--bg-card)", border: `2px solid ${isDone ? (isShortlisted ? "var(--green)" : "var(--purple)") : "var(--purple)"}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: isDone ? `0 0 30px ${isShortlisted ? "rgba(34,197,94,0.2)" : "var(--purple-glow)"}` : "var(--shadow-purple)", backdropFilter: "blur(4px)", animation: isDone ? "float 3s ease-in-out infinite" : undefined }}>
-            {isDone ? (isShortlisted ? <CheckCircle size={40} color="var(--green)" /> : <Shield size={40} color="var(--purple)" />) : <Shield size={40} color="var(--purple)" />}
-          </div>
+          
+          <motion.div 
+            animate={isDone ? { scale: [1, 1.2, 1], rotateY: 360 } : { scale: [1, 1.05, 1] }} 
+            transition={{ duration: isDone ? 1 : 2, repeat: isDone ? 0 : Infinity }}
+            style={{ 
+              width: 64, height: 64, borderRadius: "50%", 
+              background: isDone ? (isShortlisted ? "linear-gradient(135deg, #22c55e, #16a34a)" : "linear-gradient(135deg, #a78bfa, #7c3aed)") : "linear-gradient(135deg, #1e1e1e, #2d2d2d)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: isDone ? `0 0 30px ${isShortlisted ? "rgba(34,197,94,0.4)" : "rgba(168,85,247,0.4)"}` : "0 0 20px rgba(168,85,247,0.2), inset 0 2px 4px rgba(255,255,255,0.1)",
+              border: `1px solid ${isDone ? "transparent" : "rgba(168,85,247,0.4)"}`,
+              zIndex: 10
+            }}
+          >
+            {isDone ? (isShortlisted ? <CheckCircle size={32} color="white" /> : <Shield size={32} color="white" />) : (
+              <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.5, repeat: Infinity }}>
+                <div style={{ width: 24, height: 24, background: "white", borderRadius: "50%", boxShadow: "0 0 15px white" }} />
+              </motion.div>
+            )}
+          </motion.div>
         </div>
 
-        {/* Title */}
-        <h2 style={{ fontSize: 26, fontWeight: 800, marginBottom: 8, letterSpacing: "-0.02em" }}>
-          {status === "uploading" ? "Uploading..." : isDone ? (isShortlisted ? "You're Shortlisted! 🎉" : "Application Received") : "AI Review in Progress"}
+        {/* Premium Typography */}
+        <h2 style={{ fontSize: 32, fontWeight: 800, marginBottom: 12, letterSpacing: "-0.03em", background: "linear-gradient(to right, #fff, #a1a1aa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+          {status === "uploading" ? "Uploading..." : isDone ? (isShortlisted ? "You're Shortlisted!" : "Application Received") : "Review in Progress"}
         </h2>
-
-        {/* Sub message */}
-        <p style={{ color: "var(--text-secondary)", fontSize: 15, lineHeight: 1.7, marginBottom: 28 }}>
+        
+        <p style={{ color: "var(--text-secondary)", fontSize: 16, lineHeight: 1.6, marginBottom: 40, maxWidth: 420, margin: "0 auto 40px" }}>
           {isDone
             ? isShortlisted
-              ? `Great news! You've been automatically shortlisted for the technical assessment. Your interview link has been sent to your email.`
-              : "Thank you for applying! Your application is now under review. You can track your status anytime using your Reference ID below."
-            : message}
+              ? "Our AI has completed the review. Your interview link has been sent to your email."
+              : "Thank you for applying. Your application is safely stored and under review."
+            : "Our AI is securely evaluating your profile and documents. Please don't close this window."}
         </p>
 
-        {/* Pipeline stages - in-app only */}
-        {isDone && (
-          <div style={{ marginBottom: 28 }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 14 }}>Application Pipeline</p>
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 0 }}>
-              {/* Step 1: Reviewing */}
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-                <div style={{ width: 28, height: 28, borderRadius: "50%", background: "var(--green)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 10px rgba(34,197,94,0.3)" }}>
-                  <CheckCircle size={14} color="white" strokeWidth={3} />
-                </div>
-                <span style={{ fontSize: 11, fontWeight: 600, color: "var(--green)" }}>Review</span>
-              </div>
-              <div style={{ width: 40, height: 2, background: isShortlisted ? "var(--green)" : "var(--border)", marginBottom: 20, flexShrink: 0 }} />
-              {/* Step 2: Interview */}
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-                <div style={{ width: 28, height: 28, borderRadius: "50%", background: isShortlisted ? "var(--purple)" : "var(--bg-card)", border: `2px solid ${isShortlisted ? "var(--purple)" : "var(--border)"}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: isShortlisted ? "0 0 10px rgba(168,85,247,0.3)" : "none" }}>
-                  {isShortlisted && <CheckCircle size={14} color="white" strokeWidth={3} />}
-                </div>
-                <span style={{ fontSize: 11, fontWeight: isShortlisted ? 600 : 400, color: isShortlisted ? "var(--purple-light)" : "var(--text-muted)" }}>Interview</span>
-              </div>
-              <div style={{ width: 40, height: 2, background: "var(--border)", marginBottom: 20, flexShrink: 0 }} />
-              {/* Step 3: Decision */}
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-                <div style={{ width: 28, height: 28, borderRadius: "50%", background: "var(--bg-card)", border: "2px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center" }} />
-                <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Decision</span>
-              </div>
+        {/* Progress Percentage */}
+        {!isDone && status === "screening" && (
+          <div style={{ marginBottom: 32 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 8, padding: "0 4px" }}>
+              <span>Processing...</span>
+              <span style={{ color: "var(--purple-light)" }}>{Math.floor(progress)}%</span>
+            </div>
+            <div style={{ height: 6, background: "rgba(255,255,255,0.05)", borderRadius: 4, overflow: "hidden", position: "relative" }}>
+              <motion.div 
+                style={{ position: "absolute", top: 0, left: 0, bottom: 0, background: "linear-gradient(90deg, #7c3aed, #3b82f6)", width: `${progress}%` }}
+                initial={{ width: 0 }}
+                animate={{ width: `${progress}%` }}
+                transition={{ type: "tween", ease: "linear" }}
+              >
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent)", animation: "shimmer 1.5s infinite" }} />
+              </motion.div>
             </div>
           </div>
         )}
 
-        {/* Reference ID */}
-        {isDone && referenceId && (
-          <div style={{ background: "rgba(168,85,247,0.08)", border: "1px solid rgba(168,85,247,0.2)", borderRadius: 12, padding: 20, marginBottom: 24 }}>
-            <p style={{ fontSize: 11, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8, fontWeight: 700 }}>Your Reference ID</p>
-            <p style={{
-              fontSize: 22, fontWeight: 800, fontFamily: 'monospace', margin: "0 0 12px 0",
-              background: 'linear-gradient(90deg, #a78bfa, #60a5fa, #a78bfa)',
-              backgroundSize: '200% auto',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              animation: 'shimmer 3s linear infinite'
-            }}>{referenceId}</p>
-            <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0 }}>
-              Track your application at <Link href="/careers/status" style={{ color: "var(--purple)", fontWeight: 600 }}>/careers/status</Link>
-            </p>
-          </div>
-        )}
-
-        {/* Processing steps indicator */}
+        {/* Premium Timeline */}
         {!isDone && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 12, textAlign: "left", background: "rgba(0,0,0,0.2)", padding: 20, borderRadius: 12, border: "1px solid var(--border-subtle)" }}>
+          <div style={{ textAlign: "left", background: "rgba(255,255,255,0.02)", padding: 24, borderRadius: 16, border: "1px solid rgba(255,255,255,0.05)", position: "relative" }}>
             {steps.map((step, i) => {
               const isPast = currentStep > i;
               const isActive = currentStep === i;
+              const isFuture = currentStep < i;
+              
               return (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, opacity: isPast || isActive ? 1 : 0.4, transition: "opacity 0.3s" }}>
-                  <div style={{ width: 18, height: 18, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    {isPast ? <CheckCircle size={16} color="var(--green)" /> : isActive ? <Loader2 size={16} className="spinner" color="var(--purple)" /> : <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--text-muted)" }} />}
+                <div key={i} style={{ display: "flex", gap: 16, position: "relative", paddingBottom: i === steps.length - 1 ? 0 : 24, opacity: isFuture ? 0.4 : 1, filter: isFuture ? "blur(1px)" : "none", transition: "all 0.5s ease" }}>
+                  {/* Connecting Line */}
+                  {i < steps.length - 1 && (
+                    <div style={{ position: "absolute", left: 11, top: 24, bottom: 0, width: 2, background: isPast ? "var(--green)" : "rgba(255,255,255,0.1)", transition: "background 0.5s ease" }} />
+                  )}
+                  
+                  {/* Step Indicator */}
+                  <div style={{ position: "relative", zIndex: 2 }}>
+                    {isPast ? (
+                      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} style={{ width: 24, height: 24, borderRadius: "50%", background: "var(--green)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 10px rgba(34,197,94,0.3)" }}>
+                        <Check size={14} color="white" strokeWidth={3} />
+                      </motion.div>
+                    ) : isActive ? (
+                      <div style={{ width: 24, height: 24, borderRadius: "50%", border: "2px solid var(--purple)", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(168,85,247,0.1)", boxShadow: "0 0 15px rgba(168,85,247,0.2)" }}>
+                        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} style={{ position: "absolute", inset: -2, borderRadius: "50%", border: "2px solid transparent", borderTopColor: "var(--purple-light)" }} />
+                        <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--purple-light)" }} />
+                      </div>
+                    ) : (
+                      <div style={{ width: 24, height: 24, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.1)", background: "var(--bg-primary)" }} />
+                    )}
                   </div>
-                  <span style={{ fontSize: 14, color: isPast ? "var(--text-secondary)" : isActive ? "var(--purple-light)" : "var(--text-muted)", fontWeight: isActive ? 600 : 400 }}>
-                    {step}
-                  </span>
+                  
+                  {/* Step Text */}
+                  <div style={{ paddingTop: 2 }}>
+                    <span style={{ fontSize: 14, fontWeight: isActive ? 600 : 500, color: isPast ? "var(--text-primary)" : isActive ? "var(--purple-light)" : "var(--text-secondary)" }}>
+                      {step}
+                    </span>
+                  </div>
                 </div>
               );
             })}
           </div>
         )}
 
+        {/* Success States */}
         {isDone && (
-          <Link href="/careers" className="btn btn-secondary" style={{ marginTop: 8, display: "inline-block" }}>
-            Back to Careers
-          </Link>
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+            {referenceId && (
+              <div style={{ background: "rgba(168,85,247,0.08)", border: "1px solid rgba(168,85,247,0.2)", borderRadius: 16, padding: "24px 20px", marginBottom: 32 }}>
+                <p style={{ fontSize: 12, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8, fontWeight: 700 }}>Your Reference ID</p>
+                <p style={{
+                  fontSize: 28, fontWeight: 800, fontFamily: 'monospace', margin: "0 0 16px 0",
+                  background: 'linear-gradient(90deg, #a78bfa, #60a5fa, #a78bfa)',
+                  backgroundSize: '200% auto',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  animation: 'shimmer 3s linear infinite'
+                }}>{referenceId}</p>
+                <p style={{ fontSize: 14, color: "var(--text-secondary)", margin: 0 }}>
+                  Track your application at <Link href="/careers/status" style={{ color: "var(--purple-light)", fontWeight: 600 }}>/careers/status</Link>
+                </p>
+              </div>
+            )}
+            <Link href="/careers" className="btn btn-secondary btn-lg" style={{ width: "100%", justifyContent: "center" }}>
+              Return to Careers
+            </Link>
+          </motion.div>
         )}
       </motion.div>
     </div>
