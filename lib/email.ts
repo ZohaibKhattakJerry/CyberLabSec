@@ -283,27 +283,27 @@ export async function sendCombinedShortlistEmail(toEmail: string, applicantName:
   const trackingUrl = `https://cyberlabsec.tech/careers/status?ref=${referenceId}`;
   await transporter.sendMail({
     from: FROM, to: toEmail,
-    subject: `Application Received & Shortlisted — ${jobTitle} | CyberLabSec`,
+    subject: `Application Shortlisted — Technical Interview for ${jobTitle} | CyberLabSec`,
     html: `
       ${HTML_START}
       ${WRAP_START}
       ${headerSection("Application Auto-Shortlisted")}
       ${BODY_START}
-        ${heading1(`Amazing news, ${firstName}!`)}
-        ${paragraph(`We have successfully received your application for the <strong>${jobTitle}</strong> role. Due to your strong profile match, you have been <strong>automatically shortlisted</strong> for the technical assessment!`)}
         ${pipeline('Interview')}
+        ${heading1(`Amazing news, ${firstName}!`)}
+        ${paragraph(`We have successfully received your application for the <strong>${jobTitle}</strong> role. Due to your strong profile match, you have been <strong>automatically shortlisted</strong> for the technical assessment.`)}
         ${callout("Assessment Details", `
           <table style="width: 100%; border-collapse: collapse;">
             ${infoRow("Role", `<strong>${jobTitle}</strong>`)}
             ${infoRow("Reference ID", `<strong>${referenceId}</strong>`)}
             ${infoRow("Link Expires", `<strong>In ${expiryHours} hours</strong>`)}
           </table>
-        `, 'success')}
+        `, 'info')}
         ${btn("Begin Technical Assessment", interviewLink)}
         ${divider()}
         ${paragraph(`You can track your application status at any time using your Reference ID:`)}
         <div style="text-align: center; margin-bottom: 24px;">
-          <div class="code-box" style="display: inline-block; font-size: 20px; letter-spacing: 2px;">${referenceId}</div>
+          <div class="code-box" style="display: inline-block; font-size: 18px; letter-spacing: 2px;">${referenceId}</div>
         </div>
         ${btn("Track Application Status", trackingUrl)}
       ${BODY_END}
@@ -374,21 +374,36 @@ export async function sendStatusUpdateEmail(toEmail: string, applicantName: stri
 
 export async function sendInterviewCompleteEmail(toEmail: string, applicantName: string, jobTitle: string, status: string) {
   const firstName = applicantName.split(" ")[0];
+  const isPass = status === "Selected – Waiting for Approval";
+  const isCheat = status === "Cheating" || status === "Rejected";
+  
+  const headline = isPass ? `Outstanding Performance, ${firstName}!` : (isCheat ? `Interview Terminated` : `Interview Results Finalized`);
+  const subtitle = isPass ? "Technical Interview Passed" : (isCheat ? "Security Violation" : "Technical Interview Failed");
+  const stage = isPass ? 'Decision' : 'Interview';
+  const calloutType = isPass ? 'success' : 'danger';
+  
+  const messageBody = isPass
+    ? paragraph(`Congratulations! You have successfully passed the technical assessment for the <strong>${jobTitle}</strong> role. Your application has been advanced to the final decision stage. Our executive team will review your complete profile and be in touch with a final decision very soon.`)
+    : (isCheat
+        ? paragraph(`Irregular activity was detected during your technical assessment for the <strong>${jobTitle}</strong> role. As a result, your interview has been permanently terminated and your application will not move forward.`)
+        : paragraph(`Thank you for completing the technical assessment for the <strong>${jobTitle}</strong> role. Unfortunately, after utilizing all available attempts, your score did not meet our passing criteria for this specific position.`));
+
   await transporter.sendMail({
-    from: FROM, to: toEmail, subject: `Interview Completed — Update on your Application`,
+    from: FROM, to: toEmail, subject: isPass ? `Interview Passed — Final Review for ${jobTitle} | CyberLabSec` : `Interview Results — ${jobTitle} | CyberLabSec`,
     html: `
       ${HTML_START}
       ${WRAP_START}
-      ${headerSection("Interview Completed")}
+      ${headerSection(subtitle)}
       ${BODY_START}
-        ${heading1(`Assessment Finalized, ${firstName}`)}
-        ${paragraph(`Your performance data has been processed.`)}
-        ${callout("Status Update", `
+        ${pipeline(stage)}
+        ${heading1(headline)}
+        ${messageBody}
+        ${callout("Final Decision", `
           <table style="width: 100%; border-collapse: collapse;">
             ${infoRow("Position", `<strong>${jobTitle}</strong>`)}
             ${infoRow("Status", `<strong>${status}</strong>`)}
           </table>
-        `, ['rejected', 'failed', 'interview failed'].includes(status.toLowerCase()) ? 'danger' : 'success')}
+        `, calloutType)}
       ${BODY_END}
       ${footerSection()}
       ${WRAP_END}
@@ -400,23 +415,24 @@ export async function sendInterviewCompleteEmail(toEmail: string, applicantName:
 export async function sendInterviewRetryEmail(toEmail: string, applicantName: string, jobTitle: string, score: number, attemptsLeft: number) {
   const firstName = applicantName.split(" ")[0];
   await transporter.sendMail({
-    from: FROM, to: toEmail, subject: `Interview Attempt Failed — Retry Available`,
+    from: FROM, to: toEmail, subject: `Interview Attempt Failed — Retry Available | CyberLabSec`,
     html: `
       ${HTML_START}
       ${WRAP_START}
-      ${headerSection("Interview Retry")}
+      ${headerSection("Interview Retry Available")}
       ${BODY_START}
-        ${heading1(`Attempt Processed, ${firstName}`)}
-        ${paragraph(`You did not pass the technical assessment on this attempt.`)}
-        ${callout("Status Update", `
+        ${pipeline('Interview')}
+        ${heading1(`Keep Going, ${firstName}`)}
+        ${paragraph(`You did not pass the technical assessment on this attempt for the <strong>${jobTitle}</strong> role. However, we encourage resilience and you still have remaining attempts.`)}
+        ${callout("Attempt Summary", `
           <table style="width: 100%; border-collapse: collapse;">
             ${infoRow("Position", `<strong>${jobTitle}</strong>`)}
-            ${infoRow("Score", `<strong>${score}%</strong>`)}
+            ${infoRow("Previous Score", `<strong>${score}%</strong>`)}
             ${infoRow("Attempts Left", `<strong>${attemptsLeft}</strong>`)}
           </table>
         `, 'danger')}
-        ${paragraph(`Don't worry, you still have attempts left. Please log in with your Reference ID to retry the assessment.`)}
-        ${button(`https://cyberlabsec.tech/careers/status`, "Retry Interview")}
+        ${paragraph(`Please log in with your Reference ID to retry the assessment. A new set of questions will be dynamically generated for you.`)}
+        ${btn("Retry Technical Interview", "https://cyberlabsec.tech/careers/status")}
       ${BODY_END}
       ${footerSection()}
       ${WRAP_END}
