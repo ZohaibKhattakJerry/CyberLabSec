@@ -161,37 +161,90 @@ export async function gradeOpenAnswer(
   passMark: number
 ): Promise<{ score: number; feedback: string; aiLikelihood: number }> {
   const ansLower = answer.toLowerCase();
-  
-  // const dbQuestion = await prisma.questionBank.findFirst({ where: { prompt: questionText } });
+
+  // Profanity Check (Instant 0)
+  const profanity = ["fuck", "shit", "bitch", "asshole", "cunt", "randi", "chutiya"];
+  for (const word of profanity) {
+    if (new RegExp(`\\b${word}\\b`, 'i').test(ansLower)) {
+      return { score: 0, feedback: "Inappropriate language detected.", aiLikelihood: 0 };
+    }
+  }
+
+  // Length Check (Instant 0 if basically empty)
+  if (answer.trim().length < 10) {
+    return { score: 0, feedback: "Answer is too short to be evaluated.", aiLikelihood: 0 };
+  }
+
+  // Try using Gemini AI for grading
+  if (genai) {
+    try {
+      const response = await genai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: `You are an expert technical interviewer grading a candidate's answer.
+Question: ${questionText}
+Rubric/Expected concepts: ${rubric}
+Max Points: ${maxPoints}
+Passing Criteria: The candidate needs ${passMark}% overall to pass the interview, so grade fairly but rigorously based on industry standards.
+
+Candidate's Answer:
+${answer}
+
+Evaluate the candidate's answer.
+- "score": Integer from 0 to ${maxPoints}.
+- "feedback": 1 short sentence of feedback.
+- "aiLikelihood": Float from 0.0 to 1.0 indicating if the answer seems artificially generated or copy-pasted (0.0 = human, 1.0 = obvious AI).`,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              score: { type: Type.INTEGER },
+              feedback: { type: Type.STRING },
+              aiLikelihood: { type: Type.NUMBER }
+            },
+            required: ["score", "feedback", "aiLikelihood"]
+          }
+        }
+      });
+      const data = JSON.parse(response.text || "{}");
+      if (typeof data.score === 'number' && typeof data.feedback === 'string') {
+        let finalScore = data.score;
+        if (finalScore > maxPoints) finalScore = maxPoints;
+        if (finalScore < 0) finalScore = 0;
+        return {
+          score: finalScore,
+          feedback: data.feedback,
+          aiLikelihood: data.aiLikelihood || 0
+        };
+      }
+    } catch (e) {
+      console.error("Gemini grading failed, falling back to keyword matching", e);
+    }
+  }
+
+  // Fallback: Keyword matching
   const keywords = rubric.toLowerCase().split(/\W+/).filter(w => w.length > 4);
   
   let matchCount = 0;
   for (const kw of keywords) {
-    // Regex boundary to prevent substring matches (e.g., "win" matching "windows")
     const regex = new RegExp(`\\b${kw.toLowerCase()}\\b`, 'i');
     if (regex.test(ansLower)) {
       matchCount++;
     } else {
-      // Allow slight pluralizations or suffixes
       const fuzzyRegex = new RegExp(`\\b${kw.toLowerCase()}(s|es|ed|ing)?\\b`, 'i');
       if (fuzzyRegex.test(ansLower)) {
-        matchCount += 0.8; // partial point for fuzzy match
+        matchCount += 0.8;
       }
     }
   }
 
-  const matchRatio = keywords.length > 0 ? matchCount / keywords.length : 0.5;
-  
-  // Base percentage based on keywords hit
+  const matchRatio = keywords.length > 0 ? matchCount / keywords.length : (answer.length > 50 ? 0.8 : 0.5);
   let scorePercent = matchRatio * 100;
   
-  // Length bounds
-  if (answer.trim().length < 20) scorePercent -= 50; // Too short
+  if (answer.trim().length < 20) scorePercent -= 50; 
   else if (answer.trim().length < 50) scorePercent -= 20; 
-  if (answer.length > 250) scorePercent += 10; // Thorough answer bonus
+  if (answer.length > 250) scorePercent += 10; 
   
-  // Strictness modifier based on the Job's Pass Mark
-  // If PassMark is 80 (Strict), we penalize heavily. If PassMark is 40 (Lenient), we boost.
   const strictnessModifier = (passMark - 50) / 1.5; 
   scorePercent -= strictnessModifier;
 
@@ -200,35 +253,17 @@ export async function gradeOpenAnswer(
 
   let finalScore = Math.round((scorePercent / 100) * maxPoints);
 
-  // Profanity Check
-  const profanity = ["fuck", "shit", "bitch", "asshole", "cunt", "randi", "chutiya"];
-  for (const word of profanity) {
-    if (new RegExp(`\\b${word}\\b`, 'i').test(ansLower)) {
-      finalScore = 0;
-      break;
-    }
-  }
-
   let feedback = "Answer lacked key required concepts or was too brief.";
   if (finalScore >= maxPoints * 0.8) feedback = "Excellent, comprehensive answer covering all necessary technical points.";
   else if (finalScore >= maxPoints * 0.5) feedback = "Good answer covering some key points, but lacked deeper technical detail.";
   else if (finalScore > 0) feedback = "Partial answer. Missed several core concepts outlined in the rubric.";
-  
-  if (finalScore === 0) feedback = "Answer was completely irrelevant, too short, or contained inappropriate language.";
+  if (finalScore === 0) feedback = "Answer was completely irrelevant or too short.";
 
-  // Detect likely cheating/pasting based on length & perfect match ratio
   let aiLikelihood = 0.0;
-  if (answer.length > 600 && matchRatio >= 1) {
-    aiLikelihood = 0.7; // Very long and perfectly hits all keywords
-  } else if (answer.length > 1000) {
-    aiLikelihood = 0.9; // Suspiciously long for a timed test
-  }
+  if (answer.length > 600 && matchRatio >= 1) aiLikelihood = 0.7; 
+  else if (answer.length > 1000) aiLikelihood = 0.9; 
 
-  return {
-    score: finalScore,
-    feedback,
-    aiLikelihood
-  };
+  return { score: finalScore, feedback, aiLikelihood };
 }
 
 export async function enhanceReport(rawContent: string): Promise<string> {

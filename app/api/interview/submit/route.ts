@@ -114,13 +114,8 @@ export async function POST(req: NextRequest) {
       data: { status: "Invited for Interview" }
     });
 
-    await sendInterviewRetryEmail(
-      session.applicant.email,
-      session.applicant.fullName,
-      session.applicant.jobPosting.title,
-      normalizedScore,
-      session.maxAttempts - newAttempts
-    );
+    // We do NOT send an email on intermediate retries per user request.
+    // The UI handles showing the retry state to the user.
 
     return NextResponse.json({ result: "Retry", score: normalizedScore, terminated });
   }
