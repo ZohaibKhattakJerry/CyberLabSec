@@ -67,12 +67,19 @@ export async function POST(req: NextRequest) {
   const avgAiLikelihood = openAnswerCount > 0 ? aiLikelihoodTotal / openAnswerCount : 0;
 
   const suspicionScore =
-    (cheatingSignals.pasteAttempts * 30) +
-    (cheatingSignals.tabBlurCount * 20) +
-    (suspicionFlag ? 40 : 0) +
-    (avgAiLikelihood > 0.7 ? 50 : 0);
+    (cheatingSignals.pasteAttempts * 35) +
+    (cheatingSignals.tabBlurCount * 15) +
+    (suspicionFlag ? 50 : 0) +
+    (avgAiLikelihood > 0.8 ? 60 : 0);
 
-  const terminated = suspicionScore >= 60;
+  const terminated = suspicionScore >= 100;
+
+  console.log('[Interview Submit] score breakdown:', {
+    totalScore, normalizedScore, maxPossibleScore,
+    passMark, isFail: terminated || normalizedScore < passMark,
+    suspicionScore, terminated,
+    attempts: session.attempts, maxAttempts: session.maxAttempts
+  });
   
   // Pass fail based on percentage (normalizedScore) as originally designed
   const isFail = terminated || normalizedScore < passMark;

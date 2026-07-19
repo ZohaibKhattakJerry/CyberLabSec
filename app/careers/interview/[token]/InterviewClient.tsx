@@ -480,13 +480,46 @@ export default function InterviewClient({ sessionId, _token, applicantName, _app
   if (phase === "done_passed") {
     return (
       <Layout>
-        <motion.div className="card" style={{ maxWidth: 520, width: "100%", padding: 48, textAlign: "center" }} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
-          <CheckCircle size={56} color="var(--green)" style={{ margin: "0 auto 24px", filter: "drop-shadow(0 0 16px rgba(34,197,94,0.3))" }} />
-          <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 12, color: "var(--text-primary)" }}>Interview Passed! 🎉</h2>
-          <p style={{ color: "var(--text-secondary)", lineHeight: 1.7, fontSize: 15 }}>
-            Congratulations, {applicantName.split(" ")[0]}! You have successfully cleared the technical interview. Our team will review your complete profile and be in touch via email with a final decision very soon.
-          </p>
-          <p style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 24 }}>You may now close this window.</p>
+        <motion.div className="card" style={{ maxWidth: 560, width: "100%", padding: 48, textAlign: "center" }} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
+          {/* Glowing check icon */}
+          <div style={{ position: "relative", display: "inline-block", marginBottom: 28 }}>
+            <motion.div
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
+            >
+              <div style={{ width: 88, height: 88, borderRadius: "50%", background: "rgba(34,197,94,0.1)", border: "2px solid rgba(34,197,94,0.3)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 40px rgba(34,197,94,0.2)" }}>
+                <CheckCircle size={44} color="var(--green)" />
+              </div>
+            </motion.div>
+          </div>
+
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+            <h2 style={{ fontSize: 26, fontWeight: 800, marginBottom: 8, color: "var(--text-primary)" }}>Interview Passed! 🎉</h2>
+            <p style={{ color: "var(--text-secondary)", lineHeight: 1.7, fontSize: 15, marginBottom: 28 }}>
+              Congratulations, <strong>{applicantName.split(" ")[0]}</strong>! You have successfully cleared the technical assessment for <strong>{jobTitle}</strong>.
+            </p>
+          </motion.div>
+
+          {/* Status Info Box */}
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} style={{ background: "rgba(168,85,247,0.08)", border: "1px solid rgba(168,85,247,0.2)", borderRadius: 12, padding: 20, marginBottom: 24, textAlign: "left" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--green)", flexShrink: 0 }} />
+                <span style={{ fontSize: 14, color: "var(--text-secondary)" }}>Your result has been recorded</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--purple)", flexShrink: 0 }} />
+                <span style={{ fontSize: 14, color: "var(--text-secondary)" }}>Application moved to: <strong style={{ color: "var(--text-primary)" }}>Decision Pending</strong></span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--blue)", flexShrink: 0 }} />
+                <span style={{ fontSize: 14, color: "var(--text-secondary)" }}>You will be <strong>contacted via email</strong> with the final hiring decision</span>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} style={{ color: "var(--text-muted)", fontSize: 13 }}>You may safely close this window. Good luck! 🚀</motion.p>
         </motion.div>
       </Layout>
     );
@@ -497,14 +530,21 @@ export default function InterviewClient({ sessionId, _token, applicantName, _app
     return (
       <Layout>
         <motion.div className="card" style={{ maxWidth: 520, width: "100%", padding: 48, textAlign: "center" }} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
-          <div style={{ display: "inline-flex", padding: 12, borderRadius: "50%", background: "rgba(239, 68, 68, 0.1)", marginBottom: 20 }}>
-            <AlertTriangle size={36} color="#ef4444" />
-          </div>
-          <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 12 }}>Interview Failed</h2>
-          <p style={{ color: "var(--text-secondary)", lineHeight: 1.7 }}>
-            Unfortunately, after exhausting all attempts, your score did not meet our passing criteria for this position. We appreciate the time you took to apply and wish you the best of luck in your future endeavors.
+          <motion.div initial={{ scale: 0.5 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 200 }} style={{ display: "inline-flex", padding: 18, borderRadius: "50%", background: "rgba(239, 68, 68, 0.08)", border: "2px solid rgba(239, 68, 68, 0.2)", marginBottom: 24 }}>
+            <AlertTriangle size={40} color="#ef4444" />
+          </motion.div>
+          <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 12 }}>Interview Not Passed</h2>
+          <p style={{ color: "var(--text-secondary)", lineHeight: 1.7, marginBottom: 24 }}>
+            You have used all {maxAttempts} available attempts. Unfortunately your final score did not meet the passing threshold for the <strong>{jobTitle}</strong> position.
           </p>
-          <p style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 24 }}>You may now close this window.</p>
+          <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid var(--border-subtle)", borderRadius: 10, padding: 16, marginBottom: 24, textAlign: "left" }}>
+            <p style={{ color: "var(--text-muted)", fontSize: 13, margin: 0, lineHeight: 1.7 }}>
+              We appreciate the time and effort you put into this process. We encourage you to continue developing your skills and look forward to seeing you apply again in the future.
+            </p>
+          </div>
+          <p style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 8 }}>For questions, reach out to us at:</p>
+          <a href="mailto:careers@cyberlabsec.tech" style={{ color: "var(--purple)", fontSize: 14, fontWeight: 600 }}>careers@cyberlabsec.tech</a>
+          <p style={{ color: "var(--text-muted)", fontSize: 12, marginTop: 24 }}>Better luck next time! You can close this window.</p>
         </motion.div>
       </Layout>
     );

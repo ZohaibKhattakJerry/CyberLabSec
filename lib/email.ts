@@ -156,7 +156,6 @@ export async function sendInterviewInvite(toEmail: string, applicantName: string
       ${BODY_START}
         ${heading1(`Congratulations, ${firstName}!`)}
         ${paragraph(`Your application for the <strong>${jobTitle}</strong> role has been reviewed — and you've been selected to proceed to our technical assessment stage.`)}
-        ${pipeline('Interview')}
         ${callout("Assessment Details", `
           <table style="width: 100%; border-collapse: collapse;">
             ${infoRow("Role", `<strong>${jobTitle}</strong>`)}
@@ -280,32 +279,23 @@ export async function sendEmail({ to, subject, html, attachments }: { to: string
 
 export async function sendCombinedShortlistEmail(toEmail: string, applicantName: string, jobTitle: string, referenceId: string, interviewLink: string, expiryHours: number = 48) {
   const firstName = applicantName.split(" ")[0];
-  const trackingUrl = `https://cyberlabsec.tech/careers/status?ref=${referenceId}`;
   await transporter.sendMail({
     from: FROM, to: toEmail,
     subject: `Application Shortlisted — Technical Interview for ${jobTitle} | CyberLabSec`,
     html: `
       ${HTML_START}
       ${WRAP_START}
-      ${headerSection("Application Auto-Shortlisted")}
+      ${headerSection("Technical Assessment Invitation")}
       ${BODY_START}
-        ${pipeline('Interview')}
         ${heading1(`Amazing news, ${firstName}!`)}
-        ${paragraph(`We have successfully received your application for the <strong>${jobTitle}</strong> role. Due to your strong profile match, you have been <strong>automatically shortlisted</strong> for the technical assessment.`)}
+        ${paragraph(`Your profile has been reviewed and you have been <strong>shortlisted</strong> for the technical assessment for the <strong>${jobTitle}</strong> role.`)}
         ${callout("Assessment Details", `
           <table style="width: 100%; border-collapse: collapse;">
             ${infoRow("Role", `<strong>${jobTitle}</strong>`)}
-            ${infoRow("Reference ID", `<strong>${referenceId}</strong>`)}
             ${infoRow("Link Expires", `<strong>In ${expiryHours} hours</strong>`)}
           </table>
         `, 'info')}
         ${btn("Begin Technical Assessment", interviewLink)}
-        ${divider()}
-        ${paragraph(`You can track your application status at any time using your Reference ID:`)}
-        <div style="text-align: center; margin-bottom: 24px;">
-          <div class="code-box" style="display: inline-block; font-size: 18px; letter-spacing: 2px;">${referenceId}</div>
-        </div>
-        ${btn("Track Application Status", trackingUrl)}
       ${BODY_END}
       ${footerSection()}
       ${WRAP_END}

@@ -245,8 +245,8 @@ Evaluate the candidate's answer.
   else if (answer.trim().length < 50) scorePercent -= 20; 
   if (answer.length > 250) scorePercent += 10; 
   
-  const strictnessModifier = (passMark - 50) / 1.5; 
-  scorePercent -= strictnessModifier;
+  const strictnessModifier = (passMark - 50) / 8; // Very light penalty, max 6.25 points for passMark=100
+  scorePercent -= Math.max(0, strictnessModifier); // Only penalise if passMark > 50
 
   if (scorePercent > 100) scorePercent = 100;
   if (scorePercent < 0) scorePercent = 0;

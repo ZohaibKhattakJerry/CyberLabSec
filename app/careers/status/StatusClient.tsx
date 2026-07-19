@@ -63,15 +63,32 @@ export default function StatusClient() {
   };
 
   const getPipeline = (status: string) => {
-    let stages = [
-      { id: "Reviewing", label: "Under Review", active: true },
-      { id: "Interview", label: "Interview", active: ["Invited for Interview", "Interview Failed", "Selected – Waiting for Approval", "Hired"].includes(status) },
-      { id: "Decision", label: "Decision", active: ["Selected – Waiting for Approval", "Hired", "Rejected"].includes(status) }
+    type Stage = { id: string; label: string; active: boolean; done: boolean };
+    const allStages: Stage[] = [
+      { id: "Reviewing", label: "Under Review", active: false, done: false },
+      { id: "Interview", label: "Interview", active: false, done: false },
+      { id: "Decision", label: "Decision", active: false, done: false },
     ];
-    if (status === "Rejected" || status === "Interview Failed") {
-      stages = stages.filter(s => s.id !== "Interview" || s.active);
+
+    if (status === "Reviewing") {
+      allStages[0].active = true;
+    } else if (status === "Invited for Interview") {
+      allStages[0].done = true;
+      allStages[1].active = true;
+    } else if (status === "Interview Failed") {
+      allStages[0].done = true;
+      allStages[1].active = true;
+      allStages[1].done = true;
+    } else if (status === "Selected – Waiting for Approval" || status === "Hired" || status === "Rejected") {
+      allStages[0].done = true;
+      allStages[1].done = true;
+      allStages[2].active = true;
+      if (status !== "Selected – Waiting for Approval") {
+        allStages[2].done = true;
+      }
     }
-    return stages;
+
+    return allStages;
   };
 
   const isRejected = data?.status === "Rejected" || data?.status === "Interview Failed";
@@ -139,26 +156,28 @@ export default function StatusClient() {
                       <div style={{ position: "relative", display: "flex", justifyContent: "space-between" }}>
                         <div style={{ position: "absolute", top: 12, left: 24, right: 24, height: 2, background: "var(--border)", zIndex: 0 }} />
                         
-                        {getPipeline(data.status).map((stage, _i) => {
+                        {getPipeline(data.status).map((stage) => {
                           const isDecision = stage.id === "Decision";
                           const showRejected = isDecision && isRejected;
+                          const bgColor = showRejected ? "var(--amber)" : stage.done ? "var(--green)" : stage.active ? "var(--purple)" : "var(--bg-primary)";
+                          const borderColor = showRejected ? "var(--amber)" : stage.done ? "var(--green)" : stage.active ? "var(--purple)" : "var(--border)";
                           return (
                             <div key={stage.id} style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 12, width: 80 }}>
                               <div style={{ 
                                 width: 24, height: 24, borderRadius: "50%", 
-                                background: showRejected ? "var(--amber)" : stage.active ? "var(--purple)" : "var(--bg-primary)",
-                                border: `2px solid ${showRejected ? "var(--amber)" : stage.active ? "var(--purple)" : "var(--border)"}`,
+                                background: bgColor,
+                                border: `2px solid ${borderColor}`,
                                 display: "flex", alignItems: "center", justifyContent: "center",
-                                boxShadow: stage.active ? "0 0 12px rgba(168,85,247,0.3)" : "none",
+                                boxShadow: stage.active ? "0 0 12px rgba(168,85,247,0.3)" : stage.done ? "0 0 8px rgba(34,197,94,0.3)" : "none",
                                 color: "var(--bg-primary)"
                               }}>
-                                {stage.active && <CheckCircle size={14} strokeWidth={3} />}
+                                {(stage.active || stage.done) && <CheckCircle size={14} strokeWidth={3} />}
                               </div>
-                              <span style={{ fontSize: 12, fontWeight: stage.active ? 600 : 400, color: showRejected ? "var(--amber)" : stage.active ? "var(--text-primary)" : "var(--text-muted)", textAlign: "center" }}>
+                              <span style={{ fontSize: 12, fontWeight: (stage.active || stage.done) ? 600 : 400, color: showRejected ? "var(--amber)" : stage.done ? "var(--green)" : stage.active ? "var(--text-primary)" : "var(--text-muted)", textAlign: "center" }}>
                                 {showRejected ? "Not Selected" : stage.label}
                               </span>
                             </div>
-                          )
+                          );
                         })}
                       </div>
                     </div>
@@ -184,6 +203,24 @@ export default function StatusClient() {
                     <div style={{ marginTop: 24, padding: 16, background: "rgba(239,68,68,0.1)", borderRadius: 8, border: "1px solid rgba(239,68,68,0.2)" }}>
                       <p style={{ color: "var(--red)", fontSize: 14, margin: 0, fontWeight: 500, lineHeight: 1.6 }}>
                         Unfortunately, you did not pass the technical assessment. Thank you for your time and effort. We wish you the best in your future endeavors.
+                      </p>
+                    </div>
+                  )}
+
+                  {data.status === "Selected – Waiting for Approval" && (
+                    <div style={{ marginTop: 24, padding: 20, background: "rgba(34,197,94,0.08)", borderRadius: 12, border: "1px solid rgba(34,197,94,0.2)" }}>
+                      <p style={{ color: "var(--green)", fontSize: 15, margin: "0 0 8px 0", fontWeight: 700 }}>🎉 Interview Passed!</p>
+                      <p style={{ color: "var(--text-secondary)", fontSize: 14, margin: 0, lineHeight: 1.6 }}>
+                        Congratulations! You have cleared the technical interview. Your profile is now under final review by the hiring team. You will be notified via email once the decision is made.
+                      </p>
+                    </div>
+                  )}
+
+                  {data.status === "Hired" && (
+                    <div style={{ marginTop: 24, padding: 20, background: "rgba(34,197,94,0.1)", borderRadius: 12, border: "1px solid rgba(34,197,94,0.3)" }}>
+                      <p style={{ color: "var(--green)", fontSize: 15, margin: "0 0 8px 0", fontWeight: 700 }}>🚀 You&apos;ve Been Hired!</p>
+                      <p style={{ color: "var(--text-secondary)", fontSize: 14, margin: 0, lineHeight: 1.6 }}>
+                        Welcome to the CyberLabSec team! Please check your email for onboarding details and your official offer letter.
                       </p>
                     </div>
                   )}

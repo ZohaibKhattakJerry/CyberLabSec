@@ -624,6 +624,7 @@ function Field({ label, required, error, children }: { label: string; required?:
   );
 }
 
+
 function ScreeningScreen({ status, message, referenceId }: { status: ScreeningStatus; message: string; referenceId?: string; }) {
   const isDone = status === "done";
   const isShortlisted = message === "shortlisted";
@@ -654,72 +655,109 @@ function ScreeningScreen({ status, message, referenceId }: { status: ScreeningSt
           0% { background-position: -200% center; }
           100% { background-position: 200% center; }
         }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-6px); }
+        }
       `}</style>
+
+      {/* Confetti only on shortlisted */}
       {isShortlisted && isDone && (
         <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
-          {[...Array(20)].map((_, i) => (
+          {[...Array(25)].map((_, i) => (
             <div key={i} style={{
               position: 'absolute',
-              width: Math.random() * 8 + 4,
-              height: Math.random() * 8 + 4,
-              borderRadius: '50%',
-              background: ['#7c3aed', '#2563eb', '#22c55e', '#f59e0b', '#ec4899'][i % 5],
+              width: Math.random() * 10 + 4,
+              height: Math.random() * 10 + 4,
+              borderRadius: i % 3 === 0 ? '50%' : '2px',
+              background: ['#7c3aed', '#2563eb', '#22c55e', '#f59e0b', '#ec4899', '#06b6d4'][i % 6],
               left: `${Math.random() * 100}%`,
               top: '-20px',
               animation: `confettiFall ${2 + Math.random() * 3}s ${Math.random() * 2}s linear infinite`,
-              opacity: 0.8
+              opacity: 0.85
             }} />
           ))}
         </div>
       )}
-      <motion.div className="card-glass scan-effect" style={{ maxWidth: 520, width: "100%", padding: 48, textAlign: "center", position: "relative", overflow: "hidden" }} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
+
+      <motion.div className="card-glass scan-effect" style={{ maxWidth: 540, width: "100%", padding: 48, textAlign: "center", position: "relative", overflow: "hidden", zIndex: 1 }} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
+
+        {/* Icon */}
         <div style={{ position: "relative", width: 96, height: 96, margin: "0 auto 32px" }}>
           {!isDone && (
             <>
-              <motion.div initial={{ scale: 0.8, opacity: 0.8 }} animate={{ scale: 2.5, opacity: 0 }} transition={{ repeat: Infinity, duration: 2.5, ease: "easeOut" }} style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "2px solid var(--purple)", zIndex: 0, transform: "translateZ(0)" }} />
-              <motion.div initial={{ scale: 0.8, opacity: 0.8 }} animate={{ scale: 2.5, opacity: 0 }} transition={{ repeat: Infinity, duration: 2.5, ease: "easeOut", delay: 1.25 }} style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "2px solid var(--purple)", zIndex: 0, transform: "translateZ(0)" }} />
+              <motion.div initial={{ scale: 0.8, opacity: 0.8 }} animate={{ scale: 2.5, opacity: 0 }} transition={{ repeat: Infinity, duration: 2.5, ease: "easeOut" }} style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "2px solid var(--purple)", zIndex: 0 }} />
+              <motion.div initial={{ scale: 0.8, opacity: 0.8 }} animate={{ scale: 2.5, opacity: 0 }} transition={{ repeat: Infinity, duration: 2.5, ease: "easeOut", delay: 1.25 }} style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "2px solid var(--purple)", zIndex: 0 }} />
             </>
           )}
-          <div style={{ position: "relative", zIndex: 10, width: "100%", height: "100%", borderRadius: "50%", background: isDone ? (isShortlisted ? "rgba(34,197,94,0.1)" : "rgba(168,85,247,0.1)") : "var(--bg-card)", border: `2px solid ${isDone ? (isShortlisted ? "var(--green)" : "var(--purple)") : "var(--purple)"}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: isDone ? `0 0 30px ${isShortlisted ? "rgba(34,197,94,0.2)" : "var(--purple-glow)"}` : "var(--shadow-purple)", backdropFilter: "blur(4px)" }}>
+          <div style={{ position: "relative", zIndex: 10, width: "100%", height: "100%", borderRadius: "50%", background: isDone ? (isShortlisted ? "rgba(34,197,94,0.1)" : "rgba(168,85,247,0.1)") : "var(--bg-card)", border: `2px solid ${isDone ? (isShortlisted ? "var(--green)" : "var(--purple)") : "var(--purple)"}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: isDone ? `0 0 30px ${isShortlisted ? "rgba(34,197,94,0.2)" : "var(--purple-glow)"}` : "var(--shadow-purple)", backdropFilter: "blur(4px)", animation: isDone ? "float 3s ease-in-out infinite" : undefined }}>
             {isDone ? (isShortlisted ? <CheckCircle size={40} color="var(--green)" /> : <Shield size={40} color="var(--purple)" />) : <Shield size={40} color="var(--purple)" />}
           </div>
         </div>
 
-        <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 12 }}>
-          {status === "uploading" ? "Uploading..." : isDone ? (isShortlisted ? "Shortlisted! 🎉" : "Application Received") : "Review in Progress"}
+        {/* Title */}
+        <h2 style={{ fontSize: 26, fontWeight: 800, marginBottom: 8, letterSpacing: "-0.02em" }}>
+          {status === "uploading" ? "Uploading..." : isDone ? (isShortlisted ? "You're Shortlisted! 🎉" : "Application Received") : "AI Review in Progress"}
         </h2>
 
+        {/* Sub message */}
         <p style={{ color: "var(--text-secondary)", fontSize: 15, lineHeight: 1.7, marginBottom: 28 }}>
           {isDone
             ? isShortlisted
-              ? "Congratulations! Your profile has been shortlisted. Check your email for an interview invitation link. The link expires in 48 hours."
-              : "Thank you for applying. We've reviewed your application and will be in touch if there's a match for future opportunities."
+              ? `Great news! You've been automatically shortlisted for the technical assessment. Your interview link has been sent to your email.`
+              : "Thank you for applying! Your application is now under review. You can track your status anytime using your Reference ID below."
             : message}
         </p>
 
-        {isDone && referenceId && (
-          <div style={{ background: "rgba(168,85,247,0.08)", border: "1px solid rgba(168,85,247,0.2)", borderRadius: 12, padding: 16, marginBottom: 24 }}>
-            {isShortlisted && (
-              <div style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 12, padding: '12px 16px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
-                <CheckCircle size={18} color="var(--green)" />
-                <span style={{ fontSize: 13, color: 'var(--green)', fontWeight: 600 }}>Interview invitation sent to your email!</span>
+        {/* Pipeline stages - in-app only */}
+        {isDone && (
+          <div style={{ marginBottom: 28 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 14 }}>Application Pipeline</p>
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 0 }}>
+              {/* Step 1: Reviewing */}
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+                <div style={{ width: 28, height: 28, borderRadius: "50%", background: "var(--green)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 10px rgba(34,197,94,0.3)" }}>
+                  <CheckCircle size={14} color="white" strokeWidth={3} />
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 600, color: "var(--green)" }}>Review</span>
               </div>
-            )}
-            <p style={{ fontSize: 12, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>Application Reference ID</p>
-            <p style={{ 
-              fontSize: 20, fontWeight: 800, fontFamily: 'monospace',
+              <div style={{ width: 40, height: 2, background: isShortlisted ? "var(--green)" : "var(--border)", marginBottom: 20, flexShrink: 0 }} />
+              {/* Step 2: Interview */}
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+                <div style={{ width: 28, height: 28, borderRadius: "50%", background: isShortlisted ? "var(--purple)" : "var(--bg-card)", border: `2px solid ${isShortlisted ? "var(--purple)" : "var(--border)"}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: isShortlisted ? "0 0 10px rgba(168,85,247,0.3)" : "none" }}>
+                  {isShortlisted && <CheckCircle size={14} color="white" strokeWidth={3} />}
+                </div>
+                <span style={{ fontSize: 11, fontWeight: isShortlisted ? 600 : 400, color: isShortlisted ? "var(--purple-light)" : "var(--text-muted)" }}>Interview</span>
+              </div>
+              <div style={{ width: 40, height: 2, background: "var(--border)", marginBottom: 20, flexShrink: 0 }} />
+              {/* Step 3: Decision */}
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+                <div style={{ width: 28, height: 28, borderRadius: "50%", background: "var(--bg-card)", border: "2px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center" }} />
+                <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Decision</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Reference ID */}
+        {isDone && referenceId && (
+          <div style={{ background: "rgba(168,85,247,0.08)", border: "1px solid rgba(168,85,247,0.2)", borderRadius: 12, padding: 20, marginBottom: 24 }}>
+            <p style={{ fontSize: 11, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8, fontWeight: 700 }}>Your Reference ID</p>
+            <p style={{
+              fontSize: 22, fontWeight: 800, fontFamily: 'monospace', margin: "0 0 12px 0",
               background: 'linear-gradient(90deg, #a78bfa, #60a5fa, #a78bfa)',
               backgroundSize: '200% auto',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               animation: 'shimmer 3s linear infinite'
             }}>{referenceId}</p>
-            <p style={{ fontSize: 13, color: "var(--text-secondary)", marginTop: 8 }}>
-              You can track your status anytime at <Link href="/careers/status" style={{ color: "var(--purple)" }}>/careers/status</Link> using this ID.
+            <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0 }}>
+              Track your application at <Link href="/careers/status" style={{ color: "var(--purple)", fontWeight: 600 }}>/careers/status</Link>
             </p>
           </div>
         )}
 
+        {/* Processing steps indicator */}
         {!isDone && (
           <div style={{ display: "flex", flexDirection: "column", gap: 12, textAlign: "left", background: "rgba(0,0,0,0.2)", padding: 20, borderRadius: 12, border: "1px solid var(--border-subtle)" }}>
             {steps.map((step, i) => {
@@ -740,7 +778,7 @@ function ScreeningScreen({ status, message, referenceId }: { status: ScreeningSt
         )}
 
         {isDone && (
-          <Link href="/careers" className="btn btn-secondary" style={{ marginTop: 12 }}>
+          <Link href="/careers" className="btn btn-secondary" style={{ marginTop: 8, display: "inline-block" }}>
             Back to Careers
           </Link>
         )}
@@ -748,3 +786,5 @@ function ScreeningScreen({ status, message, referenceId }: { status: ScreeningSt
     </div>
   );
 }
+
+
