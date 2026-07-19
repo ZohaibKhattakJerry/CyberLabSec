@@ -31,7 +31,8 @@ export async function GET(req: Request) {
     const encryptBackup = searchParams.get("encrypt") !== "false";
 
     const passThrough = new PassThrough();
-    const archive = archiver("zip", { zlib: { level: 5 } });
+    const createArchive = archiver.default || archiver;
+    const archive = createArchive("zip", { zlib: { level: 5 } });
     archive.pipe(passThrough);
 
     const generateBackup = async () => {
@@ -195,8 +196,8 @@ export async function GET(req: Request) {
         "Cache-Control": "no-store",
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Backup initialization failed:", error);
-    return NextResponse.json({ error: "Backup generation failed." }, { status: 500 });
+    return NextResponse.json({ error: "Backup generation failed. Details: " + error?.message + " | Stack: " + error?.stack }, { status: 500 });
   }
 }

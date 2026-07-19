@@ -73,6 +73,9 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
   const [notesSaving, setNotesSaving] = useState(false);
   const [notesSaved, setNotesSaved] = useState(false);
   const [showOfferModal, setShowOfferModal] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [actionTarget, setActionTarget] = useState<"bulk" | "single" | null>(null);
   const [offerFile, setOfferFile] = useState<File | null>(null);
   const [offerNotes, setOfferNotes] = useState("");
 
@@ -86,8 +89,13 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
 
   const handleBulkAction = async (action: "reject" | "delete") => {
     if (selectedIds.length === 0) return;
-    if (action === "delete" && !confirm(`Are you sure you want to completely delete ${selectedIds.length} application(s)? This cannot be undone.`)) return;
-    if (action === "reject" && !confirm(`Are you sure you want to reject ${selectedIds.length} application(s)? They will receive a rejection email.`)) return;
+    setActionTarget("bulk");
+    if (action === "reject") setShowRejectModal(true);
+    if (action === "delete") setShowDeleteModal(true);
+  };
+  
+  const confirmBulkAction = async (action: "reject" | "delete") => {
+    setShowRejectModal(false); setShowDeleteModal(false);
     
     setActionLoading(true); setActionMsg("");
     const res = await fetch("/api/company/applications/bulk", {
@@ -105,7 +113,13 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
   };
 
   const handleSingleDelete = async (id: string) => {
-    if (!confirm(`Are you sure you want to completely delete this application? This cannot be undone.`)) return;
+    setActionTarget("single");
+    setShowDeleteModal(true);
+  };
+  
+  const confirmSingleDelete = async () => {
+    if (!selected) return;
+    setShowDeleteModal(false);
     setActionLoading(true); setActionMsg("");
     const res = await fetch("/api/company/applications/bulk", {
       method: "POST",
@@ -681,7 +695,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                 </button>
               ) : null}
               {(!["Rejected", "Hired", "Interview Failed", "Withdrawn"].includes(selected.status)) && (
-                <button className="btn btn-secondary" onClick={() => updateStatus(selected.id, "Rejected")} disabled={actionLoading} style={{ color: "var(--amber)", borderColor: "var(--border-subtle)" }}>
+                <button className="btn btn-secondary" onClick={() => { setActionTarget("single"); setShowRejectModal(true); }} disabled={actionLoading} style={{ color: "var(--amber)", borderColor: "var(--border-subtle)" }}>
                   <X size={14} /> Reject
                 </button>
               )}
@@ -707,11 +721,11 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
 
       {/* Offer Modal */}
       {showOfferModal && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 10000, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
           <div className="card" style={{ maxWidth: 400, width: "100%", padding: 32 }}>
-            <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16 }}>Upload Offer Letter</h3>
+            <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16 }}>Confirm Hire</h3>
             <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 20 }}>
-              Please attach the signed offer letter (PDF). This will be emailed to the candidate and saved to their employee profile.
+              Please attach the signed offer letter (PDF). This will be emailed to the candidate securely and they will be transitioned to active Employee status.
             </p>
             
             <input 
@@ -735,6 +749,42 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
               <button className="btn btn-primary" onClick={confirmHireWithOffer} disabled={actionLoading || !offerFile}>
                 {actionLoading ? <Loader2 size={14} className="spin" /> : <UserCheck size={14} />}
                 Confirm Hire
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reject Modal */}
+      {showRejectModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 10000, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+          <div className="card" style={{ maxWidth: 400, width: "100%", padding: 32 }}>
+            <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16 }}>Confirm Rejection</h3>
+            <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 24 }}>
+              This will move the candidate(s) to Rejected status and notify them respectfully via email. This action cannot be fully undone. Are you sure you wish to proceed?
+            </p>
+            <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+              <button className="btn btn-secondary" onClick={() => setShowRejectModal(false)} disabled={actionLoading}>Cancel</button>
+              <button className="btn btn-danger" onClick={() => actionTarget === "bulk" ? confirmBulkAction("reject") : (selected && updateStatus(selected.id, "Rejected").then(() => setShowRejectModal(false)))} disabled={actionLoading}>
+                {actionLoading ? <Loader2 size={14} className="spin" /> : "Confirm Rejection"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Modal */}
+      {showDeleteModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 10000, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+          <div className="card" style={{ maxWidth: 400, width: "100%", padding: 32 }}>
+            <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16 }}>Confirm Deletion</h3>
+            <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 24 }}>
+              This will permanently delete the application record and all attached files from the system. This action is completely irreversible. Are you sure?
+            </p>
+            <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+              <button className="btn btn-secondary" onClick={() => setShowDeleteModal(false)} disabled={actionLoading}>Cancel</button>
+              <button className="btn btn-danger" onClick={() => actionTarget === "bulk" ? confirmBulkAction("delete") : confirmSingleDelete()} disabled={actionLoading}>
+                {actionLoading ? <Loader2 size={14} className="spin" /> : "Confirm Deletion"}
               </button>
             </div>
           </div>

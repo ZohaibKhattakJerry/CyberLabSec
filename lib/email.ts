@@ -182,9 +182,12 @@ export async function sendDeclineEmail(toEmail: string, applicantName: string, j
       ${WRAP_START}
       ${headerSection("Application Update")}
       ${BODY_START}
-        ${heading1(`Hi ${firstName},`)}
-        ${paragraph(`Thank you for your interest in the <strong>${jobTitle}</strong> position. After thorough review, we have decided to move forward with candidates whose profiles most closely align with our current requirements.`)}
-        ${paragraph(`We genuinely encourage you to apply again in the future.`)}
+        ${heading1(`Update on your Application`)}
+        ${paragraph(`Dear ${firstName},`)}
+        ${paragraph(`Thank you for taking the time to apply for the <strong>${jobTitle}</strong> position and for your interest in joining CyberLabSec. We appreciate the effort you put into your application.`)}
+        ${paragraph(`After careful consideration, we have decided to move forward with other candidates whose profiles more closely align with the specific needs of our team at this time.`)}
+        ${paragraph(`Please know that this decision does not reflect on your skills or potential. We will keep your resume in our database and may reach out if a suitable opportunity arises in the future.`)}
+        ${paragraph(`We wish you the very best in your professional endeavors.<br/><br/>Sincerely,<br/><strong>CyberLabSec Human Resources</strong>`)}
       ${BODY_END}
       ${footerSection()}
       ${WRAP_END}
@@ -196,23 +199,38 @@ export async function sendDeclineEmail(toEmail: string, applicantName: string, j
 export async function sendEmployeeCredentials(toEmail: string, employeeName: string, employeeCode: string, temporaryPassword: string, portalUrl: string, offerLetterPdfBase64?: string, customMessage?: string) {
   const firstName = employeeName.split(" ")[0];
   await transporter.sendMail({
-    from: FROM, to: toEmail, subject: `Welcome to the Team, ${firstName}! — Your CyberLabSec Portal Access`,
+    from: FROM, to: toEmail, subject: `Welcome to the Team, ${firstName}! — Your CyberLabSec Offer and Next Steps`,
     html: `
       ${HTML_START}
       ${WRAP_START}
       ${headerSection("Welcome to CyberLabSec")}
       ${BODY_START}
-        ${heading1(`Welcome Aboard, ${firstName}! 🚀`)}
-        ${paragraph(`Your offer has been formally approved by the executive board. We are thrilled to have you join our elite team.`)}
-        ${customMessage ? callout("Personal Message", customMessage, "info") : ""}
-        ${callout("Secure Portal Credentials", `
+        ${heading1(`Welcome Aboard, ${firstName}!`)}
+        ${paragraph(`Congratulations! We are absolutely thrilled to officially welcome you to the CyberLabSec team. After reviewing your impressive background and technical performance, we are confident that you will be a tremendous addition to our organization.`)}
+        ${paragraph(`Please find your <strong>Official Offer Letter</strong> attached to this email. We encourage you to review the details closely as it outlines your role, compensation, and upcoming responsibilities.`)}
+        ${customMessage ? callout("Personal Message", customMessage, "success") : ""}
+        
+        ${callout("Your Secure Portal Access", `
+          To proceed, please access our employee portal using the credentials provisioned below. You will be required to update your security password immediately upon logging in.
+          <br/><br/>
           <table style="width: 100%; border-collapse: collapse;">
             ${infoRow("Employee ID", `<code class="code-box">${employeeCode}</code>`)}
             ${infoRow("Temp Password", `<code class="code-box">${temporaryPassword}</code>`)}
           </table>
         `, 'info')}
-        ${callout("⚠️ Mandatory Security Protocol", `You are required to change this password immediately upon your first login.`, 'danger')}
+        
+        ${callout("Next Steps", `
+          <ul style="margin: 0; padding-left: 20px;">
+            <li>Log in using the credentials provided above.</li>
+            <li>Review and sign your digital Offer Letter within the portal.</li>
+            <li>Complete your profile and await your official onboarding schedule.</li>
+          </ul>
+        `, 'info')}
+
         ${btn("Initialize Portal Access", portalUrl)}
+        
+        ${paragraph(`If you have any questions before your start date, please do not hesitate to reach out to our team.`)}
+        ${paragraph(`Welcome to CyberLabSec — we look forward to achieving great things together.<br/><br/>Best Regards,<br/><strong>The CyberLabSec Leadership Team</strong>`)}
       ${BODY_END}
       ${footerSection()}
       ${WRAP_END}
@@ -231,9 +249,12 @@ export async function sendTerminationLetter(toEmail: string, employeeName: strin
       ${WRAP_START}
       ${headerSection("Employment Update")}
       ${BODY_START}
-        ${heading1(`Hi ${firstName},`)}
-        ${paragraph(`Please find your official employment status notification letter attached.`)}
-        ${callout("Access Revocation Notice", `Your authorization to access CyberLabSec systems has been revoked.`, 'danger')}
+        ${heading1(`Employment Status Notification`)}
+        ${paragraph(`Dear ${firstName},`)}
+        ${paragraph(`This email serves as official notice regarding your employment status at CyberLabSec. Please find your detailed Employment Status Notification letter attached for your records.`)}
+        ${callout("Access Revocation Notice", `As part of this transition, your authorization to access internal CyberLabSec systems and platforms has been revoked, effective immediately.`, 'danger')}
+        ${paragraph(`If you have any questions regarding your final settlement, benefits, or the transition process, please reply to this email to coordinate with our HR department.`)}
+        ${paragraph(`We wish you well in your future endeavors.<br/><br/>Sincerely,<br/><strong>CyberLabSec Human Resources</strong>`)}
       ${BODY_END}
       ${footerSection()}
       ${WRAP_END}

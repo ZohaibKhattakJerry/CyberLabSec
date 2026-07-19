@@ -416,16 +416,16 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
 
       {/* Terminate Employee Modal */}
       {terminateEmployee && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 10000, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
           <div className="card" style={{ maxWidth: 500, width: "100%", padding: 32 }}>
             <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-              <h2 style={{ fontSize: 18, fontWeight: 700, color: "var(--red)" }}>Terminate Employee</h2>
+              <h2 style={{ fontSize: 18, fontWeight: 700, color: "var(--red)" }}>Confirm Termination</h2>
               <button onClick={() => setTerminateEmployee(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}><X size={18} /></button>
             </div>
             
             <div style={{ marginBottom: 16 }}>
               <p style={{ fontSize: 14, color: "var(--text-secondary)" }}>
-                You are about to terminate <strong>{terminateEmployee.name}</strong> ({terminateEmployee.employeeCode}). This will revoke their portal access immediately.
+                You are about to terminate <strong>{terminateEmployee.name}</strong> ({terminateEmployee.employeeCode}). This will revoke their portal access immediately and dispatch their formal termination letter.
               </p>
             </div>
 
