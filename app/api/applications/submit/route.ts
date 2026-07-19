@@ -155,13 +155,9 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const trackingUrl = `https://cyberlabsec.tech/careers/status?ref=${applicant.referenceId}`;
-    
-    // We only send the plain received email here if autoShortlist is false, 
-    // otherwise we send a combined email later to avoid spamming the user.
-    if (!posting.autoShortlist) {
-      waitUntil(sendApplicationReceivedEmail(email, fullName, posting.title, applicant.referenceId, trackingUrl).catch(console.error));
-    }
+    // We do not send plain received emails. Status changes remain in-app.
+    // If autoShortlist is false, they enter Reviewing silently.
+    // If autoShortlist is true, they receive the interview invite later below.
 
     // Notify Admin
     waitUntil(

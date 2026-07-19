@@ -39,18 +39,6 @@ export async function PATCH(
       interviewLink,
       168 // 7-day expiry
     ).catch(console.error);
-  } else if (status === "Selected – Waiting for Approval") {
-    const { sendStatusUpdateEmail } = await import("@/lib/email");
-    const trackingUrl = `https://cyberlabsec.tech/careers/status?ref=${updated.referenceId}`;
-    await sendStatusUpdateEmail(updated.email, updated.fullName, updated.jobPosting.title, "Interview Passed - Under Final Review", trackingUrl).catch(console.error);
-  } else if (status === "Interview Failed") {
-    const { sendStatusUpdateEmail } = await import("@/lib/email");
-    const trackingUrl = `https://cyberlabsec.tech/careers/status?ref=${updated.referenceId}`;
-    await sendStatusUpdateEmail(updated.email, updated.fullName, updated.jobPosting.title, "Interview Failed", trackingUrl).catch(console.error);
-  } else if (status === "Reviewing") {
-    const { sendStatusUpdateEmail } = await import("@/lib/email");
-    const trackingUrl = `https://cyberlabsec.tech/careers/status?ref=${updated.referenceId}`;
-    await sendStatusUpdateEmail(updated.email, updated.fullName, updated.jobPosting.title, "Under Review", trackingUrl).catch(console.error);
   }
 
   // Log stage change

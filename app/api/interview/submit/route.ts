@@ -74,8 +74,8 @@ export async function POST(req: NextRequest) {
 
   const terminated = suspicionScore >= 60;
   
-  // Pass fail based on raw points as requested by the user
-  const isFail = terminated || totalScore < passMark;
+  // Pass fail based on percentage (normalizedScore) as originally designed
+  const isFail = terminated || normalizedScore < passMark;
   const newAttempts = session.attempts + 1;
   const hasMoreAttempts = isFail && newAttempts < session.maxAttempts;
 
@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Final submission (Passed, or Failed out of attempts)
-  const result = terminated ? "Cheating" : totalScore >= passMark ? "Passed" : "Failed";
+  const result = terminated ? "Cheating" : normalizedScore >= passMark ? "Passed" : "Failed";
   const newStatus = result === "Passed" ? "Selected – Waiting for Approval" : "Interview Failed";
 
   await prisma.$transaction(async (tx) => {
@@ -156,17 +156,5 @@ export async function POST(req: NextRequest) {
     });
   });
 
-  // Send Email Notification
-  try {
-    await sendInterviewCompleteEmail(
-      session.applicant.email,
-      session.applicant.fullName,
-      session.applicant.jobPosting.title,
-      newStatus
-    );
-  } catch (e) {
-    console.error("Failed to send interview completion email:", e);
-  }
-
-  return NextResponse.json({ result, score: totalScore, terminated });
+  return NextResponse.json({ result, score: normalizedScore, terminated });
 }
