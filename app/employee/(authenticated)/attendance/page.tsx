@@ -14,7 +14,7 @@ export default async function AttendancePage() {
   const monthStart = startOfMonth(now);
   const monthEnd = endOfMonth(now);
 
-  const records = await (prisma as unknown).attendanceRecord.findMany({
+  const records = await (prisma as any).attendanceRecord.findMany({
     where: {
       employeeId: auth.sub,
       date: { gte: monthStart, lte: monthEnd }
@@ -22,19 +22,9 @@ export default async function AttendancePage() {
     orderBy: { date: 'desc' }
   }).catch(() => []);
 
-  const presentCount = records.filter((r: unknown) => r.status === 'Present').length;
-  const lateCount = records.filter((r: unknown) => r.status === 'Late').length;
+  const presentCount = records.filter((r: any) => r.status === 'Present').length;
+  const lateCount = records.filter((r: any) => r.status === 'Late').length;
   const totalWorkDays = records.length;
-
-  // Serialize dates
-  const serializedRecords = records.map((r: unknown) => ({
-    ...r,
-    date: r.date.toISOString(),
-    loginTime: r.loginTime.toISOString(),
-    logoutTime: r.logoutTime?.toISOString() ?? null,
-    createdAt: r.createdAt.toISOString(),
-    updatedAt: r.updatedAt.toISOString(),
-  }));
 
   return (
     <div>
@@ -48,36 +38,40 @@ export default async function AttendancePage() {
           { label: 'Total Logged', value: totalWorkDays, color: 'var(--purple)', icon: <Calendar size={20} /> },
         ].map(s => (
           <div key={s.label} className="card" style={{ padding: 20, textAlign: 'center' }}>
-            <div style={{ color: s.color, display: 'flex', justifyContent: 'center', marginBottom: 8 }}>{s.icon}</div>
-            <div style={{ fontSize: 32, fontWeight: 800, color: s.color }}>{s.value}</div>
-            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{s.label}</div>
+            <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'center', color: s.color }}>{s.icon}</div>
+            <div style={{ fontSize: 32, fontWeight: 800, color: s.color, marginBottom: 4 }}>{s.value}</div>
+            <div style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 600 }}>{s.label}</div>
           </div>
         ))}
       </div>
 
-      <div className="card" style={{ padding: 24 }}>
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20 }}>Attendance Log</h2>
-        {serializedRecords.length === 0 ? (
-          <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: 40 }}>No attendance records found for this month.</p>
-        ) : (
-          <div style={{ display: 'grid', gap: 10 }}>
-            {serializedRecords.map((r: unknown) => (
-              <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', background: 'rgba(255,255,255,0.02)', borderRadius: 8, border: '1px solid var(--border)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: r.status === 'Present' ? 'var(--green)' : r.status === 'Late' ? 'var(--amber)' : 'var(--red)', flexShrink: 0 }} />
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 600 }}>{format(new Date(r.date), 'EEEE, MMM d')}</div>
-                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
-                      Login: {format(new Date(r.loginTime), 'h:mm a')}
-                      {r.logoutTime && ` · Logout: ${format(new Date(r.logoutTime), 'h:mm a')}`}
-                    </div>
-                  </div>
-                </div>
-                <span className={`badge ${r.status === 'Present' ? 'badge-green' : r.status === 'Late' ? 'badge-amber' : 'badge-red'}`}>{r.status}</span>
-              </div>
-            ))}
-          </div>
-        )}
+      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+          <thead>
+            <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border-subtle)' }}>
+              <th style={{ padding: '16px 20px', textAlign: 'left', fontWeight: 600, color: 'var(--text-secondary)' }}>Date</th>
+              <th style={{ padding: '16px 20px', textAlign: 'left', fontWeight: 600, color: 'var(--text-secondary)' }}>Check In</th>
+              <th style={{ padding: '16px 20px', textAlign: 'left', fontWeight: 600, color: 'var(--text-secondary)' }}>Check Out</th>
+              <th style={{ padding: '16px 20px', textAlign: 'left', fontWeight: 600, color: 'var(--text-secondary)' }}>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {records.length === 0 ? (
+              <tr><td colSpan={4} style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>No attendance records found for this month.</td></tr>
+            ) : (
+              records.map((r: any) => (
+                <tr key={r.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                  <td style={{ padding: '16px 20px', fontWeight: 500 }}>{format(new Date(r.date), 'EEE, MMM d, yyyy')}</td>
+                  <td style={{ padding: '16px 20px', color: 'var(--text-secondary)' }}>{format(new Date(r.loginTime), 'h:mm a')}</td>
+                  <td style={{ padding: '16px 20px', color: 'var(--text-secondary)' }}>{r.logoutTime ? format(new Date(r.logoutTime), 'h:mm a') : '--'}</td>
+                  <td style={{ padding: '16px 20px' }}>
+                    <span className={`badge ${r.status === 'Present' ? 'badge-green' : r.status === 'Late' ? 'badge-amber' : 'badge-red'}`}>{r.status}</span>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );

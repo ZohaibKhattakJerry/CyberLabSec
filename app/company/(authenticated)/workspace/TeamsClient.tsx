@@ -3,8 +3,9 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { Plus, Users, Trash2, X, Loader2, ClipboardList, _Edit2, LayoutDashboard } from "lucide-react";
+import { Plus, Users, Trash2, X, Loader2, ClipboardList, _Edit2, LayoutDashboard, CalendarDays } from "lucide-react";
 import TasksClient from "../tasks/TasksClient";
+import CompanyLeaveClient from "../leave/CompanyLeaveClient";
 
 type Team = {
   id: string; name: string; leadEmployeeId: string | null;
@@ -16,10 +17,10 @@ type Team = {
 
 type Employee = { id: string; name: string; employeeCode: string; designation: string; teamId: string | null };
 
-export default function TeamsClient({ teams, employees, initialTasks = [] }: { teams: Team[]; employees: Employee[]; initialTasks?: any[] }) {
+export default function TeamsClient({ teams, employees, allTasks = [], initialLeaves = [] }: { teams: Team[]; employees: Employee[]; allTasks?: any[]; initialLeaves?: any[] }) {
   const router = useRouter();
   const [, startTransition] = useTransition();
-  const [activeTab, setActiveTab] = useState<"teams" | "tasks">("teams");
+  const [activeTab, setActiveTab] = useState<"teams" | "tasks" | "leave">("teams");
   const [showCreate, setShowCreate] = useState(false);
   const [showAddTask, setShowAddTask] = useState<Team | null>(null);
   const [newTeamName, setNewTeamName] = useState("");
@@ -93,11 +94,16 @@ export default function TeamsClient({ teams, employees, initialTasks = [] }: { t
           <button className={`btn btn-sm ${activeTab === "tasks" ? "btn-secondary" : "btn-ghost"}`} onClick={() => setActiveTab("tasks")}>
             <ClipboardList size={14} /> Tasks
           </button>
+          <button className={`btn btn-sm ${activeTab === "leave" ? "btn-secondary" : "btn-ghost"}`} onClick={() => setActiveTab("leave")}>
+            <CalendarDays size={14} /> Leave Requests
+          </button>
         </div>
       </div>
 
-      {activeTab === "tasks" ? (
-        <TasksClient initialTasks={initialTasks} teams={teams} employees={employees} hideHeader />
+      {activeTab === "leave" ? (
+        <CompanyLeaveClient initialLeaves={initialLeaves} hideHeader />
+      ) : activeTab === "tasks" ? (
+        <TasksClient initialTasks={allTasks} teams={teams} employees={employees} hideHeader />
       ) : (
         <div>
           <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>

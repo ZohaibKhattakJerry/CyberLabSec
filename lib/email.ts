@@ -88,9 +88,9 @@ const BODY_END = `</td></tr>`;
 
 const callout = (title: string, content: string, type: 'info' | 'danger' | 'success' = 'info') => {
   const colors = {
-    info: { border: '#8b5cf6', bg: '#2e1065', text: '#c084fc', content: '#e4e4e7' },
-    danger: { border: '#ef4444', bg: '#450a0a', text: '#f87171', content: '#e4e4e7' },
-    success: { border: '#22c55e', bg: '#052e16', text: '#4ade80', content: '#e4e4e7' },
+    info: { border: '#8b5cf6', bg: '#f3e8ff', text: '#6d28d9', content: '#18181b' },
+    danger: { border: '#ef4444', bg: '#fef2f2', text: '#b91c1c', content: '#18181b' },
+    success: { border: '#22c55e', bg: '#f0fdf4', text: '#15803d', content: '#18181b' },
   };
   const c = colors[type];
   return `
@@ -116,7 +116,7 @@ const paragraph = (text: string) => `<p>${text}</p>`;
 const infoRow = (label: string, value: string) => `
   <tr>
     <td class="info-label">${label}</td>
-    <td class="info-value" style="color: #ffffff;">${value}</td>
+    <td class="info-value" style="color: #18181b;">${value}</td>
   </tr>
 `;
 

@@ -173,7 +173,7 @@ export default function LeaderboardClient({
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
         
         {/* TOP STATS & ACTIONS */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 24, marginTop: -40, position: "relative", zIndex: 10, marginBottom: 60 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: 24, marginTop: -40, position: "relative", zIndex: 10, marginBottom: 60 }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 20 }}>
             <div className="stat-card">
               <div style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 8, fontWeight: 600 }}>Total Points Awarded</div>
@@ -195,7 +195,7 @@ export default function LeaderboardClient({
         </div>
 
         {/* TOP 3 PODIUM */}
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-end", gap: 40, marginBottom: 80, minHeight: 300 }}>
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-end", gap: "min(5vw, 40px)", marginBottom: 80, minHeight: 300, flexWrap: "wrap" }}>
           {top3[1] && <PodiumAvatar e={top3[1]} place={2} />}
           {top3[0] && <PodiumAvatar e={top3[0]} place={1} />}
           {top3[2] && <PodiumAvatar e={top3[2]} place={3} />}
@@ -211,7 +211,7 @@ export default function LeaderboardClient({
               const pts = getTeamPoints(t);
               const percent = maxTeamPoints > 0 ? (pts / maxTeamPoints) * 100 : 0;
               return (
-                <div key={t.id} style={{ display: "grid", gridTemplateColumns: "150px 1fr 100px", alignItems: "center", gap: 16 }}>
+                <div key={t.id} style={{ display: "grid", gridTemplateColumns: "minmax(80px, 150px) 1fr minmax(60px, 100px)", alignItems: "center", gap: 10 }}>
                   <div style={{ fontSize: 14, fontWeight: 600 }}>{t.name} <span style={{ fontSize: 11, color: "var(--text-muted)" }}>({t.memberCount})</span></div>
                   <div style={{ height: 16, background: "rgba(255,255,255,0.05)", borderRadius: 8, overflow: "hidden" }}>
                     <div style={{ height: "100%", width: `\${percent}%`, background: "linear-gradient(90deg, #3b82f6, #a855f7)", borderRadius: 8 }} />
@@ -250,7 +250,8 @@ export default function LeaderboardClient({
         </div>
 
         {/* TABLE */}
-        <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)", borderRadius: 16, overflow: "hidden", boxShadow: "0 10px 40px rgba(0,0,0,0.1)" }}>
+        <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)", borderRadius: 16, overflowX: "auto", boxShadow: "0 10px 40px rgba(0,0,0,0.1)" }}>
+          <div style={{ minWidth: 800 }}>
           <div style={{ display: "grid", gridTemplateColumns: "80px 1fr 1fr 1.5fr 1fr", gap: 16, padding: "16px 24px", borderBottom: "1px solid var(--border)", fontSize: 12, fontWeight: 700, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: 1, background: "rgba(0,0,0,0.2)" }}>
             <div>Rank</div>
             <div>Employee</div>
@@ -308,6 +309,7 @@ export default function LeaderboardClient({
                 No employees found matching the filters.
               </div>
             )}
+            </div>
           </div>
         </div>
       </div>

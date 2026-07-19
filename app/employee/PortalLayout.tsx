@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  Menu, X, ChevronRight, Trophy, FileText, Calendar, CalendarDays, LifeBuoy, LayoutDashboard, ClipboardList, Users, Bell, User, LogOut
+  Menu, X, ChevronRight, Trophy, FileText, LifeBuoy, LayoutDashboard, User, Briefcase, Users, LogOut, Bell, Calendar, CalendarDays
 } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 import AttendanceTracker from "@/components/AttendanceTracker";
@@ -17,14 +17,13 @@ interface Employee {
 
 const NAV = [
   { href: "/employee/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/employee/tasks", label: "Tasks", icon: ClipboardList },
-  { href: "/employee/documents", label: "My Documents", icon: FileText },
+  { href: "/employee/tasks", label: "Tasks", icon: FileText },
   { href: "/employee/team", label: "My Team", icon: Users },
-  { href: "/employee/leaderboard", label: "Leaderboard", icon: Trophy },
   { href: "/employee/attendance", label: "Attendance", icon: Calendar },
-  { href: "/employee/leave", label: "Leave", icon: CalendarDays },
+  { href: "/employee/leave", label: "Leave Requests", icon: CalendarDays },
+  { href: "/employee/documents", label: "My Documents", icon: FileText },
+  { href: "/employee/leaderboard", label: "Leaderboard", icon: Trophy },
   { href: "/employee/support", label: "Support", icon: LifeBuoy },
-  { href: "/employee/announcements", label: "Announcements", icon: Bell },
   { href: "/employee/profile", label: "Profile", icon: User },
 ];
 
@@ -62,7 +61,9 @@ export default function PortalLayout({ children, employee }: { children: React.R
           </div>
           <div style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
             <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", letterSpacing: "-0.01em" }}>{employee.name}</div>
-            <div style={{ fontSize: 11, color: "var(--text-secondary)", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{employee.designation}</div>
+            <div style={{ fontSize: 11, color: "var(--text-secondary)", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {employee.designation} • {employee.employeeCode}
+            </div>
           </div>
         </div>
         {employee.team && (

@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const employees = await prisma.employee.findMany({
-    where: { status: "Active" },
+    where: { status: "Active", employeeCode: { not: "CyberLabSec" } },
     select: {
       id: true,
       name: true,

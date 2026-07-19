@@ -58,11 +58,16 @@ export default function SettingsClient() {
   const requestOtp = async () => {
     setSaving(true);
     try {
-      const res = await fetch("/api/company/settings/request-otp", { method: "POST" });
+      const res = await fetch("/api/company/settings/request-otp", { 
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: company.email })
+      });
+      const data = await res.json().catch(() => ({}));
       if (res.ok) {
         setShowOtpModal(true);
       } else {
-        showMsg("Failed to request OTP. Try again.", "error");
+        showMsg(data.error || "Failed to request OTP. Try again.", "error");
       }
     } catch {
       showMsg("Network error. Try again.", "error");

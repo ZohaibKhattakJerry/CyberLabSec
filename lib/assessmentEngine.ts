@@ -41,6 +41,9 @@ const PENTEST_MCQ = [
   { prompt: "What does the 'Pass-the-Hash' attack target in Windows networks?", options: ["Kerberos tickets", "NTLM hashes", "LDAP cleartext", "SMB versions"], correct: 1, diff: "Hard" },
   { prompt: "Which HTTP header is most critical in preventing Clickjacking?", options: ["Content-Security-Policy", "X-Frame-Options", "Strict-Transport-Security", "X-Content-Type-Options"], correct: 1, diff: "Medium" },
   { prompt: "What is a 'Bind Shell'?", options: ["A shell that connects back to the attacker", "A shell that listens on a port on the target machine", "A shell obfuscated with base64", "A web-based terminal"], correct: 1, diff: "Medium" },
+  { prompt: "In a Windows Active Directory environment, what attack extracts service account credential hashes from the KDC?", options: ["AS-REP Roasting", "Kerberoasting", "Pass-the-Ticket", "Silver Ticket"], correct: 1, diff: "Hard" },
+  { prompt: "Which tool is best suited for dynamic binary instrumentation and reverse engineering?", options: ["Wireshark", "Burp Suite", "Frida", "Nmap"], correct: 2, diff: "Hard" },
+  { prompt: "When discovering a Server-Side Template Injection (SSTI), what is usually the primary goal?", options: ["DDoS the server", "Read arbitrary files or Remote Code Execution", "Cross-site scripting", "Bypass CORS"], correct: 1, diff: "Medium" },
 ];
 
 const SECURITY_MCQ = [
@@ -48,18 +51,25 @@ const SECURITY_MCQ = [
   { prompt: "Which of the following is a common defense against SQL Injection?", options: ["Prepared Statements", "Base64 Encoding", "MD5 Hashing", "CORS"], correct: 0, diff: "Easy" },
   { prompt: "What does CSRF stand for?", options: ["Cross-Site Request Forgery", "Centralized Security Rules", "Cross-Server Routing", "Client-Side Request Formatting"], correct: 0, diff: "Medium" },
   { prompt: "Which hashing algorithm is widely considered broken for cryptographic purposes due to collisions?", options: ["SHA-256", "bcrypt", "MD5", "Argon2"], correct: 2, diff: "Medium" },
+  { prompt: "What is the primary purpose of a Content Security Policy (CSP)?", options: ["To encrypt database passwords", "To prevent XSS and data injection attacks", "To secure API endpoints with JWT", "To validate SSL certificates"], correct: 1, diff: "Medium" },
+  { prompt: "Which of the following describes Insecure Direct Object Reference (IDOR)?", options: ["Accessing a database using default credentials", "Manipulating an unvalidated parameter to access another user's data", "Injecting malicious JavaScript into a form", "A buffer overflow leading to RCE"], correct: 1, diff: "Medium" },
+  { prompt: "In OAuth 2.0, what is the role of the 'state' parameter?", options: ["To prevent CSRF attacks during the redirect phase", "To store the user's password securely", "To define the token expiration time", "To bypass the consent screen"], correct: 0, diff: "Hard" },
 ];
 
 const FRONTEND_MCQ = [
   { prompt: "What does the 'useState' hook do in React?", options: ["Fetches data", "Manages state in a functional component", "Updates the DOM directly", "Creates a context"], correct: 1, diff: "Easy" },
   { prompt: "Which CSS property handles Flexbox layout direction?", options: ["justify-content", "align-items", "flex-direction", "flex-wrap"], correct: 2, diff: "Easy" },
   { prompt: "What is Server-Side Rendering (SSR) primarily used for in Next.js?", options: ["Faster initial page load and SEO", "Replacing databases", "Running Python code", "Websocket management"], correct: 0, diff: "Medium" },
+  { prompt: "What is the Virtual DOM in React?", options: ["A direct copy of the actual DOM", "An in-memory representation of the UI to optimize rendering", "A database for storing HTML elements", "A tool for rendering 3D graphics"], correct: 1, diff: "Medium" },
+  { prompt: "Which of the following causes a memory leak in a React component?", options: ["Using too many components", "Failing to clear intervals/subscriptions in useEffect cleanup", "Using Redux for small apps", "Rendering large images"], correct: 1, diff: "Hard" },
 ];
 
 const BACKEND_MCQ = [
   { prompt: "What HTTP status code indicates a resource was successfully created?", options: ["200", "201", "204", "400"], correct: 1, diff: "Easy" },
   { prompt: "Which of the following is a NoSQL database?", options: ["PostgreSQL", "MySQL", "MongoDB", "Oracle"], correct: 2, diff: "Easy" },
   { prompt: "What does an ORM do?", options: ["Maps objects to relational databases", "Optimizes routing", "Handles OAuth", "Compiles TypeScript to JavaScript"], correct: 0, diff: "Medium" },
+  { prompt: "In a microservices architecture, what is an API Gateway typically used for?", options: ["Storing user passwords", "Routing requests, rate limiting, and authentication", "Replacing Docker containers", "Compiling frontend assets"], correct: 1, diff: "Medium" },
+  { prompt: "What is the CAP Theorem?", options: ["Consistency, Availability, Partition Tolerance", "Concurrency, Asynchrony, Parallelism", "Caching, Authorization, Performance", "Compute, Analytics, Processing"], correct: 0, diff: "Hard" },
 ];
 
 const GENERAL_MCQ = [
@@ -68,13 +78,13 @@ const GENERAL_MCQ = [
   { prompt: "What does CI/CD stand for?", options: ["Continuous Integration / Continuous Deployment", "Code Integration / Code Delivery", "Centralized Information / Central Data", "Command Interface / Command Directory"], correct: 0, diff: "Medium" },
 ];
 
-// Open / Scenario Prompts
 const SCENARIOS = [
   { category: "pentest", diff: "Hard", prompt: "SCENARIO: You compromised a low-privileged user account on an internal Windows domain. Describe your methodology for escalating privileges to Domain Admin.", rubric: "Look for Active Directory enumeration (BloodHound), Kerberoasting, AS-REP Roasting, checking for unquoted service paths, or vulnerable group policies." },
   { category: "pentest", diff: "Medium", prompt: "Explain how a Server-Side Request Forgery (SSRF) attack works and provide an example of how you would pivot to attack an internal cloud metadata service (e.g., AWS).", rubric: "Mention accessing 169.254.169.254, bypassing input validation, and retrieving IAM role credentials." },
   { category: "security", diff: "Medium", prompt: "A client reports their application is vulnerable to Cross-Site Scripting (XSS). Explain the difference between Reflected, Stored, and DOM-based XSS, and how to mitigate them.", rubric: "Stored = in DB, Reflected = in URL payload, DOM = in client-side JS. Mitigation: Context-aware output encoding, CSP." },
   { category: "frontend", diff: "Hard", prompt: "SCENARIO: Your React application is experiencing severe re-rendering performance issues on a complex data grid. How do you profile and fix this?", rubric: "Mention React Profiler, React.memo, useMemo, useCallback, and avoiding anonymous functions in props." },
   { category: "backend", diff: "Medium", prompt: "Explain how you would design a rate-limiting middleware in Node.js to protect a public API from brute-force attacks.", rubric: "Mention using Redis or in-memory stores, IP-based tracking, sliding window or token bucket algorithms, and returning HTTP 429." },
+  { category: "backend", diff: "Hard", prompt: "SCENARIO: Your database is suffering from high CPU usage and slow queries under heavy read load. How do you identify the bottlenecks and scale the system?", rubric: "Mention EXPLAIN ANALYZE, creating indexes, read replicas, query caching (Redis), or connection pooling (PgBouncer)." },
   { category: "general", diff: "Easy", prompt: "Describe your ideal workflow for moving a feature from development into production.", rubric: "Mention local testing, pull requests, code reviews, automated CI/CD pipelines, staging environments, and deployment." }
 ];
 

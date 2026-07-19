@@ -62,7 +62,7 @@ export default async function Dashboard() {
           sentAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } 
         },
         orderBy: { sentAt: 'desc' }, take: 5,
-        select: { id: true, title: true, message: true, scope: true, sentAt: true, isPinned: true, sentBy: { select: { name: true } } },
+        select: { id: true, message: true, scope: true, sentAt: true, isPinned: true, sentBy: { select: { name: true } } },
       }),
       prisma.announcementReadReceipt.findMany({ where: { employeeId: auth.sub }, select: { announcementId: true } }),
       prisma.activityLog.findMany({ where: { actorId: auth.sub }, orderBy: { timestamp: 'desc' }, take: 5, select: { id: true, action: true, timestamp: true } }),
@@ -429,8 +429,7 @@ export default async function Dashboard() {
                     {a.isPinned && <span style={{ fontSize: '10px', background: 'rgba(245,158,11,0.2)', color: 'var(--amber)', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>📌 Pinned</span>}
                     <span style={{ fontSize: '10px', background: 'rgba(255,255,255,0.1)', color: 'var(--text-secondary)', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>{a.scope}</span>
                   </div>
-                  <h4 style={{ fontSize: '15px', margin: '0 0 6px 0', color: 'var(--text-primary)' }}>{a.title}</h4>
-                  <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 10px 0', lineHeight: 1.4 }}>
+                  <p style={{ fontSize: '14px', color: 'var(--text-primary)', margin: '0 0 10px 0', lineHeight: 1.5, fontWeight: 500 }}>
                     {a.message.length > 80 ? a.message.slice(0, 80) + '...' : a.message}
                   </p>
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>

@@ -20,15 +20,12 @@ const STEPS = [
   { id: "portal", title: "Portal Tour" },
   { id: "rules", title: "Guidelines" },
   { id: "nda", title: "NDA & Policies" },
-  { id: "profile", title: "Profile Setup" },
   { id: "complete", title: "Ready" },
 ];
 
 export default function OnboardingWizard({ employee }: { employee: Employee }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [agreedNDA, setAgreedNDA] = useState(false);
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -37,16 +34,6 @@ export default function OnboardingWizard({ employee }: { employee: Employee }) {
     if (stepId === "nda" && !agreedNDA) {
       toast.error("You must accept the Non-Disclosure Agreement to continue.");
       return;
-    }
-    if (stepId === "profile") {
-      if (newPassword && newPassword !== confirmPassword) {
-        toast.error("Passwords do not match.");
-        return;
-      }
-      if (newPassword && newPassword.length < 8) {
-        toast.error("Password must be at least 8 characters.");
-        return;
-      }
     }
     if (currentStep < STEPS.length - 1) setCurrentStep((c) => c + 1);
   };
@@ -61,7 +48,7 @@ export default function OnboardingWizard({ employee }: { employee: Employee }) {
       const res = await fetch("/api/employee/onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ newPassword: newPassword || undefined }),
+        body: JSON.stringify({}),
       });
       if (!res.ok) throw new Error("Failed to complete onboarding.");
       toast.success("Welcome aboard!");
@@ -193,44 +180,7 @@ export default function OnboardingWizard({ employee }: { employee: Employee }) {
             </label>
           </div>
         );
-      case "profile":
-        return (
-          <div className="py-8">
-            <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 24, display: "flex", alignItems: "center", gap: 10 }}>
-              <Lock size={24} color="var(--purple)" /> Profile & Security Setup
-            </h2>
-            <div className="card" style={{ padding: 32 }}>
-              <p style={{ color: "var(--text-secondary)", marginBottom: 24 }}>
-                For your security, we recommend setting a new password for your account now. If you leave this blank, your current password will remain unchanged.
-              </p>
-              
-              <div style={{ display: "grid", gap: 16, maxWidth: 400 }}>
-                <div>
-                  <label className="label">New Password</label>
-                  <input 
-                    type="password" 
-                    className="input" 
-                    placeholder="Min 8 characters"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    minLength={8}
-                  />
-                </div>
-                <div>
-                  <label className="label">Confirm New Password</label>
-                  <input 
-                    type="password" 
-                    className="input" 
-                    placeholder="Retype password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    minLength={8}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        );
+
       case "complete":
         return (
            <div className="text-center py-12">

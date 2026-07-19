@@ -37,6 +37,26 @@ export async function POST(req: NextRequest) {
   const { generateQuestionsForJob } = await import("@/lib/questionDictionary");
   const generatedQuestions = generateQuestionsForJob(title || "", description || "", requirements || "");
 
+  let finalAssessmentBank = body.assessmentBank || "[]";
+  let finalAnswerKey = body.answerKey || "{}";
+
+  if (finalAssessmentBank === "[]" || finalAssessmentBank === "null") {
+    const { generateAssessmentBank } = await import("@/lib/assessmentEngine");
+    const ctx = {
+      title: title || "",
+      department: department || "",
+      description: description || "",
+      requirements: requirements || "",
+      experienceLevel: experienceLevel || "Any",
+      niceToHave: niceToHave || "",
+      type: type || "Job"
+    };
+    const settings = typeof body.assessmentSettings === "string" ? JSON.parse(body.assessmentSettings) : (body.assessmentSettings || { mcqCount: 10, openCount: 5 });
+    const { assessmentBank, answerKey } = generateAssessmentBank(ctx, settings);
+    finalAssessmentBank = JSON.stringify(assessmentBank);
+    finalAnswerKey = JSON.stringify(answerKey);
+  }
+
   const posting = await prisma.jobPosting.create({
     data: {
       id: slug,
@@ -54,9 +74,9 @@ export async function POST(req: NextRequest) {
       showApplicantCount: showApplicantCount !== undefined ? !!showApplicantCount : true,
       autoShortlist: autoShortlist !== undefined ? !!autoShortlist : false,
       screeningQuestions: JSON.stringify(generatedQuestions),
-      assessmentBank: body.assessmentBank || "[]",
-      answerKey: body.answerKey || "{}",
-      assessmentSettings: body.assessmentSettings || "{}",
+      assessmentBank: finalAssessmentBank,
+      answerKey: finalAnswerKey,
+      assessmentSettings: typeof body.assessmentSettings === "string" ? body.assessmentSettings : JSON.stringify(body.assessmentSettings || { mcqCount: 10, openCount: 5 }),
       stipend: stipend || null,
       experienceLevel: experienceLevel || "Any",
       duration: duration || null,

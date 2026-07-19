@@ -13,7 +13,7 @@ export async function PATCH(
   const { applicantId } = await params;
   const { status } = await req.json();
 
-  const validStatuses = ["Applied","Reviewing","Shortlisted","InterviewInvited","Needs Retry","Passed","Failed","Rejected","Hired","Blocked","Final Approval","Offer","Withdrawn"];
+  const validStatuses = ["Reviewing", "Invited for Interview", "Selected – Waiting for Approval", "Hired", "Rejected"];
   if (!validStatuses.includes(status)) return NextResponse.json({ error: "Invalid status" }, { status: 400 });
 
   const updated = await prisma.applicant.update({
@@ -55,7 +55,7 @@ export async function PATCH(
     await sendDeclineEmail(updated.email, updated.fullName, updated.jobPosting.title).catch(console.error);
   }
 
-  if ((status === "Shortlisted" || status === "InterviewInvited") && updated.interviewSession?.token) {
+  if (status === "Invited for Interview" && updated.interviewSession?.token) {
     const { sendInterviewInvite } = await import("@/lib/email");
     const interviewLink = `${process.env.NEXT_PUBLIC_APP_URL || "https://cyberlabsec.tech"}/careers/interview/${updated.interviewSession.token}`;
     await sendInterviewInvite(

@@ -299,7 +299,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button className="btn btn-primary" onClick={() => { setShowDirectHire(true); setMsg(""); }}>
-            <UserPlus size={14} /> Add Employee (Direct)
+            <UserPlus size={14} /> Manual Hire
           </button>
         </div>
       </div>
@@ -457,7 +457,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
           <div className="card" style={{ maxWidth: 500, width: "100%", padding: 32 }}>
             <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-              <h2 style={{ fontSize: 18, fontWeight: 700 }}>Add Employee Directly</h2>
+              <h2 style={{ fontSize: 18, fontWeight: 700 }}>Manual Hire</h2>
               <button onClick={() => setShowDirectHire(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}><X size={18} /></button>
             </div>
             

@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
 
     await prisma.applicant.update({
       where: { id: session.applicantId },
-      data: { status: "Needs Retry" }
+      data: { status: "Invited for Interview" }
     });
 
     return NextResponse.json({ result: "Retry", score: normalizedScore, terminated });
@@ -119,7 +119,7 @@ export async function POST(req: NextRequest) {
 
   // Final submission (Passed, or Failed out of attempts)
   const result = terminated ? "Cheating" : normalizedScore >= passMark ? "Passed" : "Failed";
-  const newStatus = result === "Passed" ? "Final Approval" : "Rejected";
+  const newStatus = result === "Passed" ? "Selected – Waiting for Approval" : "Rejected";
 
   await prisma.$transaction(async (tx) => {
     await tx.interviewSession.update({
@@ -141,24 +141,15 @@ export async function POST(req: NextRequest) {
       data: { status: newStatus },
     });
 
-    if (result === "Passed") {
-      // Find an admin/system user to attach to the automated review
-      const systemUser = await tx.employee.findFirst({
-        orderBy: { createdAt: 'asc' }
-      });
-
-      if (systemUser) {
-        await tx.cEOReview.create({
-          data: {
-            type: "Hire Request",
-            applicantId: session.applicantId,
-            submitterId: systemUser.id,
-            status: "Pending",
-            comments: `Automated Request: Candidate successfully passed the AI interview with a score of ${normalizedScore}%.`,
-          },
-        });
+    await tx.notification.create({
+      data: {
+        userId: "admin",
+        title: "Interview Completed",
+        message: `${session.applicant.fullName} scored ${normalizedScore}% for ${session.applicant.jobPosting.title}`,
+        type: "Interview",
+        link: "/company/applications"
       }
-    }
+    });
   });
 
   // Send Email Notification

@@ -51,13 +51,11 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
     { label: "Active Tasks", value: stats.activeTasks, icon: CheckCircle, color: "var(--amber)", bg: "rgba(245,158,11,0.1)", href: "/company/tasks" },
     { label: "Overdue Tasks", value: stats.overdueTasks, icon: AlertTriangle, color: "var(--red)", bg: "rgba(239,68,68,0.1)", href: "/company/tasks", urgent: stats.overdueTasks > 0 },
     { label: "Pending Reviews", value: stats.pendingReviews, icon: Clock, color: "var(--amber)", bg: "rgba(245,158,11,0.1)", href: "/company/tasks", urgent: stats.pendingReviews > 0 },
-    { label: "Final Approvals", value: stats.pendingApprovals, icon: Star, color: "var(--purple)", bg: "rgba(168,85,247,0.1)", href: "/company/final-approval", urgent: stats.pendingApprovals > 0 },
   ];
 
   const attentionItems = [
     stats.overdueTasks > 0 && { text: `${stats.overdueTasks} overdue task${stats.overdueTasks > 1 ? "s" : ""} — needs action`, href: "/company/tasks", label: "Review Tasks", color: "var(--red)" },
     stats.pendingReviews > 0 && { text: `${stats.pendingReviews} submission${stats.pendingReviews > 1 ? "s" : ""} awaiting review`, href: "/company/tasks", label: "Review Now", color: "var(--amber)" },
-    stats.pendingApprovals > 0 && { text: `${stats.pendingApprovals} candidate${stats.pendingApprovals > 1 ? "s" : ""} awaiting Final Approval`, href: "/company/final-approval", label: "Approve", color: "var(--purple)" },
   ].filter(Boolean) as Array<{ text: string; href: string; label: string; color: string }>;
 
   const taskStatusMap: Record<string, number> = {};
@@ -94,7 +92,7 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
       {/* Header */}
       <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-end", gap: 16 }}>
         <div>
-          <h1 style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 6, color: "var(--text-primary)" }}>Command Center</h1>
+          <h1 style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 6, color: "var(--text-primary)" }}>Corporate Dashboard</h1>
           <p style={{ color: "var(--text-secondary)", fontSize: 15, margin: 0 }}>Real-time operations overview</p>
         </div>
         <div style={{ display: "flex", gap: 12 }}>

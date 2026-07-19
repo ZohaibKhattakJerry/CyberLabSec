@@ -99,7 +99,7 @@ export async function extractPdfText(fileUrl: string): Promise<string> {
     const { get } = await import("@vercel/blob");
     const result = await get(realUrl, { access: "private" });
     if (!result || !result.stream) return "";
-    const chunks = [];
+    const chunks: Buffer[] = [];
     for await (const chunk of result.stream as any) {
       chunks.push(Buffer.from(chunk));
     }

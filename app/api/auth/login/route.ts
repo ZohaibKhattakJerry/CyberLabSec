@@ -21,6 +21,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Employee Code and Password required" }, { status: 400 });
     }
 
+    if (employeeCode === "CyberLabSec" || employeeCode === "ZohaibKhattak") {
+      return NextResponse.json({ error: "Company Admin accounts cannot log into the Employee portal." }, { status: 403 });
+    }
+
     const employee = await prisma.employee.findUnique({ where: { employeeCode } });
     if (!employee || employee.status !== "Active") {
       return NextResponse.json({ error: "Invalid credentials or inactive account" }, { status: 401 });
@@ -37,7 +41,7 @@ export async function POST(req: NextRequest) {
       data: { actorId: employee.id, actorType: "Employee", action: "LOGIN", metadata: JSON.stringify({ ip }) },
     }).catch(() => {});
 
-    const res = NextResponse.json({ success: true, mustChangePassword: employee.mustChangePassword });
+    const res = NextResponse.json({ success: true, mustResetPassword: employee.mustResetPassword, forcePasswordChange: employee.forcePasswordChange });
     res.cookies.set("auth_token", token, { httpOnly: true, sameSite: "lax", path: "/", maxAge: 8 * 3600, secure: process.env.NODE_ENV === "production" });
     return res;
   } catch (error: any) {

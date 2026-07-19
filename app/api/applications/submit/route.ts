@@ -158,6 +158,19 @@ export async function POST(req: NextRequest) {
     const trackingUrl = `https://cyberlabsec.tech/careers/status?ref=${applicant.referenceId}`;
     waitUntil(sendApplicationReceivedEmail(email, fullName, posting.title, applicant.referenceId, trackingUrl).catch(console.error));
 
+    // Notify Admin
+    waitUntil(
+      prisma.notification.create({
+        data: {
+          userId: "admin",
+          title: "New Application",
+          message: `${fullName} has applied for ${posting.title}`,
+          type: "Application",
+          link: "/company/applications"
+        }
+      }).catch(console.error)
+    );
+
     // Run AI screening asynchronously without blocking the Vercel function
     waitUntil(runScreening(applicant.id, cvUrl, { fullName, email, posting }));
 
@@ -236,7 +249,7 @@ async function runScreening(
       await prisma.applicant.update({
         where: { id: applicantId },
         data: {
-          status: "Shortlisted",
+          status: "Invited for Interview",
           fitScore: result.fitScore,
           fitReasoning: `${result.reasoning}\n\nStrengths: ${result.strengths.join(", ")}\nGaps: ${result.gaps.join(", ")}`,
         },
@@ -258,7 +271,7 @@ async function runScreening(
       await prisma.applicant.update({
         where: { id: applicantId },
         data: {
-          status: "Applied",
+          status: "Reviewing",
           fitScore: result.fitScore,
           fitReasoning: `${result.reasoning}\n\nStrengths: ${result.strengths.join(", ")}\nGaps: ${result.gaps.join(", ")}`,
         },

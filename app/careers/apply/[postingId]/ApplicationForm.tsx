@@ -91,11 +91,12 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: form.email })
       });
+      const data = await res.json();
       if (res.ok) {
         setOtpSent(true);
         toast.success("Verification code sent to your email");
       } else {
-        toast.error("Failed to send code. Try again.");
+        toast.error(data.error || "Failed to send code. Try again.");
       }
     } catch {
       toast.error("Network error");
@@ -204,16 +205,14 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
       try {
         const res = await fetch(`/api/applications/${appId}/status`);
         const data = await res.json();
-        if (data.status === "Shortlisted" || data.status === "InterviewInvited" || data.status === "Interview") {
+        if (data.status === "Invited for Interview" || data.status === "Selected – Waiting for Approval" || data.status === "Hired") {
           clearInterval(interval);
           setStatus("done");
           setStatusMsg("shortlisted");
-        } else if (data.status === "Rejected" || data.status === "Applied") {
+        } else if (data.status === "Rejected" || data.status === "Reviewing") {
           clearInterval(interval);
           setStatus("done");
           setStatusMsg("reviewed");
-        } else if (data.status === "Reviewing") {
-          setStatusMsg("We are currently processing your application and evaluating your profile...");
         }
       } catch { /* keep polling */ }
     }, 3000);
@@ -562,6 +561,13 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                     {[
                       ["Name", form.fullName], ["Email", form.email], ["Phone", form.phone],
                       ["Position", posting.title], ["CV", cvFile?.name || "—"],
+                      ...(form.linkedIn ? [["LinkedIn", form.linkedIn]] : []),
+                      ...(form.github ? [["GitHub", form.github]] : []),
+                      ...(form.portfolio ? [["Portfolio", form.portfolio]] : []),
+                      ...(form.bugBounty ? [["Bug Bounty", form.bugBounty]] : []),
+                      ...(form.tryHackMe ? [["TryHackMe", form.tryHackMe]] : []),
+                      ...(form.hackTheBox ? [["HackTheBox", form.hackTheBox]] : []),
+                      ...(form.certifications && form.certifications !== "None yet" ? [["Certs", form.certifications]] : []),
                     ].map(([k, v]) => (
                       <div key={k} style={{ display: "flex", gap: 8 }}>
                         <span style={{ color: "var(--text-muted)", width: 80, flexShrink: 0 }}>{k}</span>

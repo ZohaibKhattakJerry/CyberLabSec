@@ -32,7 +32,7 @@ type Leave = {
   employee: LeaveEmployee;
 };
 
-type Props = { initialLeaves: Leave[] };
+type Props = { initialLeaves: Leave[], hideHeader?: boolean };
 
 const STATUS_FILTERS = ['All', 'Pending', 'Approved', 'Rejected'] as const;
 
@@ -46,7 +46,7 @@ function getDays(start: string, end: string) {
   return differenceInCalendarDays(new Date(end), new Date(start)) + 1;
 }
 
-export default function CompanyLeaveClient({ initialLeaves }: Props) {
+export default function CompanyLeaveClient({ initialLeaves, hideHeader }: Props) {
   const [leaves, setLeaves] = useState<Leave[]>(initialLeaves);
   const [filter, setFilter] = useState<string>('All');
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -89,12 +89,14 @@ export default function CompanyLeaveClient({ initialLeaves }: Props) {
   return (
     <div>
       {/* Header */}
-      <div style={{ marginBottom: 32 }}>
-        <h1 style={{ fontSize: 26, fontWeight: 800, margin: 0 }}>Leave Requests</h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginTop: 4 }}>
-          Review and manage employee leave applications
-        </p>
-      </div>
+      {!hideHeader && (
+        <div style={{ marginBottom: 32 }}>
+          <h1 style={{ fontSize: 26, fontWeight: 800, margin: 0 }}>Leave Requests</h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginTop: 4 }}>
+            Review and manage employee leave applications
+          </p>
+        </div>
+      )}
 
       {/* Summary cards */}
       <div

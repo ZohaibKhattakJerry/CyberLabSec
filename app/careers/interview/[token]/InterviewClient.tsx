@@ -110,34 +110,16 @@ export default function InterviewClient({ sessionId, _token, applicantName, _app
     };
   }, [phase]);
 
-  // Feature 1: Visibility change detection — immediate termination on tab switch
+  // Feature 1: Visibility change detection — only logs, doesn't immediately terminate
   useEffect(() => {
     if (phase !== "interview") return;
     const handleVisibility = () => {
       if (!document.hidden) return;
-      // IMMEDIATELY terminate - do not wait
-      setPhase('terminated');
-      fetch('/api/interview/integrity', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId, type: 'tab_switch_terminate', count: 1 }),
-      }).catch(console.error);
-      // Submit with terminated flag
-      fetch('/api/interview/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sessionId,
-          answers,
-          cheatingSignals: { pasteAttempts: pasteAttempts.current, tabBlurCount: tabBlurCount.current + 1, totalTimeSeconds: totalTime },
-          suspicionFlag: true,
-          terminated: true,
-        }),
-      }).catch(console.error);
+      tabBlurCount.current += 1;
     };
     document.addEventListener("visibilitychange", handleVisibility);
     return () => document.removeEventListener("visibilitychange", handleVisibility);
-  }, [phase, sessionId, answers, totalTime]);
+  }, [phase]);
 
   // Clear cached question timers on intro phase so 2nd attempt starts fresh
   useEffect(() => {

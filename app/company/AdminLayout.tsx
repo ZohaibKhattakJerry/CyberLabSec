@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, Users, Bell, Settings, LogOut,
   Menu, X, ChevronRight, Trophy, ClipboardList, Building2,
-  Briefcase, UserCheck, CalendarDays, LifeBuoy
+  Briefcase, LifeBuoy
 } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 
@@ -14,10 +14,8 @@ const NAV = [
   { href: "/company/dashboard", label: "Overview", icon: LayoutDashboard },
   { href: "/company/postings", label: "Job Postings", icon: Briefcase },
   { href: "/company/applications", label: "Applications", icon: ClipboardList },
-  { href: "/company/final-approval", label: "Final Approval", icon: UserCheck },
   { href: "/company/employees", label: "Employees", icon: Users },
   { href: "/company/workspace", label: "Workspace", icon: Building2 },
-  { href: "/company/leave", label: "Leave Requests", icon: CalendarDays },
   { href: "/company/tickets", label: "Support Tickets", icon: LifeBuoy },
   { href: "/company/leaderboard", label: "Leaderboard", icon: Trophy },
   { href: "/company/announcements", label: "Announcements", icon: Bell },
@@ -28,6 +26,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [workspaceOpen, setWorkspaceOpen] = useState(true);
 
   const logout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -53,8 +52,51 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* Nav */}
         <nav style={{ flex: 1, padding: "12px", overflowY: "auto" }}>
-          {NAV.map(({ href, label, icon: Icon }) => {
+          {NAV.map(({ href, label, icon: Icon, sub }) => {
             const active = href === "/company/dashboard" ? pathname === href : pathname.startsWith(href);
+            
+            if (sub) {
+              return (
+                <div key={href}>
+                  <div
+                    onClick={() => { setWorkspaceOpen(!workspaceOpen); if(pathname !== href) router.push(href); }}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 10, padding: "9px 12px",
+                      borderRadius: 8, marginBottom: 2, transition: "all 0.15s", cursor: "pointer",
+                      background: active ? "rgba(168,85,247,0.1)" : "transparent",
+                      color: active ? "var(--purple)" : "var(--text-secondary)",
+                      fontSize: 14, fontWeight: active ? 600 : 400,
+                    }}
+                  >
+                    <Icon size={16} />
+                    {label}
+                    <ChevronRight size={14} style={{ marginLeft: "auto", transform: workspaceOpen ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.2s" }} />
+                  </div>
+                  {workspaceOpen && (
+                    <div style={{ marginLeft: 24, marginTop: 4, marginBottom: 4 }}>
+                      {sub.map(s => {
+                        const sActive = pathname.startsWith(s.href);
+                        return (
+                          <Link key={s.href} href={s.href} style={{ textDecoration: "none" }} onClick={() => setMobileOpen(false)}>
+                            <div style={{
+                              display: "flex", alignItems: "center", gap: 10, padding: "7px 12px",
+                              borderRadius: 8, marginBottom: 2,
+                              background: sActive ? "rgba(168,85,247,0.1)" : "transparent",
+                              color: sActive ? "var(--purple)" : "var(--text-secondary)",
+                              fontSize: 13, fontWeight: sActive ? 500 : 400,
+                            }}>
+                              <s.icon size={14} />
+                              {s.label}
+                            </div>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
             return (
               <Link key={href} href={href} style={{ textDecoration: "none" }} onClick={() => setMobileOpen(false)}>
                 <div

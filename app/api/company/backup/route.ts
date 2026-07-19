@@ -162,10 +162,11 @@ export async function GET(req: Request) {
       const { blobs } = await list();
       for (const blob of blobs) {
         try {
+          // fetch directly from the URL
           const res = await fetch(blob.url);
           if (res.ok && res.body) {
-            const nodeStream = Readable.fromWeb(res.body as any);
-            archive.append(nodeStream, { name: `uploads/${blob.pathname}` });
+            const buffer = Buffer.from(await res.arrayBuffer());
+            archive.append(buffer, { name: `uploads/${blob.pathname}` });
           }
         } catch (e) {
           console.error("Failed to fetch blob for backup", blob.url);

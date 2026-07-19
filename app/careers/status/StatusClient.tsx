@@ -64,10 +64,9 @@ export default function StatusClient() {
 
   const getPipeline = (status: string) => {
     let stages = [
-      { id: "Applied", label: "Received", active: true },
-      { id: "Reviewing", label: "Under Review", active: ["Reviewing", "Screening", "Shortlisted", "InterviewInvited", "Interview Completed", "Final Approval", "Offer", "Hired", "Rejected"].includes(status) },
-      { id: "Interview", label: "Interview", active: ["Shortlisted", "InterviewInvited", "Interview Completed", "Final Approval", "Offer", "Hired"].includes(status) },
-      { id: "Decision", label: "Decision", active: ["Rejected", "Hired", "Offer", "Final Approval", "Interview Completed"].includes(status) && status !== "Shortlisted" && status !== "InterviewInvited" }
+      { id: "Reviewing", label: "Under Review", active: true },
+      { id: "Interview", label: "Interview", active: ["Invited for Interview", "Selected – Waiting for Approval", "Hired"].includes(status) },
+      { id: "Decision", label: "Decision", active: ["Selected – Waiting for Approval", "Hired", "Rejected"].includes(status) }
     ];
     if (status === "Rejected") {
       stages = stages.filter(s => s.id !== "Interview" || s.active);
@@ -165,14 +164,7 @@ export default function StatusClient() {
                     </div>
                   </div>
 
-                  {data.status === "Shortlisted" && (
-                    <div style={{ marginTop: 24, padding: 16, background: "rgba(34,197,94,0.1)", borderRadius: 8, border: "1px solid rgba(34,197,94,0.2)" }}>
-                      <p style={{ color: "var(--green)", fontSize: 14, margin: 0, fontWeight: 500 }}>
-                        Check your email! You have been invited to complete a technical assessment. The link expires in 48 hours.
-                      </p>
-                    </div>
-                  )}
-                  {data.status === "InterviewInvited" && (
+                  {data.status === "Invited for Interview" && (
                     <div style={{ marginTop: 24, padding: 16, background: "rgba(34,197,94,0.1)", borderRadius: 8, border: "1px solid rgba(34,197,94,0.2)" }}>
                       <p style={{ color: "var(--green)", fontSize: 14, margin: 0, fontWeight: 500 }}>
                         Your interview invitation has been sent. Please check your email and complete the assessment before the link expires.

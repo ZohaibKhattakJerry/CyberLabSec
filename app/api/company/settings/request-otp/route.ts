@@ -8,12 +8,22 @@ export async function POST(req: Request) {
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    // Generate a 6-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    
-    // Store in adminConfig
+    const body = await req.json().catch(() => ({}));
+    const newEmail = body.email;
+
     let config = await prisma.adminConfig.findUnique({ where: { id: "singleton" } });
     let configData = config ? JSON.parse(config.data) : {};
+
+    if (newEmail && newEmail !== configData.companyEmail) {
+      const existingApplicant = await prisma.applicant.findFirst({ where: { email: { equals: newEmail, mode: "insensitive" } } });
+      const existingEmployee = await prisma.employee.findFirst({ where: { email: { equals: newEmail, mode: "insensitive" } } });
+      if (existingApplicant || existingEmployee) {
+        return NextResponse.json({ error: "This email is already registered." }, { status: 400 });
+      }
+    }
+
+    // Generate a 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
     
     // Set OTP and expiry (10 minutes)
     configData.currentOtp = otp;

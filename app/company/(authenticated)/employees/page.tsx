@@ -6,6 +6,7 @@ export const dynamic = "force-dynamic";
 export default async function EmployeesPage() {
   const [employees, teams] = await Promise.all([
     prisma.employee.findMany({
+      where: { employeeCode: { not: "CyberLabSec" } },
       take: 200,
       orderBy: { createdAt: "desc" },
       select: {

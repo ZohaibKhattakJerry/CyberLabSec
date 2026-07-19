@@ -25,32 +25,34 @@ type Applicant = {
 
 type Posting = { id: string; title: string };
 
-const PIPELINE_STAGES = ["Applied", "Screening", "Interview", "Final Approval", "Offer", "Hired", "Rejected", "Withdrawn"];
+const PIPELINE_STAGES = ["Reviewing", "Invited for Interview", "Selected – Waiting for Approval", "Hired", "Rejected"];
 const STATUS_NORMALIZE: Record<string, string> = {
-  // Legacy values
-  "INTERVIEWINVITED": "Interview",
-  "PASSED": "Interview",
+  "Applied": "Reviewing",
+  "Screening": "Reviewing",
+  "REVIEWING": "Reviewing",
+  "INTERVIEWINVITED": "Invited for Interview",
+  "InterviewInvited": "Invited for Interview",
+  "SHORTLISTED": "Invited for Interview",
+  "Shortlisted": "Invited for Interview",
+  "Interview": "Invited for Interview",
+  "Needs Retry": "Invited for Interview",
+  "PASSED": "Selected – Waiting for Approval",
+  "Passed": "Selected – Waiting for Approval",
+  "Interview Passed": "Selected – Waiting for Approval",
+  "Final Approval": "Selected – Waiting for Approval",
+  "Waiting for Approval": "Selected – Waiting for Approval",
+  "Offer": "Selected – Waiting for Approval",
   "FAILED": "Rejected",
-  "SHORTLISTED": "Screening",
-  "REVIEWING": "Screening",
-  "Reviewing": "Screening",
-  "Shortlisted": "Screening",
   "Failed": "Rejected",
-  "Passed": "Interview",
-  "Needs Retry": "Interview",
-  // Keep correct ones
-  "Applied": "Applied",
-  "Screening": "Screening",
-  "Interview": "Interview",
-  "Offer": "Offer",
-  "Hired": "Hired",
-  "Rejected": "Rejected",
-  "Withdrawn": "Withdrawn",
+  "Blocked": "Rejected",
+  "Withdrawn": "Rejected"
 };
 const STATUS_COLORS: Record<string, string> = {
-  Applied: "badge-gray", Screening: "badge-amber", Interview: "badge-purple",
-  "Final Approval": "badge-blue", Offer: "badge-green", Hired: "badge-green", Rejected: "badge-red", Withdrawn: "badge-gray",
-  "Needs Retry": "badge-amber",
+  "Reviewing": "badge-blue",
+  "Invited for Interview": "badge-purple", 
+  "Selected – Waiting for Approval": "badge-amber",
+  "Hired": "badge-green",
+  "Rejected": "badge-red"
 };
 
 export default function ApplicationsClient({ applicants, postings }: { applicants: Applicant[]; postings: Posting[] }) {
@@ -165,37 +167,41 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
   };
 
   const hireApplicant = async (applicantId: string) => {
-    if (!confirm("Are you sure you want to hire this applicant? This will send a request to the Final Approval queue.")) return;
+    if (!confirm("Are you sure you want to hire this applicant? This will officially hire them and send an offer letter/credentials.")) return;
     setActionLoading(true); setActionMsg("");
     
-    // Instead of auto-hiring, we push to Final Approval
     const res = await fetch(`/api/company/applications/${applicantId}/hire`, {
       method: "POST",
     });
     const data = await res.json();
     setActionLoading(false);
-    if (!res.ok) { setActionMsg(data.error || "Failed to submit for review"); return; }
-    setActionMsg(`Submitted to Final Approval queue.`);
-    startTransition(() => { router.refresh(); });
+    if (!res.ok) { setActionMsg(data.error || "Failed to hire candidate"); return; }
+    setActionMsg(`Candidate successfully hired! 🎉`);
+    startTransition(() => { 
+      router.refresh(); 
+      if (selected) {
+        setSelected({...selected, status: "Hired"});
+      }
+    });
   };
 
   const manualShortlist = async (applicantId: string) => {
-    if (!confirm("Are you sure you want to shortlist this applicant and send them an interview invite?")) return;
+    if (!confirm("Are you sure you want to invite this applicant for an interview?")) return;
     setActionLoading(true); setActionMsg("");
     
     const res = await fetch(`/api/company/applications/${applicantId}/status`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: "Interview" }),
+      body: JSON.stringify({ status: "Invited for Interview" }),
     });
     const data = await res.json();
     setActionLoading(false);
-    if (!res.ok) { setActionMsg(data.error || "Failed to shortlist applicant"); return; }
-    setActionMsg(`Applicant shortlisted. Interview invite sent!`);
+    if (!res.ok) { setActionMsg(data.error || "Failed to invite applicant"); return; }
+    setActionMsg(`Interview invite sent!`);
     startTransition(() => { 
       router.refresh(); 
       if (selected) {
-        setSelected({...selected, status: "Interview"}); // normalize to Interview locally
+        setSelected({...selected, status: "Invited for Interview"});
       }
     });
   };
@@ -212,12 +218,12 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
     const applicant = applicants.find(a => a.id === applicantId);
     if (!applicant || applicant.status === newStage) return;
 
-    if (newStage === "Interview") {
+    if (newStage === "Invited for Interview") {
       await manualShortlist(applicantId);
       return;
     }
     
-    if (newStage === "Final Approval") {
+    if (newStage === "Hired") {
       await hireApplicant(applicantId);
       return;
     }
@@ -241,7 +247,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
 
   const renderKanban = () => {
     return (
-      <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingBottom: 16, minHeight: 600 }}>
+      <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingBottom: 16, minHeight: 600, width: "100%" }}>
         {PIPELINE_STAGES.map(stage => {
           const items = filtered.filter(a => a.status === stage);
           return (
@@ -249,7 +255,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
               key={stage} 
               onDragOver={(e) => e.preventDefault()} 
               onDrop={(e) => handleDrop(e, stage)}
-              style={{ flex: "0 0 320px", background: "rgba(255,255,255,0.02)", borderRadius: 12, padding: 16, border: "1px solid var(--border-subtle)", display: "flex", flexDirection: "column", gap: 12 }}>
+              style={{ flex: "0 0 320px", background: "rgba(255,255,255,0.02)", borderRadius: 12, padding: 16, border: "1px solid var(--border-subtle)", display: "flex", flexDirection: "column", gap: 12, height: "max-content", minHeight: "100%" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                 <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>{stage}</h3>
                 <span className={`badge ${STATUS_COLORS[stage]}`}>{items.length}</span>
@@ -605,21 +611,24 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
             )}
 
             <div style={{ display: "flex", flexWrap: "wrap", gap: 12, borderTop: "1px solid var(--border-subtle)", paddingTop: 20 }}>
-              {selected.status === "Final Approval" ? (
-                <div className="badge badge-blue" style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 16px" }}>
-                  <Check size={14} /> Pending CEO Approval
-                </div>
-              ) : (selected.status === "Interview" || selected.status === "Offer") ? (
-                <button className="btn btn-primary" onClick={() => hireApplicant(selected.id)} disabled={actionLoading}>
-                  {actionLoading ? <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> : <UserCheck size={14} />}
-                  Hire & Request CEO Approval
-                </button>
-              ) : selected.status === "Applied" ? (
+              {selected.status === "Selected – Waiting for Approval" ? (
+                <>
+                  <button className="btn btn-primary" onClick={() => hireApplicant(selected.id)} disabled={actionLoading} style={{ background: "linear-gradient(135deg, #22c55e, #16a34a)", border: "none", boxShadow: "0 4px 14px rgba(34,197,94,0.3)" }}>
+                    {actionLoading ? <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> : <UserCheck size={14} />}
+                    Hire Candidate
+                  </button>
+                </>
+              ) : selected.status === "Reviewing" ? (
                 <button className="btn btn-primary" onClick={() => manualShortlist(selected.id)} disabled={actionLoading}>
                   {actionLoading ? <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> : <UserCheck size={14} />}
                   Shortlist & Invite
                 </button>
               ) : null}
+              {(!["Rejected", "Hired", "Failed", "Withdrawn"].includes(selected.status)) && (
+                <button className="btn btn-secondary" onClick={() => updateStatus(selected.id, "Rejected")} disabled={actionLoading} style={{ color: "var(--amber)", borderColor: "var(--border-subtle)" }}>
+                  <X size={14} /> Reject
+                </button>
+              )}
               <a href={`/api/files/${selected.id}/cv`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
                 <FileText size={14} /> View CV
               </a>

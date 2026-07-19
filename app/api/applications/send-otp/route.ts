@@ -8,6 +8,12 @@ export async function POST(req: Request) {
     const { email } = await bodyParse(req);
     if (!email) return NextResponse.json({ error: "Email is required" }, { status: 400 });
 
+    const existingApplicant = await prisma.applicant.findFirst({ where: { email: { equals: email, mode: "insensitive" } } });
+    const existingEmployee = await prisma.employee.findFirst({ where: { email: { equals: email, mode: "insensitive" } } });
+    if (existingApplicant || existingEmployee) {
+      return NextResponse.json({ error: "This email is already registered." }, { status: 400 });
+    }
+
     const code = crypto.randomInt(100000, 999999).toString();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 

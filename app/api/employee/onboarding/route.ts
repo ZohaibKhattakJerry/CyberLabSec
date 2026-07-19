@@ -16,14 +16,15 @@ export async function POST(req: NextRequest) {
     // Body might be empty
   }
 
-  const updateData: unknown = {
+  const updateData: any = {
     onboardingCompleted: true,
     policyAcknowledgedAt: new Date(),
+    mustResetPassword: false,
+    forcePasswordChange: false,
   };
 
   if (newPassword) {
     updateData.passwordHash = await bcrypt.hash(newPassword, 10);
-    updateData.mustResetPassword = false;
   }
 
   await prisma.employee.update({

@@ -45,6 +45,20 @@ export default async function TeamsPage() {
     orderBy: { createdAt: "desc" },
   });
 
+  const leaves = await (prisma as any).leaveRequest.findMany({
+    orderBy: { createdAt: 'desc' },
+    include: {
+      employee: {
+        select: {
+          name: true,
+          designation: true,
+          employeeCode: true,
+          team: { select: { name: true } },
+        },
+      },
+    },
+  }).catch(() => []);
+
   const serializedTeams = teams.map((t: any) => ({
     ...t,
     createdAt: t.createdAt.toISOString(),
@@ -60,9 +74,18 @@ export default async function TeamsPage() {
     submissions: t.submissions.map((s: any) => ({
       ...s,
       submittedAt: s.submittedAt.toISOString(),
-      reviewedAt: s.reviewedAt?.toISOString() || null,
-    }))
+      gradedAt: s.gradedAt ? s.gradedAt.toISOString() : null,
+    })),
   }));
 
-  return <TeamsClient teams={serializedTeams} employees={employees} initialTasks={serializedTasks} />;
+  const serializedLeaves = JSON.parse(JSON.stringify(leaves));
+
+  return (
+    <TeamsClient 
+      teams={serializedTeams} 
+      employees={employees} 
+      allTasks={serializedTasks} 
+      initialLeaves={serializedLeaves}
+    />
+  );
 }

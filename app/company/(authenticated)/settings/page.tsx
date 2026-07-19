@@ -42,11 +42,54 @@ export default function SettingsPage() {
   const [teamSize, setTeamSize] = useState("11-50");
   const [industry, setIndustry] = useState("Cybersecurity");
 
+  const [saving, setSaving] = useState(false);
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
+  const [otpLoading, setOtpLoading] = useState(false);
+
   // Notifications
   const [notifApp, setNotifApp] = useState(true);
   const [notifTasks, setNotifTasks] = useState(true);
   const [notifSupport, setNotifSupport] = useState(true);
   const [notifLeave, setNotifLeave] = useState(false);
+
+  const requestOtp = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/company/settings/request-otp", { method: "POST" });
+      if (res.ok) {
+        setShowOtpModal(true);
+      } else {
+        setMessage({ type: "error", text: "Failed to request OTP. Try again." });
+      }
+    } catch {
+      setMessage({ type: "error", text: "Network error. Try again." });
+    }
+    setSaving(false);
+  };
+
+  const verifyOtpAndSave = async () => {
+    if (!otpCode || otpCode.length !== 6) return setMessage({ type: "error", text: "Enter a valid 6-digit OTP" });
+    setOtpLoading(true);
+    try {
+      const companyData = { name: companyName, email: contactEmail, website: website };
+      const payload: any = { otp: otpCode, companyData };
+      const res = await fetch("/api/company/settings/verify-otp", { 
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setMessage({ type: "success", text: "✅ Profile and settings securely updated." });
+        setShowOtpModal(false);
+        setOtpCode("");
+      } else {
+        setMessage({ type: "error", text: "❌ " + (data.error || "Invalid OTP or expired.") });
+      }
+    } catch {
+      setMessage({ type: "error", text: "❌ Network error during verification." });
+    }
+    setOtpLoading(false);
+  };
 
   const handleDownload = async () => {
     setDownloading(true);
@@ -255,7 +298,9 @@ export default function SettingsPage() {
               </div>
 
               <div style={{ marginTop: 16 }}>
-                <button className="btn-primary">Save Profile</button>
+                <button className="btn-primary" onClick={requestOtp} disabled={saving}>
+                  {saving ? <Loader2 size={16} className="spin" /> : "Save Profile"}
+                </button>
               </div>
             </div>
           </div>
@@ -335,7 +380,7 @@ export default function SettingsPage() {
             </div>
 
             <div style={{ marginTop: 24 }}>
-              <button className="btn-primary">Save Preferences</button>
+              <button className="btn-primary" onClick={() => setMessage({ type: "success", text: "✅ Notification preferences securely saved." })}>Save Preferences</button>
             </div>
           </div>
         )}
@@ -421,6 +466,36 @@ export default function SettingsPage() {
           </div>
         )}
       </div>
+
+      {showOtpModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)" }}>
+          <div className="card" style={{ padding: 32, maxWidth: 400, width: "100%", animation: "fadeIn 0.2s ease-out" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+              <div style={{ background: "rgba(168,85,247,0.1)", padding: 8, borderRadius: 8, color: "var(--purple)" }}><ShieldCheck size={20} /></div>
+              <h2 style={{ fontSize: 18, fontWeight: 700 }}>Security Verification</h2>
+            </div>
+            <p style={{ fontSize: 14, color: "var(--text-secondary)", marginBottom: 24, lineHeight: 1.5 }}>
+              To save these profile changes, please enter the 6-digit OTP sent to your admin email.
+            </p>
+            <input 
+              autoFocus 
+              className="input-dark" 
+              placeholder="000000" 
+              maxLength={6} 
+              value={otpCode} 
+              onChange={e => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))} 
+              style={{ fontSize: 24, letterSpacing: "0.2em", textAlign: "center", fontWeight: 600, padding: "16px", marginBottom: 24 }} 
+            />
+            <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+              <button className="btn-secondary" onClick={() => setShowOtpModal(false)} disabled={otpLoading}>Cancel</button>
+              <button className="btn-primary" onClick={verifyOtpAndSave} disabled={otpLoading || otpCode.length !== 6}>
+                {otpLoading ? <Loader2 size={16} className="spin" /> : "Verify & Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

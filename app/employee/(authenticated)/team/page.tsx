@@ -1,10 +1,12 @@
 import { prisma } from "@/lib/prisma";
 import { getAuthFromCookies } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { Users, Mail, Shield } from "lucide-react";
+import { Users, AlertTriangle } from "lucide-react";
 import TeamChatClient from "./TeamChatClient";
 import MeetingClient from "./MeetingClient";
 import { waitUntil } from "@vercel/functions";
+
+export const dynamic = "force-dynamic";
 
 export default async function TeamPage() {
   const auth = await getAuthFromCookies();
@@ -12,12 +14,13 @@ export default async function TeamPage() {
 
   const employee = await prisma.employee.findUnique({
     where: { id: auth.sub },
-    select: { teamId: true }
+    select: { id: true, name: true, teamId: true }
   });
 
   if (!employee?.teamId) {
     return (
       <div className="card" style={{ padding: 40, textAlign: "center" }}>
+        <AlertTriangle size={40} color="var(--amber)" style={{ margin: "0 auto 16px" }} />
         <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>No Team Assigned</h2>
         <p style={{ color: "var(--text-secondary)" }}>You haven&apos;t been assigned to a team yet.</p>
       </div>
@@ -42,82 +45,50 @@ export default async function TeamPage() {
 
   if (!team) return <div>Team not found</div>;
 
-  // Opportunistic cleanup: delete files older than 24 hours to save DB storage
   try {
     const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
     waitUntil(
-      prisma.teamMessage.updateMany({
-        where: {
-          teamId: employee.teamId,
-          fileUrl: { not: null },
-          createdAt: { lt: yesterday }
-        },
-        data: {
-          fileUrl: null,
-          fileName: null,
-          fileType: null,
-          fileSize: null
-        }
+      prisma.teamMessage.deleteMany({
+        where: { teamId: team.id, createdAt: { lt: yesterday } }
       })
     );
-  } catch (err) {
-    console.error("Failed to cleanup old chat files:", err);
-  }
+  } catch {}
 
-  const meetings = await prisma.meetingRequest.findMany({
-    where: { teamId: employee.teamId },
-    orderBy: { createdAt: 'desc' },
-    include: { proposer: { select: { name: true, photoUrl: true } } }
-  }).catch(() => []);
-
-  const serializedMessages = team.messages.map(m => ({
-    ...m,
-    createdAt: m.createdAt.toISOString()
-  }));
-
-  const serializedMeetings = JSON.parse(JSON.stringify(meetings));
+  const serializedTeam = {
+    ...team,
+    createdAt: team.createdAt.toISOString(),
+    updatedAt: team.updatedAt.toISOString(),
+    messages: team.messages.reverse().map((m: any) => ({
+      ...m,
+      createdAt: m.createdAt.toISOString()
+    }))
+  };
 
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
-        <div style={{ width: 40, height: 40, background: "rgba(168,85,247,0.1)", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <Users color="var(--purple)" />
-        </div>
-        <div>
-          <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0 }}>Team: {team.name}</h1>
-          <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>{team.members.length} Members</p>
-        </div>
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
-        {team.members.map((member: any) => (
-          <div key={member.id} className="card" style={{ padding: 20 }}>
-            <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-              <div style={{ width: 48, height: 48, borderRadius: "50%", background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, color: "var(--text-primary)", fontSize: 18 }}>
-                {member.name.charAt(0)}
-              </div>
-              <div>
-                <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0, display: "flex", alignItems: "center", gap: 6 }}>
-                  {member.name}
-                  {member.id === team.leadEmployeeId && <span title="Team Lead" style={{ display: "flex", alignItems: "center" }}><Shield size={14} color="var(--purple)" /></span>}
-                </h3>
-                <p style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 8 }}>{member.designation}</p>
-                <a href={`mailto:${member.email}`} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--text-secondary)", textDecoration: "none" }}>
-                  <Mail size={12} /> {member.email}
-                </a>
-              </div>
+      <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 24 }}>My Team</h1>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 24, alignItems: "start" }}>
+        <TeamChatClient team={serializedTeam} employeeId={employee.id} employeeName={employee.name} />
+        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+          <MeetingClient team={serializedTeam} />
+          <div className="card" style={{ padding: 24 }}>
+            <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+              <Users size={18} color="var(--purple)" /> Team Members
+            </h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {serializedTeam.members.map((m: any) => (
+                <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: 12, background: "rgba(255,255,255,0.02)", borderRadius: 8, border: "1px solid var(--border-subtle)" }}>
+                  <div style={{ width: 40, height: 40, borderRadius: "50%", background: "var(--purple)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, flexShrink: 0, overflow: "hidden" }}>
+                    {m.photoUrl ? <img src={m.photoUrl} alt={m.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : m.name.charAt(0)}
+                  </div>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{m.name} {m.id === employee.id && "(You)"}</div>
+                    <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>{m.designation} • {m.employeeCode}</div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        ))}
-      </div>
-
-      <div style={{ marginTop: 40, display: "grid", gridTemplateColumns: "1fr", gap: 40 }}>
-        <div>
-          <MeetingClient initialMeetings={serializedMeetings} currentUser={auth.sub} />
-        </div>
-        
-        <div>
-          <TeamChatClient messages={serializedMessages} currentUserId={auth.sub} />
         </div>
       </div>
     </div>
