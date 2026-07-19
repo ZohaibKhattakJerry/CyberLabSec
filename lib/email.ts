@@ -566,3 +566,34 @@ export async function sendOfferLetter(toEmail: string, applicantName: string, jo
     `,
   });
 }
+
+export async function sendHiredEmail(toEmail: string, applicantName: string, jobTitle: string) {
+  const firstName = applicantName.split(" ")[0];
+  await transporter.sendMail({
+    from: FROM, to: toEmail, subject: `Welcome to CyberLabSec! You're Hired — ${jobTitle}`,
+    html: `
+      ${HTML_START}
+      ${WRAP_START}
+      ${headerSection("Welcome Aboard")}
+      ${BODY_START}
+        ${pipeline('Decision')}
+        ${heading1(`Congratulations, ${firstName}! 🎉`)}
+        ${paragraph(`We are thrilled to officially welcome you to the CyberLabSec team as our new <strong>${jobTitle}</strong>.`)}
+        ${paragraph(`Your performance throughout the interview and technical assessment was outstanding, and we are incredibly excited about the value and expertise you will bring to our operations.`)}
+        
+        ${callout("What's Next?", `
+          <ul style="margin: 0; padding-left: 20px;">
+            <li>Our HR team will reach out shortly with your official onboarding documents.</li>
+            <li>You will receive your secure company credentials and equipment details.</li>
+            <li>We will schedule a kickoff meeting to introduce you to the team.</li>
+          </ul>
+        `, 'success')}
+        
+        ${paragraph(`Once again, welcome aboard. We look forward to achieving great things together.`)}
+      ${BODY_END}
+      ${footerSection()}
+      ${WRAP_END}
+      ${HTML_END}
+    `,
+  });
+}

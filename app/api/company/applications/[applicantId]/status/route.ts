@@ -26,6 +26,9 @@ export async function PATCH(
   if (status === "Rejected") {
     const { sendDeclineEmail } = await import("@/lib/email");
     await sendDeclineEmail(updated.email, updated.fullName, updated.jobPosting.title).catch(console.error);
+  } else if (status === "Hired") {
+    const { sendHiredEmail } = await import("@/lib/email");
+    await sendHiredEmail(updated.email, updated.fullName, updated.jobPosting.title).catch(console.error);
   } else if (status === "Invited for Interview" && updated.interviewSession?.token) {
     const { sendInterviewInvite } = await import("@/lib/email");
     const interviewLink = `${process.env.NEXT_PUBLIC_APP_URL || "https://cyberlabsec.tech"}/careers/interview/${updated.interviewSession.token}`;

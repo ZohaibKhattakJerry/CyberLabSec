@@ -74,7 +74,8 @@ export async function POST(req: NextRequest) {
 
   const terminated = suspicionScore >= 60;
   
-  const isFail = terminated || normalizedScore < passMark;
+  // Pass fail based on raw points as requested by the user
+  const isFail = terminated || totalScore < passMark;
   const newAttempts = session.attempts + 1;
   const hasMoreAttempts = isFail && newAttempts < session.maxAttempts;
 
@@ -117,11 +118,11 @@ export async function POST(req: NextRequest) {
     // We do NOT send an email on intermediate retries per user request.
     // The UI handles showing the retry state to the user.
 
-    return NextResponse.json({ result: "Retry", score: normalizedScore, terminated });
+    return NextResponse.json({ result: "Retry", score: totalScore, terminated });
   }
 
   // Final submission (Passed, or Failed out of attempts)
-  const result = terminated ? "Cheating" : normalizedScore >= passMark ? "Passed" : "Failed";
+  const result = terminated ? "Cheating" : totalScore >= passMark ? "Passed" : "Failed";
   const newStatus = result === "Passed" ? "Selected – Waiting for Approval" : "Interview Failed";
 
   await prisma.$transaction(async (tx) => {
@@ -133,7 +134,7 @@ export async function POST(req: NextRequest) {
         answers: JSON.stringify(answers),
         perQuestionScore: JSON.stringify(perQuestionScore),
         cheatingSignals: JSON.stringify({ ...cheatingSignals, avgAiLikelihood, suspicionScore }),
-        totalScore: normalizedScore,
+        totalScore: totalScore, // Use raw points
         result,
         completedAt: new Date(),
       },
@@ -148,7 +149,7 @@ export async function POST(req: NextRequest) {
       data: {
         userId: "admin",
         title: "Interview Completed",
-        message: `${session.applicant.fullName} scored ${normalizedScore}% for ${session.applicant.jobPosting.title}`,
+        message: `${session.applicant.fullName} scored ${totalScore} pts for ${session.applicant.jobPosting.title}`,
         type: "Interview",
         link: "/company/applications"
       }
@@ -167,5 +168,5 @@ export async function POST(req: NextRequest) {
     console.error("Failed to send interview completion email:", e);
   }
 
-  return NextResponse.json({ result, score: normalizedScore, terminated });
+  return NextResponse.json({ result, score: totalScore, terminated });
 }

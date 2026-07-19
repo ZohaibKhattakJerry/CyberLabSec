@@ -4,6 +4,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Shield, Clock, AlertTriangle, CheckCircle, Loader2, ChevronRight } from "lucide-react";
 
+import confetti from "canvas-confetti";
+
 interface Question {
   id: string; type: "open" | "mcq"; prompt: string;
   options?: string[]; correctOption?: number; rubric?: string; points: number;
@@ -15,7 +17,7 @@ interface Props {
   attempts: number; maxAttempts: number;
 }
 
-type Phase = "verify" | "intro" | "interview" | "submitting" | "done" | "terminated" | "failed_retry" | "terminated_final";
+type Phase = "verify" | "intro" | "interview" | "submitting" | "done_passed" | "done_failed_final" | "terminated" | "failed_retry" | "terminated_final";
 
 export default function InterviewClient({ sessionId, _token, applicantName, _applicantEmail, jobTitle, questions, initialAnswers = {}, _passMark, _emailVerified, attempts, maxAttempts }: Props) {
   const [phase, setPhase] = useState<Phase>("intro");
@@ -187,11 +189,14 @@ export default function InterviewClient({ sessionId, _token, applicantName, _app
         }
       } else if (data.terminated) {
         setPhase("terminated_final");
+      } else if (data.result === "Passed") {
+        setPhase("done_passed");
+        confetti({ particleCount: 150, spread: 80, origin: { y: 0.5 }, colors: ["#22c55e", "#a855f7", "#3b82f6"] });
       } else {
-        setPhase("done");
+        setPhase("done_failed_final");
       }
     } else {
-      setPhase("done");
+      setPhase("done_failed_final");
     }
   }, [answers, sessionId, totalTime, checkSuspicion]);
 
@@ -471,19 +476,41 @@ export default function InterviewClient({ sessionId, _token, applicantName, _app
     );
   }
 
-  // ── DONE ──
-  return (
-    <Layout>
-      <motion.div className="card" style={{ maxWidth: 520, width: "100%", padding: 48, textAlign: "center" }} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
-        <CheckCircle size={56} color="var(--green)" style={{ margin: "0 auto 24px", filter: "drop-shadow(0 0 16px rgba(34,197,94,0.3))" }} />
-        <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 12 }}>Interview Complete</h2>
-        <p style={{ color: "var(--text-secondary)", lineHeight: 1.7 }}>
-          Thank you, {applicantName.split(" ")[0]}. Your responses are being reviewed by our team. We&apos;ll be in touch via email with your results.
-        </p>
-        <p style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 16 }}>You may now close this window.</p>
-      </motion.div>
-    </Layout>
-  );
+  // ── DONE PASSED ──
+  if (phase === "done_passed") {
+    return (
+      <Layout>
+        <motion.div className="card" style={{ maxWidth: 520, width: "100%", padding: 48, textAlign: "center" }} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
+          <CheckCircle size={56} color="var(--green)" style={{ margin: "0 auto 24px", filter: "drop-shadow(0 0 16px rgba(34,197,94,0.3))" }} />
+          <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 12, color: "var(--text-primary)" }}>Interview Passed! 🎉</h2>
+          <p style={{ color: "var(--text-secondary)", lineHeight: 1.7, fontSize: 15 }}>
+            Congratulations, {applicantName.split(" ")[0]}! You have successfully cleared the technical interview. Our team will review your complete profile and be in touch via email with a final decision very soon.
+          </p>
+          <p style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 24 }}>You may now close this window.</p>
+        </motion.div>
+      </Layout>
+    );
+  }
+
+  // ── DONE FAILED FINAL ──
+  if (phase === "done_failed_final") {
+    return (
+      <Layout>
+        <motion.div className="card" style={{ maxWidth: 520, width: "100%", padding: 48, textAlign: "center" }} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
+          <div style={{ display: "inline-flex", padding: 12, borderRadius: "50%", background: "rgba(239, 68, 68, 0.1)", marginBottom: 20 }}>
+            <AlertTriangle size={36} color="#ef4444" />
+          </div>
+          <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 12 }}>Interview Failed</h2>
+          <p style={{ color: "var(--text-secondary)", lineHeight: 1.7 }}>
+            Unfortunately, after exhausting all attempts, your score did not meet our passing criteria for this position. We appreciate the time you took to apply and wish you the best of luck in your future endeavors.
+          </p>
+          <p style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 24 }}>You may now close this window.</p>
+        </motion.div>
+      </Layout>
+    );
+  }
+
+  return null;
 }
 
 import { ClipboardList, RefreshCw } from "lucide-react";
