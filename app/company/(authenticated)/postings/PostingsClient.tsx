@@ -446,9 +446,9 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
                         <span style={{ fontWeight: 700, color: "var(--green)" }}>{localAssessmentBank.reduce((sum, q) => sum + (q.points || 10), 0)}</span>
                       </div>
                       <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid var(--border-subtle)" }}>
-                        <label className="label" style={{ fontSize: 11 }}>Passing Score (Points)</label>
-                        <input className="input" type="number" min={1} value={form.passMark} onChange={e => setForm(f => ({ ...f, passMark: Number(e.target.value) }))} />
-                        <p style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 4 }}>Applicants must score this many points or higher to pass the technical assessment.</p>
+                        <label className="label" style={{ fontSize: 11 }}>Passing Score (%)</label>
+                        <input className="input" type="number" min={1} max={100} value={form.passMark} onChange={e => setForm(f => ({ ...f, passMark: Number(e.target.value) }))} />
+                        <p style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 4 }}>Applicants must score this percentage of total points or higher to pass.</p>
                       </div>
                     </div>
                   </div>
