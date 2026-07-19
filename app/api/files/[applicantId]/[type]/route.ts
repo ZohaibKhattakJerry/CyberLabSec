@@ -30,6 +30,10 @@ export async function GET(
     return NextResponse.redirect(relativePath);
   }
 
+  if (relativePath.startsWith("/api/blob")) {
+    return NextResponse.redirect(new URL(relativePath, req.url));
+  }
+
   if (relativePath.startsWith("data:")) {
     const parts = relativePath.split(",");
     const meta = parts[0];

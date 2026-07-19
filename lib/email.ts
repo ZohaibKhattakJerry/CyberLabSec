@@ -15,43 +15,44 @@ const FROM = "CyberLabSec Systems <contact@cyberlabsec.tech>";
 const GLOBAL_HEAD = `
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="color-scheme" content="dark">
-    <meta name="supported-color-schemes" content="dark">
+    <meta name="color-scheme" content="light">
+    <meta name="supported-color-schemes" content="light">
     <style>
-      body { font-family: 'Inter', Helvetica, Arial, sans-serif; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; color: #e4e4e7; background-color: #0a0a0a; }
+      body { font-family: 'Inter', Helvetica, Arial, sans-serif; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; color: #18181b; background-color: #f4f4f5; }
       table { border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
       a { text-decoration: none; }
-      .bg-body { background-color: #0a0a0a; }
-      .card-bg { background-color: #0a0a0a; }
+      .bg-body { background-color: #f4f4f5; }
+      .card-bg { background-color: #ffffff; border: 1px solid #e4e4e7; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); }
       .header-cell { background: linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%); padding: 45px 40px 35px; border-radius: 12px 12px 0 0; }
-      .body-cell { background-color: #0a0a0a; padding: 45px 40px; color: #e4e4e7; }
-      .footer-cell { background-color: #0a0a0a; padding: 30px 40px; }
-      .footer-text { color: #a1a1aa; font-size: 12px; margin: 0 0 12px 0; line-height: 1.6; }
+      .body-cell { background-color: #ffffff; padding: 45px 40px; color: #3f3f46; }
+      .footer-cell { background-color: #fafafa; border-top: 1px solid #e4e4e7; padding: 30px 40px; border-radius: 0 0 12px 12px; }
+      .footer-text { color: #71717a; font-size: 12px; margin: 0 0 12px 0; line-height: 1.6; }
       h1 { color: #ffffff; font-size: 26px; font-weight: 800; margin: 0 0 16px 0; letter-spacing: -0.02em; }
-      p { color: #d4d4d8; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0; }
-      .info-label { color: #a1a1aa; border-bottom: 1px solid #1f1f22; padding: 14px 0; font-size: 14px; font-weight: 600; width: 140px; vertical-align: top; }
-      .info-value { color: #ffffff; border-bottom: 1px solid #1f1f22; padding: 14px 0; font-size: 14px; vertical-align: top; }
-      .code-box { background: #18181b; border: 1px solid #27272a; padding: 6px 10px; border-radius: 4px; color: #c084fc; font-size: 15px; font-weight: 700; }
-      .divider { height: 1px; background: #1f1f22; margin: 30px 0; }
+      p { color: #3f3f46; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0; }
+      .info-label { color: #71717a; border-bottom: 1px solid #f4f4f5; padding: 14px 0; font-size: 14px; font-weight: 600; width: 140px; vertical-align: top; }
+      .info-value { color: #18181b; border-bottom: 1px solid #f4f4f5; padding: 14px 0; font-size: 14px; vertical-align: top; }
+      .code-box { background: #f4f4f5; border: 1px solid #e4e4e7; padding: 6px 10px; border-radius: 4px; color: #7c3aed; font-size: 15px; font-weight: 700; }
+      .divider { height: 1px; background: #e4e4e7; margin: 30px 0; }
       @media (max-width: 600px) {
-        .responsive-table { width: 100% !important; }
-        .body-cell { padding: 30px 20px !important; }
-        .header-cell { padding: 35px 20px 25px !important; border-radius: 0 !important; }
+        .bg-body { background-color: #ffffff !important; }
         .wrap-cell { padding: 0 !important; }
-        .footer-cell { padding: 30px 20px !important; }
+        .responsive-table { width: 100% !important; border: none !important; border-radius: 0 !important; box-shadow: none !important; }
+        .header-cell { border-radius: 0 !important; padding: 35px 20px 25px !important; }
+        .body-cell { padding: 30px 20px !important; }
+        .footer-cell { border-radius: 0 !important; padding: 30px 20px !important; }
       }
     </style>
   </head>
 `;
 
-const HTML_START = `<!DOCTYPE html><html>${GLOBAL_HEAD}<body style="background-color: #0a0a0a; margin: 0; padding: 0;">`;
+const HTML_START = `<!DOCTYPE html><html>${GLOBAL_HEAD}<body style="background-color: #f4f4f5; margin: 0; padding: 0;">`;
 const HTML_END = `</body></html>`;
 
 const WRAP_START = `
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" class="bg-body" style="width: 100%; background-color: #0a0a0a;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" class="bg-body" style="width: 100%; background-color: #f4f4f5;">
     <tr>
       <td class="wrap-cell" align="center" style="padding: 40px 20px;">
-        <table class="responsive-table card-bg" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%; background-color: #0a0a0a;">
+        <table class="responsive-table card-bg" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border: 1px solid #e4e4e7; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
 `;
 const WRAP_END = `
         </table>

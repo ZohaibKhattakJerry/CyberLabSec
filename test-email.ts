@@ -1,26 +1,10 @@
-import nodemailer from "nodemailer";
-
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-  auth: {
-    user: "mrzohaibkhattak@gmail.com",
-    pass: "jccq fhij hxxb qlzj",
-  },
-});
-
-async function main() {
+import { sendInterviewInvite } from "./lib/email";
+async function test() {
   try {
-    const info = await transporter.sendMail({
-      from: 'CyberLabSec <contact@cyberlabsec.tech>',
-      to: 'mrzohaibkhattak@gmail.com',
-      subject: 'Test Email',
-      text: 'This is a test email.',
-    });
-    console.log("Message sent: %s", info.messageId);
-  } catch (err) {
-    console.error("Error sending email:", err);
+    await sendInterviewInvite("mrzohaibkhattak@gmail.com", "Test User", "Security Analyst", "https://cyberlabsec.tech", 168);
+    console.log("SUCCESS");
+  } catch(e) {
+    console.error("FAILED:", e);
   }
 }
-main();
+test();

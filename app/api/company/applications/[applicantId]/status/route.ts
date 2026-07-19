@@ -23,24 +23,30 @@ export async function PATCH(
   });
 
   if (status !== "Applied" && status !== "Hired") {
-    await sendEmail({
-      to: updated.email,
-      subject: `Update on your application for ${updated.jobPosting.title}`,
-      html: `
-        <div>
-          <h2 style="font-size: 24px; font-weight: 800; color: #09090b; margin: 0 0 16px 0;">Application Status Update</h2>
-          <p style="color: #3f3f46; font-size: 15px; line-height: 1.7; margin: 0 0 16px 0;">Hi ${updated.fullName.split(" ")[0]},</p>
-          <p style="color: #3f3f46; font-size: 15px; line-height: 1.7; margin: 0 0 16px 0;">Your application for <strong style="color: #09090b;">${updated.jobPosting.title}</strong> has moved to a new stage.</p>
-          
-          <div style="background: rgba(168,85,247,0.06); border: 1px solid rgba(168,85,247,0.2); border-radius: 10px; padding: 20px 24px; margin: 24px 0;">
-            <p style="color: #09090b; font-size: 14px; font-weight: 600; margin: 0 0 8px 0;">Current Status</p>
-            <p style="color: #3f3f46; font-size: 13px; margin: 0; line-height: 1.6;"><strong style="color: #a855f7;">${status}</strong></p>
-          </div>
-          
-          <p style="color: #3f3f46; font-size: 15px; line-height: 1.7; margin: 0;">Our team is reviewing your profile and will be in touch with next steps soon.</p>
-        </div>
-      `
-    }).catch(e => console.error("Failed to send status email:", e));
+          const { HTML_START, WRAP_START, headerSection, BODY_START, heading1, paragraph, callout, BODY_END, footerSection, WRAP_END, HTML_END } = await import("@/lib/email");
+          const firstName = updated.fullName.split(" ")[0];
+          await sendEmail({
+            to: updated.email,
+            subject: `Update on your application for ${updated.jobPosting.title}`,
+            html: `
+              ${HTML_START}
+              ${WRAP_START}
+              ${headerSection("Application Status Update")}
+              ${BODY_START}
+                ${heading1(`Hi ${firstName},`)}
+                ${paragraph(`Your application for <strong>${updated.jobPosting.title}</strong> has moved to a new stage.`)}
+                
+                ${callout("Current Status", `
+                  <p style="margin: 0;"><strong style="color: #7c3aed; font-size: 16px;">${status}</strong></p>
+                `, 'info')}
+                
+                ${paragraph(`Our team is reviewing your profile and will be in touch with next steps soon.`)}
+              ${BODY_END}
+              ${footerSection()}
+              ${WRAP_END}
+              ${HTML_END}
+            `
+          }).catch(e => console.error("Failed to send status email:", e));
   }
 
   // Trigger templated emails based on new stage
