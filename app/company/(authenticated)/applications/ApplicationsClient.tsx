@@ -298,8 +298,15 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                       {selectedIds.includes(a.id) ? <CheckSquare size={18} /> : <Square size={18} />}
                     </div>
                     <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4, paddingRight: 24 }}>{a.fullName}</div>
-                    <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 12 }}>{a.jobPosting.title}</div>
+                    <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>{a.jobPosting.title}</div>
                     
+                    <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap" }}>
+                      {a.linkedIn && <span style={{ fontSize: 10, padding: "2px 6px", background: "rgba(37,99,235,0.1)", color: "#3b82f6", borderRadius: 4, fontWeight: 600 }}>In</span>}
+                      {a.github && <span style={{ fontSize: 10, padding: "2px 6px", background: "rgba(255,255,255,0.1)", color: "var(--text-secondary)", borderRadius: 4, fontWeight: 600 }}>GH</span>}
+                      {a.portfolio && <span style={{ fontSize: 10, padding: "2px 6px", background: "rgba(168,85,247,0.1)", color: "var(--purple-light)", borderRadius: 4, fontWeight: 600 }}>Port</span>}
+                      {a.universityName && <span style={{ fontSize: 10, padding: "2px 6px", background: "rgba(255,255,255,0.05)", color: "var(--text-muted)", borderRadius: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 100 }}>{a.universityName}</span>}
+                    </div>
+
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       {a.fitScore !== null ? (
                         <span style={{ fontSize: 12, fontWeight: 700, color: a.fitScore >= 70 ? "var(--green)" : a.fitScore >= 50 ? "var(--amber)" : "var(--purple)" }}>
@@ -437,7 +444,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
               </button>
             </div>
 
-            <div style={{ display: "flex", gap: 8, marginBottom: 24, overflowX: "auto", padding: "12px 16px", background: "rgba(255,255,255,0.02)", borderRadius: 8 }}>
+            <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap", padding: "12px 16px", background: "rgba(255,255,255,0.02)", borderRadius: 8 }}>
               {PIPELINE_STAGES.map((stage, i) => {
                 const isActive = selected.status === stage;
                 const isPast = PIPELINE_STAGES.indexOf(selected.status) > i;

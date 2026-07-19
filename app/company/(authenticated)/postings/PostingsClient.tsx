@@ -380,7 +380,7 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
                     <input className="input" type="number" min={1} value={form.weeklyHours as number} onChange={e => setForm(f => ({ ...f, weeklyHours: parseInt(e.target.value) }))} />
                   </div>
                   
-                  <div style={{ gridColumn: "1/-1", display: "flex", gap: 24, marginTop: 12 }}>
+                  <div className="flex-mobile-col" style={{ gridColumn: "1/-1", display: "flex", gap: 24, marginTop: 12 }}>
                     <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, cursor: "pointer" }}>
                       <input type="checkbox" checked={form.universityRequired as boolean} onChange={e => setForm(f => ({ ...f, universityRequired: e.target.checked }))} style={{ width: 18, height: 18, accentColor: "var(--purple)" }} />
                       University Degree Required
@@ -408,7 +408,7 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
               </>
             ) : (
               <>
-                <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 24 }}>
+                <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 24 }}>
                   {/* Left Sidebar: Controls */}
                   <div>
                     <div style={{ background: "rgba(168,85,247,0.05)", padding: 20, borderRadius: 12, border: "1px dashed var(--purple)", marginBottom: 16 }}>
