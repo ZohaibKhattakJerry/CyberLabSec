@@ -14,7 +14,28 @@ export async function PATCH(
   const { status } = await req.json();
 
   const validStatuses = ["Reviewing", "Invited for Interview", "Interview Failed", "Selected – Waiting for Approval", "Hired", "Rejected"];
-  if (!validStatuses.includes(status)) return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+  if (!validStatuses.includes(status)) return NextResponse.json({ error: "Invalid target status" }, { status: 400 });
+
+  const currentApplicant = await prisma.applicant.findUnique({ where: { id: applicantId } });
+  if (!currentApplicant) return NextResponse.json({ error: "Applicant not found" }, { status: 404 });
+
+  const currentStatus = currentApplicant.status;
+
+  if (currentStatus === "Hired") {
+    return NextResponse.json({ error: "Cannot modify status of a Hired applicant." }, { status: 400 });
+  }
+  
+  if (currentStatus === "Interview Failed" && status !== "Interview Failed") {
+    return NextResponse.json({ error: "Candidate has failed. Cannot change status." }, { status: 400 });
+  }
+
+  if (status === "Rejected" && ["Hired", "Interview Failed", "Rejected"].includes(currentStatus)) {
+    return NextResponse.json({ error: "Invalid state transition to Rejected." }, { status: 400 });
+  }
+
+  if (status === "Hired") {
+    return NextResponse.json({ error: "Please use the official Hire workflow to transition to Hired." }, { status: 400 });
+  }
 
   const updated = await prisma.applicant.update({
     where: { id: applicantId },

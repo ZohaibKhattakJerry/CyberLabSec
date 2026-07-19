@@ -20,13 +20,25 @@ export async function POST(req: NextRequest) {
         include: { jobPosting: true },
       });
 
+      const validApplicantsToReject = applicants.filter(
+        a => !["Hired", "Interview Failed", "Rejected"].includes(a.status)
+      );
+
+      if (validApplicantsToReject.length === 0) {
+        return NextResponse.json({ error: "None of the selected applicants can be rejected." }, { status: 400 });
+      }
+
+      const validIds = validApplicantsToReject.map(a => a.id);
+
       await prisma.applicant.updateMany({
-        where: { id: { in: applicantIds } },
+        where: { id: { in: validIds } },
         data: { status: "Rejected" },
       });
 
+      const applicantsToEmail = validApplicantsToReject;
+
       // Send rejection emails
-      for (const app of applicants) {
+      for (const app of applicantsToEmail) {
         if (app.status !== "Rejected") {
           const html = `
             <h2>Application Update</h2>
@@ -47,6 +59,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true });
 
     } else if (action === "delete") {
+      // Validate none are Hired
+      const applicantsToDelete = await prisma.applicant.findMany({
+        where: { id: { in: applicantIds } },
+        select: { id: true, status: true }
+      });
+      
+      const hiredApplicants = applicantsToDelete.filter(a => a.status === "Hired");
+      if (hiredApplicants.length > 0) {
+        return NextResponse.json({ error: "Cannot delete Hired applicants. Please unselect them." }, { status: 400 });
+      }
+
       // First delete associated interview sessions
       await prisma.interviewSession.deleteMany({
         where: { applicantId: { in: applicantIds } }
@@ -57,7 +80,12 @@ export async function POST(req: NextRequest) {
         where: { applicantId: { in: applicantIds } }
       });
 
-      // Unlink from employees if any
+      // Delete Offer Letters
+      await prisma.offerLetter.deleteMany({
+        where: { applicantId: { in: applicantIds } }
+      });
+
+      // Unlink from employees if any (failsafe)
       await prisma.employee.updateMany({
         where: { applicantId: { in: applicantIds } },
         data: { applicantId: null }

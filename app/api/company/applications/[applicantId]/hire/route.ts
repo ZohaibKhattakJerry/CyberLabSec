@@ -9,7 +9,18 @@ export async function POST(
   const auth = await getAuthFromCookies();
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const { applicantId } = await params;
+  const resolvedParams = await params;
+  const applicantId = resolvedParams.applicantId;
+
+  let body: any = {};
+  try {
+    body = await req.json();
+  } catch(e) {}
+  const { offerLetterBase64, offerLetterUrl, customMessage } = body;
+
+  if (!offerLetterBase64 || !offerLetterUrl) {
+    return NextResponse.json({ error: "Offer letter attachment is required to complete the hiring process." }, { status: 400 });
+  }
 
   const applicant = await prisma.applicant.findUnique({
     where: { id: applicantId },
@@ -50,6 +61,17 @@ export async function POST(
     }
   });
 
+  await prisma.employeeDocument.create({
+    data: {
+      employeeId: employee.id,
+      title: "Initial Offer Letter",
+      type: "Offer Letter",
+      fileUrl: offerLetterUrl,
+      status: "Approved",
+      uploadedBy: auth.sub
+    }
+  });
+
   await prisma.activityLog.create({
     data: {
       actorId: auth.sub,
@@ -61,7 +83,7 @@ export async function POST(
 
   const portalUrl = "https://cyberlabsec.tech/employee/login";
   const { sendEmployeeCredentials } = await import("@/lib/email");
-  await sendEmployeeCredentials(applicant.email, applicant.fullName, code, rawPassword, portalUrl).catch(console.error);
+  await sendEmployeeCredentials(applicant.email, applicant.fullName, code, rawPassword, portalUrl, offerLetterBase64, customMessage).catch(console.error);
 
   return NextResponse.json({ success: true, employeeId: employee.id });
 }

@@ -72,6 +72,9 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
   const [notesDraft, setNotesDraft] = useState("");
   const [notesSaving, setNotesSaving] = useState(false);
   const [notesSaved, setNotesSaved] = useState(false);
+  const [showOfferModal, setShowOfferModal] = useState(false);
+  const [offerFile, setOfferFile] = useState<File | null>(null);
+  const [offerNotes, setOfferNotes] = useState("");
 
   const toggleSelect = (id: string) => {
     setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
@@ -146,7 +149,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
     if (!res.ok) { setActionMsg(data.error || "Failed"); return; }
     
     if (status === "Selected – Waiting for Approval" || status === "Hired") {
-      confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+      confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, zIndex: 9999 });
     }
     
     setActionMsg("Status updated.");
@@ -175,25 +178,60 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
   };
 
   const hireApplicant = async (applicantId: string) => {
-    if (!confirm("Are you sure you want to hire this applicant? This will officially hire them and send an offer letter/credentials.")) return;
-    setActionLoading(true); setActionMsg("");
+    setShowOfferModal(true);
+  };
+
+  const confirmHireWithOffer = async () => {
+    if (!selected) return;
+    if (!offerFile) {
+      setActionMsg("Please select an Offer Letter PDF.");
+      return;
+    }
     
-    const res = await fetch(`/api/company/applications/${applicantId}/hire`, {
-      method: "POST",
-    });
-    const data = await res.json();
-    setActionLoading(false);
-    if (!res.ok) { setActionMsg(data.error || "Failed to hire candidate"); return; }
+    setActionLoading(true);
+    setActionMsg("Uploading offer letter...");
     
-    confetti({ particleCount: 200, spread: 90, origin: { y: 0.5 } });
-    
-    setActionMsg(`Candidate successfully hired! 🎉`);
-    startTransition(() => { 
-      router.refresh(); 
-      if (selected) {
-        setSelected({...selected, status: "Hired"});
-      }
-    });
+    try {
+      const uploadRes = await fetch('/api/upload?filename=' + encodeURIComponent(offerFile.name), {
+        method: "POST",
+        body: offerFile
+      });
+      const uploadData = await uploadRes.json();
+      if (!uploadRes.ok) throw new Error(uploadData.error || "Upload failed");
+      const offerLetterUrl = uploadData.url;
+
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64Str = (reader.result as string).split(',')[1];
+        
+        setActionMsg("Finalizing hire...");
+        const res = await fetch(`/api/company/applications/${selected.id}/hire`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            offerLetterBase64: base64Str,
+            offerLetterUrl,
+            customMessage: offerNotes
+          })
+        });
+        const data = await res.json();
+        setActionLoading(false);
+        if (!res.ok) { setActionMsg(data.error || "Failed to hire candidate"); return; }
+        
+        setShowOfferModal(false);
+        confetti({ particleCount: 200, spread: 90, origin: { y: 0.5 }, zIndex: 9999 });
+        
+        setActionMsg(`Candidate successfully hired! 🎉`);
+        startTransition(() => { 
+          router.refresh(); 
+          setSelected({...selected, status: "Hired"});
+        });
+      };
+      reader.readAsDataURL(offerFile);
+    } catch (err: any) {
+      setActionLoading(false);
+      setActionMsg(err.message || "Failed to process offer letter");
+    }
   };
 
   const manualShortlist = async (applicantId: string) => {
@@ -642,7 +680,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                   Shortlist & Invite
                 </button>
               ) : null}
-              {(!["Rejected", "Hired", "Failed", "Withdrawn"].includes(selected.status)) && (
+              {(!["Rejected", "Hired", "Interview Failed", "Withdrawn"].includes(selected.status)) && (
                 <button className="btn btn-secondary" onClick={() => updateStatus(selected.id, "Rejected")} disabled={actionLoading} style={{ color: "var(--amber)", borderColor: "var(--border-subtle)" }}>
                   <X size={14} /> Reject
                 </button>
@@ -650,15 +688,53 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
               <a href={`/api/files/${selected.id}/cv`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
                 <FileText size={14} /> View CV
               </a>
-              <button 
-                className="btn btn-danger" 
-                style={{ marginLeft: "auto" }}
-                onClick={() => {
-                  handleSingleDelete(selected.id);
-                }}
-                disabled={actionLoading}
-              >
-                Delete Application
+              {selected.status !== "Hired" && (
+                <button 
+                  className="btn btn-danger" 
+                  style={{ marginLeft: "auto" }}
+                  onClick={() => {
+                    handleSingleDelete(selected.id);
+                  }}
+                  disabled={actionLoading}
+                >
+                  Delete Application
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Offer Modal */}
+      {showOfferModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+          <div className="card" style={{ maxWidth: 400, width: "100%", padding: 32 }}>
+            <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16 }}>Upload Offer Letter</h3>
+            <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 20 }}>
+              Please attach the signed offer letter (PDF). This will be emailed to the candidate and saved to their employee profile.
+            </p>
+            
+            <input 
+              type="file" 
+              accept=".pdf" 
+              className="input" 
+              style={{ marginBottom: 16 }}
+              onChange={e => setOfferFile(e.target.files?.[0] || null)}
+            />
+            
+            <textarea
+              className="input"
+              placeholder="Optional message to include in the email..."
+              style={{ minHeight: 80, marginBottom: 24, resize: "vertical" }}
+              value={offerNotes}
+              onChange={e => setOfferNotes(e.target.value)}
+            />
+
+            <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+              <button className="btn btn-secondary" onClick={() => setShowOfferModal(false)} disabled={actionLoading}>Cancel</button>
+              <button className="btn btn-primary" onClick={confirmHireWithOffer} disabled={actionLoading || !offerFile}>
+                {actionLoading ? <Loader2 size={14} className="spin" /> : <UserCheck size={14} />}
+                Confirm Hire
               </button>
             </div>
           </div>
