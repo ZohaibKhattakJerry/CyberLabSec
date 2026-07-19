@@ -25,7 +25,7 @@ type Applicant = {
 
 type Posting = { id: string; title: string };
 
-const PIPELINE_STAGES = ["Reviewing", "Invited for Interview", "Selected – Waiting for Approval", "Hired", "Rejected"];
+const PIPELINE_STAGES = ["Reviewing", "Invited for Interview", "Interview Failed", "Selected – Waiting for Approval", "Hired", "Rejected"];
 const STATUS_NORMALIZE: Record<string, string> = {
   "Applied": "Reviewing",
   "Screening": "Reviewing",
@@ -42,17 +42,19 @@ const STATUS_NORMALIZE: Record<string, string> = {
   "Final Approval": "Selected – Waiting for Approval",
   "Waiting for Approval": "Selected – Waiting for Approval",
   "Offer": "Selected – Waiting for Approval",
-  "FAILED": "Rejected",
-  "Failed": "Rejected",
+  "Interview Failed": "Interview Failed",
+  "FAILED": "Interview Failed",
+  "Failed": "Interview Failed",
   "Blocked": "Rejected",
   "Withdrawn": "Rejected"
 };
 const STATUS_COLORS: Record<string, string> = {
   "Reviewing": "badge-blue",
   "Invited for Interview": "badge-purple", 
+  "Interview Failed": "badge-red",
   "Selected – Waiting for Approval": "badge-amber",
   "Hired": "badge-green",
-  "Rejected": "badge-red"
+  "Rejected": "badge-gray"
 };
 
 export default function ApplicationsClient({ applicants, postings }: { applicants: Applicant[]; postings: Posting[] }) {

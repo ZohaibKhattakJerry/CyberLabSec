@@ -13,7 +13,7 @@ export async function PATCH(
   const { applicantId } = await params;
   const { status } = await req.json();
 
-  const validStatuses = ["Reviewing", "Invited for Interview", "Selected – Waiting for Approval", "Hired", "Rejected"];
+  const validStatuses = ["Reviewing", "Invited for Interview", "Interview Failed", "Selected – Waiting for Approval", "Hired", "Rejected"];
   if (!validStatuses.includes(status)) return NextResponse.json({ error: "Invalid status" }, { status: 400 });
 
   const updated = await prisma.applicant.update({

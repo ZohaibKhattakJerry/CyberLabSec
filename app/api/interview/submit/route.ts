@@ -119,7 +119,7 @@ export async function POST(req: NextRequest) {
 
   // Final submission (Passed, or Failed out of attempts)
   const result = terminated ? "Cheating" : normalizedScore >= passMark ? "Passed" : "Failed";
-  const newStatus = result === "Passed" ? "Selected – Waiting for Approval" : "Rejected";
+  const newStatus = result === "Passed" ? "Selected – Waiting for Approval" : "Interview Failed";
 
   await prisma.$transaction(async (tx) => {
     await tx.interviewSession.update({

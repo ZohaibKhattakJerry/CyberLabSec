@@ -65,16 +65,16 @@ export default function StatusClient() {
   const getPipeline = (status: string) => {
     let stages = [
       { id: "Reviewing", label: "Under Review", active: true },
-      { id: "Interview", label: "Interview", active: ["Invited for Interview", "Selected – Waiting for Approval", "Hired"].includes(status) },
+      { id: "Interview", label: "Interview", active: ["Invited for Interview", "Interview Failed", "Selected – Waiting for Approval", "Hired"].includes(status) },
       { id: "Decision", label: "Decision", active: ["Selected – Waiting for Approval", "Hired", "Rejected"].includes(status) }
     ];
-    if (status === "Rejected") {
+    if (status === "Rejected" || status === "Interview Failed") {
       stages = stages.filter(s => s.id !== "Interview" || s.active);
     }
     return stages;
   };
 
-  const isRejected = data?.status === "Rejected";
+  const isRejected = data?.status === "Rejected" || data?.status === "Interview Failed";
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg-primary)" }}>
@@ -176,6 +176,14 @@ export default function StatusClient() {
                     <div style={{ marginTop: 24, padding: 16, background: "rgba(255,255,255,0.02)", borderRadius: 8 }}>
                       <p style={{ color: "var(--text-secondary)", fontSize: 14, margin: 0, lineHeight: 1.6 }}>
                         Thank you for your interest in CyberLabSec. After reviewing your application, we have decided to move forward with other candidates for this role. We wish you the best in your career.
+                      </p>
+                    </div>
+                  )}
+
+                  {data.status === "Interview Failed" && (
+                    <div style={{ marginTop: 24, padding: 16, background: "rgba(239,68,68,0.1)", borderRadius: 8, border: "1px solid rgba(239,68,68,0.2)" }}>
+                      <p style={{ color: "var(--red)", fontSize: 14, margin: 0, fontWeight: 500, lineHeight: 1.6 }}>
+                        Unfortunately, you did not pass the technical assessment. Thank you for your time and effort. We wish you the best in your future endeavors.
                       </p>
                     </div>
                   )}
