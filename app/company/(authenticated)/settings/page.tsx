@@ -97,19 +97,33 @@ export default function SettingsPage() {
     try {
       const res = await fetch(`/api/company/backup?password=${encodeURIComponent(backupPassword)}&encrypt=true`);
       if (!res.ok) {
-        setMessage({ type: "error", text: "Download failed." });
+        let errStr = "Download failed (HTTP " + res.status + ").";
+        try {
+          const errData = await res.json();
+          if (errData.error) errStr += ` Reason: ${errData.error}`;
+        } catch(e) {}
+        setMessage({ type: "error", text: errStr });
         return;
       }
+      
       const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
+      if (blob.size === 0) {
+        setMessage({ type: "error", text: "Download failed: Received empty file." });
+        return;
+      }
+
+      const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
       a.download = `cyberlabsec-${new Date().toISOString().split("T")[0]}.clsbackup`;
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(url);
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
       setMessage({ type: "success", text: "✅ Encrypted backup downloaded successfully (.clsbackup)." });
-    } catch {
-      setMessage({ type: "error", text: "Download error occurred." });
+    } catch (err: any) {
+      setMessage({ type: "error", text: `Download error occurred: ${err.message}` });
     } finally {
       setDownloading(false);
     }
