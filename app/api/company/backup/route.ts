@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 import { getAuthFromCookies } from "@/lib/auth";
 import { list } from "@vercel/blob";
-const archiver = require("archiver");
+import { ZipArchive } from "archiver";
 import { PassThrough, Readable } from "stream";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -31,8 +31,7 @@ export async function GET(req: Request) {
     const encryptBackup = searchParams.get("encrypt") !== "false";
 
     const passThrough = new PassThrough();
-    const createArchive = archiver.default || archiver;
-    const archive = createArchive("zip", { zlib: { level: 5 } });
+    const archive = new ZipArchive({ zlib: { level: 5 } });
     archive.pipe(passThrough);
 
     const generateBackup = async () => {

@@ -310,7 +310,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
 
   const renderKanban = () => {
     return (
-      <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingBottom: 16, minHeight: 600, width: "100%" }}>
+      <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingBottom: 16, height: "calc(100vh - 220px)", minHeight: 500, width: "100%" }}>
         {PIPELINE_STAGES.map(stage => {
           const items = filtered.filter(a => a.status === stage);
           return (
@@ -318,59 +318,61 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
               key={stage} 
               onDragOver={(e) => e.preventDefault()} 
               onDrop={(e) => handleDrop(e, stage)}
-              style={{ flex: "0 0 320px", background: "rgba(255,255,255,0.02)", borderRadius: 12, padding: 16, border: "1px solid var(--border-subtle)", display: "flex", flexDirection: "column", gap: 12, height: "max-content", minHeight: "100%" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+              style={{ flex: "0 0 320px", background: "rgba(255,255,255,0.02)", borderRadius: 12, padding: "16px 8px 16px 16px", border: "1px solid var(--border-subtle)", display: "flex", flexDirection: "column", height: "100%" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, paddingRight: 8, flexShrink: 0 }}>
                 <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>{stage}</h3>
                 <span className={`badge ${STATUS_COLORS[stage]}`}>{items.length}</span>
               </div>
               
-              {items.length === 0 ? (
-                <div className="empty-state empty-state-sm">
-                  <div className="empty-state-icon-wrapper">
-                    <FileText size={20} />
+              <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 12, paddingRight: 8 }}>
+                {items.length === 0 ? (
+                  <div className="empty-state empty-state-sm" style={{ flex: 1, justifyContent: "center" }}>
+                    <div className="empty-state-icon-wrapper">
+                      <FileText size={20} />
+                    </div>
+                    <div className="empty-state-title">No candidates</div>
+                    <div className="empty-state-description">Nothing to show in this stage yet.</div>
                   </div>
-                  <div className="empty-state-title">No candidates</div>
-                  <div className="empty-state-description">Nothing to show in this stage yet.</div>
-                </div>
-              ) : (
-                items.map(a => (
-                  <div 
-                    key={a.id} 
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, a.id)}
-                    className={`card ${selectedIds.includes(a.id) ? 'selected' : ''}`} 
-                    style={{ padding: 16, width: "100%", cursor: "grab", transition: "transform 0.1s", position: "relative", border: selectedIds.includes(a.id) ? "1px solid var(--purple)" : "1px solid var(--border)" }} 
-                    onClick={(e) => {
-                    if ((e.target as HTMLElement).closest('.checkbox-container')) return;
-                    setSelected(a);
-                    setNotesDraft(a.privateNotes || "");
-                    setRatingDraft(a.internalRating || 0);
-                  }}>
-                    <div className="checkbox-container" style={{ position: "absolute", top: 12, right: 12, color: selectedIds.includes(a.id) ? "var(--purple)" : "var(--text-muted)", cursor: "pointer" }} onClick={(e) => { e.stopPropagation(); toggleSelect(a.id); }}>
-                      {selectedIds.includes(a.id) ? <CheckSquare size={18} /> : <Square size={18} />}
-                    </div>
-                    <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4, paddingRight: 24 }}>{a.fullName}</div>
-                    <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>{a.jobPosting.title}</div>
-                    
-                    <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap" }}>
-                      {a.linkedIn && <span style={{ fontSize: 10, padding: "2px 6px", background: "rgba(37,99,235,0.1)", color: "#3b82f6", borderRadius: 4, fontWeight: 600 }}>In</span>}
-                      {a.github && <span style={{ fontSize: 10, padding: "2px 6px", background: "rgba(255,255,255,0.1)", color: "var(--text-secondary)", borderRadius: 4, fontWeight: 600 }}>GH</span>}
-                      {a.portfolio && <span style={{ fontSize: 10, padding: "2px 6px", background: "rgba(168,85,247,0.1)", color: "var(--purple-light)", borderRadius: 4, fontWeight: 600 }}>Port</span>}
-                      {a.universityName && <span style={{ fontSize: 10, padding: "2px 6px", background: "rgba(255,255,255,0.05)", color: "var(--text-muted)", borderRadius: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 100 }}>{a.universityName}</span>}
-                    </div>
-
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      {a.fitScore !== null ? (
-                        <span style={{ fontSize: 12, fontWeight: 700, color: a.fitScore >= 70 ? "var(--green)" : a.fitScore >= 50 ? "var(--amber)" : "var(--purple)" }}>
-                          AI Match: {a.fitScore}%
-                        </span>
-                      ) : <span style={{ fontSize: 12, color: "var(--text-muted)" }}>No Score</span>}
+                ) : (
+                  items.map(a => (
+                    <div 
+                      key={a.id} 
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, a.id)}
+                      className={`card ${selectedIds.includes(a.id) ? 'selected' : ''} card-hover`} 
+                      style={{ padding: 16, width: "100%", cursor: "grab", transition: "transform 0.1s", position: "relative", border: selectedIds.includes(a.id) ? "1px solid var(--purple)" : "1px solid var(--border)", flexShrink: 0 }} 
+                      onClick={(e) => {
+                      if ((e.target as HTMLElement).closest('.checkbox-container')) return;
+                      setSelected(a);
+                      setNotesDraft(a.privateNotes || "");
+                      setRatingDraft(a.internalRating || 0);
+                    }}>
+                      <div className="checkbox-container" style={{ position: "absolute", top: 12, right: 12, color: selectedIds.includes(a.id) ? "var(--purple)" : "var(--text-muted)", cursor: "pointer" }} onClick={(e) => { e.stopPropagation(); toggleSelect(a.id); }}>
+                        {selectedIds.includes(a.id) ? <CheckSquare size={18} /> : <Square size={18} />}
+                      </div>
+                      <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4, paddingRight: 24 }}>{a.fullName}</div>
+                      <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>{a.jobPosting.title}</div>
                       
-                      <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{safeFormatDate(a.createdAt, "MMM d")}</span>
+                      <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap" }}>
+                        {a.linkedIn && <span style={{ fontSize: 10, padding: "2px 6px", background: "rgba(37,99,235,0.1)", color: "#3b82f6", borderRadius: 4, fontWeight: 600 }}>In</span>}
+                        {a.github && <span style={{ fontSize: 10, padding: "2px 6px", background: "rgba(255,255,255,0.1)", color: "var(--text-secondary)", borderRadius: 4, fontWeight: 600 }}>GH</span>}
+                        {a.portfolio && <span style={{ fontSize: 10, padding: "2px 6px", background: "rgba(168,85,247,0.1)", color: "var(--purple-light)", borderRadius: 4, fontWeight: 600 }}>Port</span>}
+                        {a.universityName && <span style={{ fontSize: 10, padding: "2px 6px", background: "rgba(255,255,255,0.05)", color: "var(--text-muted)", borderRadius: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 100 }}>{a.universityName}</span>}
+                      </div>
+
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        {a.fitScore !== null ? (
+                          <span style={{ fontSize: 12, fontWeight: 700, color: a.fitScore >= 70 ? "var(--green)" : a.fitScore >= 50 ? "var(--amber)" : "var(--purple)" }}>
+                            AI Match: {a.fitScore}%
+                          </span>
+                        ) : <span style={{ fontSize: 12, color: "var(--text-muted)" }}>No Score</span>}
+                        
+                        <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{safeFormatDate(a.createdAt, "MMM d")}</span>
+                      </div>
                     </div>
-                  </div>
-                ))
-              )}
+                  ))
+                )}
+              </div>
             </div>
           );
         })}
