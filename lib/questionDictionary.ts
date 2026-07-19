@@ -41,16 +41,16 @@ export function generateQuestionsForJob(title: string, description: string, requ
   
   let selectedCategories = ["general"];
   
-  if (combinedText.includes("secur") || combinedText.includes("cyber") || combinedText.includes("vulnerab") || combinedText.includes("soc")) {
+  if (combinedText.includes("secur") || combinedText.includes("cyber") || combinedText.includes("vulnerab") || combinedText.includes("soc") || combinedText.includes("audit") || combinedText.includes("risk") || combinedText.includes("compliance") || combinedText.includes("analyst")) {
     selectedCategories.push("security");
   }
-  if (combinedText.includes("pentest") || combinedText.includes("hacker") || combinedText.includes("offensive") || combinedText.includes("red team")) {
+  if (combinedText.includes("pentest") || combinedText.includes("hacker") || combinedText.includes("offensive") || combinedText.includes("red team") || combinedText.includes("exploit") || combinedText.includes("malware") || combinedText.includes("reverse engineer")) {
     selectedCategories.push("pentest");
   }
-  if (combinedText.includes("react") || combinedText.includes("frontend") || combinedText.includes("ui") || combinedText.includes("next")) {
+  if (combinedText.includes("react") || combinedText.includes("frontend") || combinedText.includes("ui") || combinedText.includes("next") || combinedText.includes("css") || combinedText.includes("html") || combinedText.includes("javascript") || combinedText.includes("web") || combinedText.includes("developer")) {
     selectedCategories.push("frontend");
   }
-  if (combinedText.includes("node") || combinedText.includes("backend") || combinedText.includes("api") || combinedText.includes("database")) {
+  if (combinedText.includes("node") || combinedText.includes("backend") || combinedText.includes("api") || combinedText.includes("database") || combinedText.includes("sql") || combinedText.includes("python") || combinedText.includes("java") || combinedText.includes("server") || combinedText.includes("engineer")) {
     selectedCategories.push("backend");
   }
 

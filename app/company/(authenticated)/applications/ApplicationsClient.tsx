@@ -479,7 +479,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                   {selected.motivation && (
                     <div>
                       <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>WHY CYBERLABSEC?</div>
-                      <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.7, whiteSpace: "pre-wrap", padding: "10px 14px", background: "rgba(168,85,247,0.05)", borderRadius: 8, borderLeft: "3px solid var(--purple)", margin: 0 }}>{selected.motivation}</p>
+                      <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.7, whiteSpace: "pre-wrap", overflowWrap: "anywhere", wordBreak: "break-word", padding: "10px 14px", background: "rgba(168,85,247,0.05)", borderRadius: 8, borderLeft: "3px solid var(--purple)", margin: 0 }}>{selected.motivation}</p>
                     </div>
                   )}
                   <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, fontSize: 13, color: "var(--text-secondary)" }}>

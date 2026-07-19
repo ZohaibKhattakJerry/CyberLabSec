@@ -296,7 +296,35 @@ export async function sendInterviewCompleteEmail(toEmail: string, applicantName:
             ${infoRow("Position", `<strong>${jobTitle}</strong>`)}
             ${infoRow("Status", `<strong>${status}</strong>`)}
           </table>
-        `, status.toLowerCase() === 'rejected' ? 'danger' : 'success')}
+        `, ['rejected', 'failed', 'interview failed'].includes(status.toLowerCase()) ? 'danger' : 'success')}
+      ${BODY_END}
+      ${footerSection()}
+      ${WRAP_END}
+      ${HTML_END}
+    `,
+  });
+}
+
+export async function sendInterviewRetryEmail(toEmail: string, applicantName: string, jobTitle: string, score: number, attemptsLeft: number) {
+  const firstName = applicantName.split(" ")[0];
+  await transporter.sendMail({
+    from: FROM, to: toEmail, subject: `Interview Attempt Failed — Retry Available`,
+    html: `
+      ${HTML_START}
+      ${WRAP_START}
+      ${headerSection("Interview Retry")}
+      ${BODY_START}
+        ${heading1(`Attempt Processed, ${firstName}`)}
+        ${paragraph(`You did not pass the technical assessment on this attempt.`)}
+        ${callout("Status Update", `
+          <table style="width: 100%; border-collapse: collapse;">
+            ${infoRow("Position", `<strong>${jobTitle}</strong>`)}
+            ${infoRow("Score", `<strong>${score}%</strong>`)}
+            ${infoRow("Attempts Left", `<strong>${attemptsLeft}</strong>`)}
+          </table>
+        `, 'danger')}
+        ${paragraph(`Don't worry, you still have attempts left. Please log in with your Reference ID to retry the assessment.`)}
+        ${button(`https://cyberlabsec.tech/careers/status`, "Retry Interview")}
       ${BODY_END}
       ${footerSection()}
       ${WRAP_END}

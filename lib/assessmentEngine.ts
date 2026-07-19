@@ -96,17 +96,21 @@ function extractSkills(ctx: JobContext): string[] {
   const combinedText = `${ctx.title} ${ctx.description} ${ctx.requirements} ${ctx.department} ${ctx.niceToHave}`.toLowerCase();
   const skills = new Set<string>(["general"]);
 
-  if (combinedText.includes("secur") || combinedText.includes("cyber") || combinedText.includes("vulnerab") || combinedText.includes("soc") || combinedText.includes("audit")) {
+  if (combinedText.includes("secur") || combinedText.includes("cyber") || combinedText.includes("vulnerab") || combinedText.includes("soc") || combinedText.includes("audit") || combinedText.includes("risk") || combinedText.includes("compliance") || combinedText.includes("analyst")) {
     skills.add("security");
   }
-  if (combinedText.includes("pentest") || combinedText.includes("hacker") || combinedText.includes("offensive") || combinedText.includes("red team") || combinedText.includes("exploit")) {
+  if (combinedText.includes("pentest") || combinedText.includes("hacker") || combinedText.includes("offensive") || combinedText.includes("red team") || combinedText.includes("exploit") || combinedText.includes("malware") || combinedText.includes("reverse engineer")) {
     skills.add("pentest");
   }
-  if (combinedText.includes("react") || combinedText.includes("frontend") || combinedText.includes("ui") || combinedText.includes("next") || combinedText.includes("css")) {
+  if (combinedText.includes("react") || combinedText.includes("frontend") || combinedText.includes("ui") || combinedText.includes("next") || combinedText.includes("css") || combinedText.includes("html") || combinedText.includes("javascript") || combinedText.includes("web") || combinedText.includes("developer")) {
     skills.add("frontend");
   }
-  if (combinedText.includes("node") || combinedText.includes("backend") || combinedText.includes("api") || combinedText.includes("database") || combinedText.includes("sql") || combinedText.includes("python")) {
+  if (combinedText.includes("node") || combinedText.includes("backend") || combinedText.includes("api") || combinedText.includes("database") || combinedText.includes("sql") || combinedText.includes("python") || combinedText.includes("java") || combinedText.includes("server") || combinedText.includes("engineer")) {
     skills.add("backend");
+  }
+
+  if (skills.size === 1) {
+    skills.add("security");
   }
 
   // Ensure cybersecurity defaults if nothing else matches

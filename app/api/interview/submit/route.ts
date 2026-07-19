@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { gradeOpenAnswer } from "@/lib/gemini";
-import { sendInterviewCompleteEmail } from "@/lib/email";
+import { sendInterviewCompleteEmail, sendInterviewRetryEmail } from "@/lib/email";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -113,6 +113,14 @@ export async function POST(req: NextRequest) {
       where: { id: session.applicantId },
       data: { status: "Invited for Interview" }
     });
+
+    await sendInterviewRetryEmail(
+      session.applicant.email,
+      session.applicant.fullName,
+      session.applicant.jobPosting.title,
+      normalizedScore,
+      session.maxAttempts - newAttempts
+    );
 
     return NextResponse.json({ result: "Retry", score: normalizedScore, terminated });
   }
