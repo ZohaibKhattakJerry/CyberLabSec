@@ -626,10 +626,16 @@ function Field({ label, required, error, children }: { label: string; required?:
 
 
 function ScreeningScreen({ status, message, referenceId }: { status: ScreeningStatus; message: string; referenceId?: string; }) {
-  const isDone = status === "done";
+  const isBackendDone = status === "done";
   const isShortlisted = message === "shortlisted";
   const [currentStep, setCurrentStep] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [isAnimationComplete, setIsAnimationComplete] = useState(false);
+  
+  // The UI transitions to the final success screen ONLY when both are true
+  const isDone = isBackendDone && isAnimationComplete;
+
+  const progressRef = useRef(0);
 
   const steps = [
     "Receiving your application...",
@@ -641,33 +647,43 @@ function ScreeningScreen({ status, message, referenceId }: { status: ScreeningSt
   ];
 
   useEffect(() => {
-    if (status !== "screening") return;
+    // If we've already finished the animation, do nothing.
+    if (isAnimationComplete) return;
     
-    // Animate progress smoothly to 99% over ~25 seconds
-    const duration = 25000;
+    // We start the visual progress as soon as we enter "screening"
+    if (status !== "screening" && status !== "done") return;
+
+    const duration = 5000; // exactly 5 seconds
     const intervalTime = 50;
-    const stepsTotal = duration / intervalTime;
-    let currentTick = 0;
+    const increment = 100 / (duration / intervalTime);
 
     const progressInterval = setInterval(() => {
-      currentTick++;
-      const newProgress = Math.min(99, (currentTick / stepsTotal) * 100);
-      setProgress(newProgress);
+      let nextProgress = progressRef.current + increment;
+      
+      // If backend is NOT done yet, gracefully hold at 99%
+      if (status !== "done" && nextProgress >= 99) {
+        nextProgress = 99;
+      }
+
+      progressRef.current = nextProgress;
+      setProgress(nextProgress);
       
       // Update steps based on progress
-      const stepIndex = Math.floor((newProgress / 100) * steps.length);
+      const stepIndex = Math.floor((nextProgress / 100) * steps.length);
       setCurrentStep(Math.min(stepIndex, steps.length - 1));
+
+      // If backend IS done and animation reaches 100%
+      if (status === "done" && nextProgress >= 100) {
+        progressRef.current = 100;
+        setProgress(100);
+        setCurrentStep(steps.length);
+        setIsAnimationComplete(true);
+        clearInterval(progressInterval);
+      }
     }, intervalTime);
 
     return () => clearInterval(progressInterval);
-  }, [status]);
-
-  useEffect(() => {
-    if (isDone) {
-      setProgress(100);
-      setCurrentStep(steps.length);
-    }
-  }, [isDone, isShortlisted]);
+  }, [status, isAnimationComplete]);
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg-primary)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, position: "relative", overflow: "hidden" }}>
