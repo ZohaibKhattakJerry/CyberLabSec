@@ -119,6 +119,29 @@ const infoRow = (label: string, value: string) => `
     <td class="info-value" style="color: #18181b;">${value}</td>
   </tr>
 `;
+const pipeline = (activeStage: 'Reviewing' | 'Interview' | 'Decision') => {
+  const s = (stage: string) => activeStage === stage ? `
+    <td align="center" style="width: 33.33%;">
+      <div style="background: #7c3aed; color: #fff; border-radius: 20px; padding: 6px 12px; font-size: 13px; font-weight: bold; display: inline-block;">${stage}</div>
+    </td>
+  ` : `
+    <td align="center" style="width: 33.33%;">
+      <div style="background: #f4f4f5; color: #a1a1aa; border-radius: 20px; padding: 6px 12px; font-size: 13px; font-weight: 600; display: inline-block; border: 1px solid #e4e4e7;">${stage}</div>
+    </td>
+  `;
+  return `
+    <div style="margin: 32px 0 24px 0;">
+      <p style="text-align: center; font-size: 11px; font-weight: 700; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 12px 0;">Application Progress</p>
+      <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+        <tr>
+          ${s('Reviewing')}
+          ${s('Interview')}
+          ${s('Decision')}
+        </tr>
+      </table>
+    </div>
+  `;
+};
 
 // ─── Shared Exports ────────────────────────────────────────────────────────
 export async function sendInterviewInvite(toEmail: string, applicantName: string, jobTitle: string, interviewLink: string, expiryHours: number = 48) {
@@ -133,6 +156,7 @@ export async function sendInterviewInvite(toEmail: string, applicantName: string
       ${BODY_START}
         ${heading1(`Congratulations, ${firstName}!`)}
         ${paragraph(`Your application for the <strong>${jobTitle}</strong> role has been reviewed — and you've been selected to proceed to our technical assessment stage.`)}
+        ${pipeline('Interview')}
         ${callout("Assessment Details", `
           <table style="width: 100%; border-collapse: collapse;">
             ${infoRow("Role", `<strong>${jobTitle}</strong>`)}
@@ -254,6 +278,42 @@ export async function sendEmail({ to, subject, html, attachments }: { to: string
   });
 }
 
+export async function sendCombinedShortlistEmail(toEmail: string, applicantName: string, jobTitle: string, referenceId: string, interviewLink: string, expiryHours: number = 48) {
+  const firstName = applicantName.split(" ")[0];
+  const trackingUrl = `https://cyberlabsec.tech/careers/status?ref=${referenceId}`;
+  await transporter.sendMail({
+    from: FROM, to: toEmail,
+    subject: `Application Received & Shortlisted — ${jobTitle} | CyberLabSec`,
+    html: `
+      ${HTML_START}
+      ${WRAP_START}
+      ${headerSection("Application Auto-Shortlisted")}
+      ${BODY_START}
+        ${heading1(`Amazing news, ${firstName}!`)}
+        ${paragraph(`We have successfully received your application for the <strong>${jobTitle}</strong> role. Due to your strong profile match, you have been <strong>automatically shortlisted</strong> for the technical assessment!`)}
+        ${pipeline('Interview')}
+        ${callout("Assessment Details", `
+          <table style="width: 100%; border-collapse: collapse;">
+            ${infoRow("Role", `<strong>${jobTitle}</strong>`)}
+            ${infoRow("Reference ID", `<strong>${referenceId}</strong>`)}
+            ${infoRow("Link Expires", `<strong>In ${expiryHours} hours</strong>`)}
+          </table>
+        `, 'success')}
+        ${btn("Begin Technical Assessment", interviewLink)}
+        ${divider()}
+        ${paragraph(`You can track your application status at any time using your Reference ID:`)}
+        <div style="text-align: center; margin-bottom: 24px;">
+          <div class="code-box" style="display: inline-block; font-size: 20px; letter-spacing: 2px;">${referenceId}</div>
+        </div>
+        ${btn("Track Application Status", trackingUrl)}
+      ${BODY_END}
+      ${footerSection()}
+      ${WRAP_END}
+      ${HTML_END}
+    `,
+  });
+}
+
 export async function sendApplicationReceivedEmail(toEmail: string, applicantName: string, jobTitle: string, referenceId: string, trackingUrl: string) {
   const firstName = applicantName.split(" ")[0];
   await transporter.sendMail({
@@ -261,16 +321,48 @@ export async function sendApplicationReceivedEmail(toEmail: string, applicantNam
     html: `
       ${HTML_START}
       ${WRAP_START}
-      ${headerSection("Application Confirmation")}
+      ${headerSection("Application Received")}
       ${BODY_START}
         ${heading1(`We've Got Your Application, ${firstName}!`)}
         ${paragraph(`Thank you for applying to the <strong>${jobTitle}</strong> position.`)}
+        ${pipeline('Reviewing')}
         ${callout("Application Summary", `
           <table style="width: 100%; border-collapse: collapse;">
             ${infoRow("Reference ID", `<code class="code-box">${referenceId}</code>`)}
             ${infoRow("Status", `<strong>Awaiting Review</strong>`)}
           </table>
         `, 'info')}
+        ${btn("Track Application Status", trackingUrl)}
+      ${BODY_END}
+      ${footerSection()}
+      ${WRAP_END}
+      ${HTML_END}
+    `,
+  });
+}
+
+export async function sendStatusUpdateEmail(toEmail: string, applicantName: string, jobTitle: string, status: string, trackingUrl: string) {
+  const firstName = applicantName.split(" ")[0];
+  let pipelineStage: 'Reviewing' | 'Interview' | 'Decision' = 'Decision';
+  if (status === 'Reviewing') pipelineStage = 'Reviewing';
+  else if (status.includes('Interview')) pipelineStage = 'Interview';
+
+  await transporter.sendMail({
+    from: FROM, to: toEmail, subject: `Status Update on your Application for ${jobTitle}`,
+    html: `
+      ${HTML_START}
+      ${WRAP_START}
+      ${headerSection("Application Update")}
+      ${BODY_START}
+        ${heading1(`Update on your Application, ${firstName}`)}
+        ${paragraph(`There has been an update regarding your application for the <strong>${jobTitle}</strong> position.`)}
+        ${pipeline(pipelineStage)}
+        ${callout("Current Status", `
+          <table style="width: 100%; border-collapse: collapse;">
+            ${infoRow("Position", `<strong>${jobTitle}</strong>`)}
+            ${infoRow("Status", `<strong>${status}</strong>`)}
+          </table>
+        `, ['rejected', 'failed', 'interview failed'].includes(status.toLowerCase()) ? 'danger' : 'success')}
         ${btn("Track Application Status", trackingUrl)}
       ${BODY_END}
       ${footerSection()}

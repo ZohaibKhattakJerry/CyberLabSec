@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { Search, Filter, X, Eye, UserCheck, UserX, Loader2, FileText, ChevronRight, Check, AlertTriangle, Clock, Star, CheckSquare, Square } from "lucide-react";
+import confetti from "canvas-confetti";
 
 type Applicant = {
   id: string; fullName: string; email: string; phone: string;
@@ -143,6 +144,11 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
     const data = await res.json();
     setActionLoading(false);
     if (!res.ok) { setActionMsg(data.error || "Failed"); return; }
+    
+    if (status === "Selected – Waiting for Approval" || status === "Hired") {
+      confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+    }
+    
     setActionMsg("Status updated.");
     startTransition(() => { 
       router.refresh(); 
@@ -178,6 +184,9 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
     const data = await res.json();
     setActionLoading(false);
     if (!res.ok) { setActionMsg(data.error || "Failed to hire candidate"); return; }
+    
+    confetti({ particleCount: 200, spread: 90, origin: { y: 0.5 } });
+    
     setActionMsg(`Candidate successfully hired! 🎉`);
     startTransition(() => { 
       router.refresh(); 

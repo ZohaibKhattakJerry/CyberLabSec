@@ -156,7 +156,12 @@ export async function POST(req: NextRequest) {
     });
 
     const trackingUrl = `https://cyberlabsec.tech/careers/status?ref=${applicant.referenceId}`;
-    waitUntil(sendApplicationReceivedEmail(email, fullName, posting.title, applicant.referenceId, trackingUrl).catch(console.error));
+    
+    // We only send the plain received email here if autoShortlist is false, 
+    // otherwise we send a combined email later to avoid spamming the user.
+    if (!posting.autoShortlist) {
+      waitUntil(sendApplicationReceivedEmail(email, fullName, posting.title, applicant.referenceId, trackingUrl).catch(console.error));
+    }
 
     // Notify Admin
     waitUntil(
@@ -172,7 +177,7 @@ export async function POST(req: NextRequest) {
     );
 
     // Run AI screening asynchronously without blocking the Vercel function
-    waitUntil(runScreening(applicant.id, cvUrl, { fullName, email, posting }));
+    waitUntil(runScreening(applicant.id, cvUrl, { fullName, email, posting, referenceId: applicant.referenceId }));
 
     return NextResponse.json({ applicationId: applicant.id, referenceId: applicant.referenceId, message: "Application received and screened" }, { status: 201 });
   } catch (error) {
@@ -184,7 +189,7 @@ export async function POST(req: NextRequest) {
 async function runScreening(
   applicantId: string,
   cvUrl: string,
-  ctx: { fullName: string; email: string; posting: any }
+  ctx: { fullName: string; email: string; posting: any; referenceId: string }
 ) {
   try {
     // Extract CV text
@@ -259,10 +264,12 @@ async function runScreening(
       const session = await prisma.interviewSession.findFirst({ where: { applicantId } });
       if (session) {
         const interviewLink = `https://cyberlabsec.tech/careers/interview/${session.token}`;
-        await sendInterviewInvite(
+        const { sendCombinedShortlistEmail } = await import("@/lib/email");
+        await sendCombinedShortlistEmail(
           ctx.email,
           ctx.fullName,
           ctx.posting.title,
+          ctx.referenceId,
           interviewLink,
           168 // 7 days in hours
         );

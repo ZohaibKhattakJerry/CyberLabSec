@@ -284,7 +284,7 @@ export default function InterviewClient({ sessionId, _token, applicantName, _app
         </AnimatePresence>
 
         {/* Interview header */}
-        <div className="flex-mobile-col" style={{ borderBottom: "1px solid var(--border)", padding: "12px 24px", minHeight: 56, height: "auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, background: "var(--bg-secondary)", position: "sticky", top: 0, zIndex: 50 }}>
+        <div style={{ borderBottom: "1px solid var(--border)", padding: "12px 24px", minHeight: 56, height: "auto", display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12, background: "var(--bg-secondary)", position: "sticky", top: 0, zIndex: 50 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 24, objectFit: "contain" }} />
             <div style={{ height: 16, width: 1, background: "var(--border)" }} />
@@ -335,18 +335,19 @@ export default function InterviewClient({ sessionId, _token, applicantName, _app
           <div style={{ height: "100%", width: `${timePercent}%`, background: timeLeft <= 30 ? "var(--purple)" : "var(--green)", transition: "width 1s linear, background 0.3s" }} />
         </div>
 
-        <div style={{ flex: 1, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "40px 24px" }}>
+        <div style={{ flex: 1, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "24px 16px", overflowX: "hidden" }}>
           <AnimatePresence mode="wait">
             <motion.div key={q.id} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.25 }} style={{ maxWidth: 720, width: "100%" }}>
-              <div className="card" style={{ padding: 32, boxShadow: "0 12px 32px rgba(0,0,0,0.2)" }}>
-                <div style={{ display: "flex", gap: 10, marginBottom: 24 }}>
+              <div className="card" style={{ padding: "24px 20px", boxShadow: "0 12px 32px rgba(0,0,0,0.2)" }}>
+                <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
                   <span className={q.type === "open" ? "badge badge-blue" : "badge badge-amber"}>
                     {q.type === "open" ? "Written Answer" : "Multiple Choice"}
                   </span>
                   <span className="badge badge-gray">{q.points} pts</span>
                 </div>
 
-                <h2 style={{ fontSize: 20, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.6, marginBottom: 32 }}>{q.prompt}</h2>
+                <h2 style={{ fontSize: 18, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.6, marginBottom: 24, wordBreak: "break-word", whiteSpace: "pre-wrap" }}>{q.prompt}</h2>
+
 
                 {q.type === "mcq" && q.options ? (
                   <div style={{ display: "grid", gap: 12 }}>

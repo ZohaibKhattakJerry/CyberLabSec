@@ -24,7 +24,7 @@ export default async function DashboardPage() {
     totalHired,
     totalApplicants,
   ] = await Promise.all([
-    prisma.employee.count({ where: { status: "Active" } }),
+    prisma.employee.count({ where: { status: "Active", employeeCode: { notIn: ["CyberLabSec", "ZohaibKhattak"] } } }),
     prisma.jobPosting.count({ where: { status: "Published" } }),
     prisma.applicant.count({ where: { createdAt: { gte: weekAgo } } }),
     prisma.task.count({ where: { status: { in: ["Assigned", "InProgress", "Submitted"] } } }),
@@ -35,7 +35,7 @@ export default async function DashboardPage() {
     prisma.task.groupBy({ by: ["status"], _count: { id: true } }),
     prisma.applicant.groupBy({ by: ["status"], _count: { id: true } }),
     prisma.employee.findMany({
-      where: { status: "Active" },
+      where: { status: "Active", employeeCode: { notIn: ["CyberLabSec", "ZohaibKhattak"] } },
       orderBy: { points: "desc" },
       take: 5,
       select: { id: true, name: true, designation: true, points: true, monthlyPoints: true },
