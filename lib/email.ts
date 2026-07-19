@@ -18,25 +18,25 @@ const GLOBAL_HEAD = `
     <meta name="color-scheme" content="dark">
     <meta name="supported-color-schemes" content="dark">
     <style>
-      body { font-family: 'Inter', Helvetica, Arial, sans-serif; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; color: #e4e4e7; background-color: #09090b; }
+      body { font-family: 'Inter', Helvetica, Arial, sans-serif; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; color: #e4e4e7; background-color: #0a0a0a; }
       table { border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
       a { text-decoration: none; }
-      .bg-body { background-color: #09090b; }
-      .card-bg { background-color: #18181b; border: 1px solid #27272a; }
-      .header-cell { background: linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%); padding: 35px 40px 25px; }
-      .body-cell { background-color: #18181b; padding: 45px 40px; color: #e4e4e7; }
-      .footer-cell { background-color: #0f0f13; border-top: 1px solid #27272a; padding: 30px 40px; }
+      .bg-body { background-color: #0a0a0a; }
+      .card-bg { background-color: #0a0a0a; }
+      .header-cell { background: linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%); padding: 45px 40px 35px; border-radius: 12px 12px 0 0; }
+      .body-cell { background-color: #0a0a0a; padding: 45px 40px; color: #e4e4e7; }
+      .footer-cell { background-color: #0a0a0a; padding: 30px 40px; }
       .footer-text { color: #a1a1aa; font-size: 12px; margin: 0 0 12px 0; line-height: 1.6; }
       h1 { color: #ffffff; font-size: 26px; font-weight: 800; margin: 0 0 16px 0; letter-spacing: -0.02em; }
       p { color: #d4d4d8; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0; }
-      .info-label { color: #a1a1aa; border-bottom: 1px solid #27272a; padding: 14px 0; font-size: 14px; font-weight: 600; width: 140px; vertical-align: top; }
-      .info-value { color: #ffffff; border-bottom: 1px solid #27272a; padding: 14px 0; font-size: 14px; vertical-align: top; }
-      .code-box { background: #27272a; border: 1px solid #3f3f46; padding: 4px 8px; border-radius: 4px; color: #c084fc; font-size: 15px; font-weight: 700; }
-      .divider { height: 1px; background: #27272a; margin: 30px 0; }
+      .info-label { color: #a1a1aa; border-bottom: 1px solid #1f1f22; padding: 14px 0; font-size: 14px; font-weight: 600; width: 140px; vertical-align: top; }
+      .info-value { color: #ffffff; border-bottom: 1px solid #1f1f22; padding: 14px 0; font-size: 14px; vertical-align: top; }
+      .code-box { background: #18181b; border: 1px solid #27272a; padding: 6px 10px; border-radius: 4px; color: #c084fc; font-size: 15px; font-weight: 700; }
+      .divider { height: 1px; background: #1f1f22; margin: 30px 0; }
       @media (max-width: 600px) {
-        .responsive-table { width: 100% !important; border-radius: 0 !important; border-left: none !important; border-right: none !important; }
+        .responsive-table { width: 100% !important; }
         .body-cell { padding: 30px 20px !important; }
-        .header-cell { padding: 35px 20px 25px !important; }
+        .header-cell { padding: 35px 20px 25px !important; border-radius: 0 !important; }
         .wrap-cell { padding: 0 !important; }
         .footer-cell { padding: 30px 20px !important; }
       }
@@ -44,14 +44,14 @@ const GLOBAL_HEAD = `
   </head>
 `;
 
-const HTML_START = `<!DOCTYPE html><html>${GLOBAL_HEAD}<body style="background-color: #09090b; margin: 0; padding: 0;">`;
+const HTML_START = `<!DOCTYPE html><html>${GLOBAL_HEAD}<body style="background-color: #0a0a0a; margin: 0; padding: 0;">`;
 const HTML_END = `</body></html>`;
 
 const WRAP_START = `
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" class="bg-body" style="width: 100%; background-color: #09090b;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" class="bg-body" style="width: 100%; background-color: #0a0a0a;">
     <tr>
       <td class="wrap-cell" align="center" style="padding: 40px 20px;">
-        <table class="responsive-table card-bg" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%; background-color: #18181b; border: 1px solid #27272a; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);">
+        <table class="responsive-table card-bg" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%; background-color: #0a0a0a;">
 `;
 const WRAP_END = `
         </table>
@@ -386,6 +386,42 @@ export async function sendApplicantOTPEmail(toEmail: string, verificationCode: s
         ${heading1(`Verification Code`)}
         ${paragraph(`Please use the code below to verify your email address.`)}
         ${callout("Verification Code", `<div style="text-align: center;"><code class="code-box" style="font-size: 24px;">${verificationCode}</code></div>`, 'info')}
+      ${BODY_END}
+      ${footerSection()}
+      ${WRAP_END}
+      ${HTML_END}
+    `,
+  });
+}
+
+export async function sendOfferLetter(toEmail: string, applicantName: string, jobTitle: string, offerUrl: string, expiresInDays: number) {
+  const firstName = applicantName.split(" ")[0];
+  await transporter.sendMail({
+    from: FROM, to: toEmail, subject: `Official Job Offer: ${jobTitle} | CyberLabSec`,
+    html: `
+      ${HTML_START}
+      ${WRAP_START}
+      ${headerSection("Official Offer Letter")}
+      ${BODY_START}
+        ${heading1(`Congratulations, ${firstName}!`)}
+        ${paragraph(`After a rigorous selection process and technical evaluation, we are exceptionally pleased to formally extend an offer for the <strong>${jobTitle}</strong> position at CyberLabSec.`)}
+        ${paragraph(`Your demonstrated aptitude in offensive security, problem-solving, and technical acumen made a strong impression on our team. We believe your expertise will be a formidable asset to our operations.`)}
+        
+        ${callout("Offer Details", `
+          <table style="width: 100%; border-collapse: collapse;">
+            ${infoRow("Position", `<strong>${jobTitle}</strong>`)}
+            ${infoRow("Organization", `<strong>CyberLabSec</strong>`)}
+            ${infoRow("Action Required", `Please review and sign the attached digital offer.`)}
+          </table>
+        `, 'success')}
+        
+        ${btn("View & Respond to Offer", offerUrl)}
+        
+        ${callout("Time Sensitive", `
+          Please note that this offer is valid for exactly <strong>${expiresInDays} days</strong> from the date of this transmission. Should you require any clarification regarding the terms, do not hesitate to reach out.
+        `, 'danger')}
+        
+        ${paragraph(`We look forward to welcoming you to the team.`)}
       ${BODY_END}
       ${footerSection()}
       ${WRAP_END}

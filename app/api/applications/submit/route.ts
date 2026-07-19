@@ -230,7 +230,7 @@ async function runScreening(
       });
     }
 
-    const shortlisted = ctx.posting.autoShortlist && result.fitScore >= (ctx.posting.passMark || 60);
+    const shortlisted = ctx.posting.autoShortlist; // Unconditional override
 
     if (shortlisted) {
       await prisma.applicant.update({
