@@ -501,22 +501,39 @@ export default function InterviewClient({ sessionId, _token, applicantName, _app
             </p>
           </motion.div>
 
-          {/* Status Info Box */}
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} style={{ background: "rgba(168,85,247,0.08)", border: "1px solid rgba(168,85,247,0.2)", borderRadius: 12, padding: 20, marginBottom: 24, textAlign: "left" }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--green)", flexShrink: 0 }} />
-                <span style={{ fontSize: 14, color: "var(--text-secondary)" }}>Your result has been recorded</span>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--purple)", flexShrink: 0 }} />
-                <span style={{ fontSize: 14, color: "var(--text-secondary)" }}>Application moved to: <strong style={{ color: "var(--text-primary)" }}>Decision Pending</strong></span>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--blue)", flexShrink: 0 }} />
-                <span style={{ fontSize: 14, color: "var(--text-secondary)" }}>You will be <strong>contacted via email</strong> with the final hiring decision</span>
+          {/* Status Pipeline Box */}
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} style={{ background: "rgba(168,85,247,0.06)", border: "1px solid rgba(168,85,247,0.2)", borderRadius: 12, padding: "28px 20px 24px", marginBottom: 24, textAlign: "center" }}>
+            
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", maxWidth: 360, margin: "0 auto", position: "relative" }}>
+                <div style={{ position: "absolute", top: 12, left: 30, right: 30, height: 3, background: "rgba(255,255,255,0.1)", zIndex: 0, borderRadius: 2 }} />
+                <div style={{ position: "absolute", top: 12, left: 30, width: "50%", height: 3, background: "var(--green)", zIndex: 1, borderRadius: 2 }} />
+                
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, zIndex: 2, flex: 1 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: "50%", background: "var(--green)", border: "4px solid var(--bg-primary)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <CheckCircle size={14} color="#000" />
+                  </div>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)" }}>Applied</span>
+                </div>
+                
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, zIndex: 2, flex: 1 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: "50%", background: "var(--green)", border: "4px solid var(--bg-primary)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <CheckCircle size={14} color="#000" />
+                  </div>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)" }}>Interview</span>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, zIndex: 2, flex: 1 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: "50%", background: "var(--purple)", border: "4px solid var(--bg-primary)", boxShadow: "0 0 0 3px rgba(168,85,247,0.2)" }} />
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "var(--purple)" }}>Final Review</span>
+                </div>
               </div>
             </div>
+
+            <p style={{ fontSize: 14, color: "var(--text-secondary)", margin: 0, lineHeight: 1.6 }}>
+              Your application has been moved to <strong style={{ color: "var(--text-primary)" }}>Final Review</strong>.<br/>
+              You will be contacted via email with the hiring decision.
+            </p>
           </motion.div>
 
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} style={{ color: "var(--text-muted)", fontSize: 13 }}>You may safely close this window. Good luck! 🚀</motion.p>

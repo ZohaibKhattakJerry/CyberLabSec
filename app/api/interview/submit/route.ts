@@ -77,24 +77,18 @@ export async function POST(req: NextRequest) {
 
   const terminated = suspicionScore >= 100;
 
-  const configuredPassingPercent = passMark;
-  const passingThresholdPoints = (configuredPassingPercent / 100) * maxPossibleScore;
-  const earnedPercentage = maxPossibleScore > 0 ? (totalScore / maxPossibleScore) * 100 : 0;
-  
-  // Pass fail based on earned points compared against the calculated threshold points
-  const isFail = terminated || totalScore < passingThresholdPoints;
-
   console.log('[Interview Submit] Final Score Breakdown:', {
     totalAvailablePoints: maxPossibleScore,
     earnedPoints: totalScore,
-    configuredPassingPercent,
-    passingThresholdPoints,
-    earnedPercentage,
-    decision: isFail ? "FAIL" : "PASS",
+    passMark,
+    decision: (terminated || totalScore < passMark) ? "FAIL" : "PASS",
     suspicionScore, terminated,
     attempts: session.attempts, maxAttempts: session.maxAttempts
   });
 
+  // Pass fail based purely on raw points
+  const isFail = terminated || totalScore < passMark;
+  
   const newAttempts = session.attempts + 1;
   const hasMoreAttempts = isFail && newAttempts < session.maxAttempts;
 
@@ -141,7 +135,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Final submission (Passed, or Failed out of attempts)
-  const result = terminated ? "Cheating" : totalScore >= passingThresholdPoints ? "Passed" : "Failed";
+  const result = terminated ? "Cheating" : totalScore >= passMark ? "Passed" : "Failed";
   const newStatus = result === "Passed" ? "Selected – Waiting for Approval" : "Interview Failed";
 
   await prisma.$transaction(async (tx) => {
