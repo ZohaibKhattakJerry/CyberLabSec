@@ -236,7 +236,7 @@ async function runScreening(
       await prisma.applicant.update({
         where: { id: applicantId },
         data: {
-          status: "Interview",
+          status: "Shortlisted",
           fitScore: result.fitScore,
           fitReasoning: `${result.reasoning}\n\nStrengths: ${result.strengths.join(", ")}\nGaps: ${result.gaps.join(", ")}`,
         },
