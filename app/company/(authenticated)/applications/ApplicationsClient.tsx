@@ -287,7 +287,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                     draggable
                     onDragStart={(e) => handleDragStart(e, a.id)}
                     className={`card ${selectedIds.includes(a.id) ? 'selected' : ''}`} 
-                    style={{ padding: 16, cursor: "grab", transition: "transform 0.1s", position: "relative", border: selectedIds.includes(a.id) ? "1px solid var(--purple)" : "1px solid var(--border)" }} 
+                    style={{ padding: 16, width: "100%", cursor: "grab", transition: "transform 0.1s", position: "relative", border: selectedIds.includes(a.id) ? "1px solid var(--purple)" : "1px solid var(--border)" }} 
                     onClick={(e) => {
                     if ((e.target as HTMLElement).closest('.checkbox-container')) return;
                     setSelected(a);
