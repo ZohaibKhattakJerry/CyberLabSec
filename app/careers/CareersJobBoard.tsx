@@ -341,6 +341,7 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
             </div>
           </div>
         )}
+        </div>
 
         {/* Job listings */}
         {filtered.length === 0 ? (

@@ -15,7 +15,6 @@ export default function AuthLayout({
   variant?: "admin" | "employee";
 }) {
   const isAdmin = variant === "admin";
-  const primary = isAdmin ? "#A855F7" : "#6366F1";
   const secondary = isAdmin ? "#EC4899" : "#06B6D4";
   const orbA = isAdmin ? "168,85,247" : "99,102,241";
   const orbB = isAdmin ? "236,72,153" : "6,182,212";
@@ -23,57 +22,23 @@ export default function AuthLayout({
   return (
     <>
       <style>{`
-        @keyframes orb-pulse-a {
-          0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.35; }
-          50%       { transform: translate3d(20px, -20px, 0) scale(1.1); opacity: 0.5; }
-        }
-        @keyframes orb-pulse-b {
-          0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.28; }
-          50%       { transform: translate3d(-20px, 20px, 0) scale(1.15); opacity: 0.45; }
-        }
-        @keyframes orb-pulse-c {
-          0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.25; }
-          50%       { transform: translate3d(15px, 15px, 0) scale(1.05); opacity: 0.35; }
-        }
-        @keyframes scan-line {
-          0%   { transform: translateY(-100px); opacity: 0; }
-          10%  { opacity: 1; }
-          90%  { opacity: 1; }
-          100% { transform: translateY(600px); opacity: 0; }
-        }
-        @keyframes card-in {
-          from { opacity: 0; transform: translate3d(0, 10px, 0); }
-          to   { opacity: 1; transform: translate3d(0, 0, 0); }
-        }
-        @keyframes field-in {
-          from { opacity: 0; transform: translate3d(-10px, 0, 0); }
-          to   { opacity: 1; transform: translate3d(0, 0, 0); }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          *, ::before, ::after {
-            animation-duration: 0.01ms !important;
-            animation-iteration-count: 1 !important;
-            transition-duration: 0.01ms !important;
-            scroll-behavior: auto !important;
-          }
-        }
-
         .auth-bg {
-          min-height: 100vh;
-          width: 100%;
-          background: #040308;
+          position: fixed;
+          top: 0; left: 0; right: 0; bottom: 0;
+          background-color: #040308;
+          background-image: 
+            radial-gradient(circle at 15% 15%, rgba(${orbA}, 0.15) 0%, transparent 50%),
+            radial-gradient(circle at 85% 85%, rgba(${orbB}, 0.12) 0%, transparent 50%);
           display: flex;
           align-items: center;
           justify-content: center;
           padding: 1rem;
-          position: relative;
           overflow: hidden;
           font-family: 'Inter', system-ui, sans-serif;
-          perspective: 1000px;
+          z-index: 9999; /* Overlays everything, guarantees no page scroll */
         }
         
-        /* Ultra-subtle noise overlay for premium feel without lag */
+        /* Ultra-subtle noise overlay for premium feel */
         .auth-bg::before {
           content: "";
           position: absolute; inset: 0;
@@ -82,46 +47,24 @@ export default function AuthLayout({
           z-index: 1;
         }
 
-        .auth-orb {
-          border-radius: 50%;
-          pointer-events: none;
-          will-change: transform, opacity;
-          backface-visibility: hidden;
-          filter: blur(40px); /* Hardware accelerated blur using standard CSS */
-          transform: translateZ(0); /* Force GPU */
-        }
-        /* Background Orbs (Larger, Slower) */
-        .bg-orb-a {
-          position: fixed;
-          width: 800px; height: 800px;
-          top: -250px; left: -150px;
-          background: rgba(168,85,247,0.18);
-          animation: orb-pulse-a 14s ease-in-out infinite;
-          z-index: 0;
-        }
-        .bg-orb-b {
-          position: fixed;
-          width: 700px; height: 700px;
-          bottom: -250px; right: -150px;
-          background: rgba(236,72,153,0.15);
-          animation: orb-pulse-b 16s ease-in-out infinite 2s;
-          z-index: 0;
-        }
-        
-        /* Card Background */
         .auth-card {
-          width: 100%; max-width: 400px;
-          background: linear-gradient(145deg, rgba(13,12,20,0.92) 0%, rgba(17,14,26,0.95) 100%);
+          width: 100%; 
+          max-width: 400px;
+          max-height: 100%;
+          background: linear-gradient(145deg, rgba(13,12,20,0.95) 0%, rgba(17,14,26,0.98) 100%);
           backdrop-filter: blur(16px);
           -webkit-backdrop-filter: blur(16px);
           border-radius: clamp(16px, 4vw, 22px);
           padding: clamp(24px, 6vw, 44px) clamp(20px, 6vw, 44px);
-          border: 1px solid rgba(168,85,247, 0.2);
-          box-shadow: 0 24px 80px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.03), inset 0 1px 0 rgba(255,255,255,0.05);
-          position: relative; z-index: 10;
-          overflow: hidden;
-          animation: card-in 0.3s cubic-bezier(0.16,1,0.3,1) both;
-          transform: translateZ(0);
+          border: 1px solid rgba(${orbA}, 0.2);
+          box-shadow: 0 24px 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.03), inset 0 1px 0 rgba(255,255,255,0.05);
+          position: relative; 
+          z-index: 10;
+          overflow-y: auto;
+          scrollbar-width: none; /* Hide scrollbar for sleekness */
+        }
+        .auth-card::-webkit-scrollbar {
+          display: none;
         }
         
         .auth-grid {
@@ -135,36 +78,26 @@ export default function AuthLayout({
           mask-image: radial-gradient(ellipse at center, black 10%, transparent 80%);
           z-index: 1;
         }
-        .auth-scan {
-          position: absolute; left: 0; right: 0; height: 2px;
-          top: 0;
-          background: linear-gradient(90deg, transparent 0%, rgba(168,85,247,0.5) 40%, rgba(236,72,153,0.4) 60%, transparent 100%);
-          pointer-events: none; 
-          will-change: transform, opacity;
-          animation: scan-line 8s linear infinite;
-          z-index: 2;
-          box-shadow: 0 0 10px rgba(168,85,247,0.4);
-        }
+
         .auth-card-content {
           position: relative;
           z-index: 20;
         }
         .auth-card-glow {
           position: absolute; top: 0; left: 15%; right: 15%; height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(168,85,247,0.8), transparent);
+          background: linear-gradient(90deg, transparent, rgba(${orbA}, 0.8), transparent);
           border-radius: 0 0 4px 4px;
-          box-shadow: 0 1px 12px rgba(168,85,247,0.6);
+          box-shadow: 0 1px 12px rgba(${orbA}, 0.6);
         }
         .auth-card-accent {
           position: absolute; top: -1px; right: 40px; width: 60px; height: 2px;
           background: ${secondary}; border-radius: 0 0 4px 4px; opacity: 0.8;
-          box-shadow: 0 1px 8px rgba(236,72,153,0.6);
+          box-shadow: 0 1px 8px ${secondary};
         }
-        .auth-logo-wrapper { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; animation: field-in 0.4s cubic-bezier(0.16,1,0.3,1) 0.1s both; }
+        .auth-logo-wrapper { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
         .auth-badge { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 4px 8px; border-radius: 6px; background: rgba(236,72,153,0.15); color: #F472B6; border: 1px solid rgba(236,72,153,0.3); }
-        .auth-title { color:#FFF; font-size:clamp(20px,4vw,24px); font-weight:700; margin-bottom:8px; letter-spacing:-0.02em; line-height:1.2; animation: field-in 0.4s cubic-bezier(0.16,1,0.3,1) 0.15s both; }
-        .auth-subtitle { color:#6B7280; font-size:14px; margin-bottom:24px; line-height:1.6; animation: field-in 0.4s cubic-bezier(0.16,1,0.3,1) 0.2s both; }
-        .auth-form { animation: field-in 0.4s cubic-bezier(0.16,1,0.3,1) 0.25s both; }
+        .auth-title { color:#FFF; font-size:clamp(20px,4vw,24px); font-weight:700; margin-bottom:8px; letter-spacing:-0.02em; line-height:1.2; }
+        .auth-subtitle { color:#6B7280; font-size:14px; margin-bottom:24px; line-height:1.6; }
 
         /* Fix browser autofill styling for dark theme */
         input:-webkit-autofill,
@@ -179,14 +112,8 @@ export default function AuthLayout({
       `}</style>
 
       <div className="auth-bg">
-        {/* Full-screen background orbs for immersive feel */}
-        <div className="auth-orb bg-orb-a" />
-        <div className="auth-orb bg-orb-b" />
-
         <div className="auth-card">
           <div className="auth-grid" />
-          <div className="auth-scan" />
-
           <div className="auth-card-glow" />
           <div className="auth-card-accent" />
 
