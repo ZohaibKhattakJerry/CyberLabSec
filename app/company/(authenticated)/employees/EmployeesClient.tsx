@@ -27,6 +27,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
   const [filterTeam, setFilterTeam] = useState("All");
   const [filterDesignation, setFilterDesignation] = useState("All");
   const [filterType, setFilterType] = useState("All");
+  const [filterSource, setFilterSource] = useState("All");
   
   // Edit State
   const [editEmployee, setEditEmployee] = useState<Employee | null>(null);
@@ -74,7 +75,8 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
     const matchTeam = filterTeam === "All" || e.teamId === filterTeam;
     const matchDesignation = filterDesignation === "All" || e.designation === filterDesignation;
     const matchType = filterType === "All" || e.employmentType === filterType;
-    return matchSearch && matchStatus && matchTeam && matchDesignation && matchType;
+    const matchSource = filterSource === "All" || (filterSource === "Direct Hire" ? !e.applicantId : !!e.applicantId);
+    return matchSearch && matchStatus && matchTeam && matchDesignation && matchType && matchSource;
   });
 
   const uniqueDesignations = Array.from(new Set(employees.map(e => e.designation).filter(Boolean)));
@@ -349,7 +351,11 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
           <option value="All">All Types</option>
           {uniqueTypes.map(t => <option key={t} value={t}>{t}</option>)}
         </select>
-        <div className="badge badge-gray" style={{ alignSelf: "center", padding: "6px 12px" }}>{filtered.length} results</div>
+        <select className="input" style={{ width: 140 }} value={filterSource} onChange={e => setFilterSource(e.target.value)}>
+          <option value="All">All Sources</option>
+          <option value="Direct Hire">Direct Hire</option>
+          <option value="Application">Application</option>
+        </select>
         <button className="btn btn-secondary btn-sm" onClick={exportCSV} style={{ alignSelf: "center", gap: 5 }}>
           <Download size={13} /> Export CSV
         </button>

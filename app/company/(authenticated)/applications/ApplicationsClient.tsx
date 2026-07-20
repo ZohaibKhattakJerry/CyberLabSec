@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { Search, Filter, X, Eye, UserCheck, UserX, Loader2, FileText, ChevronRight, Check, AlertTriangle, Clock, Star, CheckSquare, Square, Mail, Phone, MapPin, Link as LinkIcon, Code, Briefcase, GraduationCap, Calendar } from "lucide-react";
+import { Search, Filter, X, Eye, UserCheck, UserX, Loader2, FileText, ChevronRight, Check, AlertTriangle, Clock, Star, CheckSquare, Square, Mail, Phone, MapPin, Link as LinkIcon, Code, Briefcase, GraduationCap, Calendar, Award } from "lucide-react";
 import confetti from "canvas-confetti";
 
 type Applicant = {
@@ -366,12 +366,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                         {a.universityName && <span style={{ fontSize: 10, padding: "2px 6px", background: "rgba(255,255,255,0.05)", color: "var(--text-muted)", borderRadius: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 100 }}>{a.universityName}</span>}
                       </div>
 
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        {a.fitScore !== null ? (
-                          <span style={{ fontSize: 12, fontWeight: 700, color: a.fitScore >= 70 ? "var(--green)" : a.fitScore >= 50 ? "var(--amber)" : "var(--purple)" }}>
-                            AI Match: {a.fitScore}%
-                          </span>
-                        ) : <span style={{ fontSize: 12, color: "var(--text-muted)" }}>No Score</span>}
+                      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
                         
                         <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{safeFormatDate(a.createdAt, "MMM d")}</span>
                       </div>
@@ -397,7 +392,6 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
               </th>
               <th>Applicant</th>
               <th>Position</th>
-              <th>AI Score</th>
               <th>Stage</th>
               <th>Applied</th>
               <th>Actions</th>
@@ -420,13 +414,6 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                 </td>
                 <td data-label="Position">
                   <div style={{ fontSize: 13 }}>{a.jobPosting.title}</div>
-                </td>
-                <td data-label="AI Score">
-                  {a.fitScore !== null ? (
-                    <span style={{ fontWeight: 700, color: a.fitScore >= 70 ? "var(--green)" : a.fitScore >= 50 ? "var(--amber)" : "var(--purple)" }}>
-                      {a.fitScore}%
-                    </span>
-                  ) : <span style={{ color: "var(--text-muted)" }}>—</span>}
                 </td>
                 <td data-label="Stage"><span className={`badge ${STATUS_COLORS[a.status] || "badge-gray"}`}>{a.status}</span></td>
                 <td data-label="Applied" style={{ fontSize: 12, color: "var(--text-muted)" }}>{safeFormatDate(a.createdAt, "MMM d, yyyy")}</td>
