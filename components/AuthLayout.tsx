@@ -197,8 +197,10 @@ export default function AuthLayout({
         input:-webkit-autofill:hover, 
         input:-webkit-autofill:focus, 
         input:-webkit-autofill:active {
-          transition: background-color 5000s ease-in-out 0s;
+          -webkit-box-shadow: 0 0 0 50px #15121E inset !important;
           -webkit-text-fill-color: #FFFFFF !important;
+          caret-color: #FFFFFF !important;
+          transition: background-color 5000s ease-in-out 0s;
         }
       `}</style>
 
