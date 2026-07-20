@@ -38,7 +38,7 @@ export default async function DocumentsPage() {
       icon: "📄",
       category: "HR Document",
       status: "available" as const,
-      url: `/api/files/offer-letter/${employee.id}`,
+      url: getDocUrl("Offer Letter") || `/api/files/offer-letter/${employee.id}`,
     },
     {
       label: "Non-Disclosure Agreement (NDA)",
@@ -53,8 +53,8 @@ export default async function DocumentsPage() {
       desc: "Company policies, code of conduct, and HR guidelines",
       icon: "📋",
       category: "Policy",
-      status: "pending" as const,
-      url: null,
+      status: (getDocUrl("Policy Documents") ? "available" : "pending") as "available" | "pending",
+      url: getDocUrl("Policy Documents"),
     },
   ];
 
@@ -75,8 +75,8 @@ export default async function DocumentsPage() {
         desc: "Health benefits, leave policy, and compensation details",
         icon: "💼",
         category: "HR Document",
-        status: "pending" as const,
-        url: null,
+        status: (getDocUrl("Benefits & Compensation Info") ? "available" : "pending") as "available" | "pending",
+        url: getDocUrl("Benefits & Compensation Info"),
       }
     );
   }
@@ -84,20 +84,20 @@ export default async function DocumentsPage() {
   if (empType === "Intern") {
     typeSpecificDocs.push(
       {
-        label: "Internship Completion Certificate",
+        label: "Internship Certificate",
         desc: isCompleted ? "Your official certificate of completion" : "Issued upon successful program completion",
         icon: "🎓",
         category: "Certificate",
-        status: (isCompleted ? "available" : "locked") as "available" | "pending" | "locked",
-        url: isCompleted ? `/api/company/employees/${employee.id}/certificate?type=completion` : null,
+        status: (getDocUrl("Internship Certificate") ? "available" : "locked") as "available" | "locked",
+        url: getDocUrl("Internship Certificate"),
       },
       {
-        label: "Letter of Recommendation (LoR)",
+        label: "Letter of Recommendation",
         desc: isCompleted ? "Performance-based recommendation letter" : "Issued upon program completion",
         icon: "📜",
         category: "Certificate",
-        status: (isCompleted ? "available" : "locked") as "available" | "pending" | "locked",
-        url: isCompleted ? `/api/company/employees/${employee.id}/certificate?type=lor` : null,
+        status: (getDocUrl("Letter of Recommendation") ? "available" : "locked") as "available" | "locked",
+        url: getDocUrl("Letter of Recommendation"),
       }
     );
   }
@@ -136,7 +136,7 @@ export default async function DocumentsPage() {
     );
   }
 
-  const standardDocTitles = ["Offer Letter", "NDA", "Employment Contract", "Contract Agreement", "Project NDA", "Part-Time Agreement"];
+  const standardDocTitles = ["Offer Letter", "NDA", "Employment Contract", "Contract Agreement", "Project NDA", "Part-Time Agreement", "Internship Certificate", "Letter of Recommendation", "Policy Documents", "Benefits & Compensation Info"];
   const extraDocs = dbDocs.filter(d => !standardDocTitles.includes(d.title));
 
   const empTypeBadge =
@@ -211,7 +211,7 @@ export default async function DocumentsPage() {
             <div style={{ marginTop: 16, padding: "12px 16px", background: "rgba(245,158,11,0.06)", borderRadius: 10, borderLeft: "3px solid var(--amber)", display: "flex", alignItems: "center", gap: 10 }}>
               <Clock size={14} color="var(--amber)" style={{ flexShrink: 0 }} />
               <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0 }}>
-                Your Internship Certificate and Letter of Recommendation will be generated and made available here after your program ends.
+                Your Internship Certificate and Letter of Recommendation will be manually uploaded by HR after your program ends.
               </p>
             </div>
           )}

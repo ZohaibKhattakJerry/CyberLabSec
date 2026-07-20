@@ -35,7 +35,12 @@ type Employee = {
   applicant?: { cvFileUrl?: string | null; linkedIn?: string | null } | null;
 };
 
-const DOC_TYPES = ["Offer Letter", "NDA", "Employment Contract", "Certificate", "Letter of Recommendation", "Contract Agreement", "Project NDA", "Policy", "Other"];
+const DOC_TYPES = [
+  "Offer Letter", "NDA", "Employment Contract", "Contract Agreement", "Part-Time Agreement", "Project NDA", 
+  "Internship Certificate", "Letter of Recommendation", 
+  "ID Card / CNIC", "Resume / CV", "Tax Form", "Bank Details", 
+  "Performance Review", "Policy Acknowledgement", "Other"
+];
 
 export default function EmployeeDetailsClient({ employee }: { employee: Employee }) {
   const router = useRouter();
@@ -174,31 +179,6 @@ export default function EmployeeDetailsClient({ employee }: { employee: Employee
         )}
       </div>
 
-      {/* ── AUTO-GENERATED DOCUMENTS ── */}
-      {isIntern && (
-        <div className="card" style={{ padding: 24, marginBottom: 20 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-            <Award size={15} color="var(--amber)" />
-            <h2 style={{ fontSize: 12, fontWeight: 700, color: "var(--amber)", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>Auto-Generated Certificates</h2>
-          </div>
-          <div style={{ display: "grid", gap: 10 }}>
-            <AutoDocRow
-              icon="🎓"
-              title="Internship Completion Certificate"
-              desc="Automatically generated official certificate"
-              available={isCompleted}
-              url={isCompleted ? `/api/company/employees/${employee.id}/certificate?type=completion` : null}
-            />
-            <AutoDocRow
-              icon="📜"
-              title="Letter of Recommendation (LoR)"
-              desc="Performance-based recommendation letter"
-              available={isCompleted}
-              url={isCompleted ? `/api/company/employees/${employee.id}/certificate?type=lor` : null}
-            />
-          </div>
-        </div>
-      )}
 
       {/* ── UPLOADED DOCUMENTS ── */}
       <div className="card" style={{ padding: 24 }}>
@@ -318,30 +298,6 @@ export default function EmployeeDetailsClient({ employee }: { employee: Employee
             </form>
           </div>
         </div>
-      )}
-    </div>
-  );
-}
-
-function AutoDocRow({ icon, title, desc, available, url }: { icon: string; title: string; desc: string; available: boolean; url: string | null }) {
-  return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 18px", background: available ? "rgba(34,197,94,0.03)" : "rgba(245,158,11,0.03)", border: `1px solid ${available ? "rgba(34,197,94,0.15)" : "rgba(245,158,11,0.15)"}`, borderRadius: 12, gap: 14, flexWrap: "wrap", opacity: available ? 1 : 0.65 }}>
-      <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-        <div style={{ fontSize: 20, width: 44, height: 44, borderRadius: 11, background: "rgba(0,0,0,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{icon}</div>
-        <div>
-          <div style={{ fontWeight: 600, fontSize: 14, display: "flex", alignItems: "center", gap: 7 }}>
-            {title}
-            {available ? <CheckCircle2 size={13} color="var(--green)" /> : <Clock size={12} color="var(--amber)" />}
-          </div>
-          <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 3 }}>{desc}</div>
-        </div>
-      </div>
-      {available && url ? (
-        <a href={url} target="_blank" rel="noreferrer" className="btn btn-secondary btn-sm" style={{ gap: 5, borderColor: "rgba(34,197,94,0.3)", color: "var(--green)", flexShrink: 0 }}>
-          <Download size={13} /> Download
-        </a>
-      ) : (
-        <span style={{ fontSize: 11, color: "var(--amber)", fontWeight: 600, flexShrink: 0 }}>Pending Completion</span>
       )}
     </div>
   );
