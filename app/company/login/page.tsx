@@ -44,16 +44,16 @@ export default function AdminLogin() {
 
   const inputStyle = (field: string) => ({
     width: "100%",
-    background: focusedField === field ? "rgba(168,85,247,0.06)" : "rgba(255,255,255,0.03)",
-    border: `1px solid ${focusedField === field ? "rgba(168,85,247,0.5)" : "rgba(255,255,255,0.08)"}`,
+    background: focusedField === field ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.2)",
+    border: `1px solid ${focusedField === field ? "rgba(168,85,247,0.4)" : "rgba(255,255,255,0.08)"}`,
     borderRadius: 12,
     padding: "13px 44px 13px 44px",
     color: "#FFFFFF",
     fontSize: 14,
     outline: "none",
-    transition: "all 0.2s ease",
+    transition: "all 0.3s cubic-bezier(0.2,0.8,0.2,1)",
     fontFamily: "inherit",
-    boxShadow: focusedField === field ? "0 0 0 3px rgba(168,85,247,0.1)" : "none",
+    boxShadow: focusedField === field ? "0 0 20px rgba(168,85,247,0.15), inset 0 2px 4px rgba(0,0,0,0.2)" : "inset 0 2px 4px rgba(0,0,0,0.2)",
   });
 
   return (
@@ -144,8 +144,8 @@ export default function AdminLogin() {
               padding: "14px 20px",
               background: success
                 ? "linear-gradient(135deg, #22C55E, #16A34A)"
-                : "linear-gradient(135deg, #A855F7, #7C3AED)",
-              border: "none",
+                : "linear-gradient(135deg, rgba(168,85,247,0.9), rgba(124,58,237,0.9))",
+              border: "1px solid rgba(255,255,255,0.1)",
               borderRadius: 12,
               color: "#FFFFFF",
               fontSize: 15,
@@ -156,11 +156,12 @@ export default function AdminLogin() {
               justifyContent: "center",
               gap: 8,
               letterSpacing: "-0.01em",
-              transition: "background 0.3s ease, opacity 0.3s ease",
+              transition: "background 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease",
               opacity: loading ? 0.7 : 1,
               boxShadow: success
-                ? "0 4px 20px rgba(34,197,94,0.3)"
-                : "0 4px 20px rgba(168,85,247,0.3)",
+                ? "0 8px 32px rgba(34,197,94,0.3)"
+                : "0 8px 32px rgba(168,85,247,0.25)",
+              backdropFilter: "blur(10px)",
               fontFamily: "inherit",
             }}
           >
