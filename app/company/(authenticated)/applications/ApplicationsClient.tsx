@@ -126,7 +126,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
     const res = await fetch("/api/company/applications/bulk", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "delete", applicantIds: [id] }),
+      body: JSON.stringify({ action: "delete", applicantIds: [selected.id] }),
     });
     const data = await res.json();
     setActionLoading(false);
