@@ -92,6 +92,7 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   scroll-behavior: smooth;
+  overflow-y: scroll; /* Force vertical scrollbar to prevent layout shift */
 }
 
 body {

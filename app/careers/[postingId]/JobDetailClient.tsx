@@ -138,12 +138,12 @@ export default function JobDetailClient({ posting }: { posting: Posting }) {
           {/* Meta row */}
           <div
             style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "12px 24px",
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+              gap: "16px",
               fontSize: 14,
               color: "var(--text-secondary)",
-              marginBottom: 36,
+              marginBottom: 40,
             }}
           >
             <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -212,7 +212,7 @@ export default function JobDetailClient({ posting }: { posting: Posting }) {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }}>
           {/* About This Role */}
           <Section title="About This Role" icon={<BookOpen size={18} />}>
-            <div className="max-w-prose" style={{ color: "var(--text-secondary)", fontSize: 15, lineHeight: 1.65, whiteSpace: "pre-wrap" }}>
+            <div className="max-w-prose" style={{ color: "var(--text-secondary)", fontSize: 16, lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
               {posting.description}
             </div>
           </Section>
@@ -313,10 +313,12 @@ export default function JobDetailClient({ posting }: { posting: Posting }) {
           bottom: 0,
           left: 0,
           right: 0,
-          background: "rgba(10,10,15,0.95)",
-          backdropFilter: "blur(12px)",
-          borderTop: "1px solid var(--border)",
-          padding: "14px 24px",
+          background: "rgba(10,10,15,0.85)",
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
+          borderTop: "1px solid rgba(255,255,255,0.05)",
+          boxShadow: "0 -10px 40px rgba(0,0,0,0.3)",
+          padding: "16px 24px",
           zIndex: 100,
         }}
       >
@@ -370,7 +372,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div style={{ marginBottom: 44 }}>
+    <div style={{ marginBottom: 56 }}>
       <h2
         style={{
           fontSize: 20,

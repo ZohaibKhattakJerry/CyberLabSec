@@ -280,15 +280,17 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
         </div>
 
         {/* Step indicator */}
-        <div style={{ display: "flex", gap: 8, marginBottom: 32, alignItems: "center", overflowX: "auto", paddingBottom: 8, WebkitOverflowScrolling: "touch", scrollbarWidth: "none", flexWrap: "nowrap" }}>
+        <div style={{ display: "flex", gap: 12, marginBottom: 36, alignItems: "center", overflowX: "auto", paddingBottom: 8, WebkitOverflowScrolling: "touch", scrollbarWidth: "none", flexWrap: "nowrap" }}>
           {[1, 2, 3, 4].map((s) => (
-            <div key={s} style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-              <div style={{ width: 28, height: 28, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, background: s <= step ? "var(--purple)" : "rgba(255,255,255,0.06)", color: s <= step ? "#fff" : "var(--text-muted)", transition: "all 0.3s" }}>{s}</div>
-              {s < 4 && <div style={{ width: 24, height: 2, background: s < step ? "var(--purple)" : "rgba(255,255,255,0.06)", transition: "all 0.3s" }} />}
+            <div key={s} style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
+              <div style={{ width: 32, height: 32, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, background: s === step ? "var(--purple)" : s < step ? "rgba(168,85,247,0.2)" : "rgba(255,255,255,0.04)", color: s === step ? "#fff" : s < step ? "var(--purple-light)" : "var(--text-muted)", transition: "all 0.3s ease", border: s === step ? "none" : "1px solid rgba(255,255,255,0.05)" }}>
+                {s < step ? <CheckCircle size={16} /> : s}
+              </div>
+              {s < 4 && <div style={{ width: 32, height: 2, background: s < step ? "rgba(168,85,247,0.4)" : "rgba(255,255,255,0.06)", transition: "all 0.3s ease", borderRadius: 1 }} />}
             </div>
           ))}
-          <span style={{ marginLeft: 8, fontSize: 13, color: "var(--text-primary)", fontWeight: 600, whiteSpace: "nowrap", flexShrink: 0 }}>
-            {step === 1 ? "Personal Info" : step === 2 ? "Links & Profile" : step === 3 ? "Documents" : "Review & Consent"}
+          <span style={{ marginLeft: 16, fontSize: 14, color: "var(--text-primary)", fontWeight: 600, whiteSpace: "nowrap", flexShrink: 0 }}>
+            {step === 1 ? "Personal Info" : step === 2 ? "Security Profile" : step === 3 ? "Documents" : "Review"}
           </span>
         </div>
 
@@ -556,8 +558,8 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                 <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Review & Consent</h2>
                 <p style={{ color: "var(--text-secondary)", fontSize: 14, marginBottom: 24 }}>Please review your details and accept the required consents before submitting.</p>
 
-                <div style={{ background: "rgba(255,255,255,0.02)", borderRadius: 8, border: "1px solid var(--border)", padding: 16, marginBottom: 24 }}>
-                  <div style={{ display: "grid", gap: 10, fontSize: 14 }}>
+                <div style={{ background: "rgba(255,255,255,0.015)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.05)", padding: 24, marginBottom: 32, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)" }}>
+                  <div style={{ display: "grid", gap: 16, fontSize: 14 }}>
                     {[
                       ["Name", form.fullName], ["Email", form.email], ["Phone", form.phone],
                       ["Position", posting.title], ["CV", cvFile?.name || "—"],
@@ -569,9 +571,9 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                       ...(form.hackTheBox ? [["HackTheBox", form.hackTheBox]] : []),
                       ...(form.certifications && form.certifications !== "None yet" ? [["Certs", form.certifications]] : []),
                     ].map(([k, v]) => (
-                      <div key={k} style={{ display: "flex", gap: 8 }}>
-                        <span style={{ color: "var(--text-muted)", width: 80, flexShrink: 0 }}>{k}</span>
-                        <span style={{ color: "var(--text-primary)", wordBreak: "break-word" }}>{v}</span>
+                      <div key={k} style={{ display: "flex", gap: 16, borderBottom: "1px solid rgba(255,255,255,0.03)", paddingBottom: 16, alignItems: "flex-start" }}>
+                        <span style={{ color: "var(--text-muted)", width: 100, flexShrink: 0, fontWeight: 500 }}>{k}</span>
+                        <span style={{ color: "var(--text-primary)", wordBreak: "break-word", fontWeight: 600 }}>{v}</span>
                       </div>
                     ))}
                   </div>

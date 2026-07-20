@@ -205,16 +205,18 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
             If you do too, there&apos;s a place for you here.
           </motion.p>
 
-          {/* Stats */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
             style={{
-              display: "flex",
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+              gap: 20,
               justifyContent: "center",
-              gap: 32,
-              flexWrap: "wrap",
+              textAlign: "left",
+              maxWidth: 600,
+              margin: "0 auto",
             }}
           >
             {[
@@ -298,8 +300,15 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 + i * 0.07 }}
-              className="card"
-              style={{ padding: "20px 24px", display: "flex", gap: 16, alignItems: "flex-start" }}
+              className="card card-hover"
+              style={{ 
+                padding: "24px", 
+                display: "flex", 
+                gap: 16, 
+                alignItems: "flex-start",
+                background: "rgba(255,255,255,0.015)",
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)"
+              }}
             >
               <div style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(168,85,247,0.1)", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(168,85,247,0.2)", flexShrink: 0 }}>
                 {item.icon}
@@ -426,8 +435,8 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
                       <div
                         style={{
                           display: "flex",
-                          flexDirection: "column", /* Stacks vertically for grid layout */
-                          alignItems: "flex-start",
+                          flexDirection: "column",
+                          alignItems: "stretch",
                           gap: 16,
                         }}
                       >
@@ -464,9 +473,9 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
 
                         <div
                           style={{
-                            display: "flex",
-                            gap: 16,
-                            flexWrap: "wrap",
+                            display: "grid",
+                            gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+                            gap: "12px",
                             fontSize: 13,
                             color: "var(--text-secondary)",
                           }}
