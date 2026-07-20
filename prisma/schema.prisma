@@ -185,7 +185,7 @@ model Team {
 
 model Task {
   id              String           @id @default(cuid())
-  teamId          String
+  teamId          String?
   title           String
   brief           String
   category        String           @default("General")
@@ -198,9 +198,15 @@ model Task {
   assigneeId      String?
   checklist       String           @default("[]")
   comments        String           @default("[]")
+  
+  // Offensive Security Fields
+  targetUrl       String?
+  scopeRules      String?          @db.Text
+  vulnFocus       String?
+
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
-  team            Team             @relation(fields: [teamId], references: [id])
+  team            Team?            @relation(fields: [teamId], references: [id])
   submissions     TaskSubmission[]
 }
 

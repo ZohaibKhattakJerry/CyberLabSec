@@ -26,17 +26,19 @@ export async function POST(req: NextRequest) {
   const auth = await getAuthFromCookies();
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const { teamId, title, brief, deadline, priority, checklist, attachments, assigneeId } = await req.json();
-  if (!teamId || !title || !deadline) {
-    return NextResponse.json({ error: "teamId, title, and deadline are required" }, { status: 400 });
+  const { teamId, title, brief, deadline, priority, checklist, attachments, assigneeId, targetUrl, scopeRules, vulnFocus } = await req.json();
+  if (!title || !deadline || (!teamId && !assigneeId)) {
+    return NextResponse.json({ error: "Title, deadline, and either a Team or Assignee are required" }, { status: 400 });
   }
 
-  const team = await prisma.team.findUnique({ where: { id: teamId } });
-  if (!team) return NextResponse.json({ error: "Team not found" }, { status: 404 });
+  if (teamId) {
+    const team = await prisma.team.findUnique({ where: { id: teamId } });
+    if (!team) return NextResponse.json({ error: "Team not found" }, { status: 404 });
+  }
 
   const task = await prisma.task.create({
     data: {
-      teamId,
+      teamId: teamId || null,
       title: title.trim(),
       brief: brief?.trim() || "",
       deadline: new Date(deadline),
@@ -46,15 +48,44 @@ export async function POST(req: NextRequest) {
       checklist: checklist ? JSON.stringify(checklist) : "[]",
       attachments: attachments ? JSON.stringify(attachments) : "[]",
       assigneeId: assigneeId || null,
+      targetUrl: targetUrl?.trim() || null,
+      scopeRules: scopeRules?.trim() || null,
+      vulnFocus: vulnFocus?.trim() || null,
     },
   });
+
+  const admin = await prisma.employee.findUnique({ where: { id: auth.sub } });
 
   // Notify team members or specific assignee
   let targetEmployees: { id: string }[] = [];
   if (assigneeId) {
     targetEmployees = [{ id: assigneeId }];
-  } else {
+    
+    // Create Announcement for Individual
+    if (admin) {
+      await prisma.announcement.create({
+        data: {
+          scope: "Individual",
+          employeeId: assigneeId,
+          message: `New Operational Task Assigned: ${task.title} (Due: ${new Date(deadline).toLocaleDateString()})`,
+          sentById: admin.id,
+        }
+      });
+    }
+  } else if (teamId) {
     targetEmployees = await prisma.employee.findMany({ where: { teamId, status: "Active" }, select: { id: true } });
+    
+    // Create Announcement for Team
+    if (admin) {
+      await prisma.announcement.create({
+        data: {
+          scope: "Team",
+          teamId: teamId,
+          message: `New Team Operational Task: ${task.title} (Due: ${new Date(deadline).toLocaleDateString()})`,
+          sentById: admin.id,
+        }
+      });
+    }
   }
 
   if (targetEmployees.length > 0) {

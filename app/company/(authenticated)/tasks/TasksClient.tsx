@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Search, _Calendar, _ChevronRight, FileText, CheckCircle, Clock, AlertTriangle, Star, _X, Loader2, ExternalLink, Eye, _Filter, LayoutList, LayoutGrid } from "lucide-react";
+import { Plus, Search, _Calendar, _ChevronRight, FileText, CheckCircle, Clock, AlertTriangle, Star, _X, Loader2, ExternalLink, Eye, _Filter, LayoutList, LayoutGrid, Globe, Target, ShieldAlert } from "lucide-react";
 import { format, formatDistanceToNow, isPast } from "date-fns";
 import toast from "react-hot-toast";
 
@@ -34,6 +34,9 @@ interface Task {
     name: string;
     members?: { id: string; name: string; employeeCode: string; photoUrl?: string }[];
   };
+  targetUrl?: string | null;
+  scopeRules?: string | null;
+  vulnFocus?: string | null;
 }
 
 interface Team {
@@ -74,7 +77,7 @@ export default function TasksClient({ initialTasks, teams, employees, hideHeader
   const [qualityRating, setQualityRating] = useState(0);
 
   // Create form state
-  const [form, setForm] = useState({ title: "", brief: "", deadline: "", teamId: "", assigneeId: "", priority: "Medium", assignType: "Team" });
+  const [form, setForm] = useState({ title: "", brief: "", deadline: "", teamId: "", assigneeId: "", priority: "Medium", assignType: "Team", targetUrl: "", scopeRules: "", vulnFocus: "" });
   const [checklistItems, setChecklistItems] = useState<string[]>([]);
   const [checklistInput, setChecklistInput] = useState("");
   const [attachments, setAttachments] = useState<{name: string, url: string}[]>([]);
@@ -97,16 +100,11 @@ export default function TasksClient({ initialTasks, teams, employees, hideHeader
       const selectedEmp = form.assignType === "Individual" ? employees.find(e => e.id === form.assigneeId) : null;
       const payload = {
         ...form,
-        teamId: form.assignType === "Team" ? form.teamId : (selectedEmp?.teamId || form.teamId),
+        teamId: form.assignType === "Team" ? form.teamId : (selectedEmp?.teamId || form.teamId || null),
         assigneeId: form.assignType === "Individual" ? form.assigneeId : undefined,
         checklist: checklistItems,
         attachments
       };
-      if (!payload.teamId) {
-        toast.error("Employee must belong to a team, or select a team directly.");
-        setLoading(false);
-        return;
-      }
       const res = await fetch("/api/company/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -119,7 +117,7 @@ export default function TasksClient({ initialTasks, teams, employees, hideHeader
       
       setTasks([{ ...task, team: newTeam || { id: "no-team", name: "Direct Assignment" }, submissions: [] }, ...tasks]);
       setShowCreate(false);
-      setForm({ title: "", brief: "", deadline: "", teamId: "", assigneeId: "", priority: "Medium", assignType: "Team" });
+      setForm({ title: "", brief: "", deadline: "", teamId: "", assigneeId: "", priority: "Medium", assignType: "Team", targetUrl: "", scopeRules: "", vulnFocus: "" });
       setChecklistItems([]);
       setChecklistInput("");
       setAttachments([]);
@@ -211,7 +209,23 @@ export default function TasksClient({ initialTasks, teams, employees, hideHeader
 
             <div>
               <label className="label">Operational Briefing</label>
-              <textarea className="input" value={form.brief} onChange={e => setForm({ ...form, brief: e.target.value })} placeholder="Detailed objectives, scope, and deliverables..." rows={4} />
+              <textarea className="input" value={form.brief} onChange={e => setForm({ ...form, brief: e.target.value })} placeholder="Detailed objectives, deliverables..." rows={3} />
+            </div>
+
+            {/* Cybersecurity Fields */}
+            <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+              <div>
+                <label className="label">Target URL / IP</label>
+                <input className="input" value={form.targetUrl} onChange={e => setForm({ ...form, targetUrl: e.target.value })} placeholder="e.g. https://example.com" />
+              </div>
+              <div>
+                <label className="label">Vulnerability Focus</label>
+                <input className="input" value={form.vulnFocus} onChange={e => setForm({ ...form, vulnFocus: e.target.value })} placeholder="e.g. SQLi, XSS, SSRF" />
+              </div>
+            </div>
+            <div>
+              <label className="label">Scope & Rules of Engagement</label>
+              <textarea className="input" value={form.scopeRules} onChange={e => setForm({ ...form, scopeRules: e.target.value })} placeholder="Define in-scope assets, out-of-scope targets, and testing limitations..." rows={3} />
             </div>
 
             <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
@@ -415,6 +429,27 @@ export default function TasksClient({ initialTasks, teams, employees, hideHeader
                         <CheckCircle size={12} /> {task.submissions.length} submission{task.submissions.length !== 1 ? "s" : ""}
                       </span>
                     </div>
+
+                    {/* Security Fields Preview */}
+                    {(task.targetUrl || task.vulnFocus) && (
+                      <div style={{ display: "flex", gap: 16, marginTop: 10, padding: "8px 12px", background: "rgba(168,85,247,0.05)", borderRadius: 6, border: "1px solid rgba(168,85,247,0.15)" }}>
+                        {task.targetUrl && (
+                          <span style={{ fontSize: 12, color: "var(--purple)", display: "flex", alignItems: "center", gap: 6 }}>
+                            <Globe size={13} /> {task.targetUrl}
+                          </span>
+                        )}
+                        {task.vulnFocus && (
+                          <span style={{ fontSize: 12, color: "var(--purple)", display: "flex", alignItems: "center", gap: 6 }}>
+                            <Target size={13} /> {task.vulnFocus}
+                          </span>
+                        )}
+                        {task.scopeRules && (
+                          <span style={{ fontSize: 12, color: "var(--purple)", display: "flex", alignItems: "center", gap: 6 }} title={task.scopeRules}>
+                            <ShieldAlert size={13} /> ROE Defined
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
