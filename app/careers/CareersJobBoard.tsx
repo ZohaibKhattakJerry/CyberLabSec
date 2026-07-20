@@ -289,11 +289,6 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
               title: "Results-Driven Culture",
               desc: "Fully remote. We measure technical excellence and impact, not hours online.",
             },
-            {
-              icon: <GraduationCap size={20} color="var(--purple)" />,
-              title: "Verifiable Credentials",
-              desc: "Completion certificates and Letters of Recommendation from our founder for top performers.",
-            },
           ].map((item, i) => (
             <motion.div
               key={item.title}
@@ -410,7 +405,7 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
             )}
           </motion.div>
         ) : (
-          <motion.div layout className="careers-grid">
+          <motion.div layout style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 850, margin: "0 auto" }}>
             <AnimatePresence mode="popLayout">
             {filtered.map((posting, i) => {
               const days = daysUntilDeadline(posting.deadline);
@@ -429,125 +424,98 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
                   <Link href={`/careers/${posting.id}`} style={{ textDecoration: 'none', display: 'block' }}>
                     <article
                       className="card card-hover"
-                      style={{ cursor: "pointer" }}
+                      style={{ cursor: "pointer", padding: "24px" }}
                     >
-                    <div style={{ padding: "20px 24px" }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "stretch",
-                          gap: 16,
-                        }}
-                      >
-                      {/* Left: Info */}
-                      <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 24 }}>
+                        {/* Left: Info */}
+                        <div style={{ flex: "1 1 300px" }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 12,
+                              marginBottom: 12,
+                              flexWrap: "wrap",
+                            }}
+                          >
+                            <h2
+                              style={{
+                                fontSize: 20,
+                                fontWeight: 700,
+                                color: "var(--text-primary)",
+                                margin: 0,
+                                letterSpacing: "-0.01em",
+                              }}
+                            >
+                              {posting.title}
+                            </h2>
+                            <span
+                              className={
+                                posting.type === "Job" ? "badge badge-blue" : "badge badge-amber"
+                              }
+                            >
+                              {posting.type}
+                            </span>
+                          </div>
+
+                          <div
+                            style={{
+                              display: "flex",
+                              flexWrap: "wrap",
+                              gap: 20,
+                              fontSize: 14,
+                              color: "var(--text-secondary)",
+                            }}
+                          >
+                            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                              <Briefcase size={16} />
+                              {posting.department}
+                            </span>
+                            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                              <MapPin size={16} />
+                              {posting.location}
+                            </span>
+                            {posting.universityRequired && (
+                              <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                <GraduationCap size={16} />
+                                University Required
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Right: Deadline + CTA */}
                         <div
                           style={{
                             display: "flex",
-                            alignItems: "center",
-                            gap: 10,
-                            marginBottom: 8,
-                            flexWrap: "wrap",
+                            flexDirection: "column",
+                            alignItems: "flex-end",
+                            gap: 12,
+                            flex: "0 0 auto",
                           }}
                         >
-                          <h2
+                          <div
                             style={{
-                              fontSize: 18,
-                              fontWeight: 700,
-                              color: "var(--text-primary)",
-                              margin: 0,
-                              letterSpacing: "-0.01em",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 6,
+                              color: days !== null && days <= 3 ? "var(--red)" : isUrgent ? "var(--amber)" : "var(--text-muted)",
+                              fontWeight: days !== null && days <= 3 ? 600 : 400,
+                              fontSize: 14,
                             }}
                           >
-                            {posting.title}
-                          </h2>
-                          <span
-                            className={
-                              posting.type === "Job" ? "badge badge-blue" : "badge badge-amber"
-                            }
-                          >
-                            {posting.type}
-                          </span>
-                        </div>
-
-                        <div
-                          style={{
-                            display: "grid",
-                            gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-                            gap: "12px",
-                            fontSize: 13,
-                            color: "var(--text-secondary)",
-                          }}
-                        >
-                          <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                            <Briefcase size={13} />
-                            {posting.department}
-                          </span>
-                          <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                            <MapPin size={13} />
-                            {posting.location}
-                          </span>
-                          {posting.universityRequired && (
-                            <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                              <GraduationCap size={13} />
-                              University Required
-                            </span>
-                          )}
+                            <Clock size={14} />
+                            {days !== null ? (
+                              days > 0 ? `Closes ${format(new Date(posting.deadline), "MMM d")}` : "Closed"
+                            ) : "..."}
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--purple)", fontWeight: 600, fontSize: 14 }}>
+                            View Role <ChevronRight size={16} />
+                          </div>
                         </div>
                       </div>
-
-                      {/* Right: Deadline + CTA */}
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          width: "100%",
-                          marginTop: "auto", /* Pushes to bottom */
-                          paddingTop: 16,
-                          borderTop: "1px solid var(--border-subtle)",
-                        }}
-                      >
-                        <div
-                           style={{
-                             textAlign: "right",
-                             fontSize: 13,
-                           }}
-                         >
-                           <div
-                             style={{
-                               display: "flex",
-                               alignItems: "center",
-                               gap: 4,
-                               color: days !== null && days <= 3 ? "var(--red)" : isUrgent ? "var(--amber)" : "var(--text-muted)",
-                               justifyContent: "flex-end",
-                               fontWeight: days !== null && days <= 3 ? 600 : 400,
-                               marginBottom: 2,
-                             }}
-                           >
-                             <Clock size={12} />
-                             {days !== null ? (
-                               days > 0 ? `Closes ${format(new Date(posting.deadline), "MMM d")}` : "Closed"
-                             ) : "..."}
-                           </div>
-                           <div style={{ color: "var(--text-muted)", fontSize: 12 }}>
-                             {postedDays !== null ? (
-                               postedDays === 0 ? "Posted today" : `Posted ${postedDays}d ago`
-                             ) : "..."}
-                           </div>
-                         </div>
-                        <ChevronRight
-                          size={18}
-                          style={{
-                            color: "var(--text-muted)",
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </article>
-              </Link>
+                    </article>
+                  </Link>
                 </motion.div>
               );
             })}
