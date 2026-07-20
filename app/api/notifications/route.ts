@@ -3,7 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { getAuthFromCookies } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
-  const auth = await getAuthFromCookies();
+  const { searchParams } = new URL(req.url);
+  const role = searchParams.get("role") as "admin" | "employee" | undefined;
+
+  const auth = await getAuthFromCookies(role);
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const userId = auth.role === "admin" ? "admin" : auth.sub;

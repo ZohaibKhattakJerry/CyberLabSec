@@ -110,7 +110,7 @@ function ResetPasswordForm() {
           </button>
         )}
         <button className="btn btn-primary" type="submit" disabled={loading} style={{ flex: 1 }}>
-          {loading ? <><Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> Resetting...</> : "Reset Password"}
+          {loading ? <><Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> Changing...</> : "Change Password"}
         </button>
       </div>
     </form>

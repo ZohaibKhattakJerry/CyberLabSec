@@ -313,7 +313,7 @@ export default function ProfileClient({ employee, activityLogs }: { employee: Em
                 style={{ gap: 6 }}
                 onClick={async () => {
                   if (!confirm("Sign out of all devices? You will be logged out immediately.")) return;
-                  await fetch("/api/auth/logout", { method: "POST" });
+                  await fetch("/api/auth/logout?role=employee", { method: "POST" });
                   router.push("/employee/login");
                 }}
               >

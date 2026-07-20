@@ -6,7 +6,7 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ ticketId: string }> }
 ) {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== 'admin')
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 

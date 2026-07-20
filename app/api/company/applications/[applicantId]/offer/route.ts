@@ -5,7 +5,7 @@ import { randomBytes } from "crypto";
 import { sendEmail, sendOfferLetter } from "@/lib/email";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ applicantId: string }> }) {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { applicantId } = await params;
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ app
   // Log
   await prisma.activityLog.create({
     data: {
-      actorId: auth.sub,
+      actorId: null,
       actorType: "Admin",
       action: "OFFER_SENT",
       metadata: JSON.stringify({ applicantId, applicantName: applicant.fullName, token }),

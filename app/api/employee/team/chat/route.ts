@@ -4,7 +4,7 @@ import { getAuthFromCookies } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   try {
-    const auth = await getAuthFromCookies();
+    const auth = await getAuthFromCookies("employee");
     if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const employee = await prisma.employee.findUnique({ where: { id: auth.sub } });

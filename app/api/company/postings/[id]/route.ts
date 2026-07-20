@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuthFromCookies } from "@/lib/auth";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const resolvedParams = await params;
@@ -29,6 +29,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (body.stipend !== undefined) dataToUpdate.stipend = body.stipend || null;
   if (body.experienceLevel !== undefined) dataToUpdate.experienceLevel = body.experienceLevel || "Any";
   if (body.duration !== undefined) dataToUpdate.duration = body.duration || null;
+  if (body.effectiveDate !== undefined) dataToUpdate.effectiveDate = body.effectiveDate ? new Date(body.effectiveDate) : null;
+  if (body.durationMonths !== undefined) dataToUpdate.durationMonths = body.durationMonths ? parseInt(body.durationMonths) : null;
   if (body.weeklyHours !== undefined) dataToUpdate.weeklyHours = body.weeklyHours ? parseInt(body.weeklyHours) : null;
   if (body.niceToHave !== undefined) dataToUpdate.niceToHave = body.niceToHave || null;
   if (body.whatYouGain !== undefined) dataToUpdate.whatYouGain = body.whatYouGain || null;
@@ -41,7 +43,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     });
 
     await prisma.activityLog.create({
-      data: { actorId: auth.sub, actorType: "Admin", action: "POSTING_UPDATED", metadata: JSON.stringify({ postingId: posting.id, status: body.status }) },
+      data: { actorId: null, actorType: "Admin", action: "POSTING_UPDATED", metadata: JSON.stringify({ postingId: posting.id, status: body.status }) },
     }).catch(() => {});
 
     return NextResponse.json({ success: true, posting });
@@ -51,7 +53,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const resolvedParams = await params;
@@ -76,7 +78,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     await prisma.jobPosting.delete({ where: { id: resolvedParams.id } });
 
     await prisma.activityLog.create({
-      data: { actorId: auth.sub, actorType: "Admin", action: "POSTING_DELETED", metadata: JSON.stringify({ postingId: resolvedParams.id }) },
+      data: { actorId: null, actorType: "Admin", action: "POSTING_DELETED", metadata: JSON.stringify({ postingId: resolvedParams.id }) },
     }).catch(() => {});
 
     return NextResponse.json({ success: true });

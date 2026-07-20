@@ -6,7 +6,7 @@ import TicketManagerClient from './TicketManagerClient';
 export const dynamic = 'force-dynamic';
 
 export default async function TicketsPage() {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== 'admin') redirect('/company/login');
 
   const tickets = await prisma.supportTicket.findMany({

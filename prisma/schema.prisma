@@ -45,7 +45,7 @@ model Applicant {
   stageHistory       String            @default("[]")
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
-  jobPosting       JobPosting        @relation(fields: [jobPostingId], references: [id])
+  jobPosting       JobPosting        @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
   employeeRecord   Employee?
   interviewSession InterviewSession?
   ceoReviews       CEOReview[]
@@ -75,6 +75,8 @@ model JobPosting {
   stipend            String?
   showStipend        Boolean     @default(true)
   duration           String?
+  effectiveDate      DateTime?
+  durationMonths     Int?
   weeklyHours        Int?
   experienceLevel    String      @default("Any")
   openings           Int         @default(1)
@@ -139,6 +141,7 @@ model Employee {
   personalEmail        String?
   address              String?
   emergencyContact     String?
+  completionNotified   Boolean                   @default(false)
   skills               String                    @default("[]")
   offboardedAt         DateTime?
   offboardReason       String?
@@ -241,10 +244,10 @@ model Announcement {
   message    String
   isPinned   Boolean                   @default(false)
   expiresAt  DateTime?
-  sentById   String
+  sentById   String?
   sentAt     DateTime                  @default(now())
   employee   Employee?                 @relation("ReceivedAnnouncements", fields: [employeeId], references: [id])
-  sentBy     Employee                  @relation("SentBy", fields: [sentById], references: [id])
+  sentBy     Employee?                 @relation("SentBy", fields: [sentById], references: [id])
   team       Team?                     @relation(fields: [teamId], references: [id])
   reads      AnnouncementReadReceipt[]
 
@@ -266,13 +269,13 @@ model AnnouncementReadReceipt {
 model CEOReview {
   id          String     @id @default(cuid())
   type        String // e.g. Hire, Promotion
-  submitterId String
+  submitterId String?
   applicantId String?
   status      String     @default("Pending") // Pending, Approved, Rejected, More Info
   comments    String?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
-  submitter   Employee   @relation("ReviewSubmitter", fields: [submitterId], references: [id])
+  submitter   Employee?  @relation("ReviewSubmitter", fields: [submitterId], references: [id])
   applicant   Applicant? @relation(fields: [applicantId], references: [id])
 
   @@index([applicantId])
@@ -295,8 +298,8 @@ model OfferLetter {
   token         String      @unique
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
-  applicant     Applicant   @relation(fields: [applicantId], references: [id])
-  jobPosting    JobPosting? @relation(fields: [jobPostingId], references: [id])
+  applicant     Applicant   @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  jobPosting    JobPosting? @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
 
   @@index([jobPostingId])
 }

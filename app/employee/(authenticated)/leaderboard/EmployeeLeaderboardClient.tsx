@@ -129,15 +129,31 @@ export default function EmployeeLeaderboardClient({
       <style>{`
         @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .row-hover { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
-        .row-hover:hover { background: rgba(255,255,255,0.04); transform: scale(1.01) translateX(4px); z-index: 10; position: relative; box-shadow: -4px 0 0 var(--purple), 0 10px 30px rgba(0,0,0,0.2); }
-        .hero-banner { background: radial-gradient(circle at 50% 0%, rgba(168,85,247,0.15) 0%, rgba(0,0,0,0) 70%), var(--bg-secondary); border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); }
-        .stat-panel { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 20px; transition: 0.3s; }
-        .stat-panel:hover { border-color: rgba(168,85,247,0.3); background: rgba(168,85,247,0.05); }
-        .nav-btn { padding: 10px 24px; borderRadius: 30px; fontWeight: 600; cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
-        .nav-btn.active { background: var(--purple); color: #fff; box-shadow: 0 4px 14px rgba(168,85,247,0.4); }
-        .nav-btn.inactive { background: rgba(255,255,255,0.05); color: var(--text-secondary); border: 1px solid rgba(255,255,255,0.1); }
-        .nav-btn.inactive:hover { background: rgba(255,255,255,0.1); color: var(--text-primary); }
+        @keyframes pulseGlow { 0% { box-shadow: 0 0 10px rgba(168,85,247,0.2); } 50% { box-shadow: 0 0 30px rgba(168,85,247,0.6); } 100% { box-shadow: 0 0 10px rgba(168,85,247,0.2); } }
+        .row-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .row-hover:hover { background: rgba(255,255,255,0.06); transform: scale(1.02) translateX(6px); z-index: 10; position: relative; box-shadow: -4px 0 0 var(--purple), 0 15px 40px rgba(0,0,0,0.4); border-radius: 12px; }
+        .hero-banner { background: radial-gradient(circle at 50% 0%, rgba(168,85,247,0.2) 0%, rgba(0,0,0,0) 70%), var(--bg-secondary); border-radius: 24px; border: 1px solid rgba(168,85,247,0.15); box-shadow: inset 0 0 60px rgba(168,85,247,0.05), 0 20px 60px rgba(0,0,0,0.3); }
+        .stat-panel { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 24px; transition: 0.3s; backdrop-filter: blur(12px); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .stat-panel:hover { border-color: rgba(168,85,247,0.4); background: rgba(168,85,247,0.08); transform: translateY(-4px); box-shadow: 0 15px 40px rgba(168,85,247,0.15); }
+        .nav-btn { padding: 12px 28px; borderRadius: 30px; fontWeight: 700; cursor: pointer; transition: 0.3s; border: 1px solid transparent; text-transform: uppercase; letter-spacing: 1px; font-size: 13px; }
+        .nav-btn.active { background: linear-gradient(135deg, var(--purple), #6b21a8); color: #fff; animation: pulseGlow 2s infinite; border-color: rgba(168,85,247,0.5); }
+        .nav-btn.inactive { background: rgba(255,255,255,0.03); color: var(--text-secondary); border: 1px solid rgba(255,255,255,0.05); }
+        .nav-btn.inactive:hover { background: rgba(255,255,255,0.08); color: var(--text-primary); border-color: rgba(255,255,255,0.2); }
+        
+        .table-row { display: grid; grid-template-columns: 80px 1fr 1.5fr 1fr; gap: 16px; padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.03); alignItems: center; }
+        .table-header { display: grid; grid-template-columns: 80px 1fr 1.5fr 1fr; gap: 16px; padding: 16px 24px; border-bottom: 1px solid rgba(255,255,255,0.05); fontSize: 11px; fontWeight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; background: rgba(0,0,0,0.3); backdrop-filter: blur(8px); }
+        
+        .podium-container { display: flex; justify-content: center; align-items: flex-end; position: relative; z-index: 2; gap: 12px; }
+        
+        @media (max-width: 768px) {
+          .table-row { grid-template-columns: 50px 1fr 80px; gap: 12px; padding: 16px 12px; }
+          .table-header { grid-template-columns: 50px 1fr 80px; gap: 12px; padding: 12px; }
+          .hide-on-mobile { display: none !important; }
+          .stat-panel { padding: 16px; }
+          .podium-container { transform: scale(0.75); margin-bottom: -20px; }
+          h1 { font-size: 32px !important; }
+          .hero-banner { padding: 24px 16px 0 !important; }
+        }
       `}</style>
 
       {/* HERO & PODIUM */}
@@ -156,7 +172,7 @@ export default function EmployeeLeaderboardClient({
         </div>
 
         {/* PODIUM */}
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-end", position: "relative", zIndex: 2 }}>
+        <div className="podium-container">
           {top3[1] && <PodiumAvatar e={top3[1]} place={2} />}
           {top3[0] && <PodiumAvatar e={top3[0]} place={1} />}
           {top3[2] && <PodiumAvatar e={top3[2]} place={3} />}
@@ -221,10 +237,10 @@ export default function EmployeeLeaderboardClient({
 
       {/* TABLE */}
       <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 16, overflow: "hidden", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "80px 1fr 1.5fr 1fr", gap: 16, padding: "16px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 1, background: "rgba(0,0,0,0.2)" }}>
+        <div className="table-header">
           <div>Rank</div>
           <div>Employee</div>
-          <div>Progress & Team</div>
+          <div className="hide-on-mobile">Progress & Team</div>
           <div style={{ textAlign: "right" }}>Score</div>
         </div>
 
@@ -240,7 +256,7 @@ export default function EmployeeLeaderboardClient({
             else if (rank <= 25) rankColor = "#3b82f6";
 
             return (
-              <div key={e.id} className="row-hover" style={{ display: "grid", gridTemplateColumns: "80px 1fr 1.5fr 1fr", gap: 16, padding: "20px 24px", borderBottom: "1px solid rgba(255,255,255,0.03)", alignItems: "center", background: isMe ? "rgba(168,85,247,0.08)" : "transparent", animation: "slideUp 0.3s ease-out forwards", animationDelay: `\${idx * 0.03}s`, opacity: 0 }}>
+              <div key={e.id} className="row-hover table-row" style={{ background: isMe ? "rgba(168,85,247,0.08)" : "transparent", animation: "slideUp 0.3s ease-out forwards", animationDelay: `\${idx * 0.03}s`, opacity: 0 }}>
                 <div style={{ fontSize: 18, fontWeight: 800, color: rankColor }}>
                   #{rank}
                 </div>
@@ -256,7 +272,7 @@ export default function EmployeeLeaderboardClient({
                     <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 2 }}>{e.designation}</div>
                   </div>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingRight: 40 }}>
+                <div className="hide-on-mobile" style={{ display: "flex", flexDirection: "column", gap: 8, paddingRight: 40 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 600, color: "var(--text-muted)" }}>
                     <span>{e.team?.name || "No Team"}</span>
                     <span>{percent.toFixed(1)}%</span>

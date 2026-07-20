@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Shield, ChevronRight, ChevronLeft, CheckCircle, Info, Lock, BookOpen, AlertTriangle } from "lucide-react";
@@ -27,7 +27,23 @@ export default function OnboardingWizard({ employee }: { employee: Employee }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [agreedNDA, setAgreedNDA] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    setMounted(true);
+    const savedStep = localStorage.getItem(`onboarding_step_${employee.id}`);
+    if (savedStep) setCurrentStep(parseInt(savedStep));
+    const savedNDA = localStorage.getItem(`onboarding_nda_${employee.id}`);
+    if (savedNDA === "true") setAgreedNDA(true);
+  }, [employee.id]);
+
+  useEffect(() => {
+    if (mounted) {
+      localStorage.setItem(`onboarding_step_${employee.id}`, currentStep.toString());
+      localStorage.setItem(`onboarding_nda_${employee.id}`, agreedNDA.toString());
+    }
+  }, [currentStep, agreedNDA, employee.id, mounted]);
 
   const handleNext = () => {
     const stepId = STEPS[currentStep].id;
@@ -51,6 +67,8 @@ export default function OnboardingWizard({ employee }: { employee: Employee }) {
         body: JSON.stringify({}),
       });
       if (!res.ok) throw new Error("Failed to complete onboarding.");
+      localStorage.removeItem(`onboarding_step_${employee.id}`);
+      localStorage.removeItem(`onboarding_nda_${employee.id}`);
       toast.success("Welcome aboard!");
       router.refresh();
     } catch {

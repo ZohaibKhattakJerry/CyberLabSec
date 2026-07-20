@@ -4,7 +4,7 @@ import { getAuthFromCookies } from "@/lib/auth";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("employee");
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { currentPassword, newPassword } = await req.json();

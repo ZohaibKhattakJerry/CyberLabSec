@@ -1,0 +1,122 @@
+================================================================================
+                    CYBERLABSEC PLATFORM - ULTIMATE MASTER GUIDE
+================================================================================
+Author: Senior UI/UX & Full Stack Architect
+Date: 2026-07-20
+Status: 100% Mobile Responsive, Production Ready
+
+1. PLATFORM OVERVIEW & ARCHITECTURE
+--------------------------------------------------------------------------------
+CyberLabSec is a state-of-the-art, ultra-premium internal operations and talent 
+acquisition platform. It is designed to manage the entire lifecycle of a worker 
+from being an applicant to becoming a gamified, high-performing employee.
+
+TECH STACK:
+- Frontend: Next.js (App Router), React, Lucide-React (Icons)
+- Backend: Next.js API Routes, Prisma ORM
+- Database: PostgreSQL
+- Styling: Pure custom CSS with a strict Glassmorphic Dark-Mode aesthetic.
+- Deployment: Vercel (https://cyberlabsec.tech)
+
+2. UI/UX DESIGN LANGUAGE (The "World-Top Expert" Standard)
+--------------------------------------------------------------------------------
+The aesthetic is deliberately designed to feel like a high-end cybersecurity 
+command center:
+- Theme: Exclusive Dark Mode (Deep slate backgrounds `#0b0f19`).
+- Accents: Vibrant Purple (`#a855f7`) to Pink (`#ec4899`) gradients.
+- Glassmorphism: Cards and sidebars use `backdrop-filter: blur(12px)` with 
+  semi-transparent borders (`rgba(255,255,255,0.08)`) and soft inner glows.
+- Mobile-First Perfection: The layout utilizes Dynamic Viewport Height (`100dvh`) 
+  to prevent Safari/Chrome address bar cutoffs. Dashboards seamlessly collapse 
+  into single columns on mobile to ensure zero "squishing" of data.
+- Top Bar: A fixed mobile top bar includes a highly visible, direct Red Logout 
+  icon for instant user access without traversing menus.
+- Micro-interactions: Cards scale (`scale(1.02)`) on hover, input fields glow 
+  on focus, and smooth `@keyframes fade-up` animations introduce data.
+
+3. COMPANY PORTAL (ADMIN CONSOLE) - FEATURE BREAKDOWN
+--------------------------------------------------------------------------------
+The Command Center for Administrators and HR.
+
+Menus & Features:
+1. Overview (Dashboard): High-level metrics, active employee counts, pending 
+   applications, and a feed of recent platform activity.
+2. Job Postings: Create and manage jobs/internships. Set pass marks, auto-
+   shortlist thresholds, stipends, and screening questions.
+3. Applications: ATS (Applicant Tracking System). Drag-and-drop Kanban board to 
+   move candidates through Applied -> Screening -> Interview -> Offer stages.
+4. Employees: Directory of all hired staff. View their tiers (Standard, Lead, 
+   Executive), manage onboarding status, and trigger forced password resets.
+5. Workspace: The operational heart. Contains sub-tabs for Teams, Tasks, and 
+   Leave Requests.
+   -> *Tasks (Default Board View)*: See Section 5 for the exact Task Flow.
+6. Support Tickets: Resolve issues raised by employees (IT/HR).
+7. Leaderboard: Global ranking of employees based on their monthly points.
+8. Announcements: Broadcast messages to the entire company or specific teams. 
+   Can be pinned to the top of employee dashboards.
+9. Settings: System-wide configuration.
+
+4. EMPLOYEE PORTAL - FEATURE BREAKDOWN
+--------------------------------------------------------------------------------
+The Gamified Operations Hub for Staff and Interns.
+
+Menus & Features:
+- First-Time Login / Onboarding Wizard: New hires MUST complete this wizard 
+  (Skills, Emergency Contacts, Policy Acknowledgment) before accessing the portal.
+1. Dashboard: A stunning personalized Hero banner showing:
+   - Greeting & Name (e.g., "Good Evening, Zohaib").
+   - Days Remaining (for interns/contractors) or Tenure.
+   - Task Completion % (Circular Progress Bar).
+   - Monthly Rank & Current Points.
+2. Tasks: View assigned operational tasks in Kanban (To-Do, In Review, 
+   Need more information, Done) or List view.
+3. My Team: View peers in the same team and their online/offline statuses.
+4. Attendance: Clock-In and Clock-Out system with historical logs.
+5. Leave Requests: Apply for Sick/Casual/Annual leave and track admin approval.
+6. My Documents: Secure vault for Offer Letters, IDs, and Certificates.
+7. Leaderboard: Gamified peer-to-peer ranking.
+8. Support: Raise tickets directly to Admins.
+9. Profile: View personal details, Point Transaction history, and Badges 
+   (e.g., "First Mission", "10 Missions", "Top Performer").
+
+5. THE TASK WORKFLOW (Detailed Logic)
+--------------------------------------------------------------------------------
+The task system has been meticulously engineered for simplicity and accountability.
+
+Step 1: Assignment (Admin)
+- Admin clicks "+ Assign New Task".
+- Selects Target: "Entire Team" OR "Individual Employee".
+- Sets Title, Brief, Deadline, Priority (Low, Medium, High, Critical), and 
+  attaches any files/links.
+
+Step 2: Execution (Employee)
+- Task appears in the Employee's "To-Do" column.
+- Employee clicks "Start Task", performs the work, and clicks "Submit".
+- Employee provides Text, URLs, or Uploads Files as proof of completion.
+
+Step 3: The Binary Review Process (Admin)
+- Admin views the submission in the Workspace -> Tasks panel.
+- The Admin has EXACTLY TWO OPTIONS (No confusing middle-states):
+  
+  Option A: [ ✅ Approve ]
+  - Task is marked "Completed".
+  - Employee is awarded Base Points (based on Priority).
+  - System calculates On-Time Bonus (+20%).
+  - Admin can give a Quality Star Rating (1-5 stars) for Bonus Points.
+  - Employee receives a Notification and Points are added to their Profile.
+
+  Option B: [ 🔄 Need more information ]
+  - Task is bounced back to the Employee.
+  - Admin MUST provide text feedback explaining what is missing.
+  - Status becomes "Need more information" (Red Badge).
+  - Employee receives a Notification, reads the feedback, and resubmits.
+
+Step 4: Task Deletion
+- Admin can click the Red Trash (🗑️) icon on any task.
+- A confirmation prompt appears.
+- Upon confirmation, the Task AND all associated Employee Submissions are 
+  permanently deleted from the database.
+
+================================================================================
+END OF DOCUMENT
+================================================================================

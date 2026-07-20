@@ -13,12 +13,12 @@ function generateEmployeeCode(): string {
 }
 
 export async function POST(req: NextRequest) {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const { name, email, designation, teamId, tier, employmentType, startDate, offerLetterBase64, cvBase64, linkedinUrl } = await req.json();
+  const { name, email, designation, teamId, tier, employmentType, startDate, durationMonths, offerLetterBase64, cvBase64, linkedinUrl } = await req.json();
 
-  if (!name || !email || !designation || !startDate) {
+  if (!name || !email || !designation) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
@@ -33,6 +33,9 @@ export async function POST(req: NextRequest) {
     employeeCode = generateEmployeeCode();
   }
 
+  const startD = startDate ? new Date(startDate) : new Date();
+  const endD = startDate && durationMonths ? new Date(new Date(startDate).setMonth(new Date(startDate).getMonth() + parseInt(durationMonths))) : new Date();
+
   const employee = await prisma.employee.create({
     data: {
       employeeCode,
@@ -41,7 +44,8 @@ export async function POST(req: NextRequest) {
       designation,
       employmentType,
       tier: tier || "Standard",
-      startDate: new Date(startDate),
+      startDate: startD,
+      endDate: endD,
       status: "Active",
       passwordHash,
       mustResetPassword: true,
@@ -92,6 +96,41 @@ export async function POST(req: NextRequest) {
     });
   }
 
+  const { generateAndUploadDocument, getNDATemplate, getCodeOfConductTemplate, getInternshipAgreementTemplate, getEmploymentContractTemplate, getFixedTermAgreementTemplate, getHandbookAcknowledgmentTemplate } = await import("@/lib/document-generator");
+  const d = new Date().toLocaleDateString("en-US");
+
+  const ndaUrl = await generateAndUploadDocument(
+    "Non-Disclosure Agreement", employee.name, employee.designation, d, employee.employeeCode, getNDATemplate("CyberLabSec", employee.designation)
+  );
+  await prisma.employeeDocument.create({ data: { employeeId: employee.id, title: "NDA", type: "NDA", fileUrl: ndaUrl, status: "Pending Consent" } });
+
+  const cocUrl = await generateAndUploadDocument(
+    "Code of Conduct Acceptance", employee.name, employee.designation, d, employee.employeeCode, getCodeOfConductTemplate()
+  );
+  await prisma.employeeDocument.create({ data: { employeeId: employee.id, title: "Code of Conduct Acceptance", type: "Policy", fileUrl: cocUrl, status: "Pending Consent" } });
+
+  if (employee.employmentType === "Intern") {
+    const iaUrl = await generateAndUploadDocument(
+      "Internship Agreement", employee.name, employee.designation, d, employee.employeeCode, getInternshipAgreementTemplate(employee.designation)
+    );
+    await prisma.employeeDocument.create({ data: { employeeId: employee.id, title: "Internship Agreement", type: "Agreement", fileUrl: iaUrl, status: "Approved" } });
+  } else if (employee.employmentType === "Employee" || employee.employmentType === "Full-Time") {
+    const ecUrl = await generateAndUploadDocument(
+      "Employment Contract", employee.name, employee.designation, d, employee.employeeCode, getEmploymentContractTemplate(employee.designation)
+    );
+    await prisma.employeeDocument.create({ data: { employeeId: employee.id, title: "Employment Contract", type: "Agreement", fileUrl: ecUrl, status: "Approved" } });
+
+    const haUrl = await generateAndUploadDocument(
+      "Employee Handbook Acknowledgment", employee.name, employee.designation, d, employee.employeeCode, getHandbookAcknowledgmentTemplate()
+    );
+    await prisma.employeeDocument.create({ data: { employeeId: employee.id, title: "Employee Handbook Acknowledgment", type: "Policy", fileUrl: haUrl, status: "Pending Consent" } });
+  } else if (employee.employmentType === "Contract") {
+    const ftaUrl = await generateAndUploadDocument(
+      "Fixed-Term Agreement", employee.name, employee.designation, d, employee.employeeCode, getFixedTermAgreementTemplate(employee.designation)
+    );
+    await prisma.employeeDocument.create({ data: { employeeId: employee.id, title: "Fixed-Term Agreement", type: "Agreement", fileUrl: ftaUrl, status: "Approved" } });
+  }
+
   const portalUrl = `https://cyberlabsec.tech/employee/login`;
   await sendEmployeeCredentials(
     email, 
@@ -104,7 +143,7 @@ export async function POST(req: NextRequest) {
 
   await prisma.activityLog.create({
     data: {
-      actorId: auth.sub, actorType: "Admin", action: "DIRECT_HIRE_CREATED",
+      actorId: null, actorType: "Admin", action: "DIRECT_HIRE_CREATED",
       metadata: JSON.stringify({ employeeId: employee.id, employeeCode }),
     },
   }).catch(() => {});

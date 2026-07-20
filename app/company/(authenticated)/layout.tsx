@@ -1,20 +1,11 @@
-import { getAuthFromCookies } from "@/lib/auth";
-import { redirect } from "next/navigation";
 import AdminLayout from "../AdminLayout";
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminRootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const auth = await getAuthFromCookies();
-  if (!auth || auth.role !== "admin") {
-    redirect("/company/login");
-  }
-
-  return (
-    <AdminLayout>
-      {children}
-    </AdminLayout>
-  );
+  return <AdminLayout>{children}</AdminLayout>;
 }

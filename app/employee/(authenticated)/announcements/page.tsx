@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export default async function AnnouncementsPage({ searchParams }: { searchParams: { q?: string } }) {
   try {
     const q = searchParams.q || "";
-    const auth = await getAuthFromCookies();
+    const auth = await getAuthFromCookies("employee");
     if (!auth) redirect("/employee/login");
 
     const employee = await prisma.employee.findUnique({

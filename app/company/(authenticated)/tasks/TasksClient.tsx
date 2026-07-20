@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Search, _Calendar, _ChevronRight, FileText, CheckCircle, Clock, AlertTriangle, Star, _X, Loader2, ExternalLink, Eye, _Filter, LayoutList, LayoutGrid, Globe, Target, ShieldAlert } from "lucide-react";
+import { Plus, Search, _Calendar, _ChevronRight, FileText, CheckCircle, Clock, AlertTriangle, Star, _X, Loader2, ExternalLink, Eye, _Filter, LayoutList, LayoutGrid, Globe, Target, ShieldAlert, Trash2 } from "lucide-react";
 import { format, formatDistanceToNow, isPast } from "date-fns";
 import toast from "react-hot-toast";
 
@@ -57,27 +57,27 @@ const STATUS_CONFIG: Record<string, { badge: string; label: string }> = {
   InProgress: { badge: "badge-blue", label: "In Progress" },
   Submitted: { badge: "badge-amber", label: "Submitted" },
   UnderReview: { badge: "badge-purple", label: "Under Review" },
-  ChangesRequested: { badge: "badge-red", label: "Changes Requested" },
+  ChangesRequested: { badge: "badge-red", label: "Need more information" },
   Completed: { badge: "badge-green", label: "Completed" },
 };
 
-export default function TasksClient({ initialTasks, teams, employees, hideHeader = false }: { initialTasks: Task[]; teams: Team[]; employees: any[]; hideHeader?: boolean }) {
+export default function TasksClient({ initialTasks, teams, employees, hideHeader = false, initialShowCreate = false, initialTeamId = null }: { initialTasks: Task[]; teams: Team[]; employees: any[]; hideHeader?: boolean; initialShowCreate?: boolean; initialTeamId?: string | null }) {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [tasks, setTasks] = useState(initialTasks);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
   const [filterPriority, setFilterPriority] = useState("All");
-  const [showCreate, setShowCreate] = useState(false);
+  const [showCreate, setShowCreate] = useState(initialShowCreate);
   const [loading, setLoading] = useState(false);
-  const [viewMode, setViewMode] = useState<"list" | "board">("list");
+  const [viewMode, setViewMode] = useState<"list" | "board">("board");
   const [reviewTask, setReviewTask] = useState<Task | null>(null);
   const [reviewAction, setReviewAction] = useState<{ submissionId: string; action: "approve" | "request_changes" } | null>(null);
   const [feedback, setFeedback] = useState("");
   const [qualityRating, setQualityRating] = useState(0);
 
   // Create form state
-  const [form, setForm] = useState({ title: "", brief: "", deadline: "", teamId: "", assigneeId: "", priority: "Medium", assignType: "Team", targetUrl: "", scopeRules: "", vulnFocus: "" });
+  const [form, setForm] = useState({ title: "", brief: "", deadline: "", teamId: initialTeamId || "", assigneeId: "", priority: "Medium", assignType: initialTeamId ? "Team" : "Team", targetUrl: "", scopeRules: "", vulnFocus: "" });
   const [checklistItems, setChecklistItems] = useState<string[]>([]);
   const [checklistInput, setChecklistInput] = useState("");
   const [attachments, setAttachments] = useState<{name: string, url: string}[]>([]);
@@ -89,6 +89,22 @@ export default function TasksClient({ initialTasks, teams, employees, hideHeader
     const matchPriority = filterPriority === "All" || t.priority === filterPriority;
     return matchSearch && matchStatus && matchPriority;
   });
+
+  const handleDeleteTask = async (taskId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm("Are you sure you want to delete this task? All submissions will be permanently deleted.")) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/company/tasks/${taskId}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete task");
+      setTasks(tasks.filter(t => t.id !== taskId));
+      toast.success("Task deleted successfully");
+    } catch {
+      toast.error("Failed to delete task");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,7 +159,7 @@ export default function TasksClient({ initialTasks, teams, employees, hideHeader
         body: JSON.stringify({ submissionId: reviewAction.submissionId, action: reviewAction.action, feedback: feedback.trim(), qualityRating: qualityRating || null }),
       });
       if (!res.ok) throw new Error("Failed");
-      toast.success(reviewAction.action === "approve" ? "Task approved — points awarded! 🎉" : "Changes requested — employee notified");
+      toast.success(reviewAction.action === "approve" ? "Task approved — points awarded! 🎉" : "More information requested — employee notified");
       setReviewAction(null);
       setFeedback("");
       setQualityRating(0);
@@ -212,22 +228,6 @@ export default function TasksClient({ initialTasks, teams, employees, hideHeader
               <textarea className="input" value={form.brief} onChange={e => setForm({ ...form, brief: e.target.value })} placeholder="Detailed objectives, deliverables..." rows={3} />
             </div>
 
-            {/* Cybersecurity Fields */}
-            <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-              <div>
-                <label className="label">Target URL / IP</label>
-                <input className="input" value={form.targetUrl} onChange={e => setForm({ ...form, targetUrl: e.target.value })} placeholder="e.g. https://example.com" />
-              </div>
-              <div>
-                <label className="label">Vulnerability Focus</label>
-                <input className="input" value={form.vulnFocus} onChange={e => setForm({ ...form, vulnFocus: e.target.value })} placeholder="e.g. SQLi, XSS, SSRF" />
-              </div>
-            </div>
-            <div>
-              <label className="label">Scope & Rules of Engagement</label>
-              <textarea className="input" value={form.scopeRules} onChange={e => setForm({ ...form, scopeRules: e.target.value })} placeholder="Define in-scope assets, out-of-scope targets, and testing limitations..." rows={3} />
-            </div>
-
             <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
               <div>
                 <label className="label label-required">Priority</label>
@@ -242,37 +242,6 @@ export default function TasksClient({ initialTasks, teams, employees, hideHeader
                 <label className="label label-required">Deadline</label>
                 <input type="datetime-local" className="input" value={form.deadline} onChange={e => setForm({ ...form, deadline: e.target.value })} required />
               </div>
-            </div>
-
-            {/* Checklist */}
-            <div>
-              <label className="label">Checklist Items (optional)</label>
-              <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-                <input
-                  className="input"
-                  value={checklistInput}
-                  onChange={e => setChecklistInput(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      if (checklistInput.trim()) { setChecklistItems([...checklistItems, checklistInput.trim()]); setChecklistInput(""); }
-                    }
-                  }}
-                  placeholder="Type item and press Enter..."
-                />
-                <button type="button" className="btn btn-secondary btn-sm" style={{ flexShrink: 0 }} onClick={() => { if (checklistInput.trim()) { setChecklistItems([...checklistItems, checklistInput.trim()]); setChecklistInput(""); } }}>Add</button>
-              </div>
-              {checklistItems.length > 0 && (
-                <div style={{ display: "grid", gap: 6 }}>
-                  {checklistItems.map((item, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px", background: "rgba(255,255,255,0.04)", borderRadius: 8, border: "1px solid var(--border-subtle)" }}>
-                      <input type="checkbox" disabled style={{ width: 14, height: 14, flexShrink: 0 }} />
-                      <span style={{ flex: 1, fontSize: 13, color: "var(--text-secondary)" }}>{item}</span>
-                      <button type="button" onClick={() => setChecklistItems(checklistItems.filter((_, j) => j !== i))} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: 2 }}>✕</button>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
 
             {/* Attachments */}
@@ -370,13 +339,18 @@ export default function TasksClient({ initialTasks, teams, employees, hideHeader
                     const pc = PRIORITY_CONFIG[task.priority] || PRIORITY_CONFIG.Medium;
                     const overdue = isPast(new Date(task.deadline)) && task.status !== "Completed";
                     return (
-                      <div key={task.id} className="card card-hover" style={{ padding: 12, cursor: "pointer" }} onClick={() => router.push(`/company/tasks/${task.id}`)}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", marginBottom: 6, lineHeight: 1.3 }}>{task.title}</div>
+                      <div key={task.id} className="card card-hover" style={{ padding: 12, cursor: "pointer", position: "relative" }} onClick={() => router.push(`/company/tasks/${task.id}`)}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, marginBottom: 6 }}>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.3 }}>{task.title}</div>
+                          <button onClick={(e) => handleDeleteTask(task.id, e)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 4 }} title="Delete Task">
+                            <Trash2 size={14} className="hover-red" />
+                          </button>
+                        </div>
                         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                           <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 10, background: pc.bg, color: pc.color }}>{task.priority}</span>
                           <span style={{ fontSize: 10, color: overdue ? "var(--red)" : "var(--text-muted)" }}>{overdue ? "⚠ Overdue" : format(new Date(task.deadline), "MMM d")}</span>
                         </div>
-                        <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 6 }}>{task.team.name}</div>
+                        <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 6 }}>{task.team?.name || "Individual Assigned"}</div>
                       </div>
                     );
                   })}
@@ -420,13 +394,13 @@ export default function TasksClient({ initialTasks, teams, employees, hideHeader
                     </div>
                     <div style={{ display: "flex", gap: 20, fontSize: 12, color: "var(--text-muted)", flexWrap: "wrap" }}>
                       <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                        <FileText size={12} /> {task.team.name}
+                        <FileText size={12} /> {task.team?.name || "Individual Assigned"}
                       </span>
                       <span style={{ display: "flex", alignItems: "center", gap: 4, color: isOverdue ? "var(--red)" : "inherit" }}>
                         <Clock size={12} /> Due {formatDistanceToNow(new Date(task.deadline), { addSuffix: true })}
                       </span>
                       <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                        <CheckCircle size={12} /> {task.submissions.length} submission{task.submissions.length !== 1 ? "s" : ""}
+                        <CheckCircle size={12} /> {task.submissions?.length || 0} submission{(task.submissions?.length || 0) !== 1 ? "s" : ""}
                       </span>
                     </div>
 
@@ -452,17 +426,25 @@ export default function TasksClient({ initialTasks, teams, employees, hideHeader
                     )}
                   </div>
 
-                  <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-                    {pendingSubmissions.length > 0 && (
-                      <span className="badge badge-amber" style={{ padding: "4px 8px" }}>{pendingSubmissions.length} to review</span>
-                    )}
-                    <button
-                      className="btn btn-secondary btn-sm"
-                      onClick={() => setReviewTask(reviewTask?.id === task.id ? null : task)}
-                    >
-                      <Eye size={14} /> {reviewTask?.id === task.id ? "Close" : "Review"}
-                    </button>
-                  </div>
+                    <div style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>
+                      {pendingSubmissions.length > 0 && (
+                        <span className="badge badge-amber" style={{ padding: "4px 8px" }}>{pendingSubmissions.length} to review</span>
+                      )}
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => setReviewTask(reviewTask?.id === task.id ? null : task)}
+                      >
+                        <Eye size={14} /> {reviewTask?.id === task.id ? "Close" : "Review"}
+                      </button>
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={(e) => handleDeleteTask(task.id, e)}
+                        title="Delete Task"
+                        style={{ padding: "8px" }}
+                      >
+                        <Trash2 size={14} className="text-red" />
+                      </button>
+                    </div>
                 </div>
 
                 {/* Submissions Panel */}
@@ -550,7 +532,7 @@ export default function TasksClient({ initialTasks, teams, employees, hideHeader
                                         style={{ flex: 1, justifyContent: "center" }}
                                         onClick={() => { setReviewAction({ submissionId: sub.id, action: "request_changes" }); setFeedback(""); setQualityRating(0); }}
                                       >
-                                        <AlertTriangle size={14} /> Request Changes
+                                        <AlertTriangle size={14} /> Need more information
                                       </button>
                                     </div>
                                   )}
@@ -559,7 +541,7 @@ export default function TasksClient({ initialTasks, teams, employees, hideHeader
                                   {reviewAction?.submissionId === sub.id && (
                                     <div style={{ marginTop: 12, padding: 16, background: "rgba(168,85,247,0.05)", border: "1px solid var(--border-accent)", borderRadius: 10 }}>
                                       <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 12 }}>
-                                        {reviewAction.action === "approve" ? "✅ Approve Submission" : "🔄 Request Changes"}
+                                        {reviewAction.action === "approve" ? "✅ Approve Submission" : "🔄 Need more information"}
                                       </div>
 
                                       {reviewAction.action === "approve" && (

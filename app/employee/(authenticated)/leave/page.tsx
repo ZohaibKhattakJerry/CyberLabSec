@@ -6,7 +6,7 @@ import LeaveClient from './LeaveClient';
 export const dynamic = 'force-dynamic';
 
 export default async function LeavePage() {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("employee");
   if (!auth) redirect('/employee/login');
 
   const leaves = await (prisma as any).leaveRequest.findMany({
@@ -15,7 +15,7 @@ export default async function LeavePage() {
   }).catch(() => []);
 
   return (
-    <div>
+    <div style={{ paddingBottom: 80 }}>
       <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 24 }}>Leave Requests</h1>
       <LeaveClient initialLeaves={JSON.parse(JSON.stringify(leaves))} />
     </div>

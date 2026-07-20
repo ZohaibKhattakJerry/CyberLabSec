@@ -29,7 +29,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [workspaceOpen, setWorkspaceOpen] = useState(true);
 
   const logout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
+    await fetch("/api/auth/logout?role=admin", { method: "POST" });
     router.push("/company/login");
   };
 
@@ -122,7 +122,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <button onClick={logout} className="btn btn-ghost" style={{ justifyContent: "flex-start", gap: 10, fontSize: 14, color: "var(--text-muted)", flex: 1 }}>
             <LogOut size={16} /> Sign Out
           </button>
-          <NotificationBell />
+          <NotificationBell isAdmin={true} placement="bottom-left" />
         </div>
       </aside>
 
@@ -151,12 +151,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         }} className="mobile-topbar">
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", display: "flex" }}
+            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", display: "flex", padding: 8 }}
           >
             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
-          <img src="/logo.png" alt="CyberLabSec" style={{ height: 24, objectFit: "contain" }} />
-          <div style={{ width: 36 }} /> {/* Placeholder to balance the flex space */}
+          <img src="/logo.png" alt="CyberLabSec" style={{ height: 24, objectFit: "contain", marginLeft: "12px" }} />
+          <button
+            onClick={logout}
+            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--red)", display: "flex", padding: 8, marginLeft: "auto" }}
+            title="Sign Out"
+          >
+            <LogOut size={18} />
+          </button>
         </div>
 
         <main style={{ padding: "24px 20px", maxWidth: 1280, margin: "0 auto" }}>

@@ -22,14 +22,10 @@ export default function TeamsClient({ teams, employees, allTasks = [], initialLe
   const [, startTransition] = useTransition();
   const [activeTab, setActiveTab] = useState<"teams" | "tasks" | "leave">("teams");
   const [showCreate, setShowCreate] = useState(false);
-  const [showAddTask, setShowAddTask] = useState<Team | null>(null);
   const [newTeamName, setNewTeamName] = useState("");
-  const [taskTitle, setTaskTitle] = useState("");
-  const [taskBrief, setTaskBrief] = useState("");
-  const [taskDeadline, setTaskDeadline] = useState("");
-  const [taskAttachments, setTaskAttachments] = useState<{name: string, data: string}[]>([]);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
+  const [preselectedTeamId, setPreselectedTeamId] = useState<string | null>(null);
 
   const createTeam = async () => {
     if (!newTeamName.trim()) return;
@@ -65,19 +61,9 @@ export default function TeamsClient({ teams, employees, allTasks = [], initialLe
     startTransition(() => router.refresh());
   };
 
-  const addTask = async () => {
-    if (!showAddTask || !taskTitle || !taskDeadline) return;
-    setLoading(true); setMsg("");
-    const res = await fetch("/api/company/tasks", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ teamId: showAddTask.id, title: taskTitle, brief: taskBrief, deadline: taskDeadline, createdBy: "Admin", attachments: taskAttachments }),
-    });
-    const data = await res.json();
-    setLoading(false);
-    if (!res.ok) { setMsg(data.error || "Failed"); return; }
-    setTaskTitle(""); setTaskBrief(""); setTaskDeadline(""); setTaskAttachments([]); setShowAddTask(null);
-    startTransition(() => router.refresh());
+  const handleAssignTask = (teamId: string) => {
+    setPreselectedTeamId(teamId);
+    setActiveTab("tasks");
   };
 
   return (
@@ -91,7 +77,7 @@ export default function TeamsClient({ teams, employees, allTasks = [], initialLe
           <button className={`btn btn-sm ${activeTab === "teams" ? "btn-secondary" : "btn-ghost"}`} onClick={() => setActiveTab("teams")}>
             <Users size={14} /> Teams
           </button>
-          <button className={`btn btn-sm ${activeTab === "tasks" ? "btn-secondary" : "btn-ghost"}`} onClick={() => setActiveTab("tasks")}>
+          <button className={`btn btn-sm ${activeTab === "tasks" ? "btn-secondary" : "btn-ghost"}`} onClick={() => { setActiveTab("tasks"); setPreselectedTeamId(null); }}>
             <ClipboardList size={14} /> Tasks
           </button>
           <button className={`btn btn-sm ${activeTab === "leave" ? "btn-secondary" : "btn-ghost"}`} onClick={() => setActiveTab("leave")}>
@@ -103,7 +89,7 @@ export default function TeamsClient({ teams, employees, allTasks = [], initialLe
       {activeTab === "leave" ? (
         <CompanyLeaveClient initialLeaves={initialLeaves} hideHeader />
       ) : activeTab === "tasks" ? (
-        <TasksClient initialTasks={allTasks} teams={teams} employees={employees} hideHeader />
+        <TasksClient initialTasks={allTasks} teams={teams} employees={employees} hideHeader initialShowCreate={!!preselectedTeamId} initialTeamId={preselectedTeamId} />
       ) : (
         <div>
           <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
@@ -130,7 +116,7 @@ export default function TeamsClient({ teams, employees, allTasks = [], initialLe
                   <p style={{ fontSize: 12, color: "var(--text-muted)" }}>{team.members.length} members · {team._count.tasks} tasks</p>
                 </div>
                 <div style={{ display: "flex", gap: 6 }}>
-                  <button className="btn btn-ghost btn-sm" onClick={() => setShowAddTask(team)} title="Add task"><ClipboardList size={13} /></button>
+                  <button className="btn btn-ghost btn-sm" onClick={() => handleAssignTask(team.id)} title="Assign New Task"><ClipboardList size={13} /></button>
                   <button className="btn btn-danger btn-sm" onClick={() => deleteTeam(team.id, team.name)} disabled={loading} title="Delete"><Trash2 size={13} /></button>
                 </div>
               </div>
@@ -205,63 +191,6 @@ export default function TeamsClient({ teams, employees, allTasks = [], initialLe
         </div>
       )}
 
-      {/* Add Task Modal */}
-      {showAddTask && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
-          <div className="card" style={{ maxWidth: 500, width: "100%", padding: "clamp(16px, 5vw, 28px)" }}>
-            <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-              <h2 style={{ fontSize: 16, fontWeight: 700 }}>Add Task — {showAddTask.name}</h2>
-              <button onClick={() => setShowAddTask(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}><X size={18} /></button>
-            </div>
-            <div style={{ display: "grid", gap: 14 }}>
-              <div>
-                <label className="label label-required">Task Title</label>
-                <input className="input" value={taskTitle} onChange={e => setTaskTitle(e.target.value)} placeholder="e.g. Web App Pentest Report" />
-              </div>
-              <div>
-                <label className="label">Task Brief / Description</label>
-                <textarea className="input" value={taskBrief} onChange={e => setTaskBrief(e.target.value)} placeholder="Provide context and requirements..." style={{ minHeight: 90 }} />
-              </div>
-              <div>
-                <label className="label label-required">Deadline</label>
-                <input className="input" type="datetime-local" value={taskDeadline} onChange={e => setTaskDeadline(e.target.value)} />
-              </div>
-              <div>
-                <label className="label">Attachments (Optional)</label>
-                <input type="file" multiple className="input" onChange={e => {
-                  if (!e.target.files) return;
-                  Array.from(e.target.files).forEach(file => {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                      setTaskAttachments(prev => [...prev, { name: file.name, data: event.target?.result as string }]);
-                    };
-                    reader.readAsDataURL(file);
-                  });
-                }} />
-                {taskAttachments.length > 0 && (
-                  <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", gap: 6 }}>
-                    {taskAttachments.map((att, i) => (
-                      <span key={i} className="badge badge-gray">
-                        {att.name}
-                        <button type="button" onClick={() => setTaskAttachments(prev => prev.filter((_, idx) => idx !== i))} style={{ background: "none", border: "none", marginLeft: 4, cursor: "pointer", color: "var(--red)" }}>
-                          <X size={10} />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-              {msg && <p style={{ fontSize: 13, color: "var(--purple-light)" }}>{msg}</p>}
-              <div style={{ display: "flex", gap: 10 }}>
-                <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setShowAddTask(null)} disabled={loading}>Cancel</button>
-                <button className="btn btn-primary" style={{ flex: 1 }} onClick={addTask} disabled={loading}>
-                  {loading ? <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> : "Add Task"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
         </div>
       )}
     </div>

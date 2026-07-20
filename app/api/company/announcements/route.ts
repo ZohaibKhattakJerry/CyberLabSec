@@ -4,7 +4,7 @@ import { getAuthFromCookies } from "@/lib/auth";
 import { sendAnnouncement } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { scope, teamId, employeeId, message, sendEmail, isPinned, expiresAt } = await req.json();
@@ -19,9 +19,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Employee ID is required for individual announcements" }, { status: 400 });
   }
 
-  const admin = await prisma.employee.findUnique({ where: { id: auth.sub } });
-  if (!admin) return NextResponse.json({ error: "Admin not found" }, { status: 404 });
-
   const announcement = await prisma.announcement.create({
     data: {
       scope,
@@ -30,7 +27,7 @@ export async function POST(req: NextRequest) {
       message: message.trim(),
       isPinned: isPinned || false,
       expiresAt: expiresAt ? new Date(expiresAt) : null,
-      sentById: admin.id,
+      sentById: null,
     },
   });
 

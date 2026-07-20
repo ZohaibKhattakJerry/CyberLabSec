@@ -7,7 +7,7 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ applicantId: string }> }
 ) {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("admin");
   // Ensure the user is an admin/company user
   if (!auth || auth.role !== "admin") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

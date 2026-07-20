@@ -7,10 +7,11 @@ import { Calendar, CheckCircle, AlertTriangle } from 'lucide-react';
 export const dynamic = 'force-dynamic';
 
 export default async function AttendancePage() {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("employee");
   if (!auth) redirect('/employee/login');
 
-  const now = new Date();
+  const pstString = new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" });
+  const now = new Date(pstString);
   const monthStart = startOfMonth(now);
   const monthEnd = endOfMonth(now);
 

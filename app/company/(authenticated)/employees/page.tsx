@@ -25,6 +25,7 @@ export default async function EmployeesPage() {
         updatedAt: true,
         applicantId: true,
         policyAcknowledgedAt: true,
+        onboardingCompleted: true,
         points: true,
         monthlyPoints: true,
         teamId: true,

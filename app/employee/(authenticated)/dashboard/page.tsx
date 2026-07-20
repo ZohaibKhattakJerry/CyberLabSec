@@ -1,18 +1,20 @@
 import { getAuthFromCookies } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import { format, differenceInDays, differenceInMonths } from "date-fns";
+import { format, differenceInCalendarDays, differenceInMonths } from "date-fns";
 import {
   Briefcase, Users, Clock, CheckSquare, Zap, Activity,
   ArrowRight, ShieldCheck, Trophy, Bell, Star,
   MessageSquare, FileText, User
 } from "lucide-react";
 import Link from "next/link";
+import CompletionDialog from "./CompletionDialog";
+import NotificationBell from "@/components/NotificationBell";
 
 export const dynamic = "force-dynamic";
 
 export default async function Dashboard() {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("employee");
   if (!auth) redirect("/employee/login");
 
   let employee: any;
@@ -25,6 +27,7 @@ export default async function Dashboard() {
         id: true, name: true, email: true, designation: true,
         employeeCode: true, employmentType: true, tier: true,
         status: true, photoUrl: true, startDate: true, endDate: true,
+        completionNotified: true,
         points: true, monthlyPoints: true, teamId: true,
         team: {
           select: {
@@ -79,11 +82,27 @@ export default async function Dashboard() {
   const myMonthlyRank = countAhead + 1;
 
   const isIntern = employee.employmentType === "Intern";
-  const daysRemaining = employee.endDate ? differenceInDays(employee.endDate, now) : 0;
+  const startsInDays = differenceInCalendarDays(employee.startDate, now);
+  const isFutureStart = startsInDays > 0;
+  
+  let daysRemaining = 0;
+  let isCompleted = false;
+
+  if (employee.endDate) {
+    daysRemaining = differenceInCalendarDays(employee.endDate, now);
+    if (!isFutureStart && daysRemaining <= 0) {
+      isCompleted = true;
+      daysRemaining = 0;
+    }
+  } else {
+    isCompleted = true;
+    daysRemaining = 0;
+  }
+
   const tenureMonths = differenceInMonths(now, employee.startDate);
 
   const allTasks = employee.team?.tasks || [];
-  const completedTasks = allTasks.filter((t) => t.submissions.some((s) => s.status === "Approved")).length;
+  const completedTasks = allTasks.filter((t: any) => t.submissions.some((s: any) => s.status === "Approved")).length;
   const totalTasks = allTasks.length;
   const progressPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
@@ -170,16 +189,21 @@ export default async function Dashboard() {
           padding: 32px;
           border: 1px solid rgba(168,85,247,0.3);
           box-shadow: 0 0 40px rgba(168,85,247,0.1);
-          overflow: hidden;
           margin-bottom: 24px;
         }
-        .hero-banner::before {
+        .hero-bg {
+          position: absolute;
+          top: 0; left: 0; right: 0; bottom: 0;
+          overflow: hidden;
+          border-radius: 20px;
+          z-index: 0;
+        }
+        .hero-bg::before {
           content: '';
           position: absolute;
           top: -50%; left: -50%; width: 200%; height: 200%;
           background: radial-gradient(circle, rgba(168,85,247,0.1) 0%, transparent 60%);
           animation: pulse-glow 8s infinite alternate;
-          z-index: 0;
         }
         @keyframes pulse-glow {
           0% { transform: scale(0.9); opacity: 0.5; }
@@ -203,10 +227,39 @@ export default async function Dashboard() {
           display: flex; align-items: center; justify-content: center;
           font-weight: 800; font-size: 14px;
         }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+          .hero-content {
+            flex-direction: column !important;
+            align-items: center !important;
+            text-align: center !important;
+            gap: 16px !important;
+          }
+          .hero-content h1 {
+            justify-content: center !important;
+            font-size: 26px !important;
+            margin-bottom: 8px !important;
+          }
+          .hero-content > div:first-child > div {
+            justify-content: center !important;
+          }
+          .hero-content > div:last-child {
+            width: 100%;
+            justify-content: space-around !important;
+          }
+        }
       `}} />
+
+      <CompletionDialog 
+        isCompleted={isCompleted} 
+        completionNotified={employee.completionNotified} 
+        employmentType={employee.employmentType} 
+      />
 
       {/* Hero Welcome Banner */}
       <div className="hero-banner fade-up">
+        <div className="hero-bg"></div>
         <div className="hero-content" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '24px' }}>
           <div>
             <h1 style={{ fontSize: '32px', fontWeight: 800, margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -228,10 +281,10 @@ export default async function Dashboard() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
-                {isIntern ? 'Internship Ends In' : 'Tenure'}
+                {isFutureStart ? 'Starts In' : (employee.endDate ? 'Days Remaining' : 'Tenure')}
               </div>
               <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)' }}>
-                {isIntern ? `${daysRemaining} Days` : `${tenureMonths} Months`}
+                {isFutureStart ? `${startsInDays} Days` : (employee.endDate ? `${daysRemaining} Days` : `${tenureMonths} Months`)}
               </div>
             </div>
             
@@ -244,14 +297,9 @@ export default async function Dashboard() {
               </div>
             </div>
 
-            <Link href="/employee/announcements" style={{ position: 'relative', background: 'rgba(255,255,255,0.1)', padding: '12px', borderRadius: '50%', color: 'var(--text-primary)', transition: 'transform 0.2s' }}>
-              <Bell size={24} />
-              {unreadCount > 0 && (
-                <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: 'var(--red)', color: 'white', fontSize: '10px', fontWeight: 'bold', width: '20px', height: '20px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 10px rgba(239,68,68,0.5)' }}>
-                  {unreadCount}
-                </span>
-              )}
-            </Link>
+            <div style={{ position: "relative", zIndex: 99999 }}>
+              <NotificationBell placement="top-right" variant="dashboard" />
+            </div>
           </div>
         </div>
       </div>

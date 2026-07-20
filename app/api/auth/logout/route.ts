@@ -1,7 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { clearAuthCookie } from "@/lib/auth";
 
-export async function POST() {
+export async function POST(req: NextRequest) {
+  const role = req.nextUrl.searchParams.get("role") || "employee";
   const res = NextResponse.json({ success: true });
-  res.cookies.set("auth_token", "", { httpOnly: true, sameSite: "lax", path: "/", maxAge: 0 });
+  clearAuthCookie(res, role);
   return res;
 }

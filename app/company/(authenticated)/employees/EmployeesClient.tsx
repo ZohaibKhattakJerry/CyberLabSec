@@ -34,11 +34,13 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
   const [editTeam, setEditTeam] = useState("");
   const [editDesignation, setEditDesignation] = useState("");
   const [editTier, setEditTier] = useState("Standard");
+  const [editStartDate, setEditStartDate] = useState("");
+  const [editEndDate, setEditEndDate] = useState("");
 
   // Direct Hire State
   const [showDirectHire, setShowDirectHire] = useState(false);
   const [dhData, setDhData] = useState({
-    name: "", email: "", designation: "", teamId: "", tier: "Standard", employmentType: "Employee", startDate: new Date().toISOString().split('T')[0], offerLetterBase64: "", cvBase64: "", linkedinUrl: ""
+    name: "", email: "", designation: "", teamId: "", tier: "Standard", employmentType: "Employee", startDate: new Date().toISOString().split('T')[0], durationMonths: "3", offerLetterBase64: "", cvBase64: "", linkedinUrl: ""
   });
 
   // Terminate State
@@ -136,7 +138,13 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
   };
 
   const openEdit = (e: Employee) => {
-    setEditEmployee(e); setEditTeam(e.teamId || ""); setEditDesignation(e.designation); setEditTier(e.tier || "Standard"); setMsg("");
+    setEditEmployee(e); 
+    setEditTeam(e.teamId || ""); 
+    setEditDesignation(e.designation); 
+    setEditTier(e.tier || "Standard"); 
+    setEditStartDate(e.startDate ? new Date(e.startDate).toISOString().split('T')[0] : "");
+    setEditEndDate(e.endDate ? new Date(e.endDate).toISOString().split('T')[0] : "");
+    setMsg("");
   };
 
   const saveEdit = async () => {
@@ -145,7 +153,13 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
     const res = await fetch(`/api/company/employees/${editEmployee.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ teamId: editTeam || null, designation: editDesignation, tier: editTier }),
+      body: JSON.stringify({ 
+        teamId: editTeam || null, 
+        designation: editDesignation, 
+        tier: editTier,
+        startDate: editStartDate || null,
+        endDate: editEndDate || null
+      }),
     });
     const data = await res.json();
     setLoading(false);
@@ -169,7 +183,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
     setTimeout(() => {
       setShowDirectHire(false);
       startTransition(() => router.refresh());
-      setDhData({ name: "", email: "", designation: "", teamId: "", tier: "Standard", employmentType: "Employee", startDate: new Date().toISOString().split('T')[0], offerLetterBase64: "", cvBase64: "", linkedinUrl: "" });
+      setDhData({ name: "", email: "", designation: "", teamId: "", tier: "Standard", employmentType: "Employee", startDate: new Date().toISOString().split('T')[0], durationMonths: "3", offerLetterBase64: "", cvBase64: "", linkedinUrl: "" });
     }, 1500);
   };
 
@@ -403,7 +417,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
                   </span>
                 </td>
                 <td data-label="Onboarding" style={{ fontSize: 13 }}>
-                  {e.onboardingCompleted ? <span style={{ color: "var(--green)", display: "flex", alignItems: "center", gap: 4 }}><CheckCircle size={12} /> Done</span> : <span style={{ color: "var(--amber)" }}>Pending</span>}
+                  {e.onboardingCompleted ? <span style={{ color: "var(--green)", display: "flex", alignItems: "center", gap: 4 }}><CheckCircle size={12} /> Completed</span> : <span style={{ color: "var(--amber)" }}>Pending</span>}
                 </td>
                 <td data-label="Start Date" style={{ fontSize: 12, color: "var(--text-muted)" }}>{format(new Date(e.startDate), "MMM d, yyyy")}</td>
                 <td data-label="Status">
@@ -445,17 +459,17 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
             ))}
           </tbody>
         </table>
-        {filtered.length === 0 && (
-          <div className="empty-state">
-            <div className="empty-state-icon-wrapper">
-              <Search size={28} />
-            </div>
-            <div className="empty-state-title">No employees found</div>
-            <div className="empty-state-description">We couldn't find any employees matching your current search or filter criteria.</div>
-          </div>
-        )}
       </div>
-
+      {filtered.length === 0 && (
+        <div className="empty-state">
+          <div className="empty-state-icon-wrapper">
+            <Search size={28} />
+          </div>
+          <div className="empty-state-title">No employees found</div>
+          <div className="empty-state-description">We couldn't find any employees matching your current search or filter criteria.</div>
+        </div>
+      )}
+      
       {/* Terminate Employee Modal */}
       {terminateEmployee && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 10000, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
@@ -515,14 +529,25 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
                 </div>
               </div>
               
-              <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                <div>
-                  <label className="label">Role / Designation</label>
-                  <input required className="input" placeholder="e.g. SOC Analyst" value={dhData.designation} onChange={e => setDhData({...dhData, designation: e.target.value})} />
-                </div>
-                <div>
-                  <label className="label">Start Date</label>
-                  <input required type="date" className="input" value={dhData.startDate} onChange={e => setDhData({...dhData, startDate: e.target.value})} />
+              <div>
+                <label className="label">Role / Designation</label>
+                <input required className="input" placeholder="e.g. SOC Analyst" value={dhData.designation} onChange={e => setDhData({...dhData, designation: e.target.value})} />
+              </div>
+
+              <div style={{ marginTop: 8, marginBottom: 8, paddingTop: 16, borderTop: "1px solid var(--border-subtle)" }}>
+                <h4 style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>Add Employee Tenure</h4>
+                <p style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 12 }}>
+                  Set the Start Date and Duration in months. If left empty, the tenure defaults to 0 Days, and the employee will instantly be prompted to request completion documents upon login.
+                </p>
+                <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                  <div>
+                    <label className="label">Start Date</label>
+                    <input type="date" className="input" value={dhData.startDate} onChange={e => setDhData({...dhData, startDate: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="label">Duration (Months)</label>
+                    <input type="number" min="1" className="input" value={dhData.durationMonths} onChange={e => setDhData({...dhData, durationMonths: e.target.value})} />
+                  </div>
                 </div>
               </div>
               
@@ -532,6 +557,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
                   <select className="input" value={dhData.employmentType} onChange={e => setDhData({...dhData, employmentType: e.target.value})}>
                     <option value="Employee">Employee</option>
                     <option value="Intern">Intern</option>
+                    <option value="Contract">Contract</option>
                   </select>
                 </div>
                 <div>
@@ -593,6 +619,23 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
             </div>
             <div style={{ display: "grid", gap: 16 }}>
               <div>
+                <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--purple)", marginBottom: 8, paddingBottom: 8, borderBottom: "1px solid var(--border-subtle)" }}>Edit Employee Tenure</h3>
+                <p style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 12 }}>
+                  Modify the Start Date and End Date. These dates determine the real-time days remaining on the employee's dashboard. If End Date is not set, the tenure will be considered 0 Days and marked completed.
+                </p>
+                <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                  <div>
+                    <label className="label">Effective Date (Start Date)</label>
+                    <input type="date" className="input" value={editStartDate} onChange={e => setEditStartDate(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="label">End Date</label>
+                    <input type="date" className="input" value={editEndDate} onChange={e => setEditEndDate(e.target.value)} />
+                  </div>
+                </div>
+              </div>
+              <div style={{ height: 16 }}></div>
+              <div>
                 <label className="label">Designation / Role</label>
                 <input className="input" value={editDesignation} onChange={e => setEditDesignation(e.target.value)} />
               </div>
@@ -613,6 +656,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
                   </select>
                 </div>
               </div>
+
               {msg && <p style={{ fontSize: 13, color: "var(--green)" }}>{msg}</p>}
               <div style={{ display: "flex", gap: 10 }}>
                 <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setEditEmployee(null)} disabled={loading}>Cancel</button>

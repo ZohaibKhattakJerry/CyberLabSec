@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getAuthFromCookies } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("employee");
   if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   
   const { title, description, proposedTimes } = await req.json();
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("employee");
   if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const employee = await prisma.employee.findUnique({ where: { id: auth.sub } });
@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("employee");
   if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   
   const { meetingId, timeSlot } = await req.json();

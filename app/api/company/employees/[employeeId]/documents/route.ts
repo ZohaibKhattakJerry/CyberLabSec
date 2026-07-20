@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuthFromCookies } from "@/lib/auth";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ employeeId: string }> }) {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { employeeId } = await params;
@@ -17,7 +17,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ empl
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ employeeId: string }> }) {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { employeeId } = await params;
@@ -38,16 +38,33 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ emp
     finalFileUrl = `/api/blob?url=${encodeURIComponent(blob.url)}`;
   }
 
-  const doc = await prisma.employeeDocument.create({
-    data: {
-      employeeId,
-      title,
-      type,
-      fileUrl: finalFileUrl,
-      status: "Approved",
-      uploadedBy: auth.sub
-    }
+  const existing = await prisma.employeeDocument.findFirst({
+    where: { employeeId, title }
   });
+
+  let doc;
+  if (existing) {
+    doc = await prisma.employeeDocument.update({
+      where: { id: existing.id },
+      data: {
+        type,
+        fileUrl: finalFileUrl,
+        status: "Approved",
+        uploadedBy: auth.sub
+      }
+    });
+  } else {
+    doc = await prisma.employeeDocument.create({
+      data: {
+        employeeId,
+        title,
+        type,
+        fileUrl: finalFileUrl,
+        status: "Approved",
+        uploadedBy: auth.sub
+      }
+    });
+  }
 
   return NextResponse.json({ success: true, document: doc });
 }

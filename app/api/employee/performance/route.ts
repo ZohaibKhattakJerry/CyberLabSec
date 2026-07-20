@@ -4,7 +4,7 @@ import { getAuthFromCookies } from '@/lib/auth';
 import { subDays } from 'date-fns';
 
 export async function GET(req: NextRequest) {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("employee");
   if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   
   const since = subDays(new Date(), 30);

@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getAuthFromCookies } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   const { searchParams } = new URL(req.url);
   const taskId = searchParams.get('taskId');

@@ -80,6 +80,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
   const [offerNotes, setOfferNotes] = useState("");
   const [offerSalary, setOfferSalary] = useState("");
   const [offerJoinDate, setOfferJoinDate] = useState("");
+  const [offerDurationMonths, setOfferDurationMonths] = useState("3");
 
   const toggleSelect = (id: string) => {
     setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
@@ -219,7 +220,8 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
             offerLetterBase64: base64Str,
             customMessage: offerNotes,
             startingSalary: offerSalary,
-            expectedJoinDate: offerJoinDate
+            expectedJoinDate: offerJoinDate,
+            durationMonths: offerDurationMonths
           })
         });
         const data = await res.json();
@@ -311,8 +313,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
           return (
             <div 
               key={stage} 
-              onDragOver={(e) => e.preventDefault()} 
-              onDrop={(e) => handleDrop(e, stage)}
+
               style={{ flex: "0 0 320px", background: "rgba(255,255,255,0.02)", borderRadius: 12, padding: "16px 8px 16px 16px", border: "1px solid var(--border-subtle)", display: "flex", flexDirection: "column", height: "100%" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, paddingRight: 8, flexShrink: 0 }}>
                 <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>{stage}</h3>
@@ -332,10 +333,8 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                   items.map(a => (
                     <div 
                       key={a.id} 
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, a.id)}
                       className={`card ${selectedIds.includes(a.id) ? 'selected' : ''} card-hover`} 
-                      style={{ padding: 16, width: "100%", cursor: "grab", transition: "transform 0.1s", position: "relative", border: selectedIds.includes(a.id) ? "1px solid var(--purple)" : "1px solid var(--border)", flexShrink: 0 }} 
+                      style={{ padding: 16, width: "100%", cursor: "pointer", transition: "transform 0.1s", position: "relative", border: selectedIds.includes(a.id) ? "1px solid var(--purple)" : "1px solid var(--border)", flexShrink: 0 }} 
                       onClick={(e) => {
                       if ((e.target as HTMLElement).closest('.checkbox-container')) return;
                       setSelected(a);
@@ -732,7 +731,12 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                     </button>
                   )}
                   {(!["Rejected", "Hired", "Interview Failed", "Withdrawn"].includes(selected.status)) && (
-                    <button className="btn btn-secondary" onClick={() => { updateStatus(selected.id, "Rejected"); setSelected(null); }} disabled={actionLoading} style={{ color: "var(--amber)", borderColor: "var(--border-subtle)", fontWeight: 600 }}>
+                    <button className="btn btn-secondary" onClick={() => { 
+                      if(confirm("Are you sure you want to reject this applicant?")) { 
+                        updateStatus(selected.id, "Rejected"); 
+                        setSelected(null); 
+                      } 
+                    }} disabled={actionLoading} style={{ color: "var(--amber)", borderColor: "var(--border-subtle)", fontWeight: 600 }}>
                       <X size={14} /> Reject
                     </button>
                   )}
@@ -757,7 +761,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
 
       {/* Offer Modal */}
       {showOfferModal && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 10000, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(4px)", zIndex: 10000, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
           <div className="card" style={{ maxWidth: 400, width: "100%", padding: 32 }}>
             <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16 }}>Confirm Hire</h3>
             <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 20 }}>
@@ -780,14 +784,21 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
               onChange={e => setOfferNotes(e.target.value)}
             />
 
+            <div style={{ marginTop: 24, marginBottom: 16, paddingTop: 16, borderTop: "1px solid var(--border-subtle)" }}>
+              <h4 style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>Add Employee Tenure Details</h4>
+              <p style={{ fontSize: 12, color: "var(--text-secondary)" }}>
+                Define the start date and duration. If left empty, the tenure will be considered 0 Days and the employee will immediately be prompted to request completion documents.
+              </p>
+            </div>
+
             <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 24 }}>
               <div>
-                <label className="label">Starting Salary (Optional)</label>
-                <input type="text" className="input" placeholder="$0 / PK 0" value={offerSalary} onChange={e => setOfferSalary(e.target.value)} />
+                <label className="label">Effective Date (Start Date)</label>
+                <input required type="date" className="input" value={offerJoinDate} onChange={e => setOfferJoinDate(e.target.value)} />
               </div>
               <div>
-                <label className="label">Expected Join Date (Optional)</label>
-                <input type="date" className="input" value={offerJoinDate} onChange={e => setOfferJoinDate(e.target.value)} />
+                <label className="label">Duration (Months)</label>
+                <input required type="number" min="1" className="input" placeholder="e.g. 3" value={offerDurationMonths} onChange={e => setOfferDurationMonths(e.target.value)} />
               </div>
             </div>
 

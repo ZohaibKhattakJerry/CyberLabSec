@@ -146,15 +146,19 @@ export default function TeamChatClient({ messages, currentUserId }: { messages: 
             return (
               <div key={m.id} style={{ display: "flex", gap: 12, flexDirection: isMe ? "row-reverse" : "row", marginTop: showHeader ? 8 : -10 }}>
                 {showHeader ? (
-                  <div style={{ width: 36, height: 36, borderRadius: "50%", background: isMe ? "var(--purple)" : "rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, flexShrink: 0, color: "#fff" }}>
-                    {m.employee.name.charAt(0)}
+                  <div style={{ width: 36, height: 36, borderRadius: "50%", background: isMe ? "var(--purple)" : "rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, flexShrink: 0, color: "#fff", overflow: "hidden" }}>
+                    {m.employee?.photoUrl ? (
+                      <img src={m.employee.photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    ) : (
+                      m.employee?.name ? m.employee.name.charAt(0) : "?"
+                    )}
                   </div>
                 ) : <div style={{ width: 36, flexShrink: 0 }} />}
                 
                 <div style={{ display: "flex", flexDirection: "column", alignItems: isMe ? "flex-end" : "flex-start", maxWidth: "75%" }}>
                   {showHeader && (
                     <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 4 }}>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: isMe ? "var(--purple)" : "var(--text-primary)" }}>{isMe ? "You" : m.employee.name}</span>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: isMe ? "var(--purple)" : "var(--text-primary)" }}>{isMe ? "You" : (m.employee?.name || "Unknown")}</span>
                       <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{format(new Date(m.createdAt), "h:mm a")}</span>
                     </div>
                   )}

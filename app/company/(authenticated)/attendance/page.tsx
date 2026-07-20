@@ -6,7 +6,7 @@ import { format, startOfDay, endOfDay } from 'date-fns';
 export const dynamic = 'force-dynamic';
 
 export default async function CompanyAttendancePage() {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== 'admin') redirect('/company/login');
 
   const today = new Date();

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuthFromCookies } from "@/lib/auth";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ employeeId: string }> }) {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== "admin") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ emp
     // Log the action
     await prisma.activityLog.create({
       data: {
-        actorId: auth.sub,
+        actorId: null,
         actorType: "Admin",
         action: "GENERATE_REPORT",
         metadata: JSON.stringify({ employeeId, employeeName: employee.name })

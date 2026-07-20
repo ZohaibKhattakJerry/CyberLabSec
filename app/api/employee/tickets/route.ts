@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getAuthFromCookies } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("employee");
   if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const { category, title, description, priority } = await req.json();
   if (!title || !description) return NextResponse.json({ error: 'Title and description required' }, { status: 400 });
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("employee");
   if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const tickets = await prisma.supportTicket.findMany({ where: { employeeId: auth.sub }, orderBy: { createdAt: 'desc' } });
   return NextResponse.json({ tickets });

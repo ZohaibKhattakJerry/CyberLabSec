@@ -7,7 +7,7 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ applicantId: string }> }
 ) {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { applicantId } = await params;
@@ -65,7 +65,7 @@ export async function PATCH(
   // Log stage change
   await prisma.activityLog.create({
     data: {
-      actorId: auth.sub,
+      actorId: null,
       actorType: "Admin",
       action: "APPLICATION_STAGE_CHANGED",
       metadata: JSON.stringify({ applicantId, applicantName: updated.fullName, from: "unknown", to: status }),

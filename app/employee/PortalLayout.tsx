@@ -33,7 +33,7 @@ export default function PortalLayout({ children, employee }: { children: React.R
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const logout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
+    await fetch("/api/auth/logout?role=employee", { method: "POST" });
     router.push("/employee/login");
   };
 
@@ -59,16 +59,16 @@ export default function PortalLayout({ children, employee }: { children: React.R
               employee.name.charAt(0).toUpperCase()
             )}
           </div>
-          <div style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
-            <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", letterSpacing: "-0.01em" }}>{employee.name}</div>
-            <div style={{ fontSize: 11, color: "var(--text-secondary)", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {employee.designation} • {employee.employeeCode}
-            </div>
+          <div style={{ minWidth: 0, flex: 1, display: "flex", flexDirection: "column", gap: 3 }}>
+            <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", letterSpacing: "-0.01em" }}>{employee.name}</div>
+            <div style={{ fontSize: 11, color: "var(--purple)", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{employee.designation}</div>
+            <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>ID: {employee.employeeCode}</div>
           </div>
         </div>
         {employee.team && (
-          <div style={{ marginTop: 10, padding: "4px 10px", background: "rgba(168,85,247,0.1)", borderRadius: 6, fontSize: 11, color: "var(--purple)", display: "flex", alignItems: "center", gap: 6, fontWeight: 600, border: "1px solid rgba(168,85,247,0.2)" }}>
-            <Users size={10} /> {employee.team.name}
+          <div style={{ marginTop: 10, padding: "4px 10px", background: "rgba(168,85,247,0.1)", borderRadius: 6, fontSize: 11, color: "var(--purple)", display: "flex", alignItems: "center", gap: 6, fontWeight: 600, border: "1px solid rgba(168,85,247,0.2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", width: "fit-content", maxWidth: "100%" }}>
+            <Users size={10} style={{ flexShrink: 0 }} /> 
+            <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{employee.team.name}</span>
           </div>
         )}
       </div>
@@ -99,12 +99,11 @@ export default function PortalLayout({ children, employee }: { children: React.R
         })}
       </nav>
 
-      {/* Logout + Notifications */}
+      {/* Logout */}
       <div style={{ padding: "12px", borderTop: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <button onClick={logout} className="btn btn-ghost" style={{ justifyContent: "flex-start", gap: 8, fontSize: 13, color: "var(--text-muted)", flex: 1 }}>
           <LogOut size={14} /> Sign Out
         </button>
-        <NotificationBell />
       </div>
     </aside>
   );
@@ -139,8 +138,14 @@ export default function PortalLayout({ children, employee }: { children: React.R
           >
             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
-          <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 24, objectFit: "contain" }} />
-          <div style={{ width: 36 }} /> {/* Placeholder to balance the flex space */}
+          <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 24, objectFit: "contain", marginLeft: "12px" }} />
+          <button
+            onClick={logout}
+            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--red)", display: "flex", padding: 8, marginLeft: "auto" }}
+            title="Sign Out"
+          >
+            <LogOut size={18} />
+          </button>
         </div>
 
         <main style={{ padding: "24px 20px", maxWidth: 1200, margin: "0 auto" }}>

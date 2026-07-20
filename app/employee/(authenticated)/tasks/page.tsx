@@ -8,7 +8,7 @@ import { differenceInDays } from "date-fns";
 export const dynamic = "force-dynamic";
 
 export default async function TasksPage() {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("employee");
   if (!auth) redirect("/employee/login");
 
   const employee = await prisma.employee.findUnique({
@@ -48,7 +48,7 @@ export default async function TasksPage() {
     }
     const status = task.submissions[0].status;
     if (status === "Approved") return "Done";
-    if (status === "Needs Revision") return "Needs Revision";
+    if (status === "Need more information") return "Need more information";
     return "In Review";
   };
 
@@ -66,7 +66,7 @@ export default async function TasksPage() {
 
   const pendingTasks = serializedTasks.filter(t => getStatus(t) === "Pending" || getStatus(t) === "Overdue");
   const inReviewTasks = serializedTasks.filter(t => getStatus(t) === "In Review");
-  const revisionTasks = serializedTasks.filter(t => getStatus(t) === "Needs Revision");
+  const revisionTasks = serializedTasks.filter(t => getStatus(t) === "Need more information");
   const doneTasks = serializedTasks.filter(t => getStatus(t) === "Done");
 
   const renderColumn = (title: string, columnTasks: any[], badgeColor: string) => (
@@ -99,7 +99,7 @@ export default async function TasksPage() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 16, paddingBottom: 16, minHeight: 400 }}>
           {renderColumn("To-Do", pendingTasks, "badge-gray")}
           {renderColumn("In Review", inReviewTasks, "badge-amber")}
-          {renderColumn("Needs Revision", revisionTasks, "badge-red")}
+          {renderColumn("Need more information", revisionTasks, "badge-red")}
           {renderColumn("Done", doneTasks, "badge-green")}
         </div>
       )}

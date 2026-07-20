@@ -6,7 +6,7 @@ import EmployeeLeaderboardClient from "./EmployeeLeaderboardClient";
 export const dynamic = "force-dynamic";
 
 export default async function EmployeeLeaderboardPage() {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("employee");
   if (!auth) redirect("/employee/login");
 
   const me = await prisma.employee.findUnique({

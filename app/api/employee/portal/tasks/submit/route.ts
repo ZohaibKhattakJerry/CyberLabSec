@@ -6,7 +6,7 @@ import { saveFile } from "@/lib/fileStorage";
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("employee");
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   let formData: FormData;

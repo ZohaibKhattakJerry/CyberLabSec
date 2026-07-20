@@ -14,6 +14,7 @@ export default async function PostingsPage() {
     deadline: p.deadline.toISOString(),
     createdAt: p.createdAt.toISOString(),
     updatedAt: p.updatedAt.toISOString(),
+    effectiveDate: p.effectiveDate ? p.effectiveDate.toISOString() : null,
   }));
 
   return <PostingsClient postings={serialized} />;

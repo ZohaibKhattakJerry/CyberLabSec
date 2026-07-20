@@ -7,16 +7,19 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ employeeId: string }> }
 ) {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { employeeId } = await params;
   const body = await req.json();
-  const { teamId, designation, status, customMessage, terminationFileBase64 } = body;
+  const { teamId, designation, status, customMessage, terminationFileBase64, startDate, endDate, tier } = body;
 
   const updateData: Record<string, unknown> = {};
   if (teamId !== undefined) updateData.teamId = teamId || null;
   if (designation !== undefined) updateData.designation = designation;
+  if (tier !== undefined) updateData.tier = tier;
+  if (startDate !== undefined) updateData.startDate = startDate ? new Date(startDate) : null;
+  if (endDate !== undefined) updateData.endDate = endDate ? new Date(endDate) : null;
   
   const emp = await prisma.employee.findUnique({ where: { id: employeeId } });
   if (!emp) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -58,7 +61,7 @@ export async function PATCH(
 
   await prisma.activityLog.create({
     data: {
-      actorId: auth.sub, actorType: "Admin", action: "EMPLOYEE_UPDATED",
+      actorId: null, actorType: "Admin", action: "EMPLOYEE_UPDATED",
       metadata: JSON.stringify({ employeeId, changes: updateData }),
     },
   }).catch(() => {});
@@ -70,7 +73,7 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ employeeId: string }> }
 ) {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { employeeId } = await params;
@@ -104,7 +107,7 @@ export async function DELETE(
 
     await prisma.activityLog.create({
       data: {
-        actorId: auth.sub, actorType: "Admin", action: "EMPLOYEE_DELETED",
+        actorId: null, actorType: "Admin", action: "EMPLOYEE_DELETED",
         metadata: JSON.stringify({ employeeId }),
       },
     }).catch(() => {});

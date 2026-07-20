@@ -59,26 +59,9 @@ export default async function TeamsPage() {
     },
   }).catch(() => []);
 
-  const serializedTeams = teams.map((t: any) => ({
-    ...t,
-    createdAt: t.createdAt.toISOString(),
-    updatedAt: t.updatedAt.toISOString(),
-    tasks: t.tasks.map((tk: any) => ({ ...tk, deadline: tk.deadline.toISOString() })),
-  }));
-
-  const serializedTasks = tasks.map((t: any) => ({
-    ...t,
-    deadline: t.deadline.toISOString(),
-    createdAt: t.createdAt.toISOString(),
-    updatedAt: t.updatedAt.toISOString(),
-    submissions: t.submissions.map((s: any) => ({
-      ...s,
-      submittedAt: s.submittedAt.toISOString(),
-      gradedAt: s.gradedAt ? s.gradedAt.toISOString() : null,
-    })),
-  }));
-
-  const serializedLeaves = JSON.parse(JSON.stringify(leaves));
+  const serializedTeams = JSON.parse(JSON.stringify(teams || []));
+  const serializedTasks = JSON.parse(JSON.stringify(tasks || []));
+  const serializedLeaves = JSON.parse(JSON.stringify(leaves || []));
 
   return (
     <TeamsClient 

@@ -4,7 +4,7 @@ import { getAuthFromCookies } from '@/lib/auth';
 import { differenceInCalendarDays } from 'date-fns';
 
 export async function POST(req: NextRequest) {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("employee");
   if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const { type, startDate, endDate, reason } = await req.json();
   if (!type || !startDate || !endDate || !reason) return NextResponse.json({ error: 'All fields required' }, { status: 400 });
@@ -12,6 +12,22 @@ export async function POST(req: NextRequest) {
   const end = new Date(endDate);
   if (end < start) return NextResponse.json({ error: 'End date must be after start date' }, { status: 400 });
   const totalDays = differenceInCalendarDays(end, start) + 1;
+
+  // Check for overlaps
+  const overlapping = await (prisma as unknown).leaveRequest.findFirst({
+    where: {
+      employeeId: auth.sub,
+      status: { in: ['Pending', 'Approved'] },
+      OR: [
+        { startDate: { lte: end }, endDate: { gte: start } }
+      ]
+    }
+  });
+
+  if (overlapping) {
+    return NextResponse.json({ error: 'Leave request overlaps with an existing request' }, { status: 400 });
+  }
+
   const leave = await (prisma as unknown).leaveRequest.create({
     data: { employeeId: auth.sub, type, startDate: start, endDate: end, totalDays, reason }
   });
@@ -19,7 +35,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("employee");
   if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const leaves = await (prisma as unknown).leaveRequest.findMany({ where: { employeeId: auth.sub }, orderBy: { createdAt: 'desc' } });
   return NextResponse.json({ leaves });

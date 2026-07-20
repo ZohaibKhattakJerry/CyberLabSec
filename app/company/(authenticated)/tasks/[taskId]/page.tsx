@@ -8,7 +8,7 @@ import SubmissionReviewClient from "./SubmissionReviewClient";
 import TaskComments from "@/components/TaskComments";
 
 export default async function AdminTaskReviewPage({ params }: { params: Promise<{ taskId: string }> }) {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== "admin") redirect("/company/login");
 
   const resolvedParams = await params;

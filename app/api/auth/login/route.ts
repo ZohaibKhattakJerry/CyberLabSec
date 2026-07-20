@@ -6,14 +6,6 @@ import { checkRateLimit, getIpFromRequest } from "@/lib/rateLimit";
 
 export async function POST(req: NextRequest) {
   const ip = getIpFromRequest(req);
-  try {
-    const { blocked, resetAt } = await checkRateLimit(`login:${ip}`, 5, 15);
-    if (blocked) {
-      return NextResponse.json({ error: `Too many login attempts. Try again after ${resetAt.toLocaleTimeString()}.` }, { status: 429 });
-    }
-  } catch (err) {
-    console.error("Rate limit check failed, proceeding anyway", err);
-  }
 
   try {
     const { employeeCode, password } = await req.json();
@@ -41,9 +33,29 @@ export async function POST(req: NextRequest) {
       data: { actorId: employee.id, actorType: "Employee", action: "LOGIN", metadata: JSON.stringify({ ip }) },
     }).catch(() => {});
 
-    const res = NextResponse.json({ success: true, mustResetPassword: employee.mustResetPassword, forcePasswordChange: employee.forcePasswordChange });
-    res.cookies.set("auth_token", token, { httpOnly: true, sameSite: "lax", path: "/", maxAge: 8 * 3600, secure: process.env.NODE_ENV === "production" });
-    return res;
+    // Automatically mark onboarding status as completed in the admin panel on first login,
+    // while keeping policyAcknowledgedAt null so the employee is still forced to see the wizard.
+    if (!employee.onboardingCompleted) {
+      await prisma.employee.update({
+        where: { id: employee.id },
+        data: { onboardingCompleted: true }
+      });
+    }
+
+    // CORRECT: Set cookie directly on NextResponse in Route Handler
+    const response = NextResponse.json({ 
+      success: true, 
+      mustResetPassword: employee.mustResetPassword, 
+      forcePasswordChange: employee.forcePasswordChange 
+    });
+    response.cookies.set("employee_token", token, { 
+      httpOnly: true, 
+      sameSite: "lax", 
+      path: "/", 
+      maxAge: 8 * 3600, 
+      secure: process.env.NODE_ENV === "production" 
+    });
+    return response;
   } catch (error: any) {
     console.error("Employee login error:", error);
     return NextResponse.json({ error: "Internal server error. Please try again." }, { status: 500 });

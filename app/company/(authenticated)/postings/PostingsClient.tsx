@@ -323,7 +323,8 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
                   <div>
                     <label className="label label-required">Position Type</label>
                     <select className="input" value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
-                      <option value="Job">Full-time Job</option>
+                      <option value="Full-Time">Full-Time</option>
+                      <option value="Part-Time">Part-Time</option>
                       <option value="Contract">Contract</option>
                       <option value="Internship">Internship</option>
                     </select>
@@ -371,10 +372,7 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
                     <label className="label">Number of Openings</label>
                     <input className="input" type="number" min={1} value={form.openings as number} onChange={e => setForm(f => ({ ...f, openings: parseInt(e.target.value) }))} />
                   </div>
-                  <div>
-                    <label className="label">Duration (Internship/Contract)</label>
-                    <input className="input" value={form.duration as string} onChange={e => setForm(f => ({ ...f, duration: e.target.value }))} placeholder="e.g. 6 Months" />
-                  </div>
+
                   <div>
                     <label className="label">Weekly Hours</label>
                     <input className="input" type="number" min={1} value={form.weeklyHours as number} onChange={e => setForm(f => ({ ...f, weeklyHours: parseInt(e.target.value) }))} />

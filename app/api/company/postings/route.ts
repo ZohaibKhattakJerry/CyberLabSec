@@ -3,11 +3,11 @@ import { prisma } from "@/lib/prisma";
 import { getAuthFromCookies } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await req.json();
-  const { title, type, department, location, description, requirements, universityRequired, deadline, passMark, showApplicantCount, status, autoShortlist, stipend, experienceLevel, duration, weeklyHours, niceToHave, whatYouGain, openings } = body;
+  const { title, type, department, location, description, requirements, universityRequired, deadline, passMark, showApplicantCount, status, autoShortlist, stipend, experienceLevel, duration, effectiveDate, durationMonths, weeklyHours, niceToHave, whatYouGain, openings } = body;
 
   if (!title || !department || !deadline) {
     return NextResponse.json({ error: "title, department and deadline are required" }, { status: 400 });
@@ -80,6 +80,8 @@ export async function POST(req: NextRequest) {
       stipend: stipend || null,
       experienceLevel: experienceLevel || "Any",
       duration: duration || null,
+      effectiveDate: effectiveDate ? new Date(effectiveDate) : null,
+      durationMonths: durationMonths ? parseInt(durationMonths) : 6,
       weeklyHours: weeklyHours ? parseInt(weeklyHours) : null,
       niceToHave: niceToHave || null,
       whatYouGain: whatYouGain || null,
@@ -88,7 +90,7 @@ export async function POST(req: NextRequest) {
   });
 
   await prisma.activityLog.create({
-    data: { actorId: auth.sub, actorType: "Admin", action: "POSTING_CREATED", metadata: JSON.stringify({ postingId: posting.id, title, status }) },
+    data: { actorId: null, actorType: "Admin", action: "POSTING_CREATED", metadata: JSON.stringify({ postingId: posting.id, title, status }) },
   }).catch(() => {});
 
   return NextResponse.json({ success: true, posting }, { status: 201 });

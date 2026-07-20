@@ -93,25 +93,22 @@ export default function JobDetailClient({ posting }: { posting: Posting }) {
           </Link>
         }
         right={
-          <>
-            <button className="btn btn-ghost btn-sm" onClick={handleCopy} title="Copy link">
-              {copied ? <CheckCircle size={15} color="var(--green)" /> : <Copy size={15} />}
+          <div style={{ display: "flex", gap: 8 }}>
+            <button className="btn btn-ghost btn-sm" onClick={handleCopy} title="Copy link" style={{ padding: "8px" }}>
+              {copied ? <CheckCircle size={16} color="var(--green)" /> : <Copy size={16} />}
             </button>
-            <button className="btn btn-ghost btn-sm" onClick={handleLinkedIn} title="Share on LinkedIn">
-              <Share2 size={15} />
+            <button className="btn btn-ghost btn-sm" onClick={handleLinkedIn} title="Share on LinkedIn" style={{ padding: "8px" }}>
+              <Share2 size={16} />
             </button>
-            <button className="btn btn-ghost btn-sm" onClick={handleWhatsApp} title="Share on WhatsApp">
-              <MessageCircle size={15} />
-            </button>
-          </>
+          </div>
         }
       />
 
-      <div className="job-detail-content" style={{ maxWidth: 840, margin: "0 auto", padding: "48px 24px 120px" }}>
+      <div className="job-detail-content" style={{ maxWidth: 840, margin: "0 auto", padding: "clamp(32px, 5vw, 48px) clamp(16px, 5vw, 24px) 120px" }}>
 
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-          <div style={{ display: "flex", gap: 8, marginBottom: 18, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap", alignItems: "center" }}>
             <span className={`badge ${posting.type === "Job" ? "badge-blue" : "badge-amber"}`}>
               {posting.type}
             </span>
@@ -215,7 +212,7 @@ export default function JobDetailClient({ posting }: { posting: Posting }) {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }}>
           {/* About This Role */}
           <Section title="About This Role" icon={<BookOpen size={18} />}>
-            <div style={{ color: "var(--text-secondary)", fontSize: 16, lineHeight: 1.85, whiteSpace: "pre-wrap" }}>
+            <div className="max-w-prose" style={{ color: "var(--text-secondary)", fontSize: 15, lineHeight: 1.65, whiteSpace: "pre-wrap" }}>
               {posting.description}
             </div>
           </Section>
@@ -235,7 +232,7 @@ export default function JobDetailClient({ posting }: { posting: Posting }) {
           {/* Nice to Have */}
           {posting.niceToHave && (
             <Section title="Nice to Have" icon={<CheckCircle size={18} color="var(--blue)" />}>
-              <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gap: 10 }}>
+              <ul className="max-w-prose" style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gap: 10 }}>
                 {parseLines(posting.niceToHave).map((item, i) => (
                   <li key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start", fontSize: 15, color: "var(--text-secondary)" }}>
                     <CheckCircle size={16} color="var(--blue)" style={{ marginTop: 2, flexShrink: 0 }} />
@@ -249,7 +246,7 @@ export default function JobDetailClient({ posting }: { posting: Posting }) {
           {/* What You'll Gain */}
           {posting.whatYouGain && (
             <Section title="What You'll Gain" icon={<Gift size={18} color="var(--amber)" />}>
-              <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gap: 10 }}>
+              <ul className="max-w-prose" style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gap: 10 }}>
                 {parseLines(posting.whatYouGain).map((item, i) => (
                   <li key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start", fontSize: 15, color: "var(--text-secondary)" }}>
                     <span style={{ fontSize: 18, flexShrink: 0 }}>🎁</span>

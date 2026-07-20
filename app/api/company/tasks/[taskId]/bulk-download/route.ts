@@ -4,7 +4,7 @@ import { getAuthFromCookies } from "@/lib/auth";
 import JSZip from "jszip";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ taskId: string }> }) {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const resolvedParams = await params;

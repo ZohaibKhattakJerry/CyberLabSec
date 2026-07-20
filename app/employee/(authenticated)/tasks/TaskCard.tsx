@@ -43,6 +43,8 @@ export default function TaskCard({ task, statusStr }: { task: any; statusStr: st
         {task.brief || "No description provided."}
       </div>
 
+
+
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--border-subtle)", paddingTop: 12 }}>
         <div style={{ display: "flex", gap: 12, fontSize: 11, color: isOverdue ? "var(--red)" : "var(--text-muted)", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
@@ -58,7 +60,7 @@ export default function TaskCard({ task, statusStr }: { task: any; statusStr: st
         
         {statusStr === "Done" && <span style={{ color: "var(--green)", display: "flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 600 }}><CheckCircle size={14} /> Completed</span>}
         
-        {(statusStr === "Pending" || statusStr === "Overdue" || statusStr === "Needs Revision") && (
+        {(statusStr === "Pending" || statusStr === "Overdue" || statusStr === "Need more information") && (
           <span onClick={(e) => e.stopPropagation()}>
             <StartTaskButton taskId={task.id} />
           </span>

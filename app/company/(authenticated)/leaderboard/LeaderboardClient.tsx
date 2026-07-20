@@ -134,15 +134,20 @@ export default function LeaderboardClient({
       <style>{`
         @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .row-hover { transition: all 0.2s; }
-        .row-hover:hover { background: rgba(255,255,255,0.04); transform: scale(1.01); z-index: 10; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        .glass-header { background: linear-gradient(135deg, rgba(168,85,247,0.2) 0%, rgba(59,130,246,0.2) 100%); border-bottom: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(20px); }
-        .stat-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 20px; transition: 0.3s; }
-        .stat-card:hover { border-color: rgba(168,85,247,0.4); box-shadow: 0 0 20px rgba(168,85,247,0.1); }
+        @keyframes pulseGlow { 0% { box-shadow: 0 0 10px rgba(168,85,247,0.2); } 50% { box-shadow: 0 0 30px rgba(168,85,247,0.6); } 100% { box-shadow: 0 0 10px rgba(168,85,247,0.2); } }
+        .row-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .row-hover:hover { background: rgba(255,255,255,0.06); transform: scale(1.02) translateX(6px); z-index: 10; position: relative; box-shadow: -4px 0 0 var(--purple), 0 15px 40px rgba(0,0,0,0.4); border-radius: 12px; }
+        .glass-header { background: radial-gradient(circle at 50% 0%, rgba(168,85,247,0.15) 0%, rgba(0,0,0,0) 70%), linear-gradient(135deg, rgba(168,85,247,0.1) 0%, rgba(59,130,246,0.1) 100%); border-bottom: 1px solid rgba(168,85,247,0.2); backdrop-filter: blur(20px); box-shadow: inset 0 0 60px rgba(168,85,247,0.05), 0 20px 60px rgba(0,0,0,0.3); }
+        .stat-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 24px; transition: 0.3s; backdrop-filter: blur(12px); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .stat-card:hover { border-color: rgba(168,85,247,0.4); background: rgba(168,85,247,0.08); transform: translateY(-4px); box-shadow: 0 15px 40px rgba(168,85,247,0.15); }
         .input-dark { width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; color: var(--text-primary); font-size: 14px; outline: none; transition: 0.2s; }
         .input-dark:focus { border-color: #a855f7; }
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: flex; alignItems: center; justify-content: center; z-index: 1000; }
         .modal-content { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; width: 440px; max-width: 90%; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+        .nav-btn { padding: 12px 28px; borderRadius: 30px; fontWeight: 700; cursor: pointer; transition: 0.3s; border: 1px solid transparent; text-transform: uppercase; letter-spacing: 1px; font-size: 13px; }
+        .nav-btn.active { background: linear-gradient(135deg, var(--purple), #6b21a8); color: #fff; animation: pulseGlow 2s infinite; border-color: rgba(168,85,247,0.5); }
+        .nav-btn.inactive { background: rgba(255,255,255,0.03); color: var(--text-secondary); border: 1px solid rgba(255,255,255,0.05); }
+        .nav-btn.inactive:hover { background: rgba(255,255,255,0.08); color: var(--text-primary); border-color: rgba(255,255,255,0.2); }
         
         .hero-title { font-size: 56px; font-weight: 900; margin-bottom: 16px; background: linear-gradient(to right, #fff, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.03em; }
         .top-stats-container { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 24px; margin-top: -40px; position: relative; z-index: 10; margin-bottom: 60px; }
@@ -182,8 +187,8 @@ export default function LeaderboardClient({
           </p>
 
           <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 40 }}>
-            <button onClick={() => setTimeframe("monthly")} style={{ background: timeframe === "monthly" ? "#a855f7" : "rgba(255,255,255,0.05)", color: timeframe === "monthly" ? "#fff" : "var(--text-secondary)", border: "1px solid " + (timeframe === "monthly" ? "#a855f7" : "rgba(255,255,255,0.1)"), padding: "10px 24px", borderRadius: 30, fontWeight: 600, cursor: "pointer", transition: "0.2s" }}>Monthly</button>
-            <button onClick={() => setTimeframe("allTime")} style={{ background: timeframe === "allTime" ? "#a855f7" : "rgba(255,255,255,0.05)", color: timeframe === "allTime" ? "#fff" : "var(--text-secondary)", border: "1px solid " + (timeframe === "allTime" ? "#a855f7" : "rgba(255,255,255,0.1)"), padding: "10px 24px", borderRadius: 30, fontWeight: 600, cursor: "pointer", transition: "0.2s" }}>All-Time</button>
+            <button className={`nav-btn ${timeframe === "monthly" ? "active" : "inactive"}`} onClick={() => setTimeframe("monthly")}>Monthly</button>
+            <button className={`nav-btn ${timeframe === "allTime" ? "active" : "inactive"}`} onClick={() => setTimeframe("allTime")}>All-Time</button>
           </div>
         </div>
       </div>

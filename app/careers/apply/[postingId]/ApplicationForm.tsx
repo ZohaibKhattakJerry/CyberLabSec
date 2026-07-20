@@ -337,7 +337,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                   </div>
                   
                 </div>
-                <div style={{ marginTop: 28, display: "flex", justifyContent: "flex-end" }}>
+                <div className="mobile-sticky-bottom" style={{ marginTop: 28, display: "flex", justifyContent: "flex-end" }}>
                   <button className="btn btn-primary" onClick={() => { if (validateStep1()) setStep(2); }}>Continue <ChevronRight size={16} /></button>
                 </div>
               </div>
@@ -433,7 +433,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                   </Field>
 
                 </div>
-                <div style={{ marginTop: 28, display: "flex", justifyContent: "space-between" }}>
+                <div className="mobile-sticky-bottom" style={{ marginTop: 28, display: "flex", justifyContent: "space-between" }}>
                   <button className="btn btn-secondary" onClick={() => setStep(1)}><ChevronLeft size={16} /> Back</button>
                   <button className="btn btn-primary" onClick={() => { if (validateStep2()) setStep(3); }}>Continue <ChevronRight size={16} /></button>
                 </div>
@@ -542,7 +542,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                   </Field>
 
                 </div>
-                <div style={{ marginTop: 28, display: "flex", justifyContent: "space-between" }}>
+                <div className="mobile-sticky-bottom" style={{ marginTop: 28, display: "flex", justifyContent: "space-between" }}>
                   <button className="btn btn-secondary" onClick={() => setStep(2)}><ChevronLeft size={16} /> Back</button>
                   <button className="btn btn-primary" onClick={() => { if (validateStep3()) setStep(4); }}>Continue <ChevronRight size={16} /></button>
                 </div>
@@ -596,7 +596,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                   Please note: Multiple applications for the same role using identical credentials will be automatically flagged and may affect your candidacy.
                 </div>
 
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                <div className="mobile-sticky-bottom" style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                   <button className="btn btn-secondary" onClick={() => setStep(3)} style={{ flex: "1 1 auto" }}><ChevronLeft size={16} /> Back</button>
                   <button className="btn btn-primary btn-lg" onClick={handleSubmit} disabled={!form.consentData || !form.consentInterview} style={{ flex: "2 1 auto" }}>
                     Submit Application
@@ -619,7 +619,20 @@ function Field({ label, required, error, children }: { label: string; required?:
     <div>
       <label className={`label${required ? " label-required" : ""}`}>{label}</label>
       {children}
-      {error && <p className="error-text"><AlertCircle size={12} />{error}</p>}
+      <AnimatePresence>
+        {error && (
+          <motion.p
+            initial={{ opacity: 0, height: 0, marginTop: 0 }}
+            animate={{ opacity: 1, height: "auto", marginTop: 4 }}
+            exit={{ opacity: 0, height: 0, marginTop: 0 }}
+            style={{ overflow: "hidden" }}
+            className="error-text"
+          >
+            <AlertCircle size={12} style={{ display: "inline-block", marginRight: 4, verticalAlign: "text-top" }} />
+            {error}
+          </motion.p>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

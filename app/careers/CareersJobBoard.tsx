@@ -120,7 +120,7 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
       <section
         style={{
           position: "relative",
-          padding: "80px 24px 60px",
+          padding: "80px clamp(16px, 5vw, 24px) 60px",
           overflow: "hidden",
         }}
       >
@@ -270,7 +270,7 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
           <h2 style={{ fontSize: 22, fontWeight: 800, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>Why CyberLabSec?</h2>
           <p style={{ color: "var(--text-secondary)", fontSize: 14, marginTop: 8 }}>What sets us apart in offensive security.</p>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
+        <div className="careers-grid">
           {[
             {
               icon: <Terminal size={20} color="var(--purple)" />,
@@ -401,7 +401,7 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
             )}
           </motion.div>
         ) : (
-          <motion.div layout style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <motion.div layout className="careers-grid">
             <AnimatePresence mode="popLayout">
             {filtered.map((posting, i) => {
               const days = daysUntilDeadline(posting.deadline);
@@ -426,12 +426,10 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
                       <div
                         style={{
                           display: "flex",
-                          justifyContent: "space-between",
+                          flexDirection: "column", /* Stacks vertically for grid layout */
                           alignItems: "flex-start",
                           gap: 16,
-                          flexWrap: "wrap",
                         }}
-                        className="flex-mobile-col"
                       >
                       {/* Left: Info */}
                       <div style={{ flex: 1, minWidth: 0 }}>
@@ -495,8 +493,11 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
                         style={{
                           display: "flex",
                           alignItems: "center",
-                          gap: 12,
-                          flexShrink: 0,
+                          justifyContent: "space-between",
+                          width: "100%",
+                          marginTop: "auto", /* Pushes to bottom */
+                          paddingTop: 16,
+                          borderTop: "1px solid var(--border-subtle)",
                         }}
                       >
                         <div
@@ -525,9 +526,6 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
                              {postedDays !== null ? (
                                postedDays === 0 ? "Posted today" : `Posted ${postedDays}d ago`
                              ) : "..."}
-                             {posting.showApplicantCount && (
-                               <span> · {posting._count.applicants} applicant{posting._count.applicants !== 1 ? "s" : ""}</span>
-                             )}
                            </div>
                          </div>
                         <ChevronRight

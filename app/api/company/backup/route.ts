@@ -23,7 +23,7 @@ function encrypt(text: string, password: string): string {
 
 export async function GET(req: Request) {
   try {
-    const auth = await getAuthFromCookies();
+    const auth = await getAuthFromCookies("admin");
     if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { searchParams } = new URL(req.url);

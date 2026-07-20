@@ -6,7 +6,7 @@ import SupportClient from './SupportClient';
 export const dynamic = 'force-dynamic';
 
 export default async function SupportPage() {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("employee");
   if (!auth) redirect('/employee/login');
   const tickets = await prisma.supportTicket.findMany({
     where: { employeeId: auth.sub },

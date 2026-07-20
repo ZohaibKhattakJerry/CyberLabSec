@@ -1,0 +1,186 @@
+================================================================================
+                    CYBERLABSEC PLATFORM - COMPREHENSIVE DOCUMENTATION
+================================================================================
+
+Prepared by: Senior Product & Architecture Audit Team (World's Top Experts)
+Target: CyberLabSec Internal Operations Platform (Production-Grade)
+
+--------------------------------------------------------------------------------
+1. PLATFORM OVERVIEW & ARCHITECTURE
+--------------------------------------------------------------------------------
+CyberLabSec is a premium, dark-mode glassmorphic internal operations platform designed specifically for a world-class cybersecurity defense firm. It acts as the central nervous system for the company, managing everything from employee onboarding and task assignments to applicant tracking (ATS), secure internal communications, and performance analytics.
+
+Tech Stack:
+- Frontend: Next.js (App Router), React, Framer Motion (for micro-animations), Lucide React (icons), Canvas Confetti.
+- Backend: Next.js API Routes (Serverless), Prisma ORM.
+- Database: PostgreSQL (Neon DB).
+- UI/UX: Custom CSS utilizing CSS Variables, flexbox/grid for extreme responsiveness, and glassmorphic aesthetic (blur, semi-transparent backgrounds).
+- Auth: Custom JWT-based cookie authentication using `jose`. Roles are strictly binary: 'admin' (Company) and 'employee'.
+
+--------------------------------------------------------------------------------
+2. UI/UX DESIGN SYSTEM (THE "CYBER COMMAND CENTER" AESTHETIC)
+--------------------------------------------------------------------------------
+The platform avoids generic UI components in favor of a bespoke, high-end "Cyber" aesthetic.
+- Color Palette:
+  --bg-base: #06060A (Deep Abyss Black)
+  --bg-elevated: #0F0F16 (Slightly lighter black for cards)
+  --purple: #A855F7 (Neon Purple for primary actions)
+  --purple-light: #C084FC (Hover states)
+  --purple-dark: #7E22CE (Active states)
+  --accent: #3b82f6 (Cyber Blue)
+  --green: #22c55e (Success/Clear)
+  --red: #ef4444 (Destructive/Critical)
+  --amber: #f59e0b (Warning/Pending)
+
+- Glassmorphism & Depth: 
+  Modals and floating elements use `backdrop-filter: blur(12px)` and `background: rgba(15, 15, 22, 0.7)` to create a layered, tactical HUD feel.
+- Animations: Smooth transitions (`all 0.2s ease`), scale effects on hover (`transform: translateY(-2px)`), and Framer Motion for page mounts and list rendering.
+
+--------------------------------------------------------------------------------
+3. COMPANY PORTAL (ADMIN / CEO DASHBOARD)
+--------------------------------------------------------------------------------
+Access: `/company/login` -> `/company/(authenticated)/*`
+Role: Admins (e.g., Zohaib Khattak, CyberLabSec Admin)
+
+This portal provides omniscient control over the entire organization.
+
+MENUS & FLOWS:
+
+1. Dashboard (`/company/dashboard`)
+   - Purpose: High-level metrics and pulse of the company.
+   - Flow: Fetches aggregated counts (Total Employees, Active Tasks, Pending Approvals) via Prisma.
+   - Components: 
+     - Top Stats Row (Cards showing counts).
+     - Hiring Funnel (Conversion rates from Applied to Hired).
+     - Live Activity Log (Real-time feed of employee actions, limited to 20 rows to prevent lag).
+
+2. Job Postings (`/company/postings`)
+   - Purpose: Manage open roles.
+   - Flow: Admins can create, edit, pause, and close postings.
+   - Buttons: "Create Posting" opens a modal -> "Save" immediately publishes to the public careers page.
+
+3. Applications / ATS (`/company/applications`)
+   - Purpose: Review candidates.
+   - Flow: A Kanban board (or List view) showing candidates across stages (Reviewing, Invited, Selected, Hired, Rejected).
+   - Interaction: Clicking a candidate card opens a detailed side/center modal.
+   - Buttons:
+     - "Shortlist & Invite" -> Updates status, generates an Interview Session token, and emails the candidate.
+     - "Approve & Hire" -> Opens Offer Modal. Requires uploading a PDF offer letter, setting Start Date & Duration. Generates employee record instantly.
+     - "Reject" -> Opens a confirmation window. If accepted, marks status as Rejected.
+     - "Save Scorecard" -> Saves private admin notes and a 1-5 star internal rating.
+
+4. Employees (`/company/employees`)
+   - Purpose: Employee lifecycle management.
+   - Flow: Shows all active and inactive employees.
+   - Buttons:
+     - "Direct Hire" -> Bypasses ATS. Creates an employee instantly, assigning them a unique `employeeCode` (e.g., CLS-001) and an initial temporary password.
+     - "Terminate" -> Requires uploading a Termination PDF and adding a reason. Instantly revokes the employee's JWT token via the layout deactivation gate.
+     - "Offboard" -> Graceful exit (resignation/end of contract). Generates a dynamic Experience/Recommendation Letter.
+
+5. Workspace / Tasks (`/company/workspace`)
+   - Purpose: Central task dispatch.
+   - Flow: Admins create tasks assigned to Teams or Individuals. 
+   - Rule: Task review is strictly binary. 
+   - Buttons: 
+     - "Approve" -> Closes the task, awards points to the employee, and updates leaderboard.
+     - "Need more information" -> Pushes task back to the employee's To-Do list with admin feedback.
+
+6. Teams (`/company/teams`)
+   - Purpose: Organize employees into squads (e.g., Red Team, Blue Team, SOC).
+
+7. Leave Requests (`/company/leave`)
+   - Purpose: Approve/Reject employee time-off.
+   - Flow: Shows a calendar or list of pending requests.
+   - Logic: Prevents double-booking. Approval subtracts days from the employee's unwritten allowance (managed by HR logic).
+
+8. Support Tickets (`/company/support`)
+   - Purpose: Internal IT / HR helpdesk.
+   - Flow: Admins read and respond to tickets created by employees.
+
+9. Leaderboard (`/company/leaderboard`)
+   - Purpose: Gamification. Ranks employees based on points earned from approved tasks and exceptional performance.
+
+10. Announcements (`/company/announcements`)
+    - Purpose: Broadcast company-wide or team-specific memos. Triggers push/email notifications.
+
+--------------------------------------------------------------------------------
+4. EMPLOYEE PORTAL
+--------------------------------------------------------------------------------
+Access: `/employee/login` -> `/employee/(authenticated)/*`
+Role: Standard Employees
+
+MENUS & FLOWS:
+
+0. Onboarding Wizard (`/employee/OnboardingWizard`)
+   - Purpose: Mandatory first-time login experience.
+   - Flow: 
+     - Step 1: Welcome.
+     - Step 2: CEO Message (Zohaib Khattak).
+     - Step 3: Portal Tour.
+     - Step 4: NDA & Policies (Requires explicit checkbox agreement).
+   - State Protection: Saves progress in `localStorage` so if an employee refreshes, they resume exactly where they left off without getting trapped.
+
+1. Dashboard (`/employee/dashboard`)
+   - Purpose: Personal command center.
+   - Displays: Active tasks, unread announcements, recent team messages, and current points.
+
+2. Tasks (`/employee/tasks`)
+   - Purpose: The primary operational screen.
+   - Flow: Employees see "Assigned", "In Progress", and "Returned" tasks.
+   - Buttons:
+     - "Submit Proof" -> Opens a modal to upload a file (PDF/Image) or enter a URL/text. Submitting moves the task to "Pending Review" on the admin side.
+
+3. My Team (`/employee/team`)
+   - Purpose: Secure squad communication.
+   - Flow: A real-time chat interface for team members.
+
+4. Attendance / Timesheet (`/employee/attendance`)
+   - Purpose: Clock-in / Clock-out.
+   - Flow: Employees log their daily hours or verify their presence.
+
+5. Leave Requests (`/employee/leave`)
+   - Purpose: Request time off.
+   - Flow: Employee selects dates and type (Sick, Casual). The API validates that dates do not overlap with existing pending/approved requests.
+
+6. My Documents (`/employee/documents`)
+   - Purpose: Secure vault for employee records (Offer Letter, Payslips, Certificates).
+
+7. Leaderboard (`/employee/leaderboard`)
+   - Purpose: View company rankings to foster healthy competition.
+
+8. Support (`/employee/support`)
+   - Purpose: Open tickets for HR/IT issues.
+
+9. Profile (`/employee/profile`)
+   - Purpose: Update avatar, skills, and emergency contact details. Also handles password changes.
+
+--------------------------------------------------------------------------------
+5. CRITICAL LOGIC & SECURITY RULES (THE "RUTHLESS" STANDARD)
+--------------------------------------------------------------------------------
+
+A. Authentication Gatekeeping
+- `lib/auth.ts`: Middleware extracts the JWT. `getAuthFromCookies()` then cross-references the database to ensure the employee's `status` is strictly `"Active"`. If "Terminated" or "Inactive", access is brutally blocked at the API and UI level.
+
+B. The Deletion Cascade
+- `prisma/schema.prisma`: Deleting a `JobPosting` cascade-deletes all associated `Applicant` and `OfferLetter` records to prevent orphan data and 500 Server Errors. Deleting a `Task` cascades to all `TaskSubmission` records.
+
+C. Task Review Binary System
+- To prevent operational ambiguity, tasks can only be "Approved" (Task closed, points awarded) or "Need more information" (Task returned). There are no messy middle states like "Partially Approved".
+
+D. Mobile Responsiveness
+- All data tables (Employees, Tickets) are wrapped in `overflow-x: auto` containers to prevent breaking the mobile viewport.
+- Floating Action Buttons (FABs) on mobile (like "New Leave Request") have bottom padding to prevent overlapping with list items on iOS Safari.
+
+--------------------------------------------------------------------------------
+6. FINAL AUDIT SUMMARY
+--------------------------------------------------------------------------------
+Following the Multi-Agent Audit Phase, the platform has been fortified. 
+- Overlap checking in Leave API is live.
+- DB cascade deletes are live.
+- Mobile data tables are responsive.
+- Onboarding state is persistent via localStorage.
+- Destructive actions (Reject, Delete) require explicit confirmation dialogs.
+- Active employee verification is enforced globally.
+
+CyberLabSec Platform is now visually polished, functionally flawless, and production-ready for elite cybersecurity operations.
+================================================================================

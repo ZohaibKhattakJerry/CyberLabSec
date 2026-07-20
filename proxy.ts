@@ -8,62 +8,110 @@ const JWT_SECRET = new TextEncoder().encode(
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico, sitemap.xml, robots.txt (metadata files)
-     */
     '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
   ],
 };
 
+async function verifyToken(token: string): Promise<{ role?: string; sub?: string } | null> {
+  try {
+    const { payload } = await jose.jwtVerify(token, JWT_SECRET, {
+      clockTolerance: "5 mins",
+    });
+    return payload as { role?: string; sub?: string };
+  } catch {
+    return null;
+  }
+}
+
 export async function proxy(req: NextRequest) {
-  const url = req.nextUrl.clone();
-  const { pathname } = url;
+  const { pathname } = req.nextUrl;
   const response = NextResponse.next();
 
-  // Admin routes — require admin role
-  if (pathname.startsWith("/company") && pathname !== "/company/login") {
-    const token = req.cookies.get("auth_token")?.value;
+  // ─── Company portal protection (admin_token) ──────────────────────────────
+  const isCompanyProtected =
+    pathname.startsWith("/company/dashboard") ||
+    pathname.startsWith("/company/employees") ||
+    pathname.startsWith("/company/applications") ||
+    pathname.startsWith("/company/postings") ||
+    pathname.startsWith("/company/attendance") ||
+    pathname.startsWith("/company/leave") ||
+    pathname.startsWith("/company/tasks") ||
+    pathname.startsWith("/company/tickets") ||
+    pathname.startsWith("/company/announcements") ||
+    pathname.startsWith("/company/leaderboard") ||
+    pathname.startsWith("/company/workspace") ||
+    pathname.startsWith("/company/settings");
+
+  if (isCompanyProtected) {
+    const token = req.cookies.get("admin_token")?.value;
     if (!token) {
       return NextResponse.redirect(new URL("/company/login", req.url));
     }
-    try {
-      const { payload } = await jose.jwtVerify(token, JWT_SECRET);
-      if (payload.role !== "admin") {
-        return NextResponse.redirect(new URL("/company/login", req.url));
-      }
-    } catch {
-      return NextResponse.redirect(new URL("/company/login", req.url));
+    const payload = await verifyToken(token);
+    if (!payload || payload.role !== "admin") {
+      const res = NextResponse.redirect(new URL("/company/login", req.url));
+      res.cookies.delete("admin_token");
+      return res;
     }
+    // Valid admin — allow through
+    response.headers.set("X-Robots-Tag", "noindex, nofollow");
+    return response;
   }
 
-  // Employee portal — require employee or admin role
-  if (pathname.startsWith("/employee") && pathname !== "/employee/login") {
-    const token = req.cookies.get("auth_token")?.value;
+  // ─── Redirect logged-in admin away from login page ────────────────────────
+  if (pathname === "/company/login") {
+    const token = req.cookies.get("admin_token")?.value;
+    if (token) {
+      const payload = await verifyToken(token);
+      if (payload?.role === "admin") {
+        return NextResponse.redirect(new URL("/company/dashboard", req.url));
+      }
+    }
+    return response;
+  }
+
+  // ─── Employee portal protection (employee_token) ──────────────────────────
+  const isEmployeeProtected =
+    pathname.startsWith("/employee/dashboard") ||
+    pathname.startsWith("/employee/attendance") ||
+    pathname.startsWith("/employee/leave") ||
+    pathname.startsWith("/employee/tasks") ||
+    pathname.startsWith("/employee/announcements") ||
+    pathname.startsWith("/employee/workspace") ||
+    pathname.startsWith("/employee/profile");
+
+  if (isEmployeeProtected) {
+    const token = req.cookies.get("employee_token")?.value;
     if (!token) {
       return NextResponse.redirect(new URL("/employee/login", req.url));
     }
-    try {
-      const { payload } = await jose.jwtVerify(token, JWT_SECRET);
-      if (payload.role !== "employee" && payload.role !== "admin") {
-        return NextResponse.redirect(new URL("/employee/login", req.url));
-      }
-    } catch {
-      return NextResponse.redirect(new URL("/employee/login", req.url));
+    const payload = await verifyToken(token);
+    if (!payload || (payload.role !== "employee" && payload.role !== "admin")) {
+      const res = NextResponse.redirect(new URL("/employee/login", req.url));
+      res.cookies.delete("employee_token");
+      return res;
     }
+    response.headers.set("X-Robots-Tag", "noindex, nofollow");
+    return response;
   }
 
+  // ─── Redirect logged-in employee away from login page ────────────────────
+  if (pathname === "/employee/login") {
+    const token = req.cookies.get("employee_token")?.value;
+    if (token) {
+      const payload = await verifyToken(token);
+      if (payload?.role === "employee" || payload?.role === "admin") {
+        return NextResponse.redirect(new URL("/employee/dashboard", req.url));
+      }
+    }
+    return response;
+  }
+
+  // ─── Security headers for all other routes ────────────────────────────────
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-XSS-Protection", "1; mode=block");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-
-  if (pathname.startsWith("/employee") || pathname.startsWith("/company")) {
-    response.headers.set("X-Robots-Tag", "noindex, nofollow");
-  }
 
   return response;
 }

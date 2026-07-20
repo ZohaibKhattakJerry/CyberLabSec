@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuthFromCookies } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { submissionId, action, feedback, qualityRating } = await req.json();
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
   if (!submission) return NextResponse.json({ error: "Submission not found" }, { status: 404 });
 
   const isApprove = action === "approve";
-  const newStatus = isApprove ? "Approved" : "Needs Revision";
+  const newStatus = isApprove ? "Approved" : "Need more information";
   const taskStatus = isApprove ? "Completed" : "ChangesRequested";
 
   // Update feedback history
@@ -120,8 +120,8 @@ export async function POST(req: NextRequest) {
     await prisma.notification.create({
       data: {
         userId: submission.employeeId,
-        title: "Changes Requested",
-        message: `Your submission for "${submission.task.title}" needs revision. Check the feedback.`,
+        title: "More information requested",
+        message: `Your submission for "${submission.task.title}" needs more information. Check the feedback.`,
         type: "Task",
         link: `/employee/tasks/${submission.taskId}`,
       },
@@ -131,7 +131,7 @@ export async function POST(req: NextRequest) {
   // Log activity
   await prisma.activityLog.create({
     data: {
-      actorId: auth.sub,
+      actorId: null,
       actorType: "Admin",
       action: isApprove ? "TASK_APPROVED" : "CHANGES_REQUESTED",
       metadata: JSON.stringify({ submissionId, taskTitle: submission.task.title, employeeName: submission.employee.name }),

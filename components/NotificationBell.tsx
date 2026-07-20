@@ -18,7 +18,7 @@ interface Notification {
   content?: string;
 }
 
-export default function NotificationBell() {
+export default function NotificationBell({ isAdmin = false, placement = "top-right", variant = "default" }: { isAdmin?: boolean; placement?: "top-right" | "bottom-left", variant?: "default" | "dashboard" }) {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -28,9 +28,17 @@ export default function NotificationBell() {
   const ref = useRef<HTMLDivElement>(null);
   const latestIdRef = useRef<string | null>(null);
 
+  const clearAll = async () => {
+    try {
+      await fetch(`/api/notifications/clear-all`, { method: "DELETE" });
+      setNotifications([]);
+      setUnreadCount(0);
+    } catch {}
+  };
+
   const fetchNotifications = async () => {
     try {
-      const res = await fetch("/api/notifications");
+      const res = await fetch(`/api/notifications?role=${isAdmin ? 'admin' : 'employee'}`);
       if (res.ok) {
         const data = await res.json();
         setNotifications(data.notifications);
@@ -103,27 +111,67 @@ export default function NotificationBell() {
     <div className="relative" ref={ref} style={{ position: "relative" }}>
       <button 
         onClick={() => setOpen(!open)}
-        style={{ background: "transparent", border: "none", cursor: "pointer", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, borderRadius: "50%" }}
-        className="hover:bg-[rgba(168,85,247,0.1)]"
+        style={variant === "dashboard" ? {
+          background: "rgba(255,255,255,0.1)",
+          padding: "12px",
+          borderRadius: "50%",
+          color: "var(--text-primary)",
+          transition: "transform 0.2s",
+          border: "none",
+          cursor: "pointer",
+          position: "relative",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center"
+        } : { 
+          background: "transparent", 
+          border: "none", 
+          cursor: "pointer", 
+          position: "relative", 
+          display: "flex", 
+          alignItems: "center", 
+          justifyContent: "center", 
+          width: 36, 
+          height: 36, 
+          borderRadius: "50%" 
+        }}
+        className={variant === "dashboard" ? "" : "hover:bg-[rgba(168,85,247,0.1)]"}
       >
-        <Bell size={20} color="var(--text-secondary)" />
+        <Bell size={variant === "dashboard" ? 24 : 20} color={variant === "dashboard" ? "var(--text-primary)" : "var(--text-secondary)"} />
         {unreadCount > 0 && (
-          <>
-            <span style={{ position: "absolute", top: 4, right: 6, width: 8, height: 8, background: "var(--purple)", borderRadius: "50%" }} className="animate-ping opacity-75" />
-            <div style={{ position: "absolute", top: 4, right: 6, width: 8, height: 8, background: "var(--purple)", borderRadius: "50%", boxShadow: "0 0 10px var(--purple)" }} />
-          </>
+          variant === "dashboard" ? (
+            <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: 'var(--red)', color: 'white', fontSize: '10px', fontWeight: 'bold', width: '20px', height: '20px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 10px rgba(239,68,68,0.5)' }}>
+              {unreadCount}
+            </span>
+          ) : (
+            <>
+              <span style={{ position: "absolute", top: 4, right: 6, width: 8, height: 8, background: "var(--purple)", borderRadius: "50%" }} className="animate-ping opacity-75" />
+              <div style={{ position: "absolute", top: 4, right: 6, width: 8, height: 8, background: "var(--purple)", borderRadius: "50%", boxShadow: "0 0 10px var(--purple)" }} />
+            </>
+          )
         )}
       </button>
 
       {open && (
-        <div className="card animate-fade-up notification-dropdown" style={{ position: "fixed", top: 20, right: 20, width: 380, maxWidth: "calc(100vw - 40px)", maxHeight: "calc(100vh - 40px)", display: "flex", flexDirection: "column", zIndex: 99999, overflow: "hidden", boxShadow: "0 10px 40px rgba(0,0,0,0.2)", borderRadius: 12, background: "var(--bg-elevated)" }}>
+        <div className="card animate-fade-up notification-dropdown" style={{ 
+          position: "absolute", 
+          ...(placement === "top-right" ? { top: "calc(100% + 8px)", right: 0 } : { bottom: "calc(100% + 8px)", left: 0 }),
+          width: 380, maxWidth: "calc(100vw - 40px)", maxHeight: "400px", display: "flex", flexDirection: "column", zIndex: 99999, overflow: "hidden", boxShadow: "0 10px 40px rgba(0,0,0,0.2)", borderRadius: 12, background: "var(--bg-elevated)" 
+        }}>
           <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--bg-elevated)" }}>
             <h3 style={{ fontSize: 14, fontWeight: 700 }}>Notifications</h3>
-            {unreadCount > 0 && (
-              <button onClick={markAllAsRead} style={{ background: "none", border: "none", color: "var(--purple)", fontSize: 12, cursor: "pointer", fontWeight: 600 }}>
-                Mark all read
-              </button>
-            )}
+            <div style={{ display: "flex", gap: 12 }}>
+              {unreadCount > 0 && (
+                <button onClick={markAllAsRead} style={{ background: "none", border: "none", color: "var(--purple)", fontSize: 12, cursor: "pointer", fontWeight: 600 }}>
+                  Mark all read
+                </button>
+              )}
+              {isAdmin && notifications.length > 0 && (
+                <button onClick={clearAll} style={{ background: "none", border: "none", color: "var(--red)", fontSize: 12, cursor: "pointer", fontWeight: 600 }}>
+                  Clear all
+                </button>
+              )}
+            </div>
           </div>
           
           <div style={{ overflowY: "auto", flex: 1, padding: "8px 0" }}>

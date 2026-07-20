@@ -6,7 +6,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ employeeId: string }> }
 ) {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { employeeId } = await params;
@@ -42,7 +42,7 @@ export async function POST(
 
     await prisma.activityLog.create({
       data: {
-        actorId: auth.sub, actorType: "Admin", action: "BADGE_AWARDED",
+        actorId: null, actorType: "Admin", action: "BADGE_AWARDED",
         metadata: JSON.stringify({ employeeId, type, label }),
       },
     }).catch(() => {});

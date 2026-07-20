@@ -4,7 +4,7 @@ import { getAuthFromCookies } from "@/lib/auth";
 import { sendEmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { action, applicantIds } = await req.json();
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
       }
 
       await prisma.activityLog.create({
-        data: { actorId: auth.sub, actorType: "Admin", action: "BULK_REJECT", metadata: JSON.stringify({ count: applicantIds.length }) },
+        data: { actorId: null, actorType: "Admin", action: "BULK_REJECT", metadata: JSON.stringify({ count: applicantIds.length }) },
       }).catch(() => {});
 
       return NextResponse.json({ success: true });
@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
       });
 
       await prisma.activityLog.create({
-        data: { actorId: auth.sub, actorType: "Admin", action: "BULK_DELETE", metadata: JSON.stringify({ count: applicantIds.length }) },
+        data: { actorId: null, actorType: "Admin", action: "BULK_DELETE", metadata: JSON.stringify({ count: applicantIds.length }) },
       }).catch(() => {});
 
       return NextResponse.json({ success: true });

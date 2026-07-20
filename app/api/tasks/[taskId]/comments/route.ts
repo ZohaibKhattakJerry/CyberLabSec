@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuthFromCookies } from "@/lib/auth";
 
 export async function POST(req: NextRequest, { params }: { params: { taskId: string } }) {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("any");
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { text } = await req.json();

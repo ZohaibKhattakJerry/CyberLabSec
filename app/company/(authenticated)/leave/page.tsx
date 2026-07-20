@@ -6,7 +6,7 @@ import CompanyLeaveClient from './CompanyLeaveClient';
 export const dynamic = 'force-dynamic';
 
 export default async function CompanyLeavePage() {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== 'admin') redirect('/company/login');
 
   const leaves = await (prisma as unknown).leaveRequest.findMany({

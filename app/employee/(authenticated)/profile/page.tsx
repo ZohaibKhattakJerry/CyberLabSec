@@ -7,7 +7,7 @@ import ProfileClient from "./ProfileClient";
 export const dynamic = "force-dynamic";
 
 export default async function ProfilePage() {
-  const auth = await getAuthFromCookies();
+  const auth = await getAuthFromCookies("employee");
   if (!auth) redirect("/employee/login");
 
   const employee = await prisma.employee.findUnique({
