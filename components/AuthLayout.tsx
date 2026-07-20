@@ -59,23 +59,16 @@ export default function AuthLayout({
           }
         }
 
-        html, body {
-          overflow: hidden !important;
-          width: 100%;
-          height: 100%;
-        }
-
         .auth-bg {
-          height: 100dvh;
-          width: 100vw;
+          min-height: 100vh;
+          width: 100%;
           background: #040308;
           display: flex;
           align-items: center;
           justify-content: center;
           padding: 1rem;
           position: relative;
-          overflow-x: hidden;
-          overflow-y: auto;
+          overflow: hidden;
           font-family: 'Inter', system-ui, sans-serif;
           perspective: 1000px;
         }
@@ -131,25 +124,6 @@ export default function AuthLayout({
           transform: translateZ(0);
         }
         
-        /* Card Orbs (Smaller, brighter, inside card) */
-        .card-orb-a {
-          position: absolute;
-          width: 400px; height: 400px;
-          top: -100px; left: -100px;
-          background: rgba(168,85,247,0.4);
-          animation: orb-pulse-a 9s ease-in-out infinite;
-          filter: blur(50px);
-          z-index: 0;
-        }
-        .card-orb-b {
-          position: absolute;
-          width: 350px; height: 350px;
-          bottom: -100px; right: -100px;
-          background: rgba(236,72,153,0.3);
-          animation: orb-pulse-b 11s ease-in-out infinite 1.5s;
-          filter: blur(50px);
-          z-index: 0;
-        }
         .auth-grid {
           position: absolute; inset: 0;
           background-image:
@@ -210,9 +184,6 @@ export default function AuthLayout({
         <div className="auth-orb bg-orb-b" />
 
         <div className="auth-card">
-          {/* GPU-composited orbs INSIDE the card */}
-          <div className="auth-orb card-orb-a" />
-          <div className="auth-orb card-orb-b" />
           <div className="auth-grid" />
           <div className="auth-scan" />
 
