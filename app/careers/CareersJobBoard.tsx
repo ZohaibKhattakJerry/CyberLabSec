@@ -211,33 +211,52 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
             transition={{ duration: 0.6, delay: 0.3 }}
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-              gap: 20,
-              justifyContent: "center",
-              textAlign: "left",
-              maxWidth: 600,
+              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+              gap: 16,
+              maxWidth: 900,
               margin: "0 auto",
+              marginTop: 48,
             }}
           >
             {[
-              { icon: <Shield size={16} />, label: "Offensive Security", value: "Real Work" },
-              { icon: <Terminal size={16} />, label: "Tools Used Daily", value: "Industry Standard" },
-              { icon: <Users size={16} />, label: "Team Size", value: "Small & Elite" },
-            ].map((stat) => (
-              <div
-                key={stat.label}
+              {
+                icon: <Terminal size={18} color="var(--purple)" />,
+                title: "Real Client Engagements",
+                desc: "Live penetration tests from day one—not simulated labs.",
+              },
+              {
+                icon: <Users size={18} color="var(--purple)" />,
+                title: "Senior Mentorship",
+                desc: "Direct code reviews and guidance from experienced operators.",
+              },
+              {
+                icon: <Shield size={18} color="var(--purple)" />,
+                title: "Results-Driven Culture",
+                desc: "Fully remote. We measure impact, not hours online.",
+              },
+            ].map((item, i) => (
+              <motion.div
+                key={item.title}
+                whileHover={{ y: -2, borderColor: "rgba(168,85,247,0.4)", boxShadow: "0 8px 24px rgba(168,85,247,0.15)" }}
+                className="card-glass"
                 style={{
+                  padding: "20px",
+                  textAlign: "left",
                   display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  color: "var(--text-secondary)",
-                  fontSize: 14,
+                  flexDirection: "column",
+                  gap: 12,
+                  border: "1px solid rgba(168,85,247,0.15)",
+                  transition: "all 0.3s ease",
                 }}
               >
-                <span style={{ color: "var(--purple)" }}>{stat.icon}</span>
-                <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>{stat.value}</span>
-                <span>{stat.label}</span>
-              </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(168,85,247,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    {item.icon}
+                  </div>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)" }}>{item.title}</div>
+                </div>
+                <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>{item.desc}</div>
+              </motion.div>
             ))}
           </motion.div>
         </div>
@@ -266,59 +285,15 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
         </div>
       </div>
 
-      {/* WHY CYBERLABSEC STRIP */}
-      <section style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 64px" }}>
-        <div style={{ textAlign: "center", marginBottom: 36 }}>
-          <h2 style={{ fontSize: 22, fontWeight: 800, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>Why CyberLabSec?</h2>
-          <p style={{ color: "var(--text-secondary)", fontSize: 14, marginTop: 8 }}>What sets us apart in offensive security.</p>
+      {/* JOB BOARD AREA */}
+      <section style={{ maxWidth: 960, margin: "64px auto", padding: "0 24px 80px" }}>
+        <div style={{ marginBottom: 32, display: "flex", alignItems: "center", gap: 16 }}>
+          <div style={{ width: 4, height: 28, background: "var(--purple)", borderRadius: 4, boxShadow: "0 0 12px var(--purple)" }} />
+          <h2 style={{ fontSize: 28, fontWeight: 800, color: "var(--text-primary)", margin: 0, letterSpacing: "-0.02em" }}>Open Positions</h2>
         </div>
-        <div className="careers-grid">
-          {[
-            {
-              icon: <Terminal size={20} color="var(--purple)" />,
-              title: "Real Client Engagements",
-              desc: "Live penetration tests from day one—not simulated labs. Your reports drive real client remediation.",
-            },
-            {
-              icon: <Users size={20} color="var(--purple)" />,
-              title: "Senior Mentorship",
-              desc: "Direct code reviews and guidance from experienced offensive security operators.",
-            },
-            {
-              icon: <Shield size={20} color="var(--purple)" />,
-              title: "Results-Driven Culture",
-              desc: "Fully remote. We measure technical excellence and impact, not hours online.",
-            },
-          ].map((item, i) => (
-            <motion.div
-              key={item.title}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 + i * 0.07 }}
-              className="card card-hover"
-              style={{ 
-                padding: "24px", 
-                display: "flex", 
-                gap: 16, 
-                alignItems: "flex-start",
-                background: "rgba(255,255,255,0.015)",
-                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)"
-              }}
-            >
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(168,85,247,0.1)", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(168,85,247,0.2)", flexShrink: 0 }}>
-                {item.icon}
-              </div>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)", marginBottom: 6 }}>{item.title}</div>
-                <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6 }}>{item.desc}</div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </section>
 
-      {/* FILTERS */}
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 32px" }}>
+        {/* FILTERS */}
+        <div style={{ marginBottom: 24 }}>
         {postings.length > 3 && (
           <div
             className="flex-mobile-col"
@@ -405,7 +380,7 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
             )}
           </motion.div>
         ) : (
-          <motion.div layout style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 850, margin: "0 auto" }}>
+          <motion.div layout className="card" style={{ overflow: "hidden", background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: "16px", boxShadow: "0 8px 32px rgba(0,0,0,0.3)" }}>
             <AnimatePresence mode="popLayout">
             {filtered.map((posting, i) => {
               const days = daysUntilDeadline(posting.deadline);
@@ -423,8 +398,18 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
                 >
                   <Link href={`/careers/${posting.id}`} style={{ textDecoration: 'none', display: 'block' }}>
                     <article
-                      className="card card-hover"
-                      style={{ cursor: "pointer", padding: "24px" }}
+                      style={{
+                        cursor: "pointer",
+                        padding: "28px 32px",
+                        borderBottom: i < filtered.length - 1 ? "1px solid var(--border-subtle)" : "none",
+                        transition: "all 0.2s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = "rgba(168,85,247,0.04)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "transparent";
+                      }}
                     >
                       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 24 }}>
                         {/* Left: Info */}
@@ -522,7 +507,7 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
             </AnimatePresence>
           </motion.div>
         )}
-      </div>
+      </section>
 
       <footer
         style={{
