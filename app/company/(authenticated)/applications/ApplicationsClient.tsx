@@ -644,7 +644,6 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                     )}
                   </div>
                 </div>
-              </div>
 
               {/* Extra Info (Motivation, Degree, etc) */}
               {(selected.motivation || selected.degree || selected.bugBounty || selected.certifications || selected.cnic) && (
