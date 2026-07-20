@@ -180,6 +180,15 @@ export default function AuthLayout({
         .auth-title { color:#FFF; font-size:clamp(20px,4vw,24px); font-weight:700; margin-bottom:8px; letter-spacing:-0.02em; line-height:1.2; animation: field-in 0.4s cubic-bezier(0.16,1,0.3,1) 0.15s both; }
         .auth-subtitle { color:#6B7280; font-size:14px; margin-bottom:24px; line-height:1.6; animation: field-in 0.4s cubic-bezier(0.16,1,0.3,1) 0.2s both; }
         .auth-form { animation: field-in 0.4s cubic-bezier(0.16,1,0.3,1) 0.25s both; }
+
+        /* Fix browser autofill styling for dark theme */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus, 
+        input:-webkit-autofill:active {
+          transition: background-color 5000s ease-in-out 0s;
+          -webkit-text-fill-color: #FFFFFF !important;
+        }
       `}</style>
 
       <div className="auth-bg">
