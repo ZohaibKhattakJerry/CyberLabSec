@@ -143,6 +143,24 @@ export default function LeaderboardClient({
         .input-dark:focus { border-color: #a855f7; }
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: flex; alignItems: center; justify-content: center; z-index: 1000; }
         .modal-content { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; width: 440px; max-width: 90%; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+        
+        .hero-title { font-size: 56px; font-weight: 900; margin-bottom: 16px; background: linear-gradient(to right, #fff, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.03em; }
+        .top-stats-container { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 24px; margin-top: -40px; position: relative; z-index: 10; margin-bottom: 60px; }
+        .action-buttons { display: flex; flex-direction: column; gap: 12px; }
+        .podium-container { display: flex; justify-content: center; align-items: flex-end; gap: min(5vw, 40px); margin-bottom: 80px; min-height: 300px; flex-wrap: wrap; }
+        .table-grid { display: grid; grid-template-columns: 80px 1fr 1fr 1.5fr 1fr; gap: 16px; padding: 16px 24px; }
+        .table-row-padding { padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.05); align-items: center; }
+
+        @media (max-width: 768px) {
+          .hero-title { font-size: clamp(32px, 8vw, 48px); }
+          .top-stats-container { flex-direction: column; margin-top: -20px; }
+          .action-buttons { flex-direction: row; width: 100%; }
+          .action-buttons button { flex: 1; justify-content: center; }
+          .podium-container { gap: 10px; margin-bottom: 40px; min-height: 220px; }
+          .table-grid { grid-template-columns: 50px 1fr 1fr; padding: 12px 16px; gap: 8px; }
+          .table-row-padding { padding: 12px 16px; gap: 8px; }
+          .table-hide-mobile { display: none !important; }
+        }
       `}</style>
 
       {/* HEADER SECTION */}
@@ -156,7 +174,7 @@ export default function LeaderboardClient({
             <span style={{ fontWeight: 600, letterSpacing: 1, textTransform: "uppercase", fontSize: 13, color: "var(--text-secondary)" }}>Company Leaderboard</span>
           </div>
           
-          <h1 style={{ fontSize: 56, fontWeight: 900, marginBottom: 16, background: "linear-gradient(to right, #fff, #a855f7)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: "-0.03em" }}>
+          <h1 className="hero-title">
             This Month's Champions
           </h1>
           <p style={{ fontSize: 18, color: "var(--text-secondary)", maxWidth: 600, margin: "0 auto", lineHeight: 1.6 }}>
@@ -173,8 +191,8 @@ export default function LeaderboardClient({
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
         
         {/* TOP STATS & ACTIONS */}
-        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: 24, marginTop: -40, position: "relative", zIndex: 10, marginBottom: 60 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 20 }}>
+        <div className="top-stats-container">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 20, flex: 1 }}>
             <div className="stat-card">
               <div style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 8, fontWeight: 600 }}>Total Points Awarded</div>
               <div style={{ fontSize: 32, fontWeight: 800, color: "#a855f7" }}>{totalPointsThisMonth.toLocaleString()}</div>
@@ -184,18 +202,18 @@ export default function LeaderboardClient({
               <div style={{ fontSize: 32, fontWeight: 800 }}>{employees.length}</div>
             </div>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <button onClick={handleExport} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "white", padding: "12px 20px", borderRadius: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, transition: "0.2s", height: "100%" }}>
+          <div className="action-buttons">
+            <button onClick={handleExport} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "white", padding: "12px 20px", borderRadius: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, transition: "0.2s" }}>
               <Download size={18} /> Export CSV
             </button>
-            <button onClick={() => setShowAdjustModal(true)} style={{ background: "#a855f7", border: "none", color: "white", padding: "12px 20px", borderRadius: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, transition: "0.2s", height: "100%" }}>
+            <button onClick={() => setShowAdjustModal(true)} style={{ background: "#a855f7", border: "none", color: "white", padding: "12px 20px", borderRadius: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, transition: "0.2s" }}>
               <PlusCircle size={18} /> Adjust Points
             </button>
           </div>
         </div>
 
         {/* TOP 3 PODIUM */}
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-end", gap: "min(5vw, 40px)", marginBottom: 80, minHeight: 300, flexWrap: "wrap" }}>
+        <div className="podium-container">
           {top3[1] && <PodiumAvatar e={top3[1]} place={2} />}
           {top3[0] && <PodiumAvatar e={top3[0]} place={1} />}
           {top3[2] && <PodiumAvatar e={top3[2]} place={3} />}
@@ -252,11 +270,11 @@ export default function LeaderboardClient({
         {/* TABLE */}
         <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)", borderRadius: 16, overflowX: "auto", boxShadow: "0 10px 40px rgba(0,0,0,0.1)" }}>
           <div style={{ minWidth: 800 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "80px 1fr 1fr 1.5fr 1fr", gap: 16, padding: "16px 24px", borderBottom: "1px solid var(--border)", fontSize: 12, fontWeight: 700, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: 1, background: "rgba(0,0,0,0.2)" }}>
+          <div className="table-grid" style={{ borderBottom: "1px solid var(--border)", fontSize: 12, fontWeight: 700, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: 1, background: "rgba(0,0,0,0.2)" }}>
             <div>Rank</div>
             <div>Employee</div>
-            <div>Department</div>
-            <div>Points Bar</div>
+            <div className="table-hide-mobile">Department</div>
+            <div className="table-hide-mobile">Points Bar</div>
             <div style={{ textAlign: "right" }}>Total Points</div>
           </div>
 
@@ -271,7 +289,7 @@ export default function LeaderboardClient({
               else if (rank <= 25) rankColor = "#3b82f6";
 
               return (
-                <div key={e.id} className="row-hover" style={{ display: "grid", gridTemplateColumns: "80px 1fr 1fr 1.5fr 1fr", gap: 16, padding: "20px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)", alignItems: "center", animation: "slideUp 0.3s ease-out forwards", animationDelay: `\${idx * 0.05}s`, opacity: 0 }}>
+                <div key={e.id} className="row-hover table-grid table-row-padding" style={{ animation: "slideUp 0.3s ease-out forwards", animationDelay: `\${idx * 0.05}s`, opacity: 0 }}>
                   <div style={{ fontSize: 18, fontWeight: 800, color: rankColor }}>
                     #{rank}
                   </div>
@@ -286,10 +304,10 @@ export default function LeaderboardClient({
                       <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>{e.designation}</div>
                     </div>
                   </div>
-                  <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+                  <div className="table-hide-mobile" style={{ fontSize: 13, color: "var(--text-secondary)" }}>
                     {e.team?.name || "No Team"}
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div className="table-hide-mobile" style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <div style={{ flex: 1, height: 8, background: "rgba(255,255,255,0.1)", borderRadius: 4, overflow: "hidden" }}>
                       <div style={{ height: "100%", width: `\${percent}%`, background: "linear-gradient(90deg, #a855f7, #3b82f6)", borderRadius: 4 }} />
                     </div>

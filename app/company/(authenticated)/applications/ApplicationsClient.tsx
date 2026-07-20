@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { Search, Filter, X, Eye, UserCheck, UserX, Loader2, FileText, ChevronRight, Check, AlertTriangle, Clock, Star, CheckSquare, Square } from "lucide-react";
+import { Search, Filter, X, Eye, UserCheck, UserX, Loader2, FileText, ChevronRight, Check, AlertTriangle, Clock, Star, CheckSquare, Square, Mail, Phone, MapPin, Link as LinkIcon, Code, Briefcase, GraduationCap, Calendar } from "lucide-react";
 import confetti from "canvas-confetti";
 
 type Applicant = {
@@ -78,6 +78,8 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
   const [actionTarget, setActionTarget] = useState<"bulk" | "single" | null>(null);
   const [offerFile, setOfferFile] = useState<File | null>(null);
   const [offerNotes, setOfferNotes] = useState("");
+  const [offerSalary, setOfferSalary] = useState("");
+  const [offerJoinDate, setOfferJoinDate] = useState("");
 
   const toggleSelect = (id: string) => {
     setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
@@ -203,29 +205,21 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
     }
     
     setActionLoading(true);
-    setActionMsg("Uploading offer letter...");
+    setActionMsg("Finalizing hire and uploading offer letter...");
     
     try {
-      const uploadRes = await fetch('/api/upload?filename=' + encodeURIComponent(offerFile.name), {
-        method: "POST",
-        body: offerFile
-      });
-      const uploadData = await uploadRes.json();
-      if (!uploadRes.ok) throw new Error(uploadData.error || "Upload failed");
-      const offerLetterUrl = uploadData.url;
-
       const reader = new FileReader();
       reader.onloadend = async () => {
         const base64Str = (reader.result as string).split(',')[1];
         
-        setActionMsg("Finalizing hire...");
         const res = await fetch(`/api/company/applications/${selected.id}/hire`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             offerLetterBase64: base64Str,
-            offerLetterUrl,
-            customMessage: offerNotes
+            customMessage: offerNotes,
+            startingSalary: offerSalary,
+            expectedJoinDate: offerJoinDate
           })
         });
         const data = await res.json();
@@ -233,12 +227,13 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
         if (!res.ok) { setActionMsg(data.error || "Failed to hire candidate"); return; }
         
         setShowOfferModal(false);
+        setSelected(null);
         confetti({ particleCount: 200, spread: 90, origin: { y: 0.5 }, zIndex: 9999 });
         
         setActionMsg(`Candidate successfully hired! 🎉`);
         startTransition(() => { 
           router.refresh(); 
-          setSelected({...selected, status: "Hired"});
+          setTimeout(() => setActionMsg(""), 3000);
         });
       };
       reader.readAsDataURL(offerFile);
@@ -347,11 +342,22 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                       setNotesDraft(a.privateNotes || "");
                       setRatingDraft(a.internalRating || 0);
                     }}>
-                      <div className="checkbox-container" style={{ position: "absolute", top: 12, right: 12, color: selectedIds.includes(a.id) ? "var(--purple)" : "var(--text-muted)", cursor: "pointer" }} onClick={(e) => { e.stopPropagation(); toggleSelect(a.id); }}>
-                        {selectedIds.includes(a.id) ? <CheckSquare size={18} /> : <Square size={18} />}
-                      </div>
+                      {a.status !== "Hired" ? (
+                        <div className="checkbox-container" style={{ position: "absolute", top: 12, right: 12, color: selectedIds.includes(a.id) ? "var(--purple)" : "var(--text-muted)", cursor: "pointer" }} onClick={(e) => { e.stopPropagation(); toggleSelect(a.id); }}>
+                          {selectedIds.includes(a.id) ? <CheckSquare size={18} /> : <Square size={18} />}
+                        </div>
+                      ) : (
+                        <div style={{ position: "absolute", top: 12, right: 12, color: "var(--red)", cursor: "pointer", opacity: 0.7 }} className="hover-opacity-100" onClick={(e) => { e.stopPropagation(); setSelected(a); handleSingleDelete(a.id); }}>
+                          <X size={16} />
+                        </div>
+                      )}
                       <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4, paddingRight: 24 }}>{a.fullName}</div>
-                      <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>{a.jobPosting.title}</div>
+                      <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                        <span>{a.jobPosting.title}</span>
+                        {a.employeeRecord?.status === "Terminated" && (
+                          <span style={{ fontSize: 10, padding: "2px 6px", background: "rgba(239,68,68,0.1)", color: "#ef4444", borderRadius: 4, fontWeight: 700 }}>TERMINATED</span>
+                        )}
+                      </div>
                       
                       <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap" }}>
                         {a.linkedIn && <span style={{ fontSize: 10, padding: "2px 6px", background: "rgba(37,99,235,0.1)", color: "#3b82f6", borderRadius: 4, fontWeight: 600 }}>In</span>}
@@ -400,11 +406,16 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
           <tbody>
             {filtered.map((a: Applicant) => (
               <tr key={a.id} style={{ background: selectedIds.includes(a.id) ? "rgba(168,85,247,0.05)" : undefined }}>
-                <td data-label="Select" onClick={() => toggleSelect(a.id)} style={{ cursor: "pointer", color: selectedIds.includes(a.id) ? "var(--purple)" : "var(--text-muted)" }}>
-                  {selectedIds.includes(a.id) ? <CheckSquare size={18} /> : <Square size={18} />}
+                <td data-label="Select" onClick={() => { if (a.status !== "Hired") toggleSelect(a.id); }} style={{ cursor: a.status === "Hired" ? "default" : "pointer", color: selectedIds.includes(a.id) ? "var(--purple)" : "var(--text-muted)" }}>
+                  {a.status !== "Hired" && (selectedIds.includes(a.id) ? <CheckSquare size={18} /> : <Square size={18} />)}
                 </td>
                 <td data-label="Applicant">
-                  <div style={{ fontWeight: 600, fontSize: 13 }}>{a.fullName}</div>
+                  <div style={{ fontWeight: 600, fontSize: 13, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                    {a.fullName}
+                    {a.employeeRecord?.status === "Terminated" && (
+                      <span style={{ fontSize: 9, padding: "2px 4px", background: "rgba(239,68,68,0.1)", color: "#ef4444", borderRadius: 4, fontWeight: 700 }}>TERMINATED</span>
+                    )}
+                  </div>
                   <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{a.email}</div>
                 </td>
                 <td data-label="Position">
@@ -420,7 +431,10 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                 <td data-label="Stage"><span className={`badge ${STATUS_COLORS[a.status] || "badge-gray"}`}>{a.status}</span></td>
                 <td data-label="Applied" style={{ fontSize: 12, color: "var(--text-muted)" }}>{safeFormatDate(a.createdAt, "MMM d, yyyy")}</td>
                 <td data-label="Actions">
-                  <button className="btn btn-ghost btn-sm" onClick={() => { setSelected(a); setNotesDraft(a.privateNotes || ""); setRatingDraft(a.internalRating || 0); }}><Eye size={13} /> View</button>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <button className="btn btn-ghost btn-sm" onClick={() => { setSelected(a); setNotesDraft(a.privateNotes || ""); setRatingDraft(a.internalRating || 0); }}><Eye size={13} /> View</button>
+                    <button className="btn btn-ghost btn-sm" style={{ color: "var(--red)" }} onClick={() => { setSelected(a); handleSingleDelete(a.id); }}><X size={13} /> Delete</button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -465,258 +479,292 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
 
       {viewMode === "kanban" ? renderKanban() : renderList()}
 
-      {selectedIds.length > 0 && (
-        <div style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", background: "var(--bg-elevated)", border: "1px solid var(--purple)", borderRadius: 12, padding: "12px 16px", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", justifyContent: "center", width: "calc(100% - 32px)", maxWidth: "max-content", boxShadow: "0 10px 40px rgba(0,0,0,0.5)", zIndex: 100 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontWeight: 600, color: "var(--purple)" }}>{selectedIds.length}</span>
-            <span style={{ fontSize: 14, color: "var(--text-secondary)" }}>selected</span>
+      {selectedIds.length > 0 && (() => {
+        const selectedApplicants = filtered.filter(a => selectedIds.includes(a.id));
+        const canReject = selectedApplicants.every(a => !["Rejected", "Hired", "Interview Failed", "Withdrawn"].includes(a.status));
+        return (
+          <div style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", background: "var(--bg-elevated)", border: "1px solid var(--purple)", borderRadius: 12, padding: "12px 16px", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", justifyContent: "center", width: "calc(100% - 32px)", maxWidth: "max-content", boxShadow: "0 10px 40px rgba(0,0,0,0.5)", zIndex: 100 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontWeight: 600, color: "var(--purple)" }}>{selectedIds.length}</span>
+              <span style={{ fontSize: 14, color: "var(--text-secondary)" }}>selected</span>
+            </div>
+            <div style={{ width: 1, height: 24, background: "var(--border)" }} />
+            <div style={{ display: "flex", gap: 12 }}>
+              {canReject && (
+                <button className="btn btn-secondary btn-sm" onClick={() => handleBulkAction("reject")} disabled={actionLoading} style={{ color: "var(--amber)", borderColor: "var(--amber)" }}>
+                  {actionLoading ? <Loader2 size={14} className="spin" /> : "Bulk Reject"}
+                </button>
+              )}
+              <button className="btn btn-danger btn-sm" onClick={() => handleBulkAction("delete")} disabled={actionLoading}>
+                {actionLoading ? <Loader2 size={14} className="spin" /> : "Bulk Delete"}
+              </button>
+              <button className="btn btn-ghost btn-sm" onClick={() => setSelectedIds([])} disabled={actionLoading}>Cancel</button>
+            </div>
           </div>
-          <div style={{ width: 1, height: 24, background: "var(--border)" }} />
-          <div style={{ display: "flex", gap: 12 }}>
-            <button className="btn btn-secondary btn-sm" onClick={() => handleBulkAction("reject")} disabled={actionLoading} style={{ color: "var(--amber)", borderColor: "var(--amber)" }}>
-              {actionLoading ? <Loader2 size={14} className="spin" /> : "Bulk Reject"}
-            </button>
-            <button className="btn btn-danger btn-sm" onClick={() => handleBulkAction("delete")} disabled={actionLoading}>
-              {actionLoading ? <Loader2 size={14} className="spin" /> : "Bulk Delete"}
-            </button>
-            <button className="btn btn-ghost btn-sm" onClick={() => setSelectedIds([])} disabled={actionLoading}>Cancel</button>
-          </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Detail Modal */}
       {selected && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-          <div className="card" style={{ maxWidth: 700, width: "100%", padding: 32, maxHeight: "90vh", overflowY: "auto" }}>
-            <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24, gap: 16 }}>
-              <div>
-                <h2 style={{ fontSize: 20, fontWeight: 800 }}>{selected.fullName}</h2>
-                <p style={{ fontSize: 13, color: "var(--text-muted)" }}>{selected.email} · {selected.phone}</p>
-              </div>
-              <button onClick={() => { setSelected(null); setActionMsg(""); setNotesDraft(""); setRatingDraft(0); }} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}>
-                <X size={20} />
-              </button>
-            </div>
-
-            <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap", padding: "12px 16px", background: "rgba(255,255,255,0.02)", borderRadius: 8 }}>
-              {PIPELINE_STAGES.map((stage, i) => {
-                const isActive = selected.status === stage;
-                const isPast = PIPELINE_STAGES.indexOf(selected.status) > i;
-                return (
-                  <div key={stage} style={{ display: "flex", alignItems: "center", gap: 8, opacity: isPast ? 0.7 : 1 }}>
-                    <button 
-                      onClick={() => updateStatus(selected.id, stage)}
-                      className={`badge ${isActive ? STATUS_COLORS[stage] : isPast ? "badge-gray" : "badge-gray"}`}
-                      style={{ cursor: "pointer", border: isActive ? "1px solid var(--purple)" : "none", padding: "6px 12px" }}
-                    >
-                      {isPast && <Check size={12} style={{ marginRight: 4, display: "inline" }} />}
-                      {stage}
-                    </button>
-                    {i < PIPELINE_STAGES.length - 1 && <ChevronRight size={14} color="var(--text-muted)" />}
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(4px)", zIndex: 10000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+          <div className="card" style={{ maxWidth: 760, width: "100%", padding: 0, maxHeight: "90vh", display: "flex", flexDirection: "column", overflow: "hidden", background: "var(--bg-elevated)", border: "1px solid var(--border-subtle)", boxShadow: "0 24px 60px rgba(0,0,0,0.4)" }}>
+            
+            {/* Header Area */}
+            <div style={{ padding: "24px 32px", borderBottom: "1px solid var(--border-subtle)", background: "rgba(255,255,255,0.01)" }}>
+              <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
+                    <h2 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", margin: 0, color: "var(--text-primary)" }}>{selected.fullName}</h2>
+                    <span className={`badge ${STATUS_COLORS[selected.status] || "badge-gray"}`} style={{ fontSize: 11, fontWeight: 700, padding: "4px 10px" }}>
+                      {selected.status}
+                    </span>
                   </div>
-                );
-              })}
-            </div>
-
-            <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 24 }}>
-              <div style={{ padding: "12px", background: "rgba(255,255,255,0.02)", borderRadius: 8 }}>
-                <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 3 }}>Position</div>
-                <div style={{ fontSize: 14, fontWeight: 500 }}>{selected.jobPosting.title}</div>
-              </div>
-              <div style={{ padding: "12px", background: "rgba(255,255,255,0.02)", borderRadius: 8 }}>
-                <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 3 }}>Applied</div>
-                <div style={{ fontSize: 14, fontWeight: 500 }}>{safeFormatDate(selected.createdAt, "MMM d, yyyy")}</div>
-              </div>
-            </div>
-
-            <div style={{ marginBottom: 24, padding: "16px", background: "rgba(255,255,255,0.02)", borderRadius: 8, border: "1px solid var(--border-subtle)" }}>
-              <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, color: "var(--text-muted)", textTransform: "uppercase" }}>Candidate Profile</h3>
-              <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, fontSize: 13, color: "var(--text-secondary)" }}>
-                {selected.city && <div><strong>City:</strong> {selected.city}</div>}
-                {selected.universityName && <div><strong>University:</strong> {selected.universityName}</div>}
-                {selected.linkedIn && <div><strong>LinkedIn:</strong> <a href={selected.linkedIn} target="_blank" rel="noopener noreferrer" style={{ color: "var(--purple)" }}>View Profile</a></div>}
-                {selected.github && <div><strong>GitHub:</strong> <a href={selected.github} target="_blank" rel="noopener noreferrer" style={{ color: "var(--purple)" }}>View GitHub</a></div>}
-                {selected.portfolio && <div><strong>Portfolio:</strong> <a href={selected.portfolio} target="_blank" rel="noopener noreferrer" style={{ color: "var(--purple)" }}>View Portfolio</a></div>}
-                {selected.cve && <div><strong>CVEs:</strong> {selected.cve}</div>}
+                  <div style={{ display: "flex", gap: "16px 24px", alignItems: "center", flexWrap: "wrap", fontSize: 13, color: "var(--text-muted)" }}>
+                    <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Mail size={14} color="var(--text-tertiary)" /> {selected.email}</span>
+                    <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Phone size={14} color="var(--text-tertiary)" /> {selected.phone}</span>
+                    {selected.city && <span style={{ display: "flex", alignItems: "center", gap: 6 }}><MapPin size={14} color="var(--text-tertiary)" /> {selected.city}</span>}
+                  </div>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <a href={`/api/files/${selected.id}/cv`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm" style={{ gap: 6, fontWeight: 600, background: "rgba(255,255,255,0.05)" }}>
+                    <FileText size={14} /> View CV
+                  </a>
+                  <button onClick={() => { setSelected(null); setActionMsg(""); setNotesDraft(""); setRatingDraft(0); }} style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", background: "transparent", border: "1px solid var(--border)", borderRadius: "50%", cursor: "pointer", color: "var(--text-muted)", transition: "all 0.2s" }} className="hover-bg-white-5">
+                    <X size={16} />
+                  </button>
+                </div>
               </div>
             </div>
 
-            {/* Motivation & Screening Answers */}
-            {(selected.motivation || selected.degree || selected.bugBounty || selected.certifications) && (
-              <div style={{ marginBottom: 24, padding: "16px", background: "rgba(255,255,255,0.02)", borderRadius: 8, border: "1px solid var(--border-subtle)" }}>
-                <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, color: "var(--text-muted)", textTransform: "uppercase" }}>Motivation & Screening</h3>
-                <div style={{ display: "grid", gap: 12 }}>
-                  {selected.motivation && (
-                    <div>
-                      <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>WHY CYBERLABSEC?</div>
-                      <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.7, whiteSpace: "pre-wrap", overflowWrap: "anywhere", wordBreak: "break-word", padding: "10px 14px", background: "rgba(168,85,247,0.05)", borderRadius: 8, borderLeft: "3px solid var(--purple)", margin: 0 }}>{selected.motivation}</p>
-                    </div>
-                  )}
-                  <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, fontSize: 13, color: "var(--text-secondary)" }}>
-                    {selected.degree && <div><strong>Degree:</strong> {selected.degree}</div>}
-                    {selected.semester && <div><strong>Semester:</strong> {selected.semester}</div>}
-                    {selected.cgpa && <div><strong>CGPA:</strong> {selected.cgpa}</div>}
-                    {selected.bugBounty && <div><strong>Bug Bounty:</strong> <a href={selected.bugBounty} target="_blank" rel="noopener noreferrer" style={{ color: "var(--purple)" }}>View Profile</a></div>}
-                    {selected.certifications && <div style={{ gridColumn: "1/-1" }}><strong>Certs:</strong> {selected.certifications}</div>}
-                    {selected.cnic && <div style={{ gridColumn: "1/-1" }}><strong>CNIC:</strong> {selected.cnic}</div>}
+            {/* Scrollable Body */}
+            <div style={{ padding: "32px", overflowY: "auto", flex: 1, display: "flex", flexDirection: "column", gap: 32 }}>
+              
+              {/* Core Details */}
+              <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 16, padding: "20px", background: "rgba(255,255,255,0.02)", borderRadius: 12, border: "1px solid var(--border-subtle)" }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 10, background: "rgba(168,85,247,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Briefcase size={22} color="var(--purple)" />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 4, fontWeight: 500 }}>Applied Position</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>{selected.jobPosting.title}</div>
+                  </div>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 16, padding: "20px", background: "rgba(255,255,255,0.02)", borderRadius: 12, border: "1px solid var(--border-subtle)" }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 10, background: "rgba(59,130,246,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Calendar size={22} color="#3b82f6" />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 4, fontWeight: 500 }}>Application Date</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>{safeFormatDate(selected.createdAt, "MMMM d, yyyy")}</div>
                   </div>
                 </div>
               </div>
-            )}
 
-            <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 24 }}>
-              <div style={{ padding: "12px", background: "rgba(255,255,255,0.02)", borderRadius: 8 }}>
-                <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 4 }}>AI Screening Score</div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: selected.fitScore !== null && selected.fitScore >= 70 ? "var(--green)" : "var(--amber)" }}>{selected.fitScore ?? "—"}%</div>
-              </div>
-              <div style={{ padding: "12px", background: "rgba(255,255,255,0.02)", borderRadius: 8 }}>
-                <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 4 }}>Interview Score</div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: "var(--purple)" }}>{selected.interviewSession?.totalScore ?? "—"}%</div>
-              </div>
-            </div>
-
-            {selected.interviewSession && (
-              <div style={{ marginBottom: 24, padding: "16px", background: "rgba(255,255,255,0.02)", borderRadius: 8, border: "1px solid var(--border-subtle)" }}>
-                <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, color: "var(--text-muted)", textTransform: "uppercase" }}>Interview Details</h3>
-                
-                <div style={{ display: "flex", gap: 24, marginBottom: 16 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--text-secondary)", fontSize: 13 }}>
-                    <Clock size={16} />
-                    {selected.interviewSession.startedAt && selected.interviewSession.completedAt ? (
-                      `${Math.round((new Date(selected.interviewSession.completedAt).getTime() - new Date(selected.interviewSession.startedAt).getTime()) / 60000)} mins spent`
-                    ) : "Time unknown"}
-                  </div>
-                </div>
-
-                {(() => {
-                  try {
-                    const signals = selected.interviewSession?.cheatingSignals ? JSON.parse(selected.interviewSession.cheatingSignals) : {};
-                    const violations = selected.interviewSession?.integrityViolations ? JSON.parse(selected.interviewSession.integrityViolations) : [];
-                    
-                    const violationList = Array.isArray(violations) ? violations : [];
-                    const pasteAttempts = signals?.pasteAttempts || 0;
-                    const tabBlurCount = signals?.tabBlurCount || 0;
-                    
-                    const hasViolations = violationList.length > 0 || pasteAttempts > 0 || tabBlurCount > 0;
-                    
-                    if (!hasViolations) {
-                      return <div style={{ fontSize: 13, color: "var(--green)" }}><Check size={14} style={{ display: "inline", marginRight: 4 }} /> No integrity violations detected.</div>;
-                    }
-
-                    return (
-                      <div>
-                        <div style={{ fontSize: 13, color: "var(--amber)", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
-                          <AlertTriangle size={14} /> <strong>Integrity Flags Detected</strong>
-                        </div>
-                        <ul style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0, paddingLeft: 20 }}>
-                          {pasteAttempts > 0 && <li>{pasteAttempts} paste attempts</li>}
-                          {tabBlurCount > 0 && <li>{tabBlurCount} tab switches</li>}
-                          {violationList.map((v: any, i: number) => (
-                            <li key={i}>{v.type ? `${v.type} (${v.count})` : JSON.stringify(v)}</li>
-                          ))}
-                        </ul>
+              {/* Extended Profile Links */}
+              {(selected.linkedIn || selected.github || selected.portfolio || selected.universityName) && (
+                <div>
+                  <h3 style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}><MapPin size={14} color="var(--purple)" /> Candidate Background</h3>
+                  <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12 }}>
+                    {selected.universityName && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, color: "var(--text-secondary)", padding: "12px 16px", background: "rgba(255,255,255,0.02)", borderRadius: 10, border: "1px solid var(--border-subtle)" }}>
+                        <GraduationCap size={16} color="var(--text-muted)" />
+                        <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{selected.universityName}</span>
                       </div>
-                    );
-                  } catch (e) {
-                    console.error(e);
-                    return <div style={{ fontSize: 13, color: "var(--text-muted)" }}>Failed to load integrity data.</div>;
-                  }
-                })()}
-              </div>
-            )}
+                    )}
+                    {selected.linkedIn && (
+                      <a href={selected.linkedIn} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, color: "#3b82f6", padding: "12px 16px", background: "rgba(59,130,246,0.05)", borderRadius: 10, border: "1px solid rgba(59,130,246,0.15)", textDecoration: "none", fontWeight: 500 }} className="hover-bg-blue-10">
+                        <LinkIcon size={16} /> LinkedIn Profile
+                      </a>
+                    )}
+                    {selected.github && (
+                      <a href={selected.github} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, color: "var(--text-primary)", padding: "12px 16px", background: "rgba(255,255,255,0.05)", borderRadius: 10, border: "1px solid var(--border)", textDecoration: "none", fontWeight: 500 }} className="hover-bg-white-10">
+                        <Code size={16} /> GitHub Profile
+                      </a>
+                    )}
+                    {selected.portfolio && (
+                      <a href={selected.portfolio} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, color: "var(--purple-light)", padding: "12px 16px", background: "rgba(168,85,247,0.05)", borderRadius: 10, border: "1px solid rgba(168,85,247,0.15)", textDecoration: "none", fontWeight: 500 }} className="hover-bg-purple-10">
+                        <LinkIcon size={16} /> Portfolio Website
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
 
-            {selected.fitReasoning && (
-              <div style={{ marginBottom: 24 }}>
-                <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>AI Screening Notes ({selected.fitScore}%)</h3>
-                <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.7, whiteSpace: "pre-wrap", padding: "14px", background: "rgba(147,51,234,0.05)", borderRadius: 8, borderLeft: "3px solid var(--purple)" }}>
-                  {selected.fitReasoning}
-                </p>
+              {/* Assessment Section */}
+              <div>
+                <h3 style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}><Star size={14} color="var(--amber)" /> Technical Assessment</h3>
+                <div style={{ padding: "24px", background: "rgba(255,255,255,0.02)", borderRadius: 12, border: "1px solid var(--border-subtle)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}>Technical Interview Score</div>
+                    <div style={{ fontSize: 28, fontWeight: 800, color: "var(--purple)" }}>{selected.interviewSession?.totalScore ?? "—"}%</div>
+                  </div>
+                    
+                    {selected.interviewSession ? (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--text-secondary)", padding: "10px 12px", background: "rgba(255,255,255,0.02)", borderRadius: 8 }}>
+                          <Clock size={14} color="var(--text-muted)" />
+                          {selected.interviewSession.startedAt && selected.interviewSession.completedAt ? (
+                            <span>Completed in <strong>{Math.round((new Date(selected.interviewSession.completedAt).getTime() - new Date(selected.interviewSession.startedAt).getTime()) / 60000)} mins</strong></span>
+                          ) : "Time unknown"}
+                        </div>
+                        
+                        {(() => {
+                          try {
+                            const signals = selected.interviewSession?.cheatingSignals ? JSON.parse(selected.interviewSession.cheatingSignals) : {};
+                            const violations = selected.interviewSession?.integrityViolations ? JSON.parse(selected.interviewSession.integrityViolations) : [];
+                            const violationList = Array.isArray(violations) ? violations : [];
+                            const pasteAttempts = signals?.pasteAttempts || 0;
+                            const tabBlurCount = signals?.tabBlurCount || 0;
+                            const hasViolations = violationList.length > 0 || pasteAttempts > 0 || tabBlurCount > 0;
+                            
+                            if (!hasViolations) {
+                              return <div style={{ fontSize: 13, color: "var(--green)", padding: "10px 12px", background: "rgba(34,197,94,0.05)", borderRadius: 8, display: "flex", alignItems: "center", gap: 8 }}><Check size={14} /> <span>No integrity violations</span></div>;
+                            }
+                            return (
+                              <div style={{ padding: "10px 12px", background: "rgba(245,158,11,0.05)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: 8 }}>
+                                <div style={{ fontSize: 13, color: "var(--amber)", marginBottom: 6, display: "flex", alignItems: "center", gap: 6, fontWeight: 600 }}>
+                                  <AlertTriangle size={14} /> Integrity Flags
+                                </div>
+                                <ul style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0, paddingLeft: 16 }}>
+                                  {pasteAttempts > 0 && <li>{pasteAttempts} paste attempts</li>}
+                                  {tabBlurCount > 0 && <li>{tabBlurCount} tab switches</li>}
+                                </ul>
+                              </div>
+                            );
+                          } catch (e) {
+                            return null;
+                          }
+                        })()}
+                      </div>
+                    ) : (
+                      <div style={{ display: "flex", flex: 1, alignItems: "center", justifyContent: "center", fontSize: 13, color: "var(--text-muted)", padding: "24px", background: "rgba(255,255,255,0.01)", borderRadius: 8 }}>
+                        Interview not completed yet.
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-            )}
 
-            {/* Rating + Private Notes */}
-            <div style={{ marginBottom: 20, padding: "16px", background: "rgba(168,85,247,0.04)", borderRadius: 10, border: "1px solid rgba(168,85,247,0.12)" }}>
-              <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Internal Scorecard</h3>
-              {/* Star rating */}
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 12 }}>
-                <span style={{ fontSize: 13, color: "var(--text-secondary)", marginRight: 4 }}>Rating:</span>
-                {[1,2,3,4,5].map((star) => (
-                  <button
-                    key={star}
-                    onClick={() => setRatingDraft(star === ratingDraft ? 0 : star)}
-                    style={{ background: "none", border: "none", cursor: "pointer", padding: 2 }}
-                  >
-                    <Star
-                      size={20}
-                      fill={(ratingDraft || selected.internalRating || 0) >= star ? "#f59e0b" : "none"}
-                      color={(ratingDraft || selected.internalRating || 0) >= star ? "#f59e0b" : "var(--text-muted)"}
+              {/* Extra Info (Motivation, Degree, etc) */}
+              {(selected.motivation || selected.degree || selected.bugBounty || selected.certifications || selected.cnic) && (
+                <div>
+                  <h3 style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}><FileText size={14} color="var(--purple)" /> Additional Information</h3>
+                  <div style={{ padding: "24px", background: "rgba(255,255,255,0.02)", borderRadius: 12, border: "1px solid var(--border-subtle)" }}>
+                    {selected.motivation && (
+                      <div style={{ marginBottom: 20 }}>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", marginBottom: 8 }}>Why CyberLabSec?</div>
+                        <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6, whiteSpace: "pre-wrap", margin: 0, padding: "14px", background: "rgba(255,255,255,0.02)", borderRadius: 8, borderLeft: "2px solid var(--purple)" }}>
+                          {selected.motivation}
+                        </p>
+                      </div>
+                    )}
+                    <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 16 }}>
+                      {selected.degree && <div><div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 2 }}>Degree</div><div style={{ fontSize: 13, color: "var(--text-primary)", fontWeight: 500 }}>{selected.degree}</div></div>}
+                      {selected.semester && <div><div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 2 }}>Semester</div><div style={{ fontSize: 13, color: "var(--text-primary)", fontWeight: 500 }}>{selected.semester}</div></div>}
+                      {selected.cgpa && <div><div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 2 }}>CGPA</div><div style={{ fontSize: 13, color: "var(--text-primary)", fontWeight: 500 }}>{selected.cgpa}</div></div>}
+                      {selected.cnic && <div><div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 2 }}>CNIC</div><div style={{ fontSize: 13, color: "var(--text-primary)", fontWeight: 500 }}>{selected.cnic}</div></div>}
+                      {selected.certifications && <div style={{ gridColumn: "1/-1" }}><div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 2 }}>Certifications</div><div style={{ fontSize: 13, color: "var(--text-primary)", fontWeight: 500 }}>{selected.certifications}</div></div>}
+                      {selected.cve && <div style={{ gridColumn: "1/-1" }}><div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 2 }}>CVEs</div><div style={{ fontSize: 13, color: "var(--text-primary)", fontWeight: 500 }}>{selected.cve}</div></div>}
+                      {selected.bugBounty && <div style={{ gridColumn: "1/-1" }}><div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 2 }}>Bug Bounty</div><a href={selected.bugBounty} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: "var(--purple)", fontWeight: 500, textDecoration: "none" }}>{selected.bugBounty}</a></div>}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Internal Scorecard */}
+              <div>
+                <h3 style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}><Award size={14} color="var(--amber)" /> Internal Scorecard</h3>
+                <div style={{ padding: "24px", background: "rgba(255,255,255,0.02)", borderRadius: 12, border: "1px solid var(--border-subtle)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", marginRight: 4 }}>Admin Rating:</span>
+                    <div style={{ display: "flex", gap: 2 }}>
+                      {[1,2,3,4,5].map((star) => (
+                        <button
+                          key={star}
+                          onClick={() => setRatingDraft(star === ratingDraft ? 0 : star)}
+                          style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", transition: "all 0.2s" }}
+                          className="hover-bg-white-5"
+                        >
+                          <Star
+                            size={22}
+                            fill={(ratingDraft || selected.internalRating || 0) >= star ? "#f59e0b" : "none"}
+                            color={(ratingDraft || selected.internalRating || 0) >= star ? "#f59e0b" : "var(--border-subtle)"}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                    {(ratingDraft || selected.internalRating) ? (
+                      <span style={{ fontSize: 13, color: "var(--amber)", fontWeight: 700, marginLeft: 4 }}>{ratingDraft || selected.internalRating}/5</span>
+                    ) : <span style={{ fontSize: 13, color: "var(--text-muted)", marginLeft: 4 }}>Not rated</span>}
+                  </div>
+                  
+                  <div style={{ position: "relative" }}>
+                    <textarea
+                      className="input"
+                      placeholder="Add private notes about this candidate (only visible to admins)..."
+                      style={{ minHeight: 100, fontSize: 13, resize: "vertical", marginBottom: 16, background: "var(--bg-base)", border: "1px solid var(--border)" }}
+                      value={notesDraft}
+                      onChange={(e) => setNotesDraft(e.target.value)}
                     />
-                  </button>
-                ))}
-                {(ratingDraft || selected.internalRating) ? (
-                  <span style={{ fontSize: 12, color: "var(--amber)", marginLeft: 4 }}>{ratingDraft || selected.internalRating}/5</span>
-                ) : <span style={{ fontSize: 12, color: "var(--text-muted)", marginLeft: 4 }}>Not rated</span>}
+                  </div>
+                  
+                  <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                    <button
+                      className="btn btn-secondary btn-sm"
+                      style={{ gap: 8, fontWeight: 600, background: notesSaved ? "rgba(34,197,94,0.1)" : undefined, color: notesSaved ? "var(--green)" : undefined, borderColor: notesSaved ? "rgba(34,197,94,0.3)" : undefined }}
+                      onClick={saveNotes}
+                      disabled={notesSaving}
+                    >
+                      {notesSaving ? <Loader2 size={14} className="spin" /> : notesSaved ? <Check size={14} /> : <Star size={14} />}
+                      {notesSaved ? "Successfully Saved" : "Save Scorecard"}
+                    </button>
+                  </div>
+                </div>
               </div>
-              {/* Private notes */}
-              <textarea
-                className="input"
-                placeholder="Private notes (only visible to admins)…"
-                style={{ minHeight: 80, fontSize: 13, resize: "vertical", marginBottom: 8 }}
-                value={notesDraft}
-                onChange={(e) => setNotesDraft(e.target.value)}
-              />
-              <button
-                className="btn btn-secondary btn-sm"
-                style={{ gap: 6 }}
-                onClick={saveNotes}
-                disabled={notesSaving}
-              >
-                {notesSaving ? <Loader2 size={12} className="spin" /> : notesSaved ? <Check size={12} /> : <Star size={12} />}
-                {notesSaved ? "Saved!" : "Save Notes & Rating"}
-              </button>
+
             </div>
 
-            {actionMsg && (
-              <div style={{ marginBottom: 16, padding: "12px", background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 8, fontSize: 13, color: "var(--green)" }}>
-                {actionMsg}
-              </div>
-            )}
-
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 12, borderTop: "1px solid var(--border-subtle)", paddingTop: 20 }}>
-              {selected.status === "Selected – Waiting for Approval" ? (
-                <>
-                  <button className="btn btn-primary" onClick={() => hireApplicant(selected.id)} disabled={actionLoading} style={{ background: "linear-gradient(135deg, #22c55e, #16a34a)", border: "none", boxShadow: "0 4px 14px rgba(34,197,94,0.3)" }}>
-                    {actionLoading ? <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> : <UserCheck size={14} />}
-                    Hire Candidate
-                  </button>
-                </>
-              ) : selected.status === "Reviewing" ? (
-                <button className="btn btn-primary" onClick={() => manualShortlist(selected.id)} disabled={actionLoading}>
-                  {actionLoading ? <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> : <UserCheck size={14} />}
-                  Shortlist & Invite
-                </button>
-              ) : null}
-              {(!["Rejected", "Hired", "Interview Failed", "Withdrawn"].includes(selected.status)) && (
-                <button className="btn btn-secondary" onClick={() => { setActionTarget("single"); setShowRejectModal(true); }} disabled={actionLoading} style={{ color: "var(--amber)", borderColor: "var(--border-subtle)" }}>
-                  <X size={14} /> Reject
-                </button>
+            {/* Sticky Footer Actions */}
+            <div style={{ padding: "20px 32px", borderTop: "1px solid var(--border-subtle)", background: "rgba(255,255,255,0.01)", display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+              {actionMsg ? (
+                <div style={{ padding: "8px 12px", background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 6, fontSize: 13, color: "var(--green)", fontWeight: 500, flex: 1 }}>
+                  {actionMsg}
+                </div>
+              ) : (
+                <div style={{ display: "flex", gap: 12, flexWrap: "wrap", flex: 1 }}>
+                  {selected.status === "Selected – Waiting for Approval" && (
+                    <button className="btn btn-primary" onClick={() => hireApplicant(selected.id)} disabled={actionLoading} style={{ border: "none", fontWeight: 600 }}>
+                      {actionLoading ? <Loader2 size={14} className="spin" /> : <UserCheck size={14} />}
+                      Approve & Hire
+                    </button>
+                  )}
+                  {selected.status === "Reviewing" && (
+                    <button className="btn btn-primary" onClick={() => updateStatus(selected.id, "Invited for Interview")} disabled={actionLoading} style={{ fontWeight: 600 }}>
+                      {actionLoading ? <Loader2 size={14} className="spin" /> : <UserCheck size={14} />}
+                      Shortlist & Invite
+                    </button>
+                  )}
+                  {(!["Rejected", "Hired", "Interview Failed", "Withdrawn"].includes(selected.status)) && (
+                    <button className="btn btn-secondary" onClick={() => { updateStatus(selected.id, "Rejected"); setSelected(null); }} disabled={actionLoading} style={{ color: "var(--amber)", borderColor: "var(--border-subtle)", fontWeight: 600 }}>
+                      <X size={14} /> Reject
+                    </button>
+                  )}
+                </div>
               )}
-              <a href={`/api/files/${selected.id}/cv`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
-                <FileText size={14} /> View CV
-              </a>
+              
               {selected.status !== "Hired" && (
                 <button 
                   className="btn btn-danger" 
-                  style={{ marginLeft: "auto" }}
-                  onClick={() => {
-                    handleSingleDelete(selected.id);
-                  }}
+                  onClick={() => handleSingleDelete(selected.id)}
                   disabled={actionLoading}
+                  style={{ fontWeight: 600, background: "transparent", borderColor: "var(--red)", color: "var(--red)" }}
                 >
                   Delete Application
                 </button>
               )}
             </div>
+
           </div>
         </div>
       )}
@@ -741,10 +789,21 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
             <textarea
               className="input"
               placeholder="Optional message to include in the email..."
-              style={{ minHeight: 80, marginBottom: 24, resize: "vertical" }}
+              style={{ minHeight: 80, marginBottom: 16, resize: "vertical" }}
               value={offerNotes}
               onChange={e => setOfferNotes(e.target.value)}
             />
+
+            <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 24 }}>
+              <div>
+                <label className="label">Starting Salary (Optional)</label>
+                <input type="text" className="input" placeholder="$0 / PK 0" value={offerSalary} onChange={e => setOfferSalary(e.target.value)} />
+              </div>
+              <div>
+                <label className="label">Expected Join Date (Optional)</label>
+                <input type="date" className="input" value={offerJoinDate} onChange={e => setOfferJoinDate(e.target.value)} />
+              </div>
+            </div>
 
             <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
               <button className="btn btn-secondary" onClick={() => setShowOfferModal(false)} disabled={actionLoading}>Cancel</button>

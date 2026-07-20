@@ -76,7 +76,9 @@ export async function DELETE(
   const { employeeId } = await params;
 
   try {
-    await prisma.$transaction([
+    const empToDelete = await prisma.employee.findUnique({ where: { id: employeeId } });
+
+    const transactions: any[] = [
       prisma.team.updateMany({ where: { leadEmployeeId: employeeId }, data: { leadEmployeeId: null } }),
       prisma.activityLog.deleteMany({ where: { actorId: employeeId } }),
       prisma.announcement.deleteMany({ where: { OR: [{ employeeId }, { sentById: employeeId }] } }),
@@ -87,7 +89,18 @@ export async function DELETE(
       prisma.pointTransaction.deleteMany({ where: { employeeId } }),
       prisma.badge.deleteMany({ where: { employeeId } }),
       prisma.employee.delete({ where: { id: employeeId } }),
-    ]);
+    ];
+
+    if (empToDelete?.applicantId) {
+      transactions.push(
+        prisma.interviewSession.deleteMany({ where: { applicantId: empToDelete.applicantId } }),
+        prisma.offerLetter.deleteMany({ where: { applicantId: empToDelete.applicantId } }),
+        prisma.cEOReview.deleteMany({ where: { applicantId: empToDelete.applicantId } }),
+        prisma.applicant.delete({ where: { id: empToDelete.applicantId } })
+      );
+    }
+
+    await prisma.$transaction(transactions);
 
     await prisma.activityLog.create({
       data: {

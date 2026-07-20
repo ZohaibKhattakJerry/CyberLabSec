@@ -15,6 +15,7 @@ export default async function ApplicationsPage() {
     include: {
       jobPosting: { select: { id: true, title: true, type: true } },
       interviewSession: { select: { id: true, totalScore: true, result: true, startedAt: true, completedAt: true, cheatingSignals: true, integrityViolations: true } },
+      employeeRecord: { select: { status: true } },
     },
   });
 
@@ -23,6 +24,7 @@ export default async function ApplicationsPage() {
     createdAt: a.createdAt.toISOString(),
     updatedAt: a.updatedAt.toISOString(),
     jobPosting: a.jobPosting,
+    employeeRecord: a.employeeRecord || null,
     interviewSession: a.interviewSession ? {
       ...a.interviewSession,
       startedAt: a.interviewSession.startedAt?.toISOString() ?? null,

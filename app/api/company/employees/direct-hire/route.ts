@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   const auth = await getAuthFromCookies();
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const { name, email, designation, teamId, tier, employmentType, startDate, offerLetterBase64 } = await req.json();
+  const { name, email, designation, teamId, tier, employmentType, startDate, offerLetterBase64, cvBase64, linkedinUrl } = await req.json();
 
   if (!name || !email || !designation || !startDate) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -46,6 +46,7 @@ export async function POST(req: NextRequest) {
       passwordHash,
       mustResetPassword: true,
       teamId: teamId || null,
+      linkedinUrl: linkedinUrl || null,
     },
   });
 
@@ -71,6 +72,23 @@ export async function POST(req: NextRequest) {
         status: "Approved",
         uploadedBy: auth.sub
       }
+    });
+  }
+
+  let cvUrlToSave = undefined;
+  if (cvBase64 && cvBase64.startsWith("data:application/pdf;base64,")) {
+    const cvBase64Data = cvBase64.split(",")[1];
+    const { put } = await import("@vercel/blob");
+    const buffer = Buffer.from(cvBase64Data, "base64");
+    const blob = await put(`cv-${employeeCode}.pdf`, buffer, {
+      access: "public",
+      contentType: "application/pdf"
+    });
+    cvUrlToSave = blob.url;
+    
+    await prisma.employee.update({
+      where: { id: employee.id },
+      data: { cvUrl: cvUrlToSave }
     });
   }
 

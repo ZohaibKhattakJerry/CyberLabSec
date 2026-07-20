@@ -110,9 +110,27 @@ export async function POST(req: Request) {
 
     const formData = await req.formData();
     const file = formData.get("backupFile") as File;
-    const password = (formData.get("password") as string) || "CyberLabSec@2024";
+    const otp = formData.get("otp") as string;
 
     if (!file) return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+
+    let config = await prisma.adminConfig.findUnique({ where: { id: "singleton" } });
+    let configData = config ? JSON.parse(config.data) : {};
+
+    if (!otp || otp !== configData.currentOtp || Date.now() > (configData.otpExpiry || 0)) {
+      return NextResponse.json({ error: "Invalid or expired OTP" }, { status: 400 });
+    }
+
+    // Clear OTP after successful verification
+    configData.currentOtp = null;
+    configData.otpExpiry = 0;
+    await prisma.adminConfig.update({
+      where: { id: "singleton" },
+      data: { data: JSON.stringify(configData) }
+    });
+
+    const systemSecret = process.env.JWT_SECRET || "CyberLabSec@2024";
+    const legacyPassword = "CyberLabSec@2024";
 
     let fileContent = "";
     if (file.name.endsWith(".zip") || file.type === "application/zip" || file.type === "application/x-zip-compressed") {
@@ -134,9 +152,15 @@ export async function POST(req: Request) {
     try {
       const wrapper = JSON.parse(fileContent);
       if (wrapper.enc === true && wrapper.payload) {
-        // Encrypted backup — decrypt first
-        const decrypted = decrypt(wrapper.payload, password);
-        parsedData = JSON.parse(decrypted);
+        // Encrypted backup — decrypt first with system secret
+        try {
+          const decrypted = decrypt(wrapper.payload, systemSecret);
+          parsedData = JSON.parse(decrypted);
+        } catch (secretError) {
+          // Fallback to legacy password
+          const decrypted = decrypt(wrapper.payload, legacyPassword);
+          parsedData = JSON.parse(decrypted);
+        }
       } else if (wrapper.data) {
         // Plain JSON backup
         parsedData = wrapper;
@@ -144,7 +168,7 @@ export async function POST(req: Request) {
         throw new Error("Unrecognized format");
       }
     } catch (decryptError) {
-      return NextResponse.json({ error: "Failed to decrypt backup. Wrong password or corrupted file." }, { status: 400 });
+      return NextResponse.json({ error: "Failed to decrypt backup. File corrupted or unrecognized encryption." }, { status: 400 });
     }
 
     if (!parsedData?.data) {

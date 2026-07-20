@@ -10,6 +10,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
     const newEmail = body.email;
+    const action = body.action || "settings"; // "backup", "restore", "settings"
 
     let config = await prisma.adminConfig.findUnique({ where: { id: "singleton" } });
     let configData = config ? JSON.parse(config.data) : {};
@@ -35,14 +36,28 @@ export async function POST(req: Request) {
       update: { data: JSON.stringify(configData) }
     });
 
+    let actionText = "change the company profile or security settings";
+    let subjectText = "Verify Your Action";
+    
+    if (action === "backup") {
+      actionText = "download an encrypted backup of the entire platform";
+      subjectText = "Verify Backup Download";
+    } else if (action === "restore") {
+      actionText = "restore the database from an existing backup file (this overwrites current data)";
+      subjectText = "Verify Backup Restore";
+    } else if (action === "clear_data") {
+      actionText = "PERMANENTLY DELETE ALL DATABASE RECORDS (Danger Zone)";
+      subjectText = "CRITICAL: Verify Database Wipe";
+    }
+
     // Send OTP email
     await sendEmail({
       to: "mrzohaibkhattak@gmail.com",
-      subject: "Security Alert: Verify Your Action - CyberLabSec",
+      subject: `Security Alert: ${subjectText} - CyberLabSec`,
       html: `
         <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
           <h2 style="color: #2563eb;">CyberLabSec Security Verification</h2>
-          <p>An attempt was made to change the company profile or security settings.</p>
+          <p>An attempt was made to ${actionText}.</p>
           <p>Please use the following OTP to verify this action:</p>
           <div style="font-size: 24px; font-weight: bold; background: #f3f4f6; padding: 10px 20px; display: inline-block; border-radius: 6px; letter-spacing: 2px;">
             ${otp}

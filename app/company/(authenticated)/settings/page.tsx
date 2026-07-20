@@ -25,11 +25,8 @@ export default function SettingsPage() {
   const [downloading, setDownloading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-  // Password states
-  const [backupPassword, setBackupPassword] = useState("CyberLabSec@2024");
-  const [restorePassword, setRestorePassword] = useState("CyberLabSec@2024");
-  const [showBkPwd, setShowBkPwd] = useState(false);
-  const [showRsPwd, setShowRsPwd] = useState(false);
+  // Password states for settings
+  const [newPassword, setNewPassword] = useState("");
 
   // Company Profile states
   const [companyName, setCompanyName] = useState("CyberLabSec");
@@ -46,6 +43,7 @@ export default function SettingsPage() {
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [otpCode, setOtpCode] = useState("");
   const [otpLoading, setOtpLoading] = useState(false);
+  const [pendingAction, setPendingAction] = useState<"settings"|"backup"|"restore"|"clear_data"|null>(null);
 
   // Notifications
   const [notifApp, setNotifApp] = useState(true);
@@ -53,10 +51,22 @@ export default function SettingsPage() {
   const [notifSupport, setNotifSupport] = useState(true);
   const [notifLeave, setNotifLeave] = useState(false);
 
-  const requestOtp = async () => {
+  const requestOtp = async (action: "settings"|"backup"|"restore"|"clear_data") => {
+    if (action === "restore") {
+      if (!file) {
+        setMessage({ type: "error", text: "Please select a backup file first." });
+        return;
+      }
+    }
+
     setSaving(true);
+    setPendingAction(action);
     try {
-      const res = await fetch("/api/company/settings/request-otp", { method: "POST" });
+      const res = await fetch("/api/company/settings/request-otp", { 
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action })
+      });
       if (res.ok) {
         setShowOtpModal(true);
       } else {
@@ -68,34 +78,47 @@ export default function SettingsPage() {
     setSaving(false);
   };
 
-  const verifyOtpAndSave = async () => {
+  const handleOtpSubmit = async () => {
     if (!otpCode || otpCode.length !== 6) return setMessage({ type: "error", text: "Enter a valid 6-digit OTP" });
-    setOtpLoading(true);
-    try {
-      const companyData = { name: companyName, email: contactEmail, website: website };
-      const payload: any = { otp: otpCode, companyData };
-      const res = await fetch("/api/company/settings/verify-otp", { 
-        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setMessage({ type: "success", text: "✅ Profile and settings securely updated." });
-        setShowOtpModal(false);
-        setOtpCode("");
-      } else {
-        setMessage({ type: "error", text: "❌ " + (data.error || "Invalid OTP or expired.") });
+    
+    if (pendingAction === "settings") {
+      setOtpLoading(true);
+      try {
+        const companyData = { name: companyName, email: contactEmail, website: website };
+        const payload: any = { otp: otpCode, companyData };
+        const res = await fetch("/api/company/settings/verify-otp", { 
+          method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          setMessage({ type: "success", text: "✅ Profile and settings securely updated." });
+          setShowOtpModal(false);
+          setOtpCode("");
+          setPendingAction(null);
+        } else {
+          setMessage({ type: "error", text: "❌ " + (data.error || "Invalid OTP or expired.") });
+        }
+      } catch {
+        setMessage({ type: "error", text: "❌ Network error during verification." });
       }
-    } catch {
-      setMessage({ type: "error", text: "❌ Network error during verification." });
+      setOtpLoading(false);
+    } else if (pendingAction === "backup") {
+      await handleDownload(otpCode);
+    } else if (pendingAction === "restore") {
+      await handleUpload(otpCode);
+    } else if (pendingAction === "clear_data") {
+      await executeClearData(otpCode);
     }
-    setOtpLoading(false);
   };
 
-  const handleDownload = async () => {
+  const handleDownload = async (otp: string) => {
+    setShowOtpModal(false);
+    setOtpCode("");
+    setPendingAction(null);
     setDownloading(true);
     setMessage(null);
     try {
-      const res = await fetch(`/api/company/backup?password=${encodeURIComponent(backupPassword)}&encrypt=true`);
+      const res = await fetch(`/api/company/backup?otp=${encodeURIComponent(otp)}&encrypt=true`);
       if (!res.ok) {
         let errStr = "Download failed (HTTP " + res.status + ").";
         try {
@@ -115,13 +138,13 @@ export default function SettingsPage() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `cyberlabsec-${new Date().toISOString().split("T")[0]}.clsbackup`;
+      a.download = `cyberlabsec-full-backup-${new Date().toISOString().split("T")[0]}.zip`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
       
-      setMessage({ type: "success", text: "✅ Encrypted backup downloaded successfully (.clsbackup)." });
+      setMessage({ type: "success", text: "✅ Encrypted backup downloaded successfully (.zip)." });
     } catch (err: any) {
       setMessage({ type: "error", text: `Download error occurred: ${err.message}` });
     } finally {
@@ -136,21 +159,17 @@ export default function SettingsPage() {
     }
   };
 
-  const handleUpload = async () => {
+  const handleUpload = async (otp: string) => {
     if (!file) return;
-    const confirmed = window.prompt(
-      'WARNING: This will DELETE ALL current data and replace with backup.\n\nType "RESTORE" to confirm:'
-    );
-    if (confirmed !== "RESTORE") {
-      setMessage({ type: "error", text: "Cancelled — you must type RESTORE exactly." });
-      return;
-    }
-
+    
+    setShowOtpModal(false);
+    setOtpCode("");
+    setPendingAction(null);
     setUploading(true);
     setMessage(null);
     const formData = new FormData();
     formData.append("backupFile", file);
-    formData.append("password", restorePassword);
+    formData.append("otp", otp);
 
     try {
       const res = await fetch("/api/company/restore", { method: "POST", body: formData });
@@ -169,22 +188,22 @@ export default function SettingsPage() {
     }
   };
 
-  const handleClearAll = async () => {
-    const t1 = window.prompt('🚨 DANGER ZONE 🚨\nThis permanently deletes EVERYTHING.\n\nType "DELETE ALL" to confirm:');
-    if (t1 !== "DELETE ALL") {
-      setMessage({ type: "error", text: "Clear cancelled." });
-      return;
-    }
-    if (!window.confirm("FINAL WARNING: Are you 100% sure? This cannot be undone!")) return;
-
+  const executeClearData = async (otp: string) => {
+    setShowOtpModal(false);
+    setOtpCode("");
+    setPendingAction(null);
     setClearing(true);
     setMessage(null);
     try {
-      const res = await fetch("/api/company/clear-database", { method: "POST" });
+      const res = await fetch("/api/company/clear-database", { 
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ otp })
+      });
       const data = await res.json();
       setMessage({ type: res.ok ? "success" : "error", text: (res.ok ? "✅ " : "❌ ") + (data.message || data.error) });
     } catch {
-      setMessage({ type: "error", text: "❌ Error occurred." });
+      setMessage({ type: "error", text: "❌ Error occurred while clearing database." });
     } finally {
       setClearing(false);
     }
@@ -312,7 +331,7 @@ export default function SettingsPage() {
               </div>
 
               <div style={{ marginTop: 16 }}>
-                <button className="btn-primary" onClick={requestOtp} disabled={saving}>
+                <button className="btn-primary" onClick={() => requestOtp("settings")} disabled={saving}>
                   {saving ? <Loader2 size={16} className="spin" /> : "Save Profile"}
                 </button>
               </div>
@@ -413,18 +432,13 @@ export default function SettingsPage() {
                   <div style={{ background: "rgba(168,85,247,0.1)", padding: 8, borderRadius: 8 }}><Download color="#a855f7" size={20} /></div>
                   <h3 style={{ fontSize: 18, fontWeight: 600 }}>Download Encrypted Backup</h3>
                 </div>
-                
-                <label className="label">Encryption Password</label>
-                <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
-                  <div style={{ position: "relative", flex: 1 }}>
-                    <input type={showBkPwd ? "text" : "password"} className="input-dark" value={backupPassword} onChange={e => setBackupPassword(e.target.value)} />
-                    <button onClick={() => setShowBkPwd(!showBkPwd)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}>
-                      {showBkPwd ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                  </div>
-                  <button onClick={handleDownload} disabled={downloading} className="btn-primary" style={{ flexShrink: 0, opacity: downloading ? 0.7 : 1 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <p style={{ color: "var(--text-secondary)", fontSize: 13 }}>
+                    Backups are transparently encrypted by the system. Download requires email verification.
+                  </p>
+                  <button onClick={() => requestOtp("backup")} disabled={downloading} className="btn-primary" style={{ flexShrink: 0 }}>
                     {downloading ? <Loader2 size={16} className="spin" /> : <Download size={16} />}
-                    {downloading ? "Generating..." : "Download"}
+                    Download Backup
                   </button>
                 </div>
               </div>
@@ -435,25 +449,20 @@ export default function SettingsPage() {
                   <div style={{ background: "rgba(234,179,8,0.1)", padding: 8, borderRadius: 8 }}><Upload color="#eab308" size={20} /></div>
                   <h3 style={{ fontSize: 18, fontWeight: 600 }}>Restore from Backup</h3>
                 </div>
-                
-                <label className="label">Decryption Password</label>
-                <div style={{ position: "relative", marginBottom: 16 }}>
-                  <input type={showRsPwd ? "text" : "password"} className="input-dark" value={restorePassword} onChange={e => setRestorePassword(e.target.value)} />
-                  <button onClick={() => setShowRsPwd(!showRsPwd)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}>
-                    {showRsPwd ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
 
                 <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
                   <label style={{ flex: 1, padding: "10px 14px", border: "1px dashed var(--border)", borderRadius: 6, cursor: "pointer", textAlign: "center", fontSize: 13, color: "var(--text-secondary)", transition: "0.2s" }} className="file-upload">
-                    {file ? file.name : "Click to select .clsbackup or .json file"}
-                    <input type="file" accept=".clsbackup,.json" onChange={handleFileChange} style={{ display: "none" }} />
+                    {file ? file.name : "Click to select backup .zip file"}
+                    <input type="file" accept=".zip" onChange={handleFileChange} style={{ display: "none" }} />
                   </label>
-                  <button onClick={handleUpload} disabled={!file || uploading} style={{ background: !file || uploading ? "rgba(234,179,8,0.1)" : "#eab308", color: !file || uploading ? "var(--text-muted)" : "#000", border: "none", padding: "10px 20px", borderRadius: 6, fontWeight: 600, fontSize: 14, cursor: !file || uploading ? "not-allowed" : "pointer", display: "inline-flex", gap: 8, alignItems: "center" }}>
+                  <button onClick={() => requestOtp("restore")} disabled={!file || uploading} style={{ background: !file || uploading ? "rgba(234,179,8,0.1)" : "#eab308", color: !file || uploading ? "var(--text-muted)" : "#000", border: "none", padding: "10px 20px", borderRadius: 6, fontWeight: 600, fontSize: 14, cursor: !file || uploading ? "not-allowed" : "pointer", display: "inline-flex", gap: 8, alignItems: "center" }}>
                     {uploading ? <Loader2 size={16} className="spin" /> : <Upload size={16} />}
-                    Restore
+                    Restore Backup
                   </button>
                 </div>
+                <p style={{ color: "#ef4444", fontSize: 12, marginTop: 12, fontWeight: 500 }}>
+                  WARNING: Restoring will overwrite and replace ALL existing platform data.
+                </p>
               </div>
 
             </div>
@@ -472,7 +481,7 @@ export default function SettingsPage() {
                 Permanently deletes every record — Employees, Applicants, Tasks, Announcements, everything. The platform becomes completely empty. You cannot undo this.
               </p>
               
-              <button onClick={handleClearAll} disabled={clearing} style={{ background: clearing ? "rgba(239,68,68,0.1)" : "#ef4444", color: clearing ? "#ef4444" : "white", border: clearing ? "1px solid rgba(239,68,68,0.2)" : "none", padding: "10px 20px", borderRadius: 6, fontWeight: 600, fontSize: 14, cursor: clearing ? "not-allowed" : "pointer", display: "inline-flex", gap: 8, alignItems: "center" }}>
+              <button onClick={() => requestOtp("clear_data")} disabled={clearing} style={{ background: clearing ? "rgba(239,68,68,0.1)" : "#ef4444", color: clearing ? "#ef4444" : "white", border: clearing ? "1px solid rgba(239,68,68,0.2)" : "none", padding: "10px 20px", borderRadius: 6, fontWeight: 600, fontSize: 14, cursor: clearing ? "not-allowed" : "pointer", display: "inline-flex", gap: 8, alignItems: "center" }}>
                 {clearing ? <Loader2 size={16} className="spin" /> : <Trash2 size={16} />}
                 {clearing ? "Clearing..." : "Delete All Data"}
               </button>
@@ -501,9 +510,9 @@ export default function SettingsPage() {
               style={{ fontSize: 24, letterSpacing: "0.2em", textAlign: "center", fontWeight: 600, padding: "16px", marginBottom: 24 }} 
             />
             <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
-              <button className="btn-secondary" onClick={() => setShowOtpModal(false)} disabled={otpLoading}>Cancel</button>
-              <button className="btn-primary" onClick={verifyOtpAndSave} disabled={otpLoading || otpCode.length !== 6}>
-                {otpLoading ? <Loader2 size={16} className="spin" /> : "Verify & Save"}
+              <button className="btn-secondary" onClick={() => setShowOtpModal(false)} disabled={otpLoading || downloading || uploading || clearing}>Cancel</button>
+              <button className="btn-primary" onClick={handleOtpSubmit} disabled={otpLoading || otpCode.length !== 6 || downloading || uploading || clearing}>
+                {otpLoading || downloading || uploading || clearing ? <Loader2 size={16} className="spin" /> : "Verify Action"}
               </button>
             </div>
           </div>

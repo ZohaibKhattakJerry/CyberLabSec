@@ -14,6 +14,7 @@ type Employee = {
   onboardingCompleted: boolean;
   team: { id: string; name: string } | null;
   _count: { submissions: number };
+  applicantId?: string | null;
 };
 
 type Team = { id: string; name: string };
@@ -24,6 +25,8 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
   const [filterTeam, setFilterTeam] = useState("All");
+  const [filterDesignation, setFilterDesignation] = useState("All");
+  const [filterType, setFilterType] = useState("All");
   
   // Edit State
   const [editEmployee, setEditEmployee] = useState<Employee | null>(null);
@@ -34,7 +37,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
   // Direct Hire State
   const [showDirectHire, setShowDirectHire] = useState(false);
   const [dhData, setDhData] = useState({
-    name: "", email: "", designation: "", teamId: "", tier: "Standard", employmentType: "Employee", startDate: new Date().toISOString().split('T')[0], offerLetterBase64: ""
+    name: "", email: "", designation: "", teamId: "", tier: "Standard", employmentType: "Employee", startDate: new Date().toISOString().split('T')[0], offerLetterBase64: "", cvBase64: "", linkedinUrl: ""
   });
 
   // Terminate State
@@ -69,8 +72,13 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
     const matchSearch = !q || e.name.toLowerCase().includes(q) || e.email.toLowerCase().includes(q) || e.employeeCode.toLowerCase().includes(q);
     const matchStatus = filterStatus === "All" || e.status === filterStatus;
     const matchTeam = filterTeam === "All" || e.teamId === filterTeam;
-    return matchSearch && matchStatus && matchTeam;
+    const matchDesignation = filterDesignation === "All" || e.designation === filterDesignation;
+    const matchType = filterType === "All" || e.employmentType === filterType;
+    return matchSearch && matchStatus && matchTeam && matchDesignation && matchType;
   });
+
+  const uniqueDesignations = Array.from(new Set(employees.map(e => e.designation).filter(Boolean)));
+  const uniqueTypes = Array.from(new Set(employees.map(e => e.employmentType).filter(Boolean)));
 
   const exportCSV = () => {
     const rows = [
@@ -159,7 +167,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
     setTimeout(() => {
       setShowDirectHire(false);
       startTransition(() => router.refresh());
-      setDhData({ name: "", email: "", designation: "", teamId: "", tier: "Standard", employmentType: "Employee", startDate: new Date().toISOString().split('T')[0], offerLetterBase64: "" });
+      setDhData({ name: "", email: "", designation: "", teamId: "", tier: "Standard", employmentType: "Employee", startDate: new Date().toISOString().split('T')[0], offerLetterBase64: "", cvBase64: "", linkedinUrl: "" });
     }, 1500);
   };
 
@@ -173,6 +181,21 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
     const reader = new FileReader();
     reader.onload = (event) => {
       setDhData({ ...dhData, offerLetterBase64: event.target?.result as string });
+      setMsg("");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleCvUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.type !== "application/pdf") {
+      setMsg("CV must be a PDF file.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setDhData({ ...dhData, cvBase64: event.target?.result as string });
       setMsg("");
     };
     reader.readAsDataURL(file);
@@ -298,8 +321,8 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
           <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>{employees.length} total employees</p>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <button className="btn btn-primary" onClick={() => { setShowDirectHire(true); setMsg(""); }}>
-            <UserPlus size={14} /> Manual Hire
+          <button className="btn btn-primary" onClick={() => { setShowDirectHire(true); setMsg(""); }} title="Create employee directly without application">
+            <UserPlus size={14} /> Direct Hire
           </button>
         </div>
       </div>
@@ -314,9 +337,17 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
           <option value="Active">Active</option>
           <option value="Terminated">Terminated</option>
         </select>
-        <select className="input" style={{ width: 160 }} value={filterTeam} onChange={e => setFilterTeam(e.target.value)}>
+        <select className="input" style={{ width: 140 }} value={filterTeam} onChange={e => setFilterTeam(e.target.value)}>
           <option value="All">All Teams</option>
           {teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+        </select>
+        <select className="input" style={{ width: 140 }} value={filterDesignation} onChange={e => setFilterDesignation(e.target.value)}>
+          <option value="All">All Roles</option>
+          {uniqueDesignations.map(d => <option key={d} value={d}>{d}</option>)}
+        </select>
+        <select className="input" style={{ width: 140 }} value={filterType} onChange={e => setFilterType(e.target.value)}>
+          <option value="All">All Types</option>
+          {uniqueTypes.map(t => <option key={t} value={t}>{t}</option>)}
         </select>
         <div className="badge badge-gray" style={{ alignSelf: "center", padding: "6px 12px" }}>{filtered.length} results</div>
         <button className="btn btn-secondary btn-sm" onClick={exportCSV} style={{ alignSelf: "center", gap: 5 }}>
@@ -347,7 +378,12 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
                     {e.name}
                     {e.mustResetPassword && <span className="badge badge-amber" style={{ fontSize: 9 }}>Must Reset PW</span>}
                   </div>
-                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{e.employeeCode} · {e.email}</div>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginTop: 4 }}>
+                    <span>{e.employeeCode} · {e.email}</span>
+                    <span className={`badge ${e.applicantId ? "badge-blue" : "badge-purple"}`} style={{ fontSize: 9, padding: "2px 6px" }}>
+                      Source: {e.applicantId ? "Application Hire" : "Direct Hire"}
+                    </span>
+                  </div>
                 </td>
                 <td data-label="Role" style={{ fontSize: 13 }}>{e.designation}</td>
                 <td data-label="Tier" style={{ fontSize: 13 }}>
@@ -457,7 +493,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
           <div className="card" style={{ maxWidth: 500, width: "100%", padding: 32 }}>
             <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-              <h2 style={{ fontSize: 18, fontWeight: 700 }}>Manual Hire</h2>
+              <h2 style={{ fontSize: 18, fontWeight: 700 }}>Direct Hire</h2>
               <button onClick={() => setShowDirectHire(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}><X size={18} /></button>
             </div>
             
@@ -511,9 +547,21 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
               </div>
 
               <div>
-                <label className="label">Offer Letter (PDF, Optional)</label>
-                <input type="file" accept="application/pdf" className="input" onChange={handleOfferLetterUpload} />
-                {dhData.offerLetterBase64 && <p style={{ fontSize: 13, color: "var(--green)", marginTop: 8, display: "flex", alignItems: "center", gap: 6 }}><CheckCircle size={14} /> Offer Letter attached</p>}
+                <label className="label">LinkedIn Profile (Optional)</label>
+                <input className="input" placeholder="https://linkedin.com/in/..." value={dhData.linkedinUrl} onChange={e => setDhData({...dhData, linkedinUrl: e.target.value})} />
+              </div>
+
+              <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                <div>
+                  <label className="label">CV / Resume (PDF, Optional)</label>
+                  <input type="file" accept="application/pdf" className="input" onChange={handleCvUpload} />
+                  {dhData.cvBase64 && <p style={{ fontSize: 13, color: "var(--green)", marginTop: 8, display: "flex", alignItems: "center", gap: 6 }}><CheckCircle size={14} /> CV attached</p>}
+                </div>
+                <div>
+                  <label className="label">Offer Letter (PDF, Optional)</label>
+                  <input type="file" accept="application/pdf" className="input" onChange={handleOfferLetterUpload} />
+                  {dhData.offerLetterBase64 && <p style={{ fontSize: 13, color: "var(--green)", marginTop: 8, display: "flex", alignItems: "center", gap: 6 }}><CheckCircle size={14} /> Offer Letter attached</p>}
+                </div>
               </div>
 
               {msg && <div style={{ padding: 12, background: "rgba(147,51,234,0.1)", color: "var(--purple)", borderRadius: 8, fontSize: 13 }}>{msg}</div>}

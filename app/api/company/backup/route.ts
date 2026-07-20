@@ -27,8 +27,26 @@ export async function GET(req: Request) {
     if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { searchParams } = new URL(req.url);
-    const password = searchParams.get("password") || "CyberLabSec@2024";
+    const otp = searchParams.get("otp");
     const encryptBackup = searchParams.get("encrypt") !== "false";
+
+    let config = await prisma.adminConfig.findUnique({ where: { id: "singleton" } });
+    let configData = config ? JSON.parse(config.data) : {};
+
+    if (!otp || otp !== configData.currentOtp || Date.now() > (configData.otpExpiry || 0)) {
+      return NextResponse.json({ error: "Invalid or expired OTP" }, { status: 400 });
+    }
+
+    // Clear OTP after successful verification
+    configData.currentOtp = null;
+    configData.otpExpiry = 0;
+    await prisma.adminConfig.update({
+      where: { id: "singleton" },
+      data: { data: JSON.stringify(configData) }
+    });
+
+    // Use server secret instead of user-provided password
+    const password = process.env.JWT_SECRET || "CyberLabSec@2024";
 
     const passThrough = new PassThrough();
     const archive = new ZipArchive({ zlib: { level: 5 } });
@@ -159,17 +177,24 @@ export async function GET(req: Request) {
         }
 
         try {
-          const { blobs } = await list();
-          for (const blob of blobs) {
-            try {
-              const res = await fetch(blob.url);
-              if (res.ok && res.body) {
-                const nodeStream = Readable.fromWeb(res.body as any);
-                archive.append(nodeStream, { name: `uploads/${blob.pathname}` });
+          let hasMore = true;
+          let cursor: string | undefined = undefined;
+          
+          while (hasMore) {
+            const listResult = await list({ cursor });
+            for (const blob of listResult.blobs) {
+              try {
+                const res = await fetch(blob.url);
+                if (res.ok && res.body) {
+                  const nodeStream = Readable.fromWeb(res.body as any);
+                  archive.append(nodeStream, { name: `uploads/${blob.pathname}` });
+                }
+              } catch (e) {
+                console.error("Failed to fetch blob for backup", blob.url);
               }
-            } catch (e) {
-              console.error("Failed to fetch blob for backup", blob.url);
             }
+            hasMore = listResult.hasMore;
+            cursor = listResult.cursor;
           }
         } catch (e) {
           console.error("Failed to list blobs", e);

@@ -16,9 +16,9 @@ export async function POST(
   try {
     body = await req.json();
   } catch(e) {}
-  const { offerLetterBase64, offerLetterUrl, customMessage } = body;
+  const { offerLetterBase64, customMessage, startingSalary, expectedJoinDate } = body;
 
-  if (!offerLetterBase64 || !offerLetterUrl) {
+  if (!offerLetterBase64) {
     return NextResponse.json({ error: "Offer letter attachment is required to complete the hiring process." }, { status: 400 });
   }
 
@@ -61,12 +61,24 @@ export async function POST(
     }
   });
 
+  // Upload to Vercel Blob
+  let finalOfferLetterUrl = "";
+  if (offerLetterBase64) {
+    const { put } = await import("@vercel/blob");
+    const buffer = Buffer.from(offerLetterBase64, "base64");
+    const blob = await put(`offer-letter-${code}.pdf`, buffer, {
+      access: "private",
+      contentType: "application/pdf"
+    });
+    finalOfferLetterUrl = `/api/blob?url=${encodeURIComponent(blob.url)}`;
+  }
+
   await prisma.employeeDocument.create({
     data: {
       employeeId: employee.id,
       title: "Initial Offer Letter",
       type: "Offer Letter",
-      fileUrl: offerLetterUrl,
+      fileUrl: finalOfferLetterUrl,
       status: "Approved",
       uploadedBy: auth.sub
     }

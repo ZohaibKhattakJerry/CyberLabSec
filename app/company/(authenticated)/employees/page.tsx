@@ -23,6 +23,7 @@ export default async function EmployeesPage() {
         endDate: true,
         createdAt: true,
         updatedAt: true,
+        applicantId: true,
         policyAcknowledgedAt: true,
         points: true,
         monthlyPoints: true,

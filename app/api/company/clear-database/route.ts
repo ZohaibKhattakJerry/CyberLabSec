@@ -34,10 +34,28 @@ async function wipeDatabase() {
   await prisma.talentPool.deleteMany();
 }
 
-export async function POST() {
+export async function POST(req: Request) {
   try {
     const auth = await getAuthFromCookies();
     if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const body = await req.json().catch(() => ({}));
+    const otp = body.otp;
+
+    let config = await prisma.adminConfig.findUnique({ where: { id: "singleton" } });
+    let configData = config ? JSON.parse(config.data) : {};
+
+    if (!otp || otp !== configData.currentOtp || Date.now() > (configData.otpExpiry || 0)) {
+      return NextResponse.json({ error: "Invalid or expired OTP" }, { status: 400 });
+    }
+
+    // Clear OTP after successful verification
+    configData.currentOtp = null;
+    configData.otpExpiry = 0;
+    await prisma.adminConfig.update({
+      where: { id: "singleton" },
+      data: { data: JSON.stringify(configData) }
+    });
 
     await wipeDatabase();
 

@@ -15,7 +15,8 @@ export default async function EmployeeDetailsPage({ params }: { params: Promise<
     where: { id: employeeId },
     include: {
       team: true,
-      documents: { orderBy: { createdAt: "desc" } }
+      documents: { orderBy: { createdAt: "desc" } },
+      applicant: true
     }
   });
 

@@ -30,6 +30,9 @@ type Employee = {
   status: string | null;
   team?: { name: string } | null;
   documents: Document[];
+  cvUrl?: string | null;
+  linkedinUrl?: string | null;
+  applicant?: { cvFileUrl?: string | null; linkedIn?: string | null } | null;
 };
 
 const DOC_TYPES = ["Offer Letter", "NDA", "Employment Contract", "Certificate", "Letter of Recommendation", "Contract Agreement", "Project NDA", "Policy", "Other"];
@@ -107,6 +110,9 @@ export default function EmployeeDetailsClient({ employee }: { employee: Employee
     : employee.status === "Inactive" ? { bg: "rgba(239,68,68,0.1)", color: "var(--red)", border: "rgba(239,68,68,0.2)" }
     : { bg: "rgba(255,255,255,0.05)", color: "var(--text-muted)", border: "rgba(255,255,255,0.1)" };
 
+  const cvLink = employee.cvUrl || employee.applicant?.cvFileUrl;
+  const linkedInLink = employee.linkedinUrl || employee.applicant?.linkedIn;
+
   return (
     <div style={{ maxWidth: 900, margin: "0 auto" }}>
       <Link href="/company/employees" style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "var(--text-muted)", fontSize: 13, textDecoration: "none", marginBottom: 20 }}>
@@ -136,6 +142,22 @@ export default function EmployeeDetailsClient({ employee }: { employee: Employee
             <Plus size={14} /> Upload Document
           </button>
         </div>
+
+        {/* Action Bar for CV and LinkedIn */}
+        {(cvLink || linkedInLink) && (
+          <div style={{ marginTop: 24, paddingTop: 16, borderTop: "1px solid rgba(168,85,247,0.1)", display: "flex", gap: 12, flexWrap: "wrap" }}>
+            {cvLink && (
+              <a href={cvLink} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm" style={{ fontWeight: 600, gap: 6 }}>
+                <FileText size={14} color="var(--purple)" /> View Resume / CV
+              </a>
+            )}
+            {linkedInLink && (
+              <a href={linkedInLink} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm" style={{ fontWeight: 600, gap: 6, color: "#3b82f6" }}>
+                <User size={14} /> LinkedIn Profile
+              </a>
+            )}
+          </div>
+        )}
 
         {/* Intern completion notice */}
         {isIntern && isCompleted && (
