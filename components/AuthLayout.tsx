@@ -59,15 +59,23 @@ export default function AuthLayout({
           }
         }
 
+        html, body {
+          overflow: hidden !important;
+          width: 100%;
+          height: 100%;
+        }
+
         .auth-bg {
-          min-height: 100dvh;
+          height: 100dvh;
+          width: 100vw;
           background: #040308;
           display: flex;
           align-items: center;
           justify-content: center;
           padding: 1rem;
           position: relative;
-          overflow: hidden;
+          overflow-x: hidden;
+          overflow-y: auto;
           font-family: 'Inter', system-ui, sans-serif;
           perspective: 1000px;
         }
@@ -82,7 +90,6 @@ export default function AuthLayout({
         }
 
         .auth-orb {
-          position: absolute;
           border-radius: 50%;
           pointer-events: none;
           will-change: transform, opacity;
@@ -92,6 +99,7 @@ export default function AuthLayout({
         }
         /* Background Orbs (Larger, Slower) */
         .bg-orb-a {
+          position: fixed;
           width: 800px; height: 800px;
           top: -250px; left: -150px;
           background: rgba(168,85,247,0.18);
@@ -99,6 +107,7 @@ export default function AuthLayout({
           z-index: 0;
         }
         .bg-orb-b {
+          position: fixed;
           width: 700px; height: 700px;
           bottom: -250px; right: -150px;
           background: rgba(236,72,153,0.15);
@@ -124,6 +133,7 @@ export default function AuthLayout({
         
         /* Card Orbs (Smaller, brighter, inside card) */
         .card-orb-a {
+          position: absolute;
           width: 400px; height: 400px;
           top: -100px; left: -100px;
           background: rgba(168,85,247,0.4);
@@ -132,6 +142,7 @@ export default function AuthLayout({
           z-index: 0;
         }
         .card-orb-b {
+          position: absolute;
           width: 350px; height: 350px;
           bottom: -100px; right: -100px;
           background: rgba(236,72,153,0.3);
