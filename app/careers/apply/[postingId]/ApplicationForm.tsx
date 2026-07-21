@@ -657,34 +657,6 @@ function ScreeningScreen({ status, message, referenceId }: { status: ScreeningSt
   ];
 
   useEffect(() => {
-    // If we've already finished the animation, do nothing.
-    if (isAnimationComplete) return;
-    
-    // We start the visual progress as soon as we enter "screening"
-    if (status !== "screening" && status !== "done") return;
-
-    const duration = 5000; // exactly 5 seconds
-    const intervalTime = 50;
-    const increment = 100 / (duration / intervalTime);
-
-    const progressInterval = setInterval(() => {
-      let nextProgress = progressRef.current + increment;
-      
-      // If backend is NOT done yet, gracefully hold at 99%
-      if (status !== "done" && nextProgress >= 99) {
-        nextProgress = 99;
-      }
-
-      progressRef.current = nextProgress;
-      setProgress(nextProgress);
-      
-      // Update steps based on progress
-      const stepIndex = Math.floor((nextProgress / 100) * steps.length);
-      setCurrentStep(Math.min(stepIndex, steps.length - 1));
-
-      // If backend IS done and animation reaches 100%
-      if (status === "done" && nextProgress >= 100) {
-        progressRef.current = 100;
     if (isDone) {
       setProgress(100);
       setCurrentStep(steps.length);
