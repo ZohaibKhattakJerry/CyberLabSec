@@ -10,6 +10,7 @@ import {
 import Link from "next/link";
 import CompletionDialog from "./CompletionDialog";
 import NotificationBell from "@/components/NotificationBell";
+import DashboardGreeting from "@/components/DashboardGreeting";
 
 export const dynamic = "force-dynamic";
 
@@ -76,9 +77,6 @@ export default async function Dashboard() {
     redirect('/employee/login');
   }
 
-  const hour = new Date().getUTCHours() + 5;
-  const greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
-  const greetingEmoji = hour < 12 ? '☀️' : hour < 17 ? '👋' : '🌙';
   const firstName = employee.name.split(" ")[0];
 
   const myMonthlyRank = countAhead + 1;
@@ -144,7 +142,6 @@ export default async function Dashboard() {
           position: relative;
           border-radius: 20px;
           padding: clamp(20px, 4vw, 32px);
-          overflow: hidden;
           margin-bottom: 20px;
           background: linear-gradient(135deg, rgba(12,8,28,0.95) 0%, rgba(26,14,55,0.95) 50%, rgba(12,8,28,0.95) 100%);
           border: 1px solid rgba(168,85,247,0.25);
@@ -392,17 +389,15 @@ export default async function Dashboard() {
 
       {/* ── HERO BANNER ── */}
       <div className="dash-hero fade-up">
-        <div className="dash-hero-glow" />
-        <div className="dash-hero-grid" />
+        <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', borderRadius: 'inherit' }}>
+          <div className="dash-hero-glow" />
+          <div className="dash-hero-grid" />
+        </div>
         <div className="dash-hero-content">
           <div className="hero-row">
             {/* Left: greeting + badges */}
             <div>
-              <h1 className="dash-hero-title" style={{ fontSize: 30, fontWeight: 900, margin: '0 0 10px 0', letterSpacing: '-0.03em', lineHeight: 1.15, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
-                <span style={{ color: 'var(--text-secondary)', fontWeight: 700 }}>{greeting},</span>
-                <span style={{ background: 'linear-gradient(90deg, #A855F7, #6366F1)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{firstName}</span>
-                <span>{greetingEmoji}</span>
-              </h1>
+              <DashboardGreeting firstName={firstName} />
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                 <span style={{ background: 'rgba(255,255,255,0.08)', padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 700, letterSpacing: '0.04em', color: 'var(--text-muted)' }}>
                   ID: {employee.employeeCode}
