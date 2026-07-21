@@ -156,13 +156,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
           <img src="/logo.png" alt="CyberLabSec" style={{ height: 24, objectFit: "contain", marginLeft: "12px" }} />
-          <button
-            onClick={logout}
-            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--red)", display: "flex", padding: 8, marginLeft: "auto" }}
-            title="Sign Out"
-          >
-            <LogOut size={18} />
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginLeft: "auto" }}>
+            <NotificationBell isAdmin={true} placement="top-right" />
+            <button
+              onClick={logout}
+              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--red)", display: "flex", padding: 8 }}
+              title="Sign Out"
+            >
+              <LogOut size={18} />
+            </button>
+          </div>
         </div>
 
         <main style={{ padding: "24px 20px", maxWidth: 1280, margin: "0 auto" }}>

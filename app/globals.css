@@ -971,13 +971,17 @@ select.input option {
   width: 320px;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .notification-dropdown {
-    position: fixed;
-    top: 70px;
-    right: 16px;
-    left: 16px;
-    width: auto;
+    position: fixed !important;
+    top: 70px !important;
+    right: 16px !important;
+    left: 16px !important;
+    width: auto !important;
+    max-width: none !important;
+    bottom: auto !important;
+    max-height: 80vh !important;
+    z-index: 999999 !important;
   }
 }
 
