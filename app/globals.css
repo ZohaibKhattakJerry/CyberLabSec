@@ -753,6 +753,17 @@ select.input option {
   color: var(--text-primary);
 }
 
+/* Candidate Modal */
+.modal-header-responsive {
+  padding: 24px 32px;
+}
+.modal-body-responsive {
+  padding: 32px;
+}
+.modal-footer-responsive {
+  padding: 20px 32px;
+}
+
 /* Mobile topbar responsive */
 @media (max-width: 768px) {
   .grid-mobile-1 {
@@ -795,6 +806,24 @@ select.input option {
 
   /* Buttons - full width on mobile forms */
   .btn-block-mobile {
+    width: 100% !important;
+  }
+
+  /* Candidate Modal Responsive Adjustments */
+  .modal-header-responsive {
+    padding: 20px 16px !important;
+  }
+  .modal-body-responsive {
+    padding: 20px 16px !important;
+    gap: 20px !important;
+  }
+  .modal-footer-responsive {
+    padding: 16px !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .modal-footer-responsive > div {
+    flex-direction: column !important;
     width: 100% !important;
   }
 

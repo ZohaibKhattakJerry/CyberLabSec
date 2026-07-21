@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { Search, Filter, X, Eye, UserCheck, UserX, Loader2, FileText, ChevronRight, Check, AlertTriangle, Clock, Star, CheckSquare, Square, Mail, Phone, MapPin, Link as LinkIcon, Code, Briefcase, GraduationCap, Calendar, Award } from "lucide-react";
+import { Search, Filter, X, Eye, UserCheck, UserX, Loader2, FileText, ChevronRight, Check, AlertTriangle, Clock, Star, CheckSquare, Square, Mail, Phone, MapPin, Link as LinkIcon, Code, Briefcase, GraduationCap, Calendar, Award, Trash2 } from "lucide-react";
 import confetti from "canvas-confetti";
 
 type Applicant = {
@@ -496,34 +496,34 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
           <div className="card" style={{ maxWidth: 760, width: "100%", padding: 0, maxHeight: "90vh", display: "flex", flexDirection: "column", overflow: "hidden", background: "var(--bg-elevated)", border: "1px solid var(--border-subtle)", boxShadow: "0 24px 60px rgba(0,0,0,0.4)" }}>
             
             {/* Header Area */}
-            <div style={{ padding: "24px 32px", borderBottom: "1px solid var(--border-subtle)", background: "rgba(255,255,255,0.01)" }}>
-              <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
-                <div style={{ flex: 1 }}>
+            <div className="modal-header-responsive" style={{ borderBottom: "1px solid var(--border-subtle)", background: "var(--bg-elevated)", flexShrink: 0, zIndex: 10, position: "relative" }}>
+              <button onClick={() => { setSelected(null); setActionMsg(""); setNotesDraft(""); setRatingDraft(0); }} style={{ position: "absolute", top: 20, right: 20, width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.05)", border: "1px solid var(--border)", borderRadius: "50%", cursor: "pointer", color: "var(--text-muted)", transition: "all 0.2s", zIndex: 20 }} className="hover-bg-white-10">
+                <X size={16} />
+              </button>
+              <div style={{ display: "flex", flexDirection: "column", gap: 16, paddingRight: 40 }}>
+                <div>
                   <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
                     <h2 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", margin: 0, color: "var(--text-primary)" }}>{selected.fullName}</h2>
                     <span className={`badge ${STATUS_COLORS[selected.status] || "badge-gray"}`} style={{ fontSize: 11, fontWeight: 700, padding: "4px 10px" }}>
                       {selected.status}
                     </span>
                   </div>
-                  <div style={{ display: "flex", gap: "16px 24px", alignItems: "center", flexWrap: "wrap", fontSize: 13, color: "var(--text-muted)" }}>
-                    <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Mail size={14} color="var(--text-tertiary)" /> {selected.email}</span>
-                    <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Phone size={14} color="var(--text-tertiary)" /> {selected.phone}</span>
-                    {selected.city && <span style={{ display: "flex", alignItems: "center", gap: 6 }}><MapPin size={14} color="var(--text-tertiary)" /> {selected.city}</span>}
+                  <div style={{ display: "flex", gap: "12px 20px", alignItems: "center", flexWrap: "wrap", fontSize: 13, color: "var(--text-muted)" }}>
+                    <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Mail size={14} color="var(--purple-light)" /> {selected.email}</span>
+                    <span style={{ display: "flex", alignItems: "center", gap: 6 }}><Phone size={14} color="var(--purple-light)" /> {selected.phone}</span>
+                    {selected.city && <span style={{ display: "flex", alignItems: "center", gap: 6 }}><MapPin size={14} color="var(--purple-light)" /> {selected.city}</span>}
                   </div>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <a href={`/api/files/${selected.id}/cv`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm" style={{ gap: 6, fontWeight: 600, background: "rgba(255,255,255,0.05)" }}>
+                <div>
+                  <a href={`/api/files/${selected.id}/cv`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm btn-block-mobile" style={{ gap: 6, fontWeight: 600, background: "rgba(255,255,255,0.05)", display: "inline-flex", justifyContent: "center" }}>
                     <FileText size={14} /> View CV
                   </a>
-                  <button onClick={() => { setSelected(null); setActionMsg(""); setNotesDraft(""); setRatingDraft(0); }} style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", background: "transparent", border: "1px solid var(--border)", borderRadius: "50%", cursor: "pointer", color: "var(--text-muted)", transition: "all 0.2s" }} className="hover-bg-white-5">
-                    <X size={16} />
-                  </button>
                 </div>
               </div>
             </div>
 
             {/* Scrollable Body */}
-            <div style={{ padding: "32px", overflowY: "auto", flex: 1, display: "flex", flexDirection: "column", gap: 32 }}>
+            <div className="modal-body-responsive" style={{ overflowY: "auto", flex: 1, display: "flex", flexDirection: "column", gap: 32, background: "var(--bg-base)" }}>
               
               {/* Core Details */}
               <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
@@ -711,32 +711,32 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
             </div>
 
             {/* Sticky Footer Actions */}
-            <div style={{ padding: "20px 32px", borderTop: "1px solid var(--border-subtle)", background: "rgba(255,255,255,0.01)", display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+            <div className="modal-footer-responsive" style={{ borderTop: "1px solid var(--border-subtle)", background: "var(--bg-elevated)", display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 16, flexShrink: 0, zIndex: 10 }}>
               {actionMsg ? (
-                <div style={{ padding: "8px 12px", background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 6, fontSize: 13, color: "var(--green)", fontWeight: 500, flex: 1 }}>
+                <div style={{ padding: "10px 14px", background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 8, fontSize: 13, color: "var(--green)", fontWeight: 500, flex: 1, textAlign: "center" }}>
                   {actionMsg}
                 </div>
               ) : (
                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap", flex: 1 }}>
                   {selected.status === "Selected – Waiting for Approval" && (
-                    <button className="btn btn-primary" onClick={() => hireApplicant(selected.id)} disabled={actionLoading} style={{ border: "none", fontWeight: 600 }}>
+                    <button className="btn btn-primary btn-block-mobile" onClick={() => hireApplicant(selected.id)} disabled={actionLoading} style={{ border: "none", fontWeight: 600, flex: 1, minWidth: 160 }}>
                       {actionLoading ? <Loader2 size={14} className="spin" /> : <UserCheck size={14} />}
                       Approve & Hire
                     </button>
                   )}
                   {selected.status === "Reviewing" && (
-                    <button className="btn btn-primary" onClick={() => updateStatus(selected.id, "Invited for Interview")} disabled={actionLoading} style={{ fontWeight: 600 }}>
+                    <button className="btn btn-primary btn-block-mobile" onClick={() => updateStatus(selected.id, "Invited for Interview")} disabled={actionLoading} style={{ fontWeight: 600, flex: 1, minWidth: 160 }}>
                       {actionLoading ? <Loader2 size={14} className="spin" /> : <UserCheck size={14} />}
                       Shortlist & Invite
                     </button>
                   )}
                   {(!["Rejected", "Hired", "Interview Failed", "Withdrawn"].includes(selected.status)) && (
-                    <button className="btn btn-secondary" onClick={() => { 
+                    <button className="btn btn-secondary btn-block-mobile" onClick={() => { 
                       if(confirm("Are you sure you want to reject this applicant?")) { 
                         updateStatus(selected.id, "Rejected"); 
                         setSelected(null); 
                       } 
-                    }} disabled={actionLoading} style={{ color: "var(--amber)", borderColor: "var(--border-subtle)", fontWeight: 600 }}>
+                    }} disabled={actionLoading} style={{ color: "var(--amber)", borderColor: "var(--border-subtle)", fontWeight: 600, flex: 1, minWidth: 120 }}>
                       <X size={14} /> Reject
                     </button>
                   )}
@@ -745,12 +745,12 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
               
               {selected.status !== "Hired" && (
                 <button 
-                  className="btn btn-danger" 
+                  className="btn btn-danger btn-block-mobile" 
                   onClick={() => handleSingleDelete(selected.id)}
                   disabled={actionLoading}
-                  style={{ fontWeight: 600, background: "transparent", borderColor: "var(--red)", color: "var(--red)" }}
+                  style={{ flex: "0 1 auto", minWidth: 140 }}
                 >
-                  Delete Application
+                  {actionLoading ? <Loader2 size={14} className="spin" /> : <Trash2 size={14} />} Delete Application
                 </button>
               )}
             </div>
