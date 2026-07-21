@@ -656,8 +656,7 @@ function ScreeningScreen({ status, message, referenceId }: { status: ScreeningSt
     "Finalizing review..."
   ];
 
-  const progressRef = useRef(0);
-  
+
   useEffect(() => {
     // If we're not screening or we already finished the visual animation, do nothing.
     if (status !== "screening" && status !== "done") return;
