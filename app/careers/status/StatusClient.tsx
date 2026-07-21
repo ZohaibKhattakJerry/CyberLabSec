@@ -70,20 +70,20 @@ export default function StatusClient() {
       { id: "Decision", label: "Decision", active: false, done: false },
     ];
 
-    if (status === "Reviewing") {
+    if (status === "Applied" || status === "Reviewing") {
       allStages[0].active = true;
-    } else if (status === "Invited for Interview") {
+    } else if (status === "Invited for Interview" || status === "Interview" || status === "Screening") {
       allStages[0].done = true;
       allStages[1].active = true;
-    } else if (status === "Interview Failed") {
+    } else if (status === "Interview Failed" || status === "Withdrawn") {
       allStages[0].done = true;
       allStages[1].active = true;
       allStages[1].done = true;
-    } else if (status === "Selected – Waiting for Approval" || status === "Hired" || status === "Rejected") {
+    } else if (status === "Selected – Waiting for Approval" || status === "Final Approval" || status === "Offer" || status === "Hired" || status === "Rejected") {
       allStages[0].done = true;
       allStages[1].done = true;
       allStages[2].active = true;
-      if (status !== "Selected – Waiting for Approval") {
+      if (status === "Hired" || status === "Rejected" || status === "Offer") {
         allStages[2].done = true;
       }
     }

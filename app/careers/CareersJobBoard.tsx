@@ -48,7 +48,7 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
   const [typeFilter, setTypeFilter] = useState<"All" | "Job" | "Internship">("All");
   const [trackOpen, setTrackOpen] = useState(false);
   const [refId, setRefId] = useState("");
-  const [trackResult, setTrackResult] = useState<null | { status: string; name: string; role: string; updatedAt: string }>(null);
+  const [trackResult, setTrackResult] = useState<null | { status: string; jobTitle: string; department: string; appliedDate: string }>(null);
   const [trackLoading, setTrackLoading] = useState(false);
   const [trackError, setTrackError] = useState("");
   const trackRef = useRef<HTMLDivElement>(null);
@@ -121,7 +121,7 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
         setTrackError(d.error || "No application found with that reference ID.");
       } else {
         const d = await res.json();
-        setTrackResult(d);
+        setTrackResult(d.application);
       }
     } catch {
       setTrackError("Network error. Please try again.");
@@ -149,11 +149,20 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
   ];
 
   const STATUS_COLORS: Record<string, { bg: string; color: string; label: string }> = {
-    PENDING:    { bg: "rgba(251,191,36,0.12)",  color: "#FBBF24", label: "Under Review" },
-    REVIEWED:   { bg: "rgba(99,102,241,0.12)",  color: "#818CF8", label: "Reviewed" },
-    SHORTLISTED:{ bg: "rgba(34,211,238,0.12)",  color: "#22D3EE", label: "Shortlisted 🎉" },
-    HIRED:      { bg: "rgba(34,197,94,0.12)",   color: "#4ADE80", label: "Hired ✓" },
-    REJECTED:   { bg: "rgba(239,68,68,0.12)",   color: "#F87171", label: "Not Selected" },
+    "Applied":               { bg: "rgba(100,116,139,0.12)", color: "#94A3B8", label: "Applied" },
+    "Reviewing":             { bg: "rgba(251,191,36,0.12)",  color: "#FBBF24", label: "Under Review" },
+    "Invited for Interview": { bg: "rgba(34,211,238,0.12)",  color: "#22D3EE", label: "Interview Invite 🎉" },
+    "Interview":             { bg: "rgba(34,211,238,0.12)",  color: "#22D3EE", label: "Interview" },
+    "Final Approval":        { bg: "rgba(99,102,241,0.12)",  color: "#818CF8", label: "Final Approval" },
+    "Offer":                 { bg: "rgba(168,85,247,0.12)",  color: "#C084FC", label: "Offer Extended" },
+    "Hired":                 { bg: "rgba(34,197,94,0.12)",   color: "#4ADE80", label: "Hired ✓" },
+    "Rejected":              { bg: "rgba(239,68,68,0.12)",   color: "#F87171", label: "Not Selected" },
+    "Withdrawn":             { bg: "rgba(100,116,139,0.12)", color: "#94A3B8", label: "Withdrawn" },
+    "PENDING":               { bg: "rgba(251,191,36,0.12)",  color: "#FBBF24", label: "Under Review" },
+    "REVIEWED":              { bg: "rgba(99,102,241,0.12)",  color: "#818CF8", label: "Reviewed" },
+    "SHORTLISTED":           { bg: "rgba(34,211,238,0.12)",  color: "#22D3EE", label: "Shortlisted 🎉" },
+    "HIRED":                 { bg: "rgba(34,197,94,0.12)",   color: "#4ADE80", label: "Hired ✓" },
+    "REJECTED":              { bg: "rgba(239,68,68,0.12)",   color: "#F87171", label: "Not Selected" },
   };
 
   return (
@@ -474,8 +483,8 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
                         className="track-result" style={{ background: "rgba(168,85,247,0.06)", border: "1px solid rgba(168,85,247,0.2)" }}>
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                           <div>
-                            <div style={{ fontWeight: 700, color: "#fff", marginBottom: 4 }}>{trackResult.name}</div>
-                            <div style={{ color: "var(--text-secondary)", fontSize: 13 }}>{trackResult.role}</div>
+                            <div style={{ fontWeight: 700, color: "#fff", marginBottom: 4 }}>{trackResult.jobTitle}</div>
+                            <div style={{ color: "var(--text-secondary)", fontSize: 13 }}>{trackResult.department}</div>
                           </div>
                           {STATUS_COLORS[trackResult.status] && (
                             <span style={{ padding: "5px 14px", borderRadius: 99, fontWeight: 700, fontSize: 13, background: STATUS_COLORS[trackResult.status].bg, color: STATUS_COLORS[trackResult.status].color }}>
@@ -484,7 +493,7 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
                           )}
                         </div>
                         <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 8 }}>
-                          Last updated: {new Date(trackResult.updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                          Last updated: {new Date(trackResult.appliedDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                         </div>
                       </motion.div>
                     )}
