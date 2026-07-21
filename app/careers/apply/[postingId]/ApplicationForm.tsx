@@ -656,32 +656,43 @@ function ScreeningScreen({ status, message, referenceId }: { status: ScreeningSt
     "Finalizing review..."
   ];
 
+  const progressRef = useRef(0);
+  
   useEffect(() => {
-    if (isDone) {
-      setProgress(100);
-      setCurrentStep(steps.length);
-      return;
-    }
-    const interval = setInterval(() => {
-      setProgress(p => {
-        const next = p + (Math.random() * 2.5);
-        if (next >= 98) return 98; // Hold at 98% until done
-        return next;
-      });
-    }, 1500);
-    return () => clearInterval(interval);
-  }, [isDone, steps.length]);
+    // If we're not screening or we already finished the visual animation, do nothing.
+    if (status !== "screening" && status !== "done") return;
+    
+    // We want the entire visual process to take exactly 5 seconds (5000ms).
+    // Let's update every 50ms.
+    const duration = 5000;
+    const intervalTime = 50;
+    const increment = 100 / (duration / intervalTime);
 
-  useEffect(() => {
-    if (isDone) return;
-    const stepInterval = setInterval(() => {
-      setCurrentStep(s => {
-        if (s < steps.length - 1) return s + 1;
-        return s;
-      });
-    }, 25000); // Progresses one step every ~25s
-    return () => clearInterval(stepInterval);
-  }, [isDone, steps.length]);
+    const progressInterval = setInterval(() => {
+      let nextProgress = progressRef.current + increment;
+      
+      // If backend is NOT done yet, gracefully hold at 99%
+      if (status !== "done" && nextProgress >= 99) {
+        nextProgress = 99;
+      }
+
+      progressRef.current = nextProgress;
+      setProgress(nextProgress);
+      
+      // Sync steps with progress percentage
+      const stepIndex = Math.floor((nextProgress / 100) * steps.length);
+      setCurrentStep(Math.min(stepIndex, steps.length));
+
+      // If backend IS done and animation reaches 100%
+      if (status === "done" && nextProgress >= 100) {
+        setProgress(100);
+        setCurrentStep(steps.length);
+        clearInterval(progressInterval);
+      }
+    }, intervalTime);
+    
+    return () => clearInterval(progressInterval);
+  }, [status, steps.length]);
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg-primary)", display: "flex", alignItems: "center", justifyContent: "center", padding: "clamp(16px, 4vw, 32px)", position: "relative" }}>
