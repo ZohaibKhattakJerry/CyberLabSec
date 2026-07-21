@@ -122,6 +122,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <button onClick={logout} className="btn btn-ghost" style={{ justifyContent: "flex-start", gap: 10, fontSize: 14, color: "var(--text-muted)", flex: 1 }}>
             <LogOut size={16} /> Sign Out
           </button>
+          <NotificationBell isAdmin={true} placement="bottom-left" />
         </div>
       </aside>
 
@@ -165,11 +166,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <LogOut size={18} />
             </button>
           </div>
-        </div>
-
-        {/* Desktop topbar header for notifications */}
-        <div className="hidden sm:flex" style={{ justifyContent: "flex-end", padding: "20px 20px 0", maxWidth: 1280, margin: "0 auto" }}>
-          <NotificationBell isAdmin={true} placement="bottom-left" />
         </div>
 
         <main style={{ padding: "24px 20px", maxWidth: 1280, margin: "0 auto" }}>
