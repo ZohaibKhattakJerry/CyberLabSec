@@ -141,13 +141,6 @@ export default function PortalLayout({ children, employee }: { children: React.R
           <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 24, objectFit: "contain", marginLeft: "12px" }} />
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginLeft: "auto" }}>
             <NotificationBell placement="top-right" />
-            <button
-              onClick={logout}
-              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--red)", display: "flex", padding: 8 }}
-              title="Sign Out"
-            >
-              <LogOut size={18} />
-            </button>
           </div>
         </div>
 
