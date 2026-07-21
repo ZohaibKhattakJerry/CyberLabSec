@@ -563,21 +563,22 @@ tbody td {
 
 .sidebar {
   width: 260px;
-  flex-shrink: 0;
   background: var(--bg-secondary);
   border-right: 1px solid var(--border);
-  position: sticky;
+  position: fixed;
+  left: 0;
   top: 0;
-  height: 100vh;
+  bottom: 0;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  z-index: 40;
 }
 
 .main-content {
   flex: 1;
   min-width: 0;
-  overflow-y: auto;
+  margin-left: 260px;
 }
 
 /* Loading spinner */
@@ -811,6 +812,9 @@ select.input option {
   .sidebar {
     display: none;
   }
+  .main-content {
+    margin-left: 0;
+  }
   .sidebar.mobile-open {
     display: flex;
     flex-direction: column;
@@ -945,6 +949,9 @@ select.input option {
 @media (min-width: 769px) and (max-width: 1024px) {
   .sidebar {
     width: 220px;
+  }
+  .main-content {
+    margin-left: 220px;
   }
 
   div[style*="repeat(4, 1fr)"] {
