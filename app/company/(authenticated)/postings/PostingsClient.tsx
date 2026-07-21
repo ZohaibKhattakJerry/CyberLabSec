@@ -395,11 +395,11 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
                   </div>
                 </div>
 
-                <div style={{ display: "flex", gap: 10, marginTop: 32, justifyContent: "flex-end", borderTop: "1px solid var(--border)", paddingTop: 20 }}>
-                  <button className="btn btn-secondary" onClick={() => handleSave(true)} disabled={loading}>
+                <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 32, justifyContent: "flex-end", borderTop: "1px solid var(--border)", paddingTop: 20 }}>
+                  <button className="btn btn-secondary btn-block-mobile" onClick={() => handleSave(true)} disabled={loading}>
                     {loading && form.status === "Draft" ? <Loader2 size={14} className="spin" /> : "Save as Draft"}
                   </button>
-                  <button className="btn btn-primary" onClick={nextStep} style={{ padding: "0 24px" }}>
+                  <button className="btn btn-primary btn-block-mobile" onClick={nextStep} style={{ padding: "0 24px" }}>
                     Continue to Job Bank <ArrowRight size={16} />
                   </button>
                 </div>
@@ -457,15 +457,15 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
                       <div style={{ padding: 20, background: "var(--bg-secondary)", borderRadius: 12, marginBottom: 24, border: "1px solid var(--border-subtle)" }}>
                         <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 16 }}>Create Manual Question</h3>
                         <div style={{ display: "grid", gap: 16 }}>
-                          <div style={{ display: "flex", gap: 12 }}>
-                            <div style={{ flex: 1 }}>
+                          <div className="flex-mobile-col" style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                            <div style={{ flex: 1, width: "100%" }}>
                               <label className="label">Question Type</label>
                               <select className="input" value={newQuestionType} onChange={(e) => setNewQuestionType(e.target.value as any)}>
                                 <option value="mcq">Multiple Choice (MCQ)</option>
                                 <option value="open">Open Ended / Scenario</option>
                               </select>
                             </div>
-                            <div style={{ flex: 1 }}>
+                            <div style={{ flex: 1, width: "100%" }}>
                               <label className="label">Points</label>
                               <input className="input" type="number" min={1} value={newQuestionPoints} onChange={e => setNewQuestionPoints(Number(e.target.value))} />
                             </div>
@@ -545,15 +545,15 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
                   </div>
                 </div>
 
-                <div style={{ display: "flex", gap: 10, marginTop: 32, justifyContent: "space-between", borderTop: "1px solid var(--border)", paddingTop: 20 }}>
-                  <button className="btn btn-secondary" onClick={() => setStep(1)}>
+                <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 32, justifyContent: "space-between", borderTop: "1px solid var(--border)", paddingTop: 20 }}>
+                  <button className="btn btn-secondary btn-block-mobile" onClick={() => setStep(1)}>
                     <ArrowLeft size={16} /> Back to Details
                   </button>
-                  <div style={{ display: "flex", gap: 10 }}>
-                    <button className="btn btn-secondary" onClick={() => handleSave(true)} disabled={loading}>
+                  <div style={{ display: "flex", gap: 12, flexWrap: "wrap", flex: 1, justifyContent: "flex-end" }} className="btn-block-mobile">
+                    <button className="btn btn-secondary btn-block-mobile" onClick={() => handleSave(true)} disabled={loading}>
                       {loading && form.status === "Draft" ? <Loader2 size={14} className="spin" /> : "Save as Draft"}
                     </button>
-                    <button className="btn btn-primary" onClick={() => handleSave(false)} disabled={loading} style={{ background: "var(--green)", color: "#fff", border: "none", padding: "0 24px" }}>
+                    <button className="btn btn-primary btn-block-mobile" onClick={() => handleSave(false)} disabled={loading} style={{ background: "var(--green)", color: "#fff", border: "none", padding: "0 24px" }}>
                       {loading && form.status !== "Draft" ? <Loader2 size={14} className="spin" /> : editPosting && form.status !== "Draft" ? "Update Posting" : "Publish Posting"}
                     </button>
                   </div>
