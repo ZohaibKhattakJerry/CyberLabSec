@@ -647,7 +647,10 @@ function ScreeningScreen({ status, message, referenceId }: { status: ScreeningSt
   // The UI transitions to the final success screen ONLY when both are true
   const isDone = isBackendDone && isAnimationComplete;
 
-  const progressRef = useRef(0);
+  const statusRef = useRef(status);
+  useEffect(() => {
+    statusRef.current = status;
+  }, [status]);
 
   const steps = [
     "Receiving your application...",
@@ -658,26 +661,22 @@ function ScreeningScreen({ status, message, referenceId }: { status: ScreeningSt
     "Finalizing review..."
   ];
 
-
   useEffect(() => {
-    // If we're not screening or we already finished the visual animation, do nothing.
-    if (status !== "screening" && status !== "done") return;
+    if (statusRef.current !== "screening" && statusRef.current !== "done") return;
     
-    // We want the entire visual process to take exactly 5 seconds (5000ms).
-    // Let's update every 50ms.
+    const startTime = Date.now();
     const duration = 5000;
     const intervalTime = 50;
-    const increment = 100 / (duration / intervalTime);
 
-    const progressInterval = setInterval(() => {
-      let nextProgress = progressRef.current + increment;
+    const timer = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      let nextProgress = Math.min((elapsed / duration) * 100, 100);
       
       // If backend is NOT done yet, gracefully hold at 99%
-      if (status !== "done" && nextProgress >= 99) {
+      if (statusRef.current !== "done" && nextProgress >= 99) {
         nextProgress = 99;
       }
 
-      progressRef.current = nextProgress;
       setProgress(nextProgress);
       
       // Sync steps with progress percentage
@@ -685,16 +684,16 @@ function ScreeningScreen({ status, message, referenceId }: { status: ScreeningSt
       setCurrentStep(Math.min(stepIndex, steps.length));
 
       // If backend IS done and animation reaches 100%
-      if (status === "done" && nextProgress >= 100) {
+      if (statusRef.current === "done" && nextProgress >= 100) {
         setProgress(100);
         setCurrentStep(steps.length);
         setIsAnimationComplete(true);
-        clearInterval(progressInterval);
+        clearInterval(timer);
       }
     }, intervalTime);
     
-    return () => clearInterval(progressInterval);
-  }, [status, steps.length]);
+    return () => clearInterval(timer);
+  }, [steps.length]);
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg-primary)", display: "flex", alignItems: "center", justifyContent: "center", padding: "clamp(16px, 4vw, 32px)", position: "relative" }}>
