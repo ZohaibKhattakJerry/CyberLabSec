@@ -21,6 +21,7 @@ import {
   FileText,
   X,
   CheckCircle,
+  Check,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -42,6 +43,34 @@ interface Posting {
   publishedDate: string;
   _count: { applicants: number };
 }
+
+const getPipeline = (status: string) => {
+  type Stage = { id: string; label: string; active: boolean; done: boolean };
+  const allStages: Stage[] = [
+    { id: "Reviewing", label: "Under Review", active: false, done: false },
+    { id: "Interview", label: "Interview", active: false, done: false },
+    { id: "Decision", label: "Decision", active: false, done: false },
+  ];
+
+  if (status === "Applied" || status === "Reviewing") {
+    allStages[0].active = true;
+  } else if (status === "Invited for Interview" || status === "Interview" || status === "Screening") {
+    allStages[0].done = true;
+    allStages[1].active = true;
+  } else if (status === "Interview Failed" || status === "Withdrawn") {
+    allStages[0].done = true;
+    allStages[1].active = true;
+    allStages[1].done = true;
+  } else if (status === "Selected – Waiting for Approval" || status === "Final Approval" || status === "Offer" || status === "Hired" || status === "Rejected") {
+    allStages[0].done = true;
+    allStages[1].done = true;
+    allStages[2].active = true;
+    if (status === "Hired" || status === "Rejected" || status === "Offer") {
+      allStages[2].done = true;
+    }
+  }
+  return allStages;
+};
 
 export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
   const [search, setSearch] = useState("");
@@ -494,6 +523,55 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
                         </div>
                         <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 8 }}>
                           Last updated: {new Date(trackResult.appliedDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                        </div>
+
+                        <div style={{ marginTop: 24, paddingTop: 24, borderTop: "1px solid rgba(168,85,247,0.15)" }}>
+                          <p style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 20, textAlign: "center" }}>Application Pipeline</p>
+                          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 0 }}>
+                            {getPipeline(trackResult.status).map((stage, idx, arr) => {
+                              const isDecision = stage.id === "Decision";
+                              const isRejectedStatus = trackResult.status === "Rejected" || trackResult.status === "Interview Failed";
+                              const showRejected = isDecision && isRejectedStatus;
+                              
+                              let bgColor = "rgba(255,255,255,0.03)";
+                              let borderColor = "rgba(255,255,255,0.1)";
+                              let textColor = "var(--text-muted)";
+                              let shadow = "none";
+
+                              if (showRejected) {
+                                bgColor = "var(--red, #EF4444)";
+                                borderColor = "transparent";
+                                textColor = "var(--red, #EF4444)";
+                                shadow = "0 0 15px rgba(239,68,68,0.3)";
+                              } else if (stage.done) {
+                                bgColor = "linear-gradient(135deg, #22c55e, #16a34a)";
+                                borderColor = "transparent";
+                                textColor = "var(--green, #22C55E)";
+                                shadow = "0 0 15px rgba(34,197,94,0.3)";
+                              } else if (stage.active) {
+                                bgColor = "linear-gradient(135deg, #a78bfa, #7c3aed)";
+                                borderColor = "transparent";
+                                textColor = "var(--purple-light, #C084FC)";
+                                shadow = "0 0 15px rgba(168,85,247,0.3)";
+                              }
+
+                              return (
+                                <div key={stage.id} style={{ display: "flex", alignItems: "center", flex: idx === arr.length - 1 ? 0 : 1 }}>
+                                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+                                    <div style={{ width: 36, height: 36, borderRadius: "50%", background: bgColor, border: borderColor !== "transparent" ? `2px solid ${borderColor}` : "none", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: shadow }}>
+                                      {(stage.done || stage.active || showRejected) && <Check size={18} color="white" strokeWidth={3} />}
+                                    </div>
+                                    <span style={{ fontSize: 13, fontWeight: (stage.active || stage.done) ? 600 : 500, color: textColor, whiteSpace: "nowrap" }}>
+                                      {showRejected ? "Not Selected" : stage.label}
+                                    </span>
+                                  </div>
+                                  {idx < arr.length - 1 && (
+                                    <div style={{ flex: 1, height: 2, background: stage.done ? "var(--green, #22C55E)" : "rgba(255,255,255,0.1)", minWidth: 20, margin: "0 8px 26px" }} />
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
                       </motion.div>
                     )}
