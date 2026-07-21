@@ -132,6 +132,12 @@ export default function AuthLayout({
           border: 1px solid rgba(236,72,153,0.3);
           box-shadow: 0 0 12px rgba(236,72,153,0.2);
         }
+        .auth-badge.employee {
+          background: rgba(99,102,241,0.12);
+          color: #818CF8;
+          border: 1px solid rgba(99,102,241,0.3);
+          box-shadow: 0 0 12px rgba(99,102,241,0.2);
+        }
 
         .auth-title {
           margin: 0 0 8px;
@@ -326,7 +332,11 @@ export default function AuthLayout({
               transition={{ delay: 0.2, duration: 0.5 }}
             >
               <img src="/logo.png" alt="CyberLabSec" className="auth-logo-img" />
-              {isAdmin && <span className="auth-badge">Admin</span>}
+              {isAdmin ? (
+                <span className="auth-badge">Admin</span>
+              ) : (
+                <span className="auth-badge employee">Employee</span>
+              )}
             </motion.div>
             
             <motion.h1 

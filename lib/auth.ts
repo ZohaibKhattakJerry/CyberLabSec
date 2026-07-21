@@ -58,10 +58,6 @@ export async function getAuthFromCookies(expectedRole?: "admin" | "employee" | "
         if (!tokenObj.value) continue;
         const payload = await verifyToken(tokenObj.value);
         if (payload) {
-          if (payload.role !== "admin") {
-            const emp = await (prisma as any).employee.findUnique({ where: { id: payload.sub }, select: { status: true } });
-            if (!emp || emp.status !== "Active") return null;
-          }
           return payload;
         }
       }
@@ -81,10 +77,6 @@ export async function getAuthFromCookies(expectedRole?: "admin" | "employee" | "
       if (!tokenObj.value) continue;
       const payload = await verifyToken(tokenObj.value);
       if (payload) {
-        if (payload.role !== "admin") {
-          const emp = await (prisma as any).employee.findUnique({ where: { id: payload.sub }, select: { status: true } });
-          if (!emp || emp.status !== "Active") continue;
-        }
         return payload;
       }
     }
@@ -94,7 +86,8 @@ export async function getAuthFromCookies(expectedRole?: "admin" | "employee" | "
     if (oldToken) return await verifyToken(oldToken);
 
     return null;
-  } catch {
+  } catch (error) {
+    console.error("getAuthFromCookies Error:", error);
     return null;
   }
 }

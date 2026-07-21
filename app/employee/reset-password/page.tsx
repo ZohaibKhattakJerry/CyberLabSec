@@ -119,7 +119,7 @@ function ResetPasswordForm() {
 
 export default function ResetPassword() {
   return (
-    <AuthLayout title="Set New Password" subtitle="Choose a strong password for your account.">
+    <AuthLayout title="Set New Password" subtitle="Choose a strong password for your account." variant="employee">
       <Suspense fallback={<div style={{ textAlign: "center", padding: "20px 0" }}><Loader2 size={24} className="spin" style={{ margin: "0 auto", color: "var(--purple)" }} /></div>}>
         <ResetPasswordForm />
       </Suspense>

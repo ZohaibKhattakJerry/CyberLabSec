@@ -37,7 +37,8 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  } catch (error: any) {
+    console.error("reset-password Error:", error);
+    return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
   }
 }
