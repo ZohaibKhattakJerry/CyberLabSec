@@ -688,6 +688,7 @@ function ScreeningScreen({ status, message, referenceId }: { status: ScreeningSt
       if (status === "done" && nextProgress >= 100) {
         setProgress(100);
         setCurrentStep(steps.length);
+        setIsAnimationComplete(true);
         clearInterval(progressInterval);
       }
     }, intervalTime);
