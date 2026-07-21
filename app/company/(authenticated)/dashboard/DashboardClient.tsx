@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Users, Briefcase, FileText, CheckCircle, AlertTriangle, Clock, Star, Plus, UserPlus, Megaphone, ArrowRight, TrendingUp, Activity, Award } from "lucide-react";
+import { Users, Briefcase, FileText, CheckCircle, AlertTriangle, Clock, Star, Plus, UserPlus, Megaphone, ArrowRight, TrendingUp, Activity, Award, BarChart2 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 
 interface DashboardData {
@@ -75,7 +75,7 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
   ];
 
   const funnelData = funnelOrder.map(stage => ({
-    name: stage.replace("Interview ", "Int. "),
+    name: stage.replace("Interview ", "Int. ").replace(" Completed", "✓").replace("Final Approval", "Final"),
     value: funnelMap[stage] || 0
   }));
 
@@ -83,258 +83,416 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
 
   const taskCompletionRate = stats.totalTasks > 0 ? Math.round((stats.totalCompletedTasks / stats.totalTasks) * 100) : 0;
   const appConversionRate = stats.totalApplicants > 0 ? Math.round((stats.totalHired / stats.totalApplicants) * 100) : 0;
-  // Make up a utilization metric based on tasks assigned vs active employees
   const expectedTasksPerEmp = 3;
   const utilization = stats.employees > 0 ? Math.min(100, Math.round(((stats.activeTasks + stats.overdueTasks) / (stats.employees * expectedTasksPerEmp)) * 100)) : 0;
 
   return (
-    <div className="animate-fade-up" style={{ display: "grid", gap: 24, paddingBottom: 40 }}>
-      {/* Header */}
-      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-end", gap: 16 }}>
-        <div>
-          <h1 style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 6, color: "var(--text-primary)" }}>Corporate Dashboard</h1>
-          <p style={{ color: "var(--text-secondary)", fontSize: 15, margin: 0 }}>Real-time operations overview</p>
-        </div>
-        <div style={{ display: "flex", gap: 12 }}>
-          <Link href="/company/postings" className="btn btn-secondary" style={{ gap: 6 }}>
-            <Plus size={16} /> Post Job
-          </Link>
-          <Link href="/company/announcements" className="btn btn-primary" style={{ gap: 6 }}>
-            <Megaphone size={16} /> Announcement
-          </Link>
-        </div>
-      </div>
+    <>
+      <style dangerouslySetInnerHTML={{ __html: `
+        /* === ANIMATIONS === */
+        @keyframes co-fade-up {
+          from { opacity: 0; transform: translateY(16px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes co-pulse {
+          0%, 100% { opacity: 0.7; transform: scale(0.5); }
+          50% { opacity: 0; transform: scale(1.8); }
+        }
+        .co-fade-up { animation: co-fade-up 0.45s ease-out backwards; }
+        .co-delay-1 { animation-delay: 0.07s; }
+        .co-delay-2 { animation-delay: 0.14s; }
+        .co-delay-3 { animation-delay: 0.21s; }
+        .co-delay-4 { animation-delay: 0.28s; }
 
-      {/* Attention Needed */}
-      {attentionItems.length > 0 && (
-        <div className="card" style={{ padding: 18, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.05)", position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", top: 0, left: 0, width: 4, height: "100%", background: "var(--red)" }} />
-          <h2 style={{ fontSize: 14, fontWeight: 700, color: "var(--red)", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
-            <AlertTriangle size={16} /> ATTENTION NEEDED
-          </h2>
-          <div style={{ display: "grid", gap: 10 }}>
-            {attentionItems.map((item, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "12px 16px", background: "rgba(15, 23, 42, 0.4)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.05)" }}>
-                <span style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)" }}>{item.text}</span>
-                <Link href={item.href} className="btn btn-sm" style={{ flexShrink: 0, background: `${item.color}18`, color: item.color, border: `1px solid ${item.color}35`, gap: 6 }}>
-                  {item.label} <ArrowRight size={14} />
-                </Link>
-              </div>
-            ))}
+        /* === KPI CARD === */
+        .co-kpi-card {
+          background: linear-gradient(145deg, rgba(20,30,50,0.75) 0%, rgba(10,15,30,0.85) 100%);
+          border-radius: 16px;
+          padding: 20px;
+          border-top: 3px solid var(--kpi-color, rgba(255,255,255,0.1));
+          border-left: 1px solid rgba(255,255,255,0.05);
+          border-right: 1px solid rgba(255,255,255,0.05);
+          border-bottom: 1px solid rgba(255,255,255,0.05);
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+          position: relative;
+          overflow: hidden;
+          transition: transform 0.25s ease, box-shadow 0.25s ease, border-top-color 0.25s ease;
+          cursor: pointer;
+          text-decoration: none;
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          -webkit-tap-highlight-color: transparent;
+          touch-action: manipulation;
+        }
+        .co-kpi-card::after {
+          content: '';
+          position: absolute;
+          top: -20px; right: -20px;
+          width: 80px; height: 80px;
+          background: radial-gradient(circle, var(--kpi-color, transparent) 0%, transparent 70%);
+          opacity: 0.2;
+          border-radius: 50%;
+          pointer-events: none;
+        }
+        .co-kpi-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 16px 36px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06);
+        }
+        .co-kpi-card:active {
+          transform: scale(0.97);
+          box-shadow: none;
+        }
+
+        /* === GLASS CARD === */
+        .co-glass {
+          background: rgba(10,15,30,0.65);
+          border: 1px solid rgba(255,255,255,0.07);
+          border-radius: 18px;
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+        }
+
+        /* === ATTENTION CARD === */
+        .co-attention-item {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          padding: 12px 14px;
+          background: rgba(10,15,30,0.5);
+          border-radius: 10px;
+          border: 1px solid rgba(255,255,255,0.04);
+          flex-wrap: wrap;
+        }
+
+        /* === ACTION BUTTONS === */
+        .co-action-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 7px 14px;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 700;
+          text-decoration: none;
+          transition: all 0.2s ease;
+          white-space: nowrap;
+          flex-shrink: 0;
+          -webkit-tap-highlight-color: transparent;
+          touch-action: manipulation;
+        }
+        .co-action-link:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .co-action-link:active { transform: scale(0.95); filter: brightness(0.95); }
+
+        .co-hdr-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 18px;
+          border-radius: 10px;
+          font-size: 14px;
+          font-weight: 700;
+          text-decoration: none;
+          transition: all 0.2s ease;
+          -webkit-tap-highlight-color: transparent;
+          touch-action: manipulation;
+          white-space: nowrap;
+        }
+        .co-hdr-btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .co-hdr-btn:active { transform: scale(0.96); }
+
+        /* === GRIDS === */
+        .co-kpi-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 14px;
+        }
+        @media (max-width: 700px) {
+          .co-kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        }
+        @media (max-width: 380px) {
+          .co-kpi-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+        }
+
+        .co-two-col {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+        }
+        @media (max-width: 720px) {
+          .co-two-col { grid-template-columns: 1fr; }
+        }
+
+        .co-stats-strip {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 14px;
+        }
+        @media (max-width: 600px) {
+          .co-stats-strip { grid-template-columns: 1fr; gap: 10px; }
+        }
+
+        /* === PROGRESS BAR === */
+        .co-progress-bar {
+          width: 100%;
+          height: 6px;
+          background: rgba(255,255,255,0.05);
+          border-radius: 3px;
+          overflow: hidden;
+        }
+        .co-progress-fill {
+          height: 100%;
+          border-radius: 3px;
+          transition: width 1.2s ease-out;
+        }
+
+        /* === TOP PERFORMER ROW === */
+        .co-performer-row {
+          display: grid;
+          grid-template-columns: auto 1fr auto;
+          gap: 10px;
+          align-items: center;
+          padding: 10px 12px;
+          border-radius: 12px;
+          background: rgba(255,255,255,0.02);
+          border: 1px solid rgba(255,255,255,0.04);
+          transition: background 0.2s ease;
+        }
+        .co-performer-row:hover { background: rgba(255,255,255,0.04); }
+
+        /* === ACTIVITY LOG ITEM === */
+        .co-activity-item {
+          display: flex;
+          gap: 12px;
+          align-items: flex-start;
+          position: relative;
+        }
+        .co-activity-content {
+          flex: 1;
+          padding: 11px 14px;
+          background: rgba(255,255,255,0.02);
+          border-radius: 10px;
+          border: 1px solid rgba(255,255,255,0.03);
+          min-width: 0;
+          transition: background 0.2s ease;
+        }
+        .co-activity-content:hover { background: rgba(255,255,255,0.04); }
+      `}} />
+
+      <div style={{ display: "grid", gap: 20, paddingBottom: 40 }}>
+        
+        {/* ── HEADER ── */}
+        <div className="co-fade-up" style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-end", gap: 14 }}>
+          <div>
+            <h1 style={{ fontSize: "clamp(22px,4vw,30px)", fontWeight: 900, letterSpacing: "-0.03em", marginBottom: 4, color: "var(--text-primary)", lineHeight: 1.1 }}>Corporate Dashboard</h1>
+            <p style={{ color: "var(--text-secondary)", fontSize: 14, margin: 0 }}>Real-time operations overview</p>
+          </div>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <Link href="/company/postings" className="co-hdr-btn" style={{ background: "rgba(255,255,255,0.05)", color: "var(--text-primary)", border: "1px solid rgba(255,255,255,0.1)" }}>
+              <Plus size={15} /> Post Job
+            </Link>
+            <Link href="/company/announcements" className="co-hdr-btn" style={{ background: "linear-gradient(135deg, rgba(168,85,247,0.9), rgba(99,102,241,0.9))", color: "#fff", border: "none", boxShadow: "0 4px 16px rgba(168,85,247,0.3)" }}>
+              <Megaphone size={15} /> Announcement
+            </Link>
           </div>
         </div>
-      )}
 
-      {/* KPI Cards */}
-      <div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 16 }}>
-        {kpis.map((kpi) => (
-          <Link key={kpi.label} href={kpi.href} style={{ textDecoration: "none", display: "block", height: "100%" }}>
-            <div className="card" style={{ 
-              height: "100%", 
-              display: "flex", 
-              flexDirection: "column", 
-              padding: "24px", 
-              background: `linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%)`,
-              border: (kpi as any).urgent ? `1px solid ${kpi.color}80` : `1px solid rgba(255,255,255,0.05)`,
-              borderTop: `4px solid ${kpi.color}`,
-              backdropFilter: "blur(12px)",
-              cursor: "pointer", 
-              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-              position: "relative",
-              overflow: "hidden"
-            }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "translateY(-6px)";
-                e.currentTarget.style.boxShadow = `0 16px 32px -12px ${kpi.color}40`;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.boxShadow = "none";
-              }}
-            >
-              <div style={{ position: "absolute", top: -30, right: -30, width: 100, height: 100, background: `radial-gradient(circle, ${kpi.color}20 0%, transparent 70%)`, borderRadius: "50%", pointerEvents: "none" }} />
-              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 }}>
-                <div style={{ width: 44, height: 44, borderRadius: 12, background: kpi.bg, display: "flex", alignItems: "center", justifyContent: "center", border: `1px solid ${kpi.color}30` }}>
-                  <kpi.icon size={22} color={kpi.color} />
+        {/* ── ATTENTION NEEDED ── */}
+        {attentionItems.length > 0 && (
+          <div className="co-glass co-fade-up co-delay-1" style={{ padding: 18, borderLeft: "4px solid var(--red)", background: "rgba(239,68,68,0.04)" }}>
+            <h2 style={{ fontSize: 13, fontWeight: 800, color: "var(--red)", marginBottom: 12, display: "flex", alignItems: "center", gap: 8, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+              <AlertTriangle size={15} /> Attention Needed
+            </h2>
+            <div style={{ display: "grid", gap: 8 }}>
+              {attentionItems.map((item, i) => (
+                <div key={i} className="co-attention-item">
+                  <span style={{ fontSize: 13.5, fontWeight: 500, color: "var(--text-primary)" }}>{item.text}</span>
+                  <Link href={item.href} className="co-action-link" style={{ background: `${item.color}18`, color: item.color, border: `1px solid ${item.color}35` }}>
+                    {item.label} <ArrowRight size={13} />
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── KPI CARDS ── */}
+        <div className="co-kpi-grid co-fade-up co-delay-1">
+          {kpis.map((kpi) => (
+            <Link key={kpi.label} href={kpi.href} className="co-kpi-card" style={{ "--kpi-color": kpi.color } as React.CSSProperties}>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+                <div style={{ width: 42, height: 42, borderRadius: 12, background: kpi.bg, display: "flex", alignItems: "center", justifyContent: "center", border: `1px solid ${kpi.color}25` }}>
+                  <kpi.icon size={20} color={kpi.color} />
                 </div>
                 {(kpi as any).urgent && (
-                  <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <div style={{ position: "relative", width: 10, height: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <div style={{ width: 10, height: 10, borderRadius: "50%", background: kpi.color, zIndex: 2 }} />
-                    <div style={{ position: "absolute", width: 20, height: 20, borderRadius: "50%", background: kpi.color, animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite" }} />
-                    <style dangerouslySetInnerHTML={{__html: `
-                      @keyframes pulse {
-                        0%, 100% { opacity: 1; transform: scale(0.5); }
-                        50% { opacity: 0; transform: scale(1.5); }
-                      }
-                    `}} />
+                    <div style={{ position: "absolute", width: 20, height: 20, borderRadius: "50%", background: kpi.color, animation: "co-pulse 2s ease infinite", opacity: 0.5 }} />
                   </div>
                 )}
               </div>
-              <div style={{ fontSize: 38, fontWeight: 800, color: "var(--text-primary)", lineHeight: 1, letterSpacing: "-0.04em", marginBottom: 8 }}>{kpi.value}</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-secondary)" }}>{kpi.label}</div>
-              {(kpi as any).sublabel ? (
-                <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: "auto", paddingTop: 16, borderTop: "1px solid rgba(255,255,255,0.05)" }}>{(kpi as any).sublabel}</div>
-              ) : (
-                <div style={{ marginTop: "auto" }} />
-              )}
-            </div>
-          </Link>
-        ))}
-      </div>
-
-      {/* Analytics Row */}
-      <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-        <div className="card" style={{ padding: 24, background: "rgba(15, 23, 42, 0.6)", backdropFilter: "blur(12px)" }}>
-          <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20, display: "flex", alignItems: "center", gap: 8 }}>
-            <Activity size={18} color="var(--purple)" /> Task Status Distribution
-          </h2>
-          <div style={{ overflowX: "auto" }}>
-            <div style={{ minWidth: 300, display: "grid", gap: 16 }}>
-            {taskData.map((t: any) => {
-              const percent = taskTotal > 0 ? (t.value / taskTotal) * 100 : 0;
-              return (
-                <div key={t.name}>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                    <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-secondary)" }}>{t.name}</span>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>{t.value} <span style={{ color: "var(--text-muted)", fontSize: 12, fontWeight: 500 }}>({percent.toFixed(1)}%)</span></span>
-                  </div>
-                  <div style={{ width: "100%", height: 8, background: "rgba(255,255,255,0.05)", borderRadius: 4, overflow: "hidden" }}>
-                    <div style={{ width: `${percent}%`, height: "100%", background: t.color, borderRadius: 4, transition: "width 1s ease-out" }} />
-                  </div>
-                </div>
-              );
-            })}
-            </div>
-          </div>
+              <div>
+                <div style={{ fontSize: "clamp(28px,4vw,38px)", fontWeight: 900, color: "var(--text-primary)", lineHeight: 1, letterSpacing: "-0.04em", marginBottom: 6 }}>{kpi.value}</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-secondary)" }}>{kpi.label}</div>
+                {(kpi as any).sublabel && (
+                  <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 6, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.05)" }}>{(kpi as any).sublabel}</div>
+                )}
+              </div>
+            </Link>
+          ))}
         </div>
 
-        <div className="card" style={{ padding: 24, background: "rgba(15, 23, 42, 0.6)", backdropFilter: "blur(12px)" }}>
-          <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20, display: "flex", alignItems: "center", gap: 8 }}>
-            <TrendingUp size={18} color="var(--purple)" /> Hiring Funnel
-          </h2>
-          <div style={{ height: 260, overflowX: "auto" }}>
-            <div style={{ minWidth: 400, height: "100%" }}>
+        {/* ── ANALYTICS ROW ── */}
+        <div className="co-two-col co-fade-up co-delay-2">
+          {/* Task Status */}
+          <div className="co-glass" style={{ padding: "clamp(16px,3vw,24px)" }}>
+            <h2 style={{ fontSize: 15, fontWeight: 700, marginBottom: 18, display: "flex", alignItems: "center", gap: 8 }}>
+              <BarChart2 size={17} color="var(--purple)" /> Task Status
+            </h2>
+            <div style={{ display: "grid", gap: 14 }}>
+              {taskData.map((t: any) => {
+                const percent = taskTotal > 0 ? (t.value / taskTotal) * 100 : 0;
+                return (
+                  <div key={t.name}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, alignItems: "center" }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-secondary)" }}>{t.name}</span>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>
+                        {t.value} <span style={{ color: "var(--text-muted)", fontSize: 11, fontWeight: 500 }}>({percent.toFixed(1)}%)</span>
+                      </span>
+                    </div>
+                    <div className="co-progress-bar">
+                      <div className="co-progress-fill" style={{ width: `${percent}%`, background: t.color }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Hiring Funnel */}
+          <div className="co-glass" style={{ padding: "clamp(16px,3vw,24px)" }}>
+            <h2 style={{ fontSize: 15, fontWeight: 700, marginBottom: 18, display: "flex", alignItems: "center", gap: 8 }}>
+              <TrendingUp size={17} color="var(--purple)" /> Hiring Funnel
+            </h2>
+            <div style={{ height: 220 }}>
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={funnelData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <AreaChart data={funnelData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
                   <defs>
-                    <linearGradient id="colorPurple" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--purple)" stopOpacity={0.6}/>
+                    <linearGradient id="grad-purple" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="var(--purple)" stopOpacity={0.5}/>
                       <stop offset="95%" stopColor="var(--purple)" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="name" stroke="rgba(255,255,255,0.4)" fontSize={12} tickLine={false} axisLine={false} tickMargin={10} />
-                  <YAxis stroke="rgba(255,255,255,0.4)" fontSize={12} tickLine={false} axisLine={false} tickMargin={10} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
+                  <XAxis dataKey="name" stroke="rgba(255,255,255,0.3)" fontSize={10} tickLine={false} axisLine={false} tickMargin={8} interval={0} />
+                  <YAxis stroke="rgba(255,255,255,0.3)" fontSize={11} tickLine={false} axisLine={false} />
                   <RechartsTooltip 
-                    contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', boxShadow: '0 8px 24px rgba(0,0,0,0.4)', padding: '12px 16px' }} 
-                    itemStyle={{ color: 'var(--purple)', fontSize: 15, fontWeight: 700 }} 
-                    labelStyle={{ color: 'var(--text-secondary)', fontSize: 13, marginBottom: 6 }}
+                    contentStyle={{ backgroundColor: 'rgba(10,15,30,0.98)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', boxShadow: '0 8px 24px rgba(0,0,0,0.5)', padding: '10px 14px' }} 
+                    itemStyle={{ color: '#A855F7', fontSize: 14, fontWeight: 700 }} 
+                    labelStyle={{ color: 'var(--text-secondary)', fontSize: 12, marginBottom: 4 }}
                   />
-                  <Area type="monotone" dataKey="value" stroke="var(--purple)" strokeWidth={3} fillOpacity={1} fill="url(#colorPurple)" activeDot={{ r: 6, fill: "var(--purple)", stroke: "#fff", strokeWidth: 2 }} />
+                  <Area type="monotone" dataKey="value" stroke="var(--purple)" strokeWidth={2.5} fillOpacity={1} fill="url(#grad-purple)" activeDot={{ r: 5, fill: "var(--purple)", stroke: "#fff", strokeWidth: 2 }} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Bottom Row */}
-      <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-        <div className="card" style={{ padding: 24, background: "rgba(15, 23, 42, 0.6)", backdropFilter: "blur(12px)", display: "flex", flexDirection: "column" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-            <h2 style={{ fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", gap: 8 }}>
-              <Award size={18} color="var(--amber)" /> Top Performers
-            </h2>
-            <Link href="/company/employees" style={{ fontSize: 13, color: "var(--purple)", fontWeight: 600, textDecoration: "none" }}>Full Leaderboard →</Link>
-          </div>
+        {/* ── TOP PERFORMERS + ACTIVITY ── */}
+        <div className="co-two-col co-fade-up co-delay-3">
           
-          {topEmployees.length === 0 ? (
-            <p style={{ fontSize: 14, color: "var(--text-muted)", flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>No performance data yet.</p>
-          ) : (
-            <div style={{ display: "grid", gap: 16 }}>
-              {topEmployees.map((emp: any, i: number) => {
-                const percent = (emp.monthlyPoints / maxPoints) * 100;
-                return (
-                  <div key={emp.id} style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", gap: 12, alignItems: "center", padding: "10px", background: "rgba(255,255,255,0.02)", borderRadius: 12 }}>
-                    <div style={{ width: 32, height: 32, borderRadius: "50%", background: i < 3 ? "rgba(251,191,36,0.15)" : "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800, color: i < 3 ? "#fbbf24" : "var(--text-muted)" }}>
-                      {MEDALS[i] || `#${i + 1}`}
-                    </div>
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{emp.name}</div>
-                      <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 6 }}>{emp.designation || "Employee"}</div>
-                      <div style={{ width: "100%", height: 4, background: "rgba(255,255,255,0.05)", borderRadius: 2 }}>
-                        <div style={{ width: `${percent}%`, height: "100%", background: i === 0 ? "var(--amber)" : "var(--blue)", borderRadius: 2 }} />
+          {/* Top Performers */}
+          <div className="co-glass" style={{ padding: "clamp(16px,3vw,24px)", display: "flex", flexDirection: "column" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 700, display: "flex", alignItems: "center", gap: 8, margin: 0 }}>
+                <Award size={17} color="var(--amber)" /> Top Performers
+              </h2>
+              <Link href="/company/leaderboard" style={{ fontSize: 12, color: "var(--purple)", fontWeight: 600, textDecoration: "none" }}>Leaderboard →</Link>
+            </div>
+            
+            {topEmployees.length === 0 ? (
+              <p style={{ fontSize: 13, color: "var(--text-muted)", flex: 1, display: "flex", alignItems: "center", justifyContent: "center", margin: 0, fontStyle: "italic" }}>No performance data yet.</p>
+            ) : (
+              <div style={{ display: "grid", gap: 10 }}>
+                {topEmployees.map((emp: any, i: number) => {
+                  const percent = (emp.monthlyPoints / maxPoints) * 100;
+                  return (
+                    <div key={emp.id} className="co-performer-row">
+                      <div style={{ width: 34, height: 34, borderRadius: "50%", background: i < 3 ? "rgba(251,191,36,0.12)" : "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800, flexShrink: 0 }}>
+                        {MEDALS[i] || `#${i + 1}`}
+                      </div>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{emp.name}</div>
+                        <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 6 }}>{emp.designation || "Employee"}</div>
+                        <div className="co-progress-bar" style={{ height: 4 }}>
+                          <div className="co-progress-fill" style={{ width: `${percent}%`, background: i === 0 ? "var(--amber)" : "var(--blue)" }} />
+                        </div>
+                      </div>
+                      <div style={{ fontSize: 14, fontWeight: 900, color: i === 0 ? "var(--amber)" : "var(--text-secondary)", flexShrink: 0, textAlign: 'right' }}>
+                        {emp.monthlyPoints}<span style={{ fontSize: 10, fontWeight: 600, color: "var(--text-muted)", display: "block" }}>pts</span>
                       </div>
                     </div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: i === 0 ? "var(--amber)" : "var(--text-secondary)" }}>{emp.monthlyPoints} <span style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)" }}>pts</span></div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
-        <div className="card" style={{ padding: 24, background: "rgba(15, 23, 42, 0.6)", backdropFilter: "blur(12px)" }}>
-          <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20 }}>Recent Activity</h2>
-          {recentActivity.length === 0 ? (
-            <p style={{ fontSize: 14, color: "var(--text-muted)" }}>No recent activity.</p>
-          ) : (
-            <div style={{ display: "grid", gap: 16, maxHeight: 360, overflowY: "auto", paddingRight: 8 }}>
-              {recentActivity.slice(0, 15).map((log: any) => {
-                let meta: Record<string, string> = {};
-                try { meta = JSON.parse(log.metadata || "{}"); } catch {}
-                const color = ACTION_COLORS[log.action] || "var(--blue)";
-                return (
-                  <div key={log.id} style={{ display: "flex", gap: 14, alignItems: "flex-start", position: "relative" }}>
-                    <div style={{ position: "absolute", left: 5, top: 20, bottom: -20, width: 2, background: "rgba(255,255,255,0.05)", zIndex: 0 }} />
-                    <div style={{ width: 12, height: 12, borderRadius: "50%", background: color, marginTop: 4, flexShrink: 0, zIndex: 1, boxShadow: `0 0 10px ${color}60`, border: "2px solid #0f172a" }} />
-                    <div style={{ flex: 1, padding: "12px 16px", background: "rgba(255,255,255,0.02)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.03)" }}>
-                      <div style={{ fontSize: 14, color: "var(--text-secondary)", lineHeight: 1.5 }}>
-                        <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>{ACTION_LABELS[log.action] || log.action}</span>
-                        {meta.employeeName && <span> for <strong style={{ color: "var(--text-primary)" }}>{meta.employeeName}</strong></span>}
-                        {meta.taskTitle && <span> — <strong style={{ color: "var(--text-primary)" }}>{meta.taskTitle}</strong></span>}
-                        {meta.count && <span style={{ color: "var(--text-muted)" }}> ({meta.count} items)</span>}
+          {/* Recent Activity */}
+          <div className="co-glass" style={{ padding: "clamp(16px,3vw,24px)" }}>
+            <h2 style={{ fontSize: 15, fontWeight: 700, marginBottom: 18, display: "flex", alignItems: "center", gap: 8 }}>
+              <Activity size={17} color="var(--green)" /> Recent Activity
+            </h2>
+            {recentActivity.length === 0 ? (
+              <p style={{ fontSize: 13, color: "var(--text-muted)", fontStyle: "italic" }}>No recent activity.</p>
+            ) : (
+              <div style={{ display: "grid", gap: 12, maxHeight: 360, overflowY: "auto", paddingRight: 4, scrollbarWidth: "thin", scrollbarColor: "rgba(255,255,255,0.1) transparent" }}>
+                {recentActivity.slice(0, 15).map((log: any) => {
+                  let meta: Record<string, string> = {};
+                  try { meta = JSON.parse(log.metadata || "{}"); } catch {}
+                  const color = ACTION_COLORS[log.action] || "var(--blue)";
+                  return (
+                    <div key={log.id} className="co-activity-item">
+                      <div style={{ position: "absolute", left: 5, top: 18, bottom: -12, width: 2, background: "rgba(255,255,255,0.05)", zIndex: 0 }} />
+                      <div style={{ width: 12, height: 12, borderRadius: "50%", background: color, marginTop: 14, flexShrink: 0, zIndex: 1, boxShadow: `0 0 10px ${color}50`, border: "2px solid rgba(5,3,12,0.9)" }} />
+                      <div className="co-activity-content">
+                        <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5, overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
+                          <span style={{ fontWeight: 700, color: "var(--text-primary)" }}>{ACTION_LABELS[log.action] || log.action}</span>
+                          {meta.employeeName && <span> for <strong style={{ color: "var(--text-primary)" }}>{meta.employeeName}</strong></span>}
+                          {meta.taskTitle && <span> — <strong style={{ color: "var(--text-primary)" }}>{meta.taskTitle}</strong></span>}
+                        </div>
+                        <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 5, fontWeight: 500 }}>{formatRelativeTime(log.createdAt)}</div>
                       </div>
-                      <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 6, fontWeight: 500 }}>{formatRelativeTime(log.createdAt)}</div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Quick Stats Bottom Strip */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 16 }}>
-        <div className="card" style={{ padding: "16px 24px", display: "flex", alignItems: "center", gap: 16, background: "rgba(15, 23, 42, 0.4)", border: "1px solid rgba(255,255,255,0.05)" }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>Task Completion</div>
-            <div style={{ width: "100%", height: 6, background: "rgba(255,255,255,0.05)", borderRadius: 3 }}>
-              <div style={{ width: `${taskCompletionRate}%`, height: "100%", background: "var(--green)", borderRadius: 3 }} />
+        {/* ── BOTTOM STATS STRIP ── */}
+        <div className="co-stats-strip co-fade-up co-delay-4">
+          {[
+            { label: "Task Completion", value: taskCompletionRate, color: "var(--green)" },
+            { label: "App Conversion", value: appConversionRate, color: "var(--purple)" },
+            { label: "Team Utilization", value: utilization, color: "var(--blue)" },
+          ].map(({ label, value, color }) => (
+            <div key={label} className="co-glass" style={{ padding: "16px 20px", display: "flex", alignItems: "center", gap: 16 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>{label}</div>
+                <div className="co-progress-bar">
+                  <div className="co-progress-fill" style={{ width: `${value}%`, background: color }} />
+                </div>
+              </div>
+              <div style={{ fontSize: 22, fontWeight: 900, color, flexShrink: 0, letterSpacing: "-0.02em" }}>{value}%</div>
             </div>
-          </div>
-          <div style={{ fontSize: 24, fontWeight: 800, color: "var(--green)" }}>{taskCompletionRate}%</div>
-        </div>
-        <div className="card" style={{ padding: "16px 24px", display: "flex", alignItems: "center", gap: 16, background: "rgba(15, 23, 42, 0.4)", border: "1px solid rgba(255,255,255,0.05)" }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>App Conversion</div>
-            <div style={{ width: "100%", height: 6, background: "rgba(255,255,255,0.05)", borderRadius: 3 }}>
-              <div style={{ width: `${appConversionRate}%`, height: "100%", background: "var(--purple)", borderRadius: 3 }} />
-            </div>
-          </div>
-          <div style={{ fontSize: 24, fontWeight: 800, color: "var(--purple)" }}>{appConversionRate}%</div>
-        </div>
-        <div className="card" style={{ padding: "16px 24px", display: "flex", alignItems: "center", gap: 16, background: "rgba(15, 23, 42, 0.4)", border: "1px solid rgba(255,255,255,0.05)" }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>Team Utilization</div>
-            <div style={{ width: "100%", height: 6, background: "rgba(255,255,255,0.05)", borderRadius: 3 }}>
-              <div style={{ width: `${utilization}%`, height: "100%", background: "var(--blue)", borderRadius: 3 }} />
-            </div>
-          </div>
-          <div style={{ fontSize: 24, fontWeight: 800, color: "var(--blue)" }}>{utilization}%</div>
+          ))}
         </div>
       </div>
-    </div>
+    </>
   );
 }
