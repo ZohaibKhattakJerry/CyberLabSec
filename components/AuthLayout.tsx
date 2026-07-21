@@ -15,8 +15,9 @@ export default function AuthLayout({
   variant?: "admin" | "employee";
 }) {
   const isAdmin = variant === "admin";
-  const accentRgb = isAdmin ? "168,85,247" : "99,102,241";
-  const accentHex = isAdmin ? "#A855F7" : "#6366F1";
+  // Enforce Employee portal colors for both variants as requested
+  const accentRgb = "99,102,241";
+  const accentHex = "#6366F1";
   
   const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
   const [isMobile, setIsMobile] = useState(false);
@@ -127,16 +128,13 @@ export default function AuthLayout({
           letter-spacing: 0.1em;
           padding: 4px 12px;
           border-radius: 20px;
-          background: rgba(236,72,153,0.12);
-          color: #F472B6;
-          border: 1px solid rgba(236,72,153,0.3);
-          box-shadow: 0 0 12px rgba(236,72,153,0.2);
-        }
-        .auth-badge.employee {
           background: rgba(99,102,241,0.12);
           color: #818CF8;
           border: 1px solid rgba(99,102,241,0.3);
           box-shadow: 0 0 12px rgba(99,102,241,0.2);
+        }
+        .auth-badge.employee {
+          /* Inherit base styling since it's now identical */
         }
 
         .auth-title {
@@ -187,7 +185,7 @@ export default function AuthLayout({
         .auth-submit-btn {
           width: 100%;
           padding: 14px 20px;
-          background: linear-gradient(135deg, ${accentHex}, ${isAdmin ? "#7C3AED" : "#4338CA"});
+          background: linear-gradient(135deg, ${accentHex}, #4338CA);
           border: none;
           border-radius: 12px;
           color: #FFFFFF;
@@ -306,13 +304,13 @@ export default function AuthLayout({
         <motion.div 
           animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.5, 0.3] }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          style={{ position: "absolute", top: "5%", left: "5%", width: "55vw", height: "55vw", background: `radial-gradient(circle, rgba(${isAdmin ? "168,85,247" : "99,102,241"},0.12) 0%, transparent 60%)`, zIndex: 0, pointerEvents: "none", borderRadius: "50%" }}
+          style={{ position: "absolute", top: "5%", left: "5%", width: "55vw", height: "55vw", background: `radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 60%)`, zIndex: 0, pointerEvents: "none", borderRadius: "50%" }}
         />
         
         <motion.div 
           animate={{ scale: [1, 1.15, 1], opacity: [0.2, 0.4, 0.2] }}
           transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          style={{ position: "absolute", bottom: "5%", right: "5%", width: "65vw", height: "65vw", background: `radial-gradient(circle, rgba(${isAdmin ? "236,72,153" : "6,182,212"},0.08) 0%, transparent 60%)`, zIndex: 0, pointerEvents: "none", borderRadius: "50%" }}
+          style={{ position: "absolute", bottom: "5%", right: "5%", width: "65vw", height: "65vw", background: `radial-gradient(circle, rgba(6,182,212,0.08) 0%, transparent 60%)`, zIndex: 0, pointerEvents: "none", borderRadius: "50%" }}
         />
 
         <div className="auth-grid" />
