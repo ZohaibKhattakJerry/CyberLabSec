@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { Shield, Upload, X, CheckCircle, Loader2, AlertCircle, ChevronLeft, ChevronRight, Check } from "lucide-react";
+import { Shield, Upload, X, CheckCircle, Loader2, AlertCircle, ChevronLeft, ChevronRight, Check, Copy } from "lucide-react";
 import PublicNav from "@/components/public/PublicNav";
 
 interface Posting {
@@ -257,14 +257,9 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
         }
         center={<div />}
         right={
-          <>
-            <Link href="/careers/status" className="hide-mobile" style={{ fontSize: 14, color: "var(--text-secondary)", textDecoration: "none", fontWeight: 500, transition: "color 0.2s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-primary)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-secondary)"}>
-              Track Application
-            </Link>
-            <Link href="/careers" style={{ fontSize: 14, color: "var(--text-secondary)", textDecoration: "none", display: "flex", alignItems: "center", gap: 6 }}>
-              <ChevronLeft size={16} /> Back to Jobs
-            </Link>
-          </>
+          <Link href="/careers" style={{ fontSize: 14, color: "var(--text-secondary)", textDecoration: "none", display: "flex", alignItems: "center", gap: 6, transition: "color 0.2s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-primary)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-secondary)"}>
+            <ChevronLeft size={16} /> Open Positions
+          </Link>
         }
       />
 
@@ -690,98 +685,147 @@ function ScreeningScreen({ status, message, referenceId }: { status: ScreeningSt
       // If backend IS done and animation reaches 100%
       if (status === "done" && nextProgress >= 100) {
         progressRef.current = 100;
-        setProgress(100);
-        setCurrentStep(steps.length);
-        setIsAnimationComplete(true);
-        clearInterval(progressInterval);
-      }
-    }, intervalTime);
+    if (isDone) {
+      setProgress(100);
+      setCurrentStep(steps.length);
+      return;
+    }
+    const interval = setInterval(() => {
+      setProgress(p => {
+        const next = p + (Math.random() * 2.5);
+        if (next >= 98) return 98; // Hold at 98% until done
+        return next;
+      });
+    }, 1500);
+    return () => clearInterval(interval);
+  }, [isDone, steps.length]);
 
-    return () => clearInterval(progressInterval);
-  }, [status, isAnimationComplete]);
+  useEffect(() => {
+    if (isDone) return;
+    const stepInterval = setInterval(() => {
+      setCurrentStep(s => {
+        if (s < steps.length - 1) return s + 1;
+        return s;
+      });
+    }, 25000); // Progresses one step every ~25s
+    return () => clearInterval(stepInterval);
+  }, [isDone, steps.length]);
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg-primary)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, position: "relative", overflow: "hidden" }}>
+    <div style={{ minHeight: "100vh", background: "var(--bg-primary)", display: "flex", alignItems: "center", justifyContent: "center", padding: "clamp(16px, 4vw, 32px)", position: "relative" }}>
       <style>{`
         @keyframes shimmer {
           0% { background-position: -200% center; }
           100% { background-position: 200% center; }
         }
+        @keyframes pulse-ring {
+          0% { transform: scale(0.9); opacity: 0.8; }
+          50% { transform: scale(1.05); opacity: 0.3; }
+          100% { transform: scale(0.9); opacity: 0.8; }
+        }
         @keyframes confettiFall {
           0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
           100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
         }
+        .ai-core-container {
+          position: relative;
+          width: 110px; height: 110px;
+          margin: 0 auto 36px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .ai-core-outer {
+          position: absolute; inset: -12px;
+          border-radius: 50%;
+          border: 1px dashed rgba(168, 85, 247, 0.25);
+          animation: spin 16s linear infinite;
+        }
+        .ai-core-inner {
+          position: absolute; inset: -2px;
+          border-radius: 50%;
+          border: 2px solid transparent;
+          border-top-color: rgba(168, 85, 247, 0.6);
+          border-bottom-color: rgba(59, 130, 246, 0.6);
+          animation: spin 8s linear infinite reverse;
+        }
+        .ai-core-pulse {
+          position: absolute; inset: 12px;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(168,85,247,0.15) 0%, transparent 70%);
+          animation: pulse-ring 3s ease-in-out infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
       `}</style>
 
-      {/* CSS Confetti Celebration */}
+      {/* Confetti if shortlisted */}
       {isShortlisted && isDone && (
-        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
-          {[...Array(30)].map((_, i) => (
+        <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
+          {[...Array(40)].map((_, i) => (
             <div key={i} style={{
               position: 'absolute',
-              width: Math.random() * 10 + 6,
-              height: Math.random() * 10 + 6,
+              width: Math.random() * 10 + 6, height: Math.random() * 10 + 6,
               borderRadius: i % 3 === 0 ? '50%' : '2px',
               background: ['#7c3aed', '#2563eb', '#22c55e', '#f59e0b', '#ec4899', '#06b6d4'][i % 6],
-              left: `${Math.random() * 100}%`,
-              top: '-20px',
-              animation: `confettiFall ${3 + Math.random() * 4}s ${Math.random() * 2}s linear infinite`,
+              left: `${Math.random() * 100}%`, top: '-20px',
+              animation: `confettiFall ${3 + Math.random() * 4}s ${Math.random() * 1.5}s linear infinite`,
               opacity: 0.85
             }} />
           ))}
         </div>
       )}
       
-      {/* Optimized Background without noise filter for zero lag */}
-      <div style={{ position: "absolute", inset: 0, overflow: "hidden", zIndex: 0, background: "radial-gradient(circle at 50% -20%, rgba(124, 58, 237, 0.15), transparent 60%)" }} />
+      {/* Background glow */}
+      <div style={{ position: "absolute", inset: 0, overflow: "hidden", zIndex: 0, background: "radial-gradient(circle at 50% 20%, rgba(124, 58, 237, 0.08), transparent 60%)", pointerEvents: "none" }} />
 
       <motion.div 
         className="card" 
         style={{ 
-          maxWidth: 540, width: "100%", padding: "40px 24px", textAlign: "center", position: "relative", zIndex: 1,
-          background: "rgba(10, 10, 10, 0.6)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
-          border: "1px solid rgba(255, 255, 255, 0.05)",
-          boxShadow: "0 20px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
+          maxWidth: 520, width: "100%", padding: "clamp(32px, 6vw, 48px) clamp(20px, 5vw, 32px)", 
+          textAlign: "center", position: "relative", zIndex: 1,
+          background: "rgba(10, 10, 14, 0.7)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+          border: "1px solid rgba(255, 255, 255, 0.06)",
+          boxShadow: "0 24px 48px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08)"
         }} 
-        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       >
         {/* Animated AI Core */}
-        <div style={{ position: "relative", width: 100, height: 100, margin: "0 auto 32px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div className="ai-core-container">
           {!isDone && (
             <>
-              <motion.div animate={{ rotate: 360 }} transition={{ duration: 12, repeat: Infinity, ease: "linear" }} style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "2px dashed rgba(168, 85, 247, 0.2)", willChange: "transform" }} />
-              <motion.div animate={{ rotate: -360 }} transition={{ duration: 16, repeat: Infinity, ease: "linear" }} style={{ position: "absolute", inset: -8, borderRadius: "50%", border: "1px solid rgba(37, 99, 235, 0.1)", borderTopColor: "rgba(37, 99, 235, 0.4)", willChange: "transform" }} />
-              <motion.div animate={{ scale: [1, 1.05, 1], opacity: [0.4, 0.6, 0.4] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }} style={{ position: "absolute", inset: 15, borderRadius: "50%", background: "radial-gradient(circle, rgba(168,85,247,0.2) 0%, transparent 70%)", willChange: "transform, opacity" }} />
+              <div className="ai-core-outer" />
+              <div className="ai-core-inner" />
+              <div className="ai-core-pulse" />
             </>
           )}
           
           <motion.div 
-            animate={isDone ? { scale: [1, 1.1, 1], rotateY: 360 } : { scale: [1, 1.02, 1] }} 
+            animate={isDone ? { scale: [1, 1.15, 1], rotateY: 360 } : { scale: [1, 1.05, 1] }} 
             transition={{ duration: isDone ? 1 : 3, repeat: isDone ? 0 : Infinity }}
             style={{ 
-              width: 56, height: 56, borderRadius: "50%", 
-              background: isDone ? (isShortlisted ? "linear-gradient(135deg, #22c55e, #16a34a)" : "linear-gradient(135deg, #a78bfa, #7c3aed)") : "linear-gradient(135deg, #1e1e1e, #2d2d2d)",
+              width: 64, height: 64, borderRadius: "50%", 
+              background: isDone ? (isShortlisted ? "linear-gradient(135deg, #22c55e, #16a34a)" : "linear-gradient(135deg, #a78bfa, #7c3aed)") : "linear-gradient(135deg, #1e1e1e, #2a2a2a)",
               display: "flex", alignItems: "center", justifyContent: "center",
-              boxShadow: isDone ? `0 0 30px ${isShortlisted ? "rgba(34,197,94,0.4)" : "rgba(168,85,247,0.4)"}` : "0 0 20px rgba(168,85,247,0.15), inset 0 2px 4px rgba(255,255,255,0.1)",
+              boxShadow: isDone ? `0 0 40px ${isShortlisted ? "rgba(34,197,94,0.4)" : "rgba(168,85,247,0.4)"}` : "0 0 24px rgba(168,85,247,0.2), inset 0 2px 4px rgba(255,255,255,0.05)",
               border: `1px solid ${isDone ? "transparent" : "rgba(168,85,247,0.3)"}`,
               zIndex: 10,
               willChange: "transform"
             }}
           >
-            {isDone ? (isShortlisted ? <CheckCircle size={28} color="white" /> : <Shield size={28} color="white" />) : (
-              <motion.div animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 2, repeat: Infinity }} style={{ willChange: "opacity" }}>
-                <div style={{ width: 20, height: 20, background: "white", borderRadius: "50%", boxShadow: "0 0 12px white" }} />
+            {isDone ? (isShortlisted ? <CheckCircle size={32} color="white" /> : <Shield size={32} color="white" />) : (
+              <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 2, repeat: Infinity }} style={{ willChange: "opacity" }}>
+                <div style={{ width: 22, height: 22, background: "white", borderRadius: "50%", boxShadow: "0 0 16px white" }} />
               </motion.div>
             )}
           </motion.div>
         </div>
 
         {/* Premium Typography */}
-        <h2 style={{ fontSize: 26, fontWeight: 800, marginBottom: 12, letterSpacing: "-0.03em", background: "linear-gradient(to right, #fff, #a1a1aa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+        <h2 style={{ fontSize: "clamp(24px, 5vw, 28px)", fontWeight: 800, marginBottom: 12, letterSpacing: "-0.02em", background: "linear-gradient(to right, #fff, #a1a1aa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
           {status === "uploading" ? "Uploading..." : isDone ? (isShortlisted ? "You're Shortlisted!" : "Application Received") : "Review in Progress"}
         </h2>
         
-        <p style={{ color: "var(--text-secondary)", fontSize: 15, lineHeight: 1.6, marginBottom: 32, maxWidth: 400, margin: "0 auto 32px" }}>
+        <p style={{ color: "var(--text-secondary)", fontSize: 15, lineHeight: 1.6, marginBottom: 36, maxWidth: 400, margin: "0 auto 36px" }}>
           {isDone
             ? isShortlisted
               ? "Our AI has completed the review. Your interview link has been sent to your email."
@@ -791,29 +835,29 @@ function ScreeningScreen({ status, message, referenceId }: { status: ScreeningSt
 
         {/* Pipeline stages - Bring back on completion */}
         {isDone && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} style={{ marginBottom: 32 }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16 }}>Application Pipeline</p>
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} style={{ marginBottom: 36 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 20 }}>Application Pipeline</p>
             <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 0 }}>
-              {/* Step 1: Reviewing */}
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-                <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg, #22c55e, #16a34a)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 15px rgba(34,197,94,0.3)" }}>
-                  <Check size={16} color="white" strokeWidth={3} />
+              {/* Step 1 */}
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg, #22c55e, #16a34a)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 15px rgba(34,197,94,0.3)" }}>
+                  <Check size={18} color="white" strokeWidth={3} />
                 </div>
-                <span style={{ fontSize: 12, fontWeight: 600, color: "var(--green)" }}>Review</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "var(--green)" }}>Review</span>
               </div>
-              <div style={{ width: 48, height: 2, background: isShortlisted ? "var(--green)" : "rgba(255,255,255,0.1)", marginBottom: 22, flexShrink: 0 }} />
-              {/* Step 2: Interview */}
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-                <div style={{ width: 32, height: 32, borderRadius: "50%", background: isShortlisted ? "linear-gradient(135deg, #a78bfa, #7c3aed)" : "rgba(255,255,255,0.03)", border: `2px solid ${isShortlisted ? "transparent" : "rgba(255,255,255,0.1)"}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: isShortlisted ? "0 0 15px rgba(168,85,247,0.3)" : "none" }}>
-                  {isShortlisted && <Check size={16} color="white" strokeWidth={3} />}
+              <div style={{ width: 44, height: 2, background: isShortlisted ? "var(--green)" : "rgba(255,255,255,0.1)", marginBottom: 26, flexShrink: 0 }} />
+              {/* Step 2 */}
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 36, height: 36, borderRadius: "50%", background: isShortlisted ? "linear-gradient(135deg, #a78bfa, #7c3aed)" : "rgba(255,255,255,0.03)", border: `2px solid ${isShortlisted ? "transparent" : "rgba(255,255,255,0.1)"}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: isShortlisted ? "0 0 15px rgba(168,85,247,0.3)" : "none" }}>
+                  {isShortlisted && <Check size={18} color="white" strokeWidth={3} />}
                 </div>
-                <span style={{ fontSize: 12, fontWeight: isShortlisted ? 600 : 400, color: isShortlisted ? "var(--purple-light)" : "var(--text-muted)" }}>Interview</span>
+                <span style={{ fontSize: 13, fontWeight: isShortlisted ? 600 : 500, color: isShortlisted ? "var(--purple-light)" : "var(--text-muted)" }}>Interview</span>
               </div>
-              <div style={{ width: 48, height: 2, background: "rgba(255,255,255,0.1)", marginBottom: 22, flexShrink: 0 }} />
-              {/* Step 3: Decision */}
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-                <div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,0.03)", border: "2px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }} />
-                <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Decision</span>
+              <div style={{ width: 44, height: 2, background: "rgba(255,255,255,0.1)", marginBottom: 26, flexShrink: 0 }} />
+              {/* Step 3 */}
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,0.03)", border: "2px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }} />
+                <span style={{ fontSize: 13, color: "var(--text-muted)" }}>Decision</span>
               </div>
             </div>
           </motion.div>
@@ -822,18 +866,18 @@ function ScreeningScreen({ status, message, referenceId }: { status: ScreeningSt
         {/* Progress Percentage */}
         {!isDone && status === "screening" && (
           <div style={{ marginBottom: 32 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 8, padding: "0 4px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 10, padding: "0 4px" }}>
               <span>Processing...</span>
               <span style={{ color: "var(--purple-light)" }}>{Math.floor(progress)}%</span>
             </div>
-            <div style={{ height: 6, background: "rgba(255,255,255,0.05)", borderRadius: 4, overflow: "hidden", position: "relative" }}>
+            <div style={{ height: 8, background: "rgba(255,255,255,0.06)", borderRadius: 6, overflow: "hidden", position: "relative" }}>
               <motion.div 
                 style={{ position: "absolute", top: 0, left: 0, bottom: 0, background: "linear-gradient(90deg, #7c3aed, #3b82f6)", width: `${progress}%` }}
                 initial={{ width: 0 }}
                 animate={{ width: `${progress}%` }}
                 transition={{ type: "tween", ease: "linear" }}
               >
-                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent)", animation: "shimmer 1.5s infinite" }} />
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)", animation: "shimmer 2s infinite" }} />
               </motion.div>
             </div>
           </div>
@@ -841,38 +885,38 @@ function ScreeningScreen({ status, message, referenceId }: { status: ScreeningSt
 
         {/* Premium Timeline */}
         {!isDone && (
-          <div style={{ textAlign: "left", background: "rgba(255,255,255,0.02)", padding: 20, borderRadius: 16, border: "1px solid rgba(255,255,255,0.05)", position: "relative" }}>
+          <div style={{ textAlign: "left", background: "rgba(255,255,255,0.02)", padding: "24px", borderRadius: 16, border: "1px solid rgba(255,255,255,0.04)", position: "relative" }}>
             {steps.map((step, i) => {
               const isPast = currentStep > i;
               const isActive = currentStep === i;
               const isFuture = currentStep < i;
               
               return (
-                <div key={i} style={{ display: "flex", gap: 14, position: "relative", paddingBottom: i === steps.length - 1 ? 0 : 20, opacity: isFuture ? 0.4 : 1, transition: "opacity 0.3s ease" }}>
+                <div key={i} style={{ display: "flex", gap: 16, position: "relative", paddingBottom: i === steps.length - 1 ? 0 : 22, opacity: isFuture ? 0.3 : 1, transition: "opacity 0.4s ease" }}>
                   {/* Connecting Line */}
                   {i < steps.length - 1 && (
-                    <div style={{ position: "absolute", left: 10, top: 22, bottom: 0, width: 2, background: isPast ? "var(--green)" : "rgba(255,255,255,0.1)", transition: "background 0.5s ease" }} />
+                    <div style={{ position: "absolute", left: 11, top: 26, bottom: 0, width: 2, background: isPast ? "var(--purple-light)" : "rgba(255,255,255,0.08)", transition: "background 0.5s ease" }} />
                   )}
                   
                   {/* Step Indicator */}
                   <div style={{ position: "relative", zIndex: 2 }}>
                     {isPast ? (
-                      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} style={{ width: 22, height: 22, borderRadius: "50%", background: "var(--green)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 10px rgba(34,197,94,0.3)" }}>
-                        <Check size={12} color="white" strokeWidth={3} />
+                      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} style={{ width: 24, height: 24, borderRadius: "50%", background: "var(--purple)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 12px rgba(168,85,247,0.4)" }}>
+                        <Check size={13} color="white" strokeWidth={3} />
                       </motion.div>
                     ) : isActive ? (
-                      <div style={{ width: 22, height: 22, borderRadius: "50%", border: "2px solid var(--purple)", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(168,85,247,0.1)", boxShadow: "0 0 15px rgba(168,85,247,0.2)" }}>
-                        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} style={{ position: "absolute", inset: -2, borderRadius: "50%", border: "2px solid transparent", borderTopColor: "var(--purple-light)" }} />
-                        <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--purple-light)" }} />
+                      <div style={{ width: 24, height: 24, borderRadius: "50%", border: "2px solid var(--purple-light)", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(168,85,247,0.1)", boxShadow: "0 0 18px rgba(168,85,247,0.25)" }}>
+                        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }} style={{ position: "absolute", inset: -3, borderRadius: "50%", border: "2px solid transparent", borderTopColor: "var(--purple)" }} />
+                        <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--purple-light)", boxShadow: "0 0 8px var(--purple-light)" }} />
                       </div>
                     ) : (
-                      <div style={{ width: 22, height: 22, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.1)", background: "var(--bg-primary)" }} />
+                      <div style={{ width: 24, height: 24, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.1)", background: "var(--bg-primary)" }} />
                     )}
                   </div>
                   
                   {/* Step Text */}
                   <div style={{ paddingTop: 2 }}>
-                    <span style={{ fontSize: 13, fontWeight: isActive ? 600 : 500, color: isPast ? "var(--text-primary)" : isActive ? "var(--purple-light)" : "var(--text-secondary)" }}>
+                    <span style={{ fontSize: 14, fontWeight: isActive ? 600 : 500, color: isPast ? "var(--text-primary)" : isActive ? "var(--purple-light)" : "var(--text-secondary)", transition: "color 0.3s ease" }}>
                       {step}
                     </span>
                   </div>
@@ -884,25 +928,12 @@ function ScreeningScreen({ status, message, referenceId }: { status: ScreeningSt
 
         {/* Success States */}
         {isDone && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
             {referenceId && (
-              <div style={{ background: "rgba(168,85,247,0.08)", border: "1px solid rgba(168,85,247,0.2)", borderRadius: 16, padding: "20px", marginBottom: 24 }}>
-                <p style={{ fontSize: 11, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8, fontWeight: 700 }}>Your Reference ID</p>
-                <p style={{
-                  fontSize: 24, fontWeight: 800, fontFamily: 'monospace', margin: "0 0 12px 0",
-                  background: 'linear-gradient(90deg, #a78bfa, #60a5fa, #a78bfa)',
-                  backgroundSize: '200% auto',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  animation: 'shimmer 3s linear infinite'
-                }}>{referenceId}</p>
-                <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0 }}>
-                  Track your application at <Link href="/careers/status" style={{ color: "var(--purple-light)", fontWeight: 600 }}>/careers/status</Link>
-                </p>
-              </div>
+              <RefIdBox referenceId={referenceId} />
             )}
-            <Link href="/careers" className="btn btn-secondary" style={{ width: "100%", justifyContent: "center" }}>
-              Return to Careers
+            <Link href="/careers" className="btn btn-secondary" style={{ width: "100%", justifyContent: "center", marginTop: 8 }}>
+              Back to Open Positions
             </Link>
           </motion.div>
         )}
@@ -912,3 +943,45 @@ function ScreeningScreen({ status, message, referenceId }: { status: ScreeningSt
 }
 
 
+function RefIdBox({ referenceId }: { referenceId: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = () => {
+    navigator.clipboard.writeText(referenceId);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <div style={{
+      background: "linear-gradient(135deg, rgba(168,85,247,0.1), rgba(99,102,241,0.08))",
+      border: "1px solid rgba(168,85,247,0.25)",
+      borderRadius: 16,
+      padding: "24px",
+      marginBottom: 16,
+      textAlign: "center",
+    }}>
+      <p style={{ fontSize: 11, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10, fontWeight: 700 }}>
+        Your Reference ID
+      </p>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginBottom: 12 }}>
+        <p style={{
+          fontSize: 22, fontWeight: 800, fontFamily: "monospace", margin: 0,
+          background: "linear-gradient(90deg, #a78bfa, #60a5fa, #a78bfa)",
+          backgroundSize: "200% auto",
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+          animation: "shimmer 3s linear infinite",
+        }}>{referenceId}</p>
+        <button
+          onClick={copy}
+          title="Copy ID"
+          style={{ background: copied ? "rgba(34,197,94,0.15)" : "rgba(168,85,247,0.12)", border: `1px solid ${copied ? "rgba(34,197,94,0.3)" : "rgba(168,85,247,0.25)"}`, borderRadius: 8, padding: "6px 8px", cursor: "pointer", color: copied ? "var(--green)" : "var(--purple)", transition: "all 0.2s", display: "flex", alignItems: "center" }}
+        >
+          {copied ? <CheckCircle size={15} /> : <Copy size={15} />}
+        </button>
+      </div>
+      <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0, lineHeight: 1.5 }}>
+        Save this ID — use it to track your status on the <Link href="/careers" style={{ color: "var(--purple-light)", fontWeight: 600 }}>careers page</Link>.
+      </p>
+    </div>
+  );
+}

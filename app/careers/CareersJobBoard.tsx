@@ -330,7 +330,11 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
               <Image src="/logo.png" alt="CyberLabSec Logo" width={180} height={40} style={{ height: 40, width: "auto", objectFit: "contain" }} priority />
             </Link>
           }
-          center={<div />}
+          center={
+            <div style={{ display: "flex", gap: 16 }}>
+              {/* Nav links can go here if needed */}
+            </div>
+          }
           right={
             <>
               <button

@@ -79,6 +79,9 @@ const footerSection = (extra: string = "") => `
         <a href="https://cyberlabsec.tech" style="color: #a78bfa; text-decoration: none; font-weight: 500;">cyberlabsec.tech</a>
         &nbsp;|&nbsp; <a href="mailto:contact@cyberlabsec.tech" style="color: #a1a1aa; text-decoration: none;">contact@cyberlabsec.tech</a>
       </p>
+      <p style="color: #666; font-size: 14px; margin-top: 30px;">
+        You can track your application status anytime using your reference ID on our <a href="${process.env.NEXT_PUBLIC_APP_URL}/careers" style="color: #6a0dad; text-decoration: none;">careers page</a>.
+      </p>
     </td>
   </tr>
 `;
