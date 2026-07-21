@@ -63,7 +63,7 @@ export default function AdminLogin() {
       variant="admin"
     >
       <form onSubmit={handleLogin} style={{ display: "grid", gap: 16 }}>
-        <div style={{ animation: "field-in 0.4s cubic-bezier(0.16,1,0.3,1) 0.3s both" }}>
+        <div>
           <label htmlFor="admin-id" style={{ display: "block", color: "#9CA3AF", fontSize: 12, fontWeight: 600, marginBottom: 8, letterSpacing: "0.06em", textTransform: "uppercase" }}>
             Admin ID
           </label>
@@ -84,7 +84,7 @@ export default function AdminLogin() {
           </div>
         </div>
 
-        <div style={{ animation: "field-in 0.4s cubic-bezier(0.16,1,0.3,1) 0.35s both" }}>
+        <div>
           <label htmlFor="admin-password" style={{ display: "block", color: "#9CA3AF", fontSize: 12, fontWeight: 600, marginBottom: 8, letterSpacing: "0.06em", textTransform: "uppercase" }}>
             Password
           </label>
@@ -133,7 +133,7 @@ export default function AdminLogin() {
           )}
         </AnimatePresence>
 
-        <div style={{ marginTop: 4, animation: "field-in 0.4s cubic-bezier(0.16,1,0.3,1) 0.4s both" }}>
+        <div style={{ marginTop: 4 }}>
           <motion.button
             type="submit"
             disabled={loading || success}
@@ -180,7 +180,7 @@ export default function AdminLogin() {
           </motion.button>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, color: "#374151", fontSize: 12, marginTop: 4, animation: "field-in 0.4s cubic-bezier(0.16,1,0.3,1) 0.45s both" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, color: "#374151", fontSize: 12, marginTop: 4 }}>
           <ShieldCheck size={13} style={{ color: "#A855F7" }} />
           <span>Protected by enterprise-grade encryption</span>
         </div>

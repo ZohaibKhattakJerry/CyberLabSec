@@ -1,6 +1,5 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
 import React from "react";
 
 export default function AuthLayout({
@@ -15,122 +14,189 @@ export default function AuthLayout({
   variant?: "admin" | "employee";
 }) {
   const isAdmin = variant === "admin";
-  const secondary = isAdmin ? "#EC4899" : "#06B6D4";
-  const orbA = isAdmin ? "168,85,247" : "99,102,241";
-  const orbB = isAdmin ? "236,72,153" : "6,182,212";
+  // Company portal: purple/pink. Employee portal: indigo/cyan.
+  const accentRgb = isAdmin ? "168,85,247" : "99,102,241";
+  const accentHex = isAdmin ? "#A855F7" : "#6366F1";
+  const secondaryHex = isAdmin ? "#EC4899" : "#06B6D4";
 
   return (
     <>
       <style>{`
-        .auth-bg {
+        /* ── Lock entire page to viewport, zero scroll ── */
+        html, body, #__next {
+          height: 100%;
+          overflow: hidden;
+        }
+
+        /* ── Full-screen auth wrapper ── */
+        .auth-root {
           position: fixed;
-          top: 0; left: 0; right: 0; bottom: 0;
-          background-color: #040308;
-          background-image: 
-            radial-gradient(circle at 15% 15%, rgba(${orbA}, 0.15) 0%, transparent 50%),
-            radial-gradient(circle at 85% 85%, rgba(${orbB}, 0.12) 0%, transparent 50%);
+          inset: 0;
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 1rem;
-          overflow: hidden;
-          font-family: 'Inter', system-ui, sans-serif;
-          z-index: 9999; /* Overlays everything, guarantees no page scroll */
-        }
-        
-        /* Ultra-subtle noise overlay for premium feel */
-        .auth-bg::before {
-          content: "";
-          position: absolute; inset: 0;
-          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
-          pointer-events: none;
-          z-index: 1;
+          padding: clamp(12px, 4vw, 24px);
+          font-family: 'Inter', system-ui, -apple-system, sans-serif;
+          /* Pure CSS gradient — zero DOM blur, zero first-paint glitch */
+          background:
+            radial-gradient(ellipse 80% 60% at 10% 10%, rgba(${accentRgb},0.18) 0%, transparent 60%),
+            radial-gradient(ellipse 70% 55% at 90% 90%, rgba(${accentRgb},0.12) 0%, transparent 60%),
+            #050308;
+          overflow: hidden; /* clip the subtle grid overlay */
         }
 
-        .auth-card {
-          width: 100%; 
-          max-width: 400px;
-          max-height: 100%;
-          background: linear-gradient(145deg, rgba(13,12,20,0.95) 0%, rgba(17,14,26,0.98) 100%);
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-          border-radius: clamp(16px, 4vw, 22px);
-          padding: clamp(24px, 6vw, 44px) clamp(20px, 6vw, 44px);
-          border: 1px solid rgba(${orbA}, 0.2);
-          box-shadow: 0 24px 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.03), inset 0 1px 0 rgba(255,255,255,0.05);
-          position: relative; 
-          z-index: 10;
-          overflow-y: auto;
-          scrollbar-width: none; /* Hide scrollbar for sleekness */
-        }
-        .auth-card::-webkit-scrollbar {
-          display: none;
-        }
-        
-        .auth-grid {
-          position: absolute; inset: 0;
+        /* Subtle dot-grid texture overlaid on background */
+        .auth-root::before {
+          content: '';
+          position: absolute;
+          inset: 0;
           background-image:
-            linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            radial-gradient(circle, rgba(${accentRgb},0.08) 1px, transparent 1px);
           background-size: 32px 32px;
           pointer-events: none;
-          -webkit-mask-image: radial-gradient(ellipse at center, black 10%, transparent 80%);
-          mask-image: radial-gradient(ellipse at center, black 10%, transparent 80%);
-          z-index: 1;
+          mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+          -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
         }
 
-        .auth-card-content {
+        /* ── The login card ── */
+        .auth-card {
           position: relative;
-          z-index: 20;
+          width: 100%;
+          max-width: 420px;
+          /* On very small screens, card can scroll internally but never the page */
+          max-height: calc(100svh - clamp(24px, 8vw, 48px));
+          overflow-y: auto;
+          scrollbar-width: none;
+          border-radius: clamp(16px, 3vw, 24px);
+          padding: clamp(28px, 7vw, 48px) clamp(24px, 6vw, 44px);
+          background: rgba(10, 8, 18, 0.88);
+          border: 1px solid rgba(${accentRgb}, 0.18);
+          box-shadow:
+            0 0 0 1px rgba(255,255,255,0.04),
+            0 20px 60px rgba(0,0,0,0.7),
+            inset 0 1px 0 rgba(255,255,255,0.06);
+          backdrop-filter: blur(24px) saturate(1.4);
+          -webkit-backdrop-filter: blur(24px) saturate(1.4);
+          /* Fade + slide in on load — CSS only, no JS, no FOUC */
+          animation: authCardIn 0.35s cubic-bezier(0.2, 0.8, 0.3, 1) both;
         }
-        .auth-card-glow {
-          position: absolute; top: 0; left: 15%; right: 15%; height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(${orbA}, 0.8), transparent);
-          border-radius: 0 0 4px 4px;
-          box-shadow: 0 1px 12px rgba(${orbA}, 0.6);
-        }
-        .auth-card-accent {
-          position: absolute; top: -1px; right: 40px; width: 60px; height: 2px;
-          background: ${secondary}; border-radius: 0 0 4px 4px; opacity: 0.8;
-          box-shadow: 0 1px 8px ${secondary};
-        }
-        .auth-logo-wrapper { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
-        .auth-badge { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 4px 8px; border-radius: 6px; background: rgba(236,72,153,0.15); color: #F472B6; border: 1px solid rgba(236,72,153,0.3); }
-        .auth-title { color:#FFF; font-size:clamp(20px,4vw,24px); font-weight:700; margin-bottom:8px; letter-spacing:-0.02em; line-height:1.2; }
-        .auth-subtitle { color:#6B7280; font-size:14px; margin-bottom:24px; line-height:1.6; }
+        .auth-card::-webkit-scrollbar { display: none; }
 
-        /* Fix browser autofill styling for dark theme */
+        @keyframes authCardIn {
+          from { opacity: 0; transform: translateY(12px) scale(0.98); }
+          to   { opacity: 1; transform: translateY(0)   scale(1);    }
+        }
+
+        /* Top edge glow line */
+        .auth-card::before {
+          content: '';
+          position: absolute;
+          top: 0; left: 15%; right: 15%; height: 1px;
+          background: linear-gradient(90deg, transparent, ${accentHex}cc, transparent);
+          box-shadow: 0 0 16px ${accentHex}66;
+          border-radius: 0 0 4px 4px;
+        }
+        /* Small secondary accent dot on top-right */
+        .auth-card::after {
+          content: '';
+          position: absolute;
+          top: -1px; right: 44px; width: 52px; height: 2px;
+          background: ${secondaryHex};
+          box-shadow: 0 0 10px ${secondaryHex}99;
+          border-radius: 0 0 4px 4px;
+          opacity: 0.8;
+        }
+
+        /* ── Card inner content ── */
+        .auth-inner {
+          position: relative;
+          z-index: 2;
+          display: flex;
+          flex-direction: column;
+          gap: 0;
+        }
+
+        /* Logo row */
+        .auth-logo-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 28px;
+        }
+        .auth-logo-img {
+          height: 36px;
+          width: auto;
+          object-fit: contain;
+        }
+        .auth-badge {
+          font-size: 10px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          padding: 3px 10px;
+          border-radius: 20px;
+          background: rgba(236,72,153,0.12);
+          color: #F472B6;
+          border: 1px solid rgba(236,72,153,0.3);
+        }
+
+        /* Headings */
+        .auth-title {
+          margin: 0 0 8px;
+          color: #fff;
+          font-size: clamp(20px, 4vw, 26px);
+          font-weight: 800;
+          letter-spacing: -0.025em;
+          line-height: 1.15;
+        }
+        .auth-subtitle {
+          margin: 0 0 28px;
+          color: #6B7280;
+          font-size: 14px;
+          line-height: 1.65;
+        }
+
+        /* Autofill dark theme override */
         input:-webkit-autofill,
-        input:-webkit-autofill:hover, 
-        input:-webkit-autofill:focus, 
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
         input:-webkit-autofill:active {
-          -webkit-box-shadow: 0 0 0 50px #15121E inset !important;
-          -webkit-text-fill-color: #FFFFFF !important;
-          caret-color: #FFFFFF !important;
-          transition: background-color 5000s ease-in-out 0s;
+          -webkit-box-shadow: 0 0 0 50px #0d0b16 inset !important;
+          -webkit-text-fill-color: #fff !important;
+          caret-color: #fff !important;
+          transition: background-color 5000s ease 0s;
+        }
+
+        /* ── Responsive tweaks ── */
+        @media (max-height: 600px) {
+          .auth-card {
+            padding: 20px 20px;
+          }
+          .auth-logo-row { margin-bottom: 16px; }
+          .auth-subtitle { margin-bottom: 16px; }
+        }
+        @media (max-width: 380px) {
+          .auth-card {
+            border-radius: 16px;
+          }
+        }
+
+        /* Suppress motion if user prefers */
+        @media (prefers-reduced-motion: reduce) {
+          .auth-card { animation: none; }
         }
       `}</style>
 
-      <div className="auth-bg">
+      <div className="auth-root">
         <div className="auth-card">
-          <div className="auth-grid" />
-          <div className="auth-card-glow" />
-          <div className="auth-card-accent" />
-
-          <div className="auth-card-content">
-            <div className="auth-logo-wrapper">
-              <img src="/logo.png" alt="CyberLabSec" style={{ height: 38, objectFit: "contain" }} />
-              {isAdmin && (
-                <div className="auth-badge">Admin</div>
-              )}
+          <div className="auth-inner">
+            <div className="auth-logo-row">
+              <img src="/logo.png" alt="CyberLabSec" className="auth-logo-img" />
+              {isAdmin && <span className="auth-badge">Admin</span>}
             </div>
-
             <h1 className="auth-title">{title}</h1>
             <p className="auth-subtitle">{subtitle}</p>
-
-            <div className="auth-form">
-              {children}
-            </div>
+            {children}
           </div>
         </div>
       </div>

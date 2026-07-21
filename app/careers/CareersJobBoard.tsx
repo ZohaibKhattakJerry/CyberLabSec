@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
@@ -11,7 +11,6 @@ import {
   MapPin,
   Briefcase,
   Clock,
-  ExternalLink,
   Shield,
   Search,
   ChevronRight,
@@ -19,6 +18,9 @@ import {
   Users,
   GraduationCap,
   Filter,
+  FileText,
+  X,
+  CheckCircle,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -44,6 +46,12 @@ interface Posting {
 export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<"All" | "Job" | "Internship">("All");
+  const [trackOpen, setTrackOpen] = useState(false);
+  const [refId, setRefId] = useState("");
+  const [trackResult, setTrackResult] = useState<null | { status: string; name: string; role: string; updatedAt: string }>(null);
+  const [trackLoading, setTrackLoading] = useState(false);
+  const [trackError, setTrackError] = useState("");
+  const trackRef = useRef<HTMLDivElement>(null);
 
   const filtered = postings.filter((p) => {
     const matchSearch =
@@ -54,20 +62,24 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
   });
 
   const [now, setNow] = useState<number | null>(null);
+  useEffect(() => { setNow(Date.now()); }, []);
+
+  // Close track panel on outside click
   useEffect(() => {
-    setNow(Date.now());
-  }, []);
+    if (!trackOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (trackRef.current && !trackRef.current.contains(e.target as Node)) {
+        setTrackOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [trackOpen]);
 
   const daysUntilDeadline = (deadline: string) => {
     if (now === null) return null;
     const diff = new Date(deadline).getTime() - now;
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
-  };
-
-  const daysSincePublished = (pubDate: string) => {
-    if (now === null) return null;
-    const diff = now - new Date(pubDate).getTime();
-    return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
   };
 
   const [talentEmail, setTalentEmail] = useState("");
@@ -88,445 +100,504 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
         toast.error(data.error || "Failed to join talent pool");
       }
     } catch (err: unknown) {
-      toast.error(err.message || "Network error");
+      toast.error("Network error");
     }
   };
 
+  const handleTrackSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!refId.trim()) return;
+    setTrackError("");
+    setTrackResult(null);
+    setTrackLoading(true);
+    try {
+      const res = await fetch(`/api/applications/status?ref=${encodeURIComponent(refId.trim())}`);
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        setTrackError(d.error || "No application found with that reference ID.");
+      } else {
+        const d = await res.json();
+        setTrackResult(d);
+      }
+    } catch {
+      setTrackError("Network error. Please try again.");
+    } finally {
+      setTrackLoading(false);
+    }
+  };
+
+  const WHY_ITEMS = [
+    {
+      icon: <Terminal size={18} color="var(--purple)" />,
+      title: "Real Client Engagements",
+      desc: "Live penetration tests from day one—not simulated labs.",
+    },
+    {
+      icon: <Users size={18} color="var(--purple)" />,
+      title: "Senior Mentorship",
+      desc: "Direct guidance from experienced offensive security operators.",
+    },
+    {
+      icon: <Shield size={18} color="var(--purple)" />,
+      title: "Results-Driven Culture",
+      desc: "Fully remote. We measure impact, not hours online.",
+    },
+  ];
+
+  const STATUS_COLORS: Record<string, { bg: string; color: string; label: string }> = {
+    PENDING:    { bg: "rgba(251,191,36,0.12)",  color: "#FBBF24", label: "Under Review" },
+    REVIEWED:   { bg: "rgba(99,102,241,0.12)",  color: "#818CF8", label: "Reviewed" },
+    SHORTLISTED:{ bg: "rgba(34,211,238,0.12)",  color: "#22D3EE", label: "Shortlisted 🎉" },
+    HIRED:      { bg: "rgba(34,197,94,0.12)",   color: "#4ADE80", label: "Hired ✓" },
+    REJECTED:   { bg: "rgba(239,68,68,0.12)",   color: "#F87171", label: "Not Selected" },
+  };
+
   return (
-    <div style={{ background: "var(--bg-primary)", minHeight: "100vh" }}>
-      <PublicNav 
-        left={
-          <Link href="/" style={{ display: "flex", alignItems: "center" }}>
-            <Image src="/logo.png" alt="CyberLabSec Logo" width={180} height={40} style={{ height: 40, width: "auto", objectFit: "contain" }} priority />
-          </Link>
+    <>
+      <style>{`
+        .careers-why-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 16px;
+          max-width: 820px;
+          margin: 48px auto 0;
         }
-        center={<div />}
-        right={
-          <>
-            <Link href="/careers/status" className="hide-mobile" style={{ fontSize: 14, color: "var(--text-secondary)", textDecoration: "none", fontWeight: 500, transition: "color 0.2s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-primary)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-secondary)"}>
-              Track Application
-            </Link>
-            <Link
-              href="/employee/login"
-              className="btn btn-secondary btn-sm"
-            >
-              Employee Login
-            </Link>
-          </>
+        @media (max-width: 680px) {
+          .careers-why-grid {
+            grid-template-columns: 1fr;
+            gap: 10px;
+          }
         }
-      />
+        .careers-why-card {
+          padding: 18px;
+          border-radius: 14px;
+          background: rgba(255,255,255,0.025);
+          border: 1px solid rgba(168,85,247,0.14);
+          display: flex;
+          align-items: flex-start;
+          gap: 14px;
+          transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
+          text-align: left;
+        }
+        .careers-why-card:hover {
+          border-color: rgba(168,85,247,0.35);
+          box-shadow: 0 6px 20px rgba(168,85,247,0.12);
+          transform: translateY(-2px);
+        }
+        .track-panel {
+          position: relative;
+          max-width: 960px;
+          margin: 0 auto;
+          padding: 0 24px 32px;
+        }
+        .track-box {
+          border-radius: 16px;
+          padding: 22px 28px;
+          background: linear-gradient(135deg, rgba(168,85,247,0.08) 0%, rgba(99,102,241,0.06) 100%);
+          border: 1px solid rgba(168,85,247,0.2);
+          transition: border-color 0.2s;
+        }
+        .track-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          flex-wrap: wrap;
+        }
+        .track-form {
+          display: flex;
+          gap: 10px;
+          margin-top: 16px;
+          flex-wrap: wrap;
+        }
+        .track-form input {
+          flex: 1;
+          min-width: 200px;
+          background: rgba(255,255,255,0.05);
+          border: 1px solid rgba(168,85,247,0.25);
+          border-radius: 10px;
+          padding: 10px 14px;
+          color: #fff;
+          font-size: 14px;
+          outline: none;
+          transition: border-color 0.2s, box-shadow 0.2s;
+          font-family: inherit;
+        }
+        .track-form input:focus {
+          border-color: rgba(168,85,247,0.6);
+          box-shadow: 0 0 0 3px rgba(168,85,247,0.1);
+        }
+        .track-result {
+          margin-top: 14px;
+          padding: 14px 18px;
+          border-radius: 12px;
+          font-size: 14px;
+        }
+        .jobs-section {
+          max-width: 960px;
+          margin: 48px auto 0;
+          padding: 0 24px 80px;
+        }
+        .jobs-header {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          margin-bottom: 28px;
+        }
+        .jobs-container {
+          background: var(--bg-card, rgba(13,11,20,0.7));
+          border: 1px solid var(--border, rgba(255,255,255,0.08));
+          border-radius: 18px;
+          overflow: hidden;
+          box-shadow: 0 8px 40px rgba(0,0,0,0.35);
+        }
+        .job-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 20px;
+          padding: 24px 28px;
+          text-decoration: none;
+          transition: background 0.18s ease;
+          flex-wrap: wrap;
+        }
+        .job-row:hover { background: rgba(168,85,247,0.05); }
+        .job-row + .job-row {
+          border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .job-title {
+          font-size: 17px;
+          font-weight: 700;
+          color: var(--text-primary, #fff);
+          margin: 0 0 8px;
+          letter-spacing: -0.01em;
+        }
+        .job-meta {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 14px;
+          font-size: 13px;
+          color: var(--text-secondary, #9CA3AF);
+        }
+        .job-meta-item {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+        }
+        .job-right {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          gap: 10px;
+          flex-shrink: 0;
+        }
+        .job-deadline {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          font-size: 13px;
+        }
+        .job-cta {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--purple, #A855F7);
+        }
+        @media (max-width: 520px) {
+          .job-row { padding: 18px 18px; }
+          .job-right { align-items: flex-start; flex-direction: row; flex-wrap: wrap; }
+        }
+        .filters-row {
+          display: flex;
+          gap: 10px;
+          align-items: center;
+          margin-bottom: 20px;
+          flex-wrap: wrap;
+        }
+        .filter-chips {
+          display: flex;
+          gap: 8px;
+          overflow-x: auto;
+        }
+      `}</style>
 
-      {/* HERO */}
-      <section
-        style={{
-          position: "relative",
-          padding: "80px clamp(16px, 5vw, 24px) 60px",
-          overflow: "hidden",
-        }}
-      >
-        <div 
-          style={{
-            position: "absolute",
-            top: 0,
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: "100%",
-            maxWidth: "800px",
-            height: "100%",
-            background: "radial-gradient(circle at center, rgba(192,132,252,.55) 0%, rgba(139,92,246,.35) 25%, rgba(109,40,217,.18) 45%, rgba(5,5,5,0) 70%)",
-            zIndex: 0,
-            pointerEvents: "none"
-          }}
-        />
-        <CareersHeroBackground />
-
-        <div style={{ position: "relative", zIndex: 2, maxWidth: 800, margin: "0 auto", textAlign: "center" }}>
-          {/* Live indicator */}
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              background: "rgba(168,85,247,0.08)",
-              border: "1px solid rgba(168,85,247,0.2)",
-              borderRadius: 99,
-              padding: "6px 14px",
-              marginBottom: 24,
-            }}
-          >
-            <span
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: "50%",
-                background: "var(--purple)",
-                boxShadow: "0 0 8px var(--purple)",
-                animation: "pulse-glow 2s ease infinite",
-                display: "inline-block",
-              }}
-            />
-            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--purple)" }}>
-              {postings.length} OPEN POSITION{postings.length !== 1 ? "S" : ""}
-            </span>
-          </motion.div>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            style={{
-              fontSize: "clamp(32px, 5vw, 56px)",
-              fontWeight: 900,
-              letterSpacing: "-0.03em",
-              color: "var(--text-primary)",
-              lineHeight: 1.1,
-              margin: "0 0 20px",
-            }}
-          >
-            Hack for a Living.{" "}
-            <span style={{ color: "var(--purple)", display: "block" }}>Join CyberLabSec.</span>
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            style={{
-              fontSize: 18,
-              color: "var(--text-secondary)",
-              marginBottom: 40,
-              lineHeight: 1.7,
-            }}
-          >
-            We find what others miss — because we think like attackers. 
-            If you do too, there&apos;s a place for you here.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-              gap: 16,
-              maxWidth: 900,
-              margin: "0 auto",
-              marginTop: 48,
-            }}
-          >
-            {[
-              {
-                icon: <Terminal size={18} color="var(--purple)" />,
-                title: "Real Client Engagements",
-                desc: "Live penetration tests from day one—not simulated labs.",
-              },
-              {
-                icon: <Users size={18} color="var(--purple)" />,
-                title: "Senior Mentorship",
-                desc: "Direct code reviews and guidance from experienced operators.",
-              },
-              {
-                icon: <Shield size={18} color="var(--purple)" />,
-                title: "Results-Driven Culture",
-                desc: "Fully remote. We measure impact, not hours online.",
-              },
-            ].map((item, i) => (
-              <motion.div
-                key={item.title}
-                whileHover={{ y: -2, borderColor: "rgba(168,85,247,0.4)", boxShadow: "0 8px 24px rgba(168,85,247,0.15)" }}
-                className="card-glass"
-                style={{
-                  padding: "20px",
-                  textAlign: "left",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 12,
-                  border: "1px solid rgba(168,85,247,0.15)",
-                  transition: "all 0.3s ease",
-                }}
+      <div style={{ background: "var(--bg-primary)", minHeight: "100vh" }}>
+        <PublicNav
+          left={
+            <Link href="/" style={{ display: "flex", alignItems: "center" }}>
+              <Image src="/logo.png" alt="CyberLabSec Logo" width={180} height={40} style={{ height: 40, width: "auto", objectFit: "contain" }} priority />
+            </Link>
+          }
+          center={<div />}
+          right={
+            <>
+              <button
+                onClick={() => setTrackOpen((v) => !v)}
+                className="hide-mobile"
+                style={{ fontSize: 14, color: "var(--text-secondary)", background: "none", border: "none", cursor: "pointer", fontWeight: 500, transition: "color 0.2s", fontFamily: "inherit" }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-primary)")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-secondary)")}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(168,85,247,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                Track Application
+              </button>
+              <Link href="/employee/login" className="btn btn-secondary btn-sm">
+                Employee Login
+              </Link>
+            </>
+          }
+        />
+
+        {/* ── HERO ── */}
+        <section style={{ position: "relative", padding: "80px clamp(16px, 5vw, 24px) 60px", overflow: "hidden" }}>
+          <div
+            style={{
+              position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)",
+              width: "100%", maxWidth: "800px", height: "100%",
+              background: "radial-gradient(circle at center, rgba(192,132,252,.5) 0%, rgba(139,92,246,.3) 25%, rgba(109,40,217,.15) 45%, rgba(5,5,5,0) 70%)",
+              zIndex: 0, pointerEvents: "none",
+            }}
+          />
+          <CareersHeroBackground />
+
+          <div style={{ position: "relative", zIndex: 2, maxWidth: 820, margin: "0 auto", textAlign: "center" }}>
+            {/* Live badge */}
+            <motion.div
+              initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+              style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(168,85,247,0.08)", border: "1px solid rgba(168,85,247,0.2)", borderRadius: 99, padding: "6px 14px", marginBottom: 24 }}
+            >
+              <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--purple)", boxShadow: "0 0 8px var(--purple)", animation: "pulse-glow 2s ease infinite", display: "inline-block" }} />
+              <span style={{ fontSize: 12, fontWeight: 600, color: "var(--purple)" }}>
+                {postings.length} OPEN POSITION{postings.length !== 1 ? "S" : ""}
+              </span>
+            </motion.div>
+
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}
+              style={{ fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 900, letterSpacing: "-0.03em", color: "var(--text-primary)", lineHeight: 1.1, margin: "0 0 20px" }}
+            >
+              Hack for a Living.{" "}
+              <span style={{ color: "var(--purple)", display: "block" }}>Join CyberLabSec.</span>
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
+              style={{ fontSize: 17, color: "var(--text-secondary)", marginBottom: 0, lineHeight: 1.7 }}
+            >
+              We find what others miss — because we think like attackers.
+              If you do too, there&apos;s a place for you here.
+            </motion.p>
+
+            {/* ── Why CyberLabSec — 3 cards, compact, inside hero ── */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }}
+              className="careers-why-grid"
+            >
+              {WHY_ITEMS.map((item) => (
+                <div key={item.title} className="careers-why-card">
+                  <div style={{ width: 34, height: 34, borderRadius: 9, background: "rgba(168,85,247,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, border: "1px solid rgba(168,85,247,0.18)" }}>
                     {item.icon}
                   </div>
-                  <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)" }}>{item.title}</div>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", marginBottom: 4 }}>{item.title}</div>
+                    <div style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.5 }}>{item.desc}</div>
+                  </div>
                 </div>
-                <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>{item.desc}</div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* TRACK APPLICATION BANNER */}
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 32px" }}>
-        <div style={{
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          gap: 16, flexWrap: "wrap",
-          background: "linear-gradient(135deg, rgba(168,85,247,0.12) 0%, rgba(239,68,68,0.08) 100%)",
-          border: "1px solid rgba(168,85,247,0.2)", borderRadius: 16, padding: "20px 28px",
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(168,85,247,0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Search size={18} color="var(--purple)" />
-            </div>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: 15, color: "var(--text-primary)" }}>Already Applied?</div>
-              <div style={{ fontSize: 13, color: "var(--text-muted)" }}>Use your Reference ID to track your application status in real-time</div>
-            </div>
-          </div>
-          <Link href="/careers/status" className="btn btn-secondary" style={{ flexShrink: 0, gap: 8 }}>
-            <Search size={14} /> Track Application
-          </Link>
-        </div>
-      </div>
-
-      {/* JOB BOARD AREA */}
-      <section style={{ maxWidth: 960, margin: "64px auto", padding: "0 24px 80px" }}>
-        <div style={{ marginBottom: 32, display: "flex", alignItems: "center", gap: 16 }}>
-          <div style={{ width: 4, height: 28, background: "var(--purple)", borderRadius: 4, boxShadow: "0 0 12px var(--purple)" }} />
-          <h2 style={{ fontSize: 28, fontWeight: 800, color: "var(--text-primary)", margin: 0, letterSpacing: "-0.02em" }}>Open Positions</h2>
-        </div>
-
-        {/* FILTERS */}
-        <div style={{ marginBottom: 24 }}>
-        {postings.length > 3 && (
-          <div
-            className="flex-mobile-col"
-            style={{
-              display: "flex",
-              gap: 12,
-              alignItems: "center",
-              marginBottom: 32,
-            }}
-          >
-            {/* Search */}
-            <div style={{ position: "relative", flex: 1, width: "100%" }}>
-              <Search
-                size={16}
-                style={{
-                  position: "absolute",
-                  left: 12,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: "var(--text-muted)",
-                }}
-              />
-              <input
-                className="input"
-                style={{ paddingLeft: 36 }}
-                placeholder="Search positions..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-
-            {/* Type filter */}
-            <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4 }}>
-              {(["All", "Job", "Internship"] as const).map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setTypeFilter(t)}
-                  className={typeFilter === t ? "btn btn-primary btn-sm" : "btn btn-secondary btn-sm"}
-                  style={{ flexShrink: 0 }}
-                >
-                  {t === "Internship" ? <GraduationCap size={14} /> : <Filter size={14} />}
-                  {t}
-                </button>
               ))}
-            </div>
+            </motion.div>
           </div>
-        )}
+        </section>
+
+        {/* ── TRACK APPLICATION — inline, no redirect ── */}
+        <div className="track-panel">
+          <div className="track-box" ref={trackRef}>
+            <div className="track-header">
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ width: 38, height: 38, borderRadius: 10, background: "rgba(168,85,247,0.14)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <FileText size={17} color="var(--purple)" />
+                </div>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 15, color: "var(--text-primary)" }}>Already Applied?</div>
+                  <div style={{ fontSize: 13, color: "var(--text-muted)" }}>Enter your Reference ID to track your application status instantly.</div>
+                </div>
+              </div>
+              {/* Mobile toggle */}
+              <button
+                onClick={() => { setTrackOpen((v) => !v); setTrackResult(null); setTrackError(""); }}
+                className="btn btn-secondary btn-sm"
+                style={{ flexShrink: 0 }}
+              >
+                <Search size={13} />
+                {trackOpen ? "Close" : "Track Status"}
+              </button>
+            </div>
+
+            <AnimatePresence>
+              {trackOpen && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  style={{ overflow: "hidden" }}
+                >
+                  <form className="track-form" onSubmit={handleTrackSubmit}>
+                    <input
+                      type="text"
+                      placeholder="e.g. CLS-2025-XXXXXX"
+                      value={refId}
+                      onChange={(e) => { setRefId(e.target.value); setTrackResult(null); setTrackError(""); }}
+                      required
+                    />
+                    <button type="submit" className="btn btn-primary btn-sm" disabled={trackLoading} style={{ flexShrink: 0 }}>
+                      {trackLoading ? "Searching…" : "Check Status"}
+                    </button>
+                  </form>
+
+                  <AnimatePresence>
+                    {trackError && (
+                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        className="track-result" style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", color: "#FCA5A5" }}>
+                        {trackError}
+                      </motion.div>
+                    )}
+                    {trackResult && (
+                      <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                        className="track-result" style={{ background: "rgba(168,85,247,0.06)", border: "1px solid rgba(168,85,247,0.2)" }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                          <div>
+                            <div style={{ fontWeight: 700, color: "#fff", marginBottom: 4 }}>{trackResult.name}</div>
+                            <div style={{ color: "var(--text-secondary)", fontSize: 13 }}>{trackResult.role}</div>
+                          </div>
+                          {STATUS_COLORS[trackResult.status] && (
+                            <span style={{ padding: "5px 14px", borderRadius: 99, fontWeight: 700, fontSize: 13, background: STATUS_COLORS[trackResult.status].bg, color: STATUS_COLORS[trackResult.status].color }}>
+                              {STATUS_COLORS[trackResult.status].label}
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 8 }}>
+                          Last updated: {new Date(trackResult.updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
-        {/* Job listings */}
-        {filtered.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            style={{
-              textAlign: "center",
-              padding: "80px 24px",
-              color: "var(--text-muted)",
-              background: "rgba(168,85,247,0.02)",
-              borderRadius: 16,
-              border: "1px dashed rgba(168,85,247,0.2)",
-            }}
-          >
-            <Shield size={48} style={{ margin: "0 auto 16px", opacity: 0.3 }} />
-            <p style={{ fontSize: 16, marginBottom: 8, color: "var(--text-primary)" }}>No open positions right now.</p>
-            <p style={{ fontSize: 14, marginBottom: 24 }}>Leave your email and we'll notify you when we're hiring.</p>
-            
-            {talentSubmitted ? (
-              <div style={{ display: "inline-block", background: "rgba(34,197,94,0.1)", color: "var(--green)", padding: "10px 20px", borderRadius: 8, fontSize: 14 }}>
-                Added to Talent Pool. We'll be in touch!
-              </div>
-            ) : (
-              <form onSubmit={handleTalentSubmit} style={{ display: "flex", gap: 8, maxWidth: 360, margin: "0 auto" }}>
-                <input 
-                  type="email" 
-                  className="input" 
-                  placeholder="name@example.com" 
-                  required 
-                  value={talentEmail}
-                  onChange={(e) => setTalentEmail(e.target.value)}
-                  style={{ flex: 1 }}
-                />
-                <button type="submit" className="btn btn-primary">Join</button>
-              </form>
-            )}
-          </motion.div>
-        ) : (
-          <motion.div layout className="card" style={{ overflow: "hidden", background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: "16px", boxShadow: "0 8px 32px rgba(0,0,0,0.3)" }}>
-            <AnimatePresence mode="popLayout">
-            {filtered.map((posting, i) => {
-              const days = daysUntilDeadline(posting.deadline);
-              const postedDays = daysSincePublished(posting.publishedDate);
-              const isUrgent = days !== null && days <= 7;
+        {/* ── JOB BOARD ── */}
+        <section className="jobs-section">
+          <div className="jobs-header">
+            <div style={{ width: 4, height: 26, background: "var(--purple)", borderRadius: 4, boxShadow: "0 0 10px var(--purple)", flexShrink: 0 }} />
+            <h2 style={{ fontSize: 26, fontWeight: 800, color: "var(--text-primary)", margin: 0, letterSpacing: "-0.02em" }}>Open Positions</h2>
+            <span style={{ fontSize: 13, color: "var(--text-muted)", fontWeight: 500 }}>({filtered.length} {filtered.length === 1 ? "role" : "roles"})</span>
+          </div>
 
-              return (
-                <motion.div
-                  key={posting.id}
-                  layout
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
-                  transition={{ duration: 0.4, delay: i * 0.05 }}
-                >
-                  <Link href={`/careers/${posting.id}`} style={{ textDecoration: 'none', display: 'block' }}>
-                    <article
-                      style={{
-                        cursor: "pointer",
-                        padding: "28px 32px",
-                        borderBottom: i < filtered.length - 1 ? "1px solid var(--border-subtle)" : "none",
-                        transition: "all 0.2s ease",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = "rgba(168,85,247,0.04)";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = "transparent";
-                      }}
+          {/* Filters — only when many postings */}
+          {postings.length > 3 && (
+            <div className="filters-row">
+              <div style={{ position: "relative", flex: "1 1 200px" }}>
+                <Search size={15} style={{ position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />
+                <input
+                  className="input"
+                  style={{ paddingLeft: 34, width: "100%" }}
+                  placeholder="Search by title or department…"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+              <div className="filter-chips">
+                {(["All", "Job", "Internship"] as const).map((t) => (
+                  <button key={t} onClick={() => setTypeFilter(t)}
+                    className={typeFilter === t ? "btn btn-primary btn-sm" : "btn btn-secondary btn-sm"}
+                    style={{ flexShrink: 0 }}>
+                    {t === "Internship" ? <GraduationCap size={13} /> : <Filter size={13} />} {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {filtered.length === 0 ? (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              style={{ textAlign: "center", padding: "72px 24px", color: "var(--text-muted)", background: "rgba(168,85,247,0.02)", borderRadius: 16, border: "1px dashed rgba(168,85,247,0.2)" }}>
+              <Shield size={44} style={{ margin: "0 auto 16px", opacity: 0.25 }} />
+              <p style={{ fontSize: 16, marginBottom: 8, color: "var(--text-primary)" }}>No open positions right now.</p>
+              <p style={{ fontSize: 14, marginBottom: 24 }}>Leave your email and we&apos;ll notify you when we&apos;re hiring.</p>
+              {talentSubmitted ? (
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(34,197,94,0.1)", color: "#4ADE80", padding: "10px 20px", borderRadius: 10, fontSize: 14 }}>
+                  <CheckCircle size={16} /> Added to Talent Pool — we&apos;ll be in touch!
+                </div>
+              ) : (
+                <form onSubmit={handleTalentSubmit} style={{ display: "flex", gap: 8, maxWidth: 360, margin: "0 auto" }}>
+                  <input type="email" className="input" placeholder="name@example.com" required value={talentEmail} onChange={(e) => setTalentEmail(e.target.value)} style={{ flex: 1 }} />
+                  <button type="submit" className="btn btn-primary">Notify Me</button>
+                </form>
+              )}
+            </motion.div>
+          ) : (
+            <motion.div layout className="jobs-container">
+              <AnimatePresence mode="popLayout">
+                {filtered.map((posting, i) => {
+                  const days = daysUntilDeadline(posting.deadline);
+                  const isUrgent = days !== null && days <= 7;
+                  const deadlineColor = days !== null && days <= 3 ? "var(--red)" : isUrgent ? "var(--amber)" : "var(--text-muted)";
+
+                  return (
+                    <motion.div
+                      key={posting.id} layout
+                      initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.15 } }}
+                      transition={{ duration: 0.3, delay: i * 0.04 }}
                     >
-                      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 24 }}>
-                        {/* Left: Info */}
-                        <div style={{ flex: "1 1 300px" }}>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 12,
-                              marginBottom: 12,
-                              flexWrap: "wrap",
-                            }}
-                          >
-                            <h2
-                              style={{
-                                fontSize: 20,
-                                fontWeight: 700,
-                                color: "var(--text-primary)",
-                                margin: 0,
-                                letterSpacing: "-0.01em",
-                              }}
-                            >
-                              {posting.title}
-                            </h2>
-                            <span
-                              className={
-                                posting.type === "Job" ? "badge badge-blue" : "badge badge-amber"
-                              }
-                            >
+                      <Link href={`/careers/${posting.id}`} className="job-row">
+                        {/* Left: title + meta */}
+                        <div style={{ flex: "1 1 260px", minWidth: 0 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 8 }}>
+                            <h3 className="job-title">{posting.title}</h3>
+                            <span className={posting.type === "Job" ? "badge badge-blue" : "badge badge-amber"}>
                               {posting.type}
                             </span>
                           </div>
-
-                          <div
-                            style={{
-                              display: "flex",
-                              flexWrap: "wrap",
-                              gap: 20,
-                              fontSize: 14,
-                              color: "var(--text-secondary)",
-                            }}
-                          >
-                            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                              <Briefcase size={16} />
-                              {posting.department}
-                            </span>
-                            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                              <MapPin size={16} />
-                              {posting.location}
-                            </span>
+                          <div className="job-meta">
+                            <span className="job-meta-item"><Briefcase size={13} /> {posting.department}</span>
+                            <span className="job-meta-item"><MapPin size={13} /> {posting.location}</span>
                             {posting.universityRequired && (
-                              <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                <GraduationCap size={16} />
-                                University Required
-                              </span>
+                              <span className="job-meta-item"><GraduationCap size={13} /> Uni Required</span>
                             )}
                           </div>
                         </div>
 
-                        {/* Right: Deadline + CTA */}
-                        <div
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "flex-end",
-                            gap: 12,
-                            flex: "0 0 auto",
-                          }}
-                        >
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 6,
-                              color: days !== null && days <= 3 ? "var(--red)" : isUrgent ? "var(--amber)" : "var(--text-muted)",
-                              fontWeight: days !== null && days <= 3 ? 600 : 400,
-                              fontSize: 14,
-                            }}
-                          >
-                            <Clock size={14} />
-                            {days !== null ? (
-                              days > 0 ? `Closes ${format(new Date(posting.deadline), "MMM d")}` : "Closed"
-                            ) : "..."}
-                          </div>
-                          <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--purple)", fontWeight: 600, fontSize: 14 }}>
-                            View Role <ChevronRight size={16} />
-                          </div>
+                        {/* Right: deadline + CTA */}
+                        <div className="job-right">
+                          <span className="job-deadline" style={{ color: deadlineColor, fontWeight: isUrgent ? 600 : 400 }}>
+                            <Clock size={13} />
+                            {days !== null ? (days > 0 ? `Closes ${format(new Date(posting.deadline), "MMM d")}` : "Closed") : "…"}
+                          </span>
+                          <span className="job-cta">
+                            View Role <ChevronRight size={15} />
+                          </span>
                         </div>
-                      </div>
-                    </article>
-                  </Link>
-                </motion.div>
-              );
-            })}
-            </AnimatePresence>
-          </motion.div>
-        )}
-      </section>
+                      </Link>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </motion.div>
+          )}
+        </section>
 
-      <footer
-        style={{
-          borderTop: "1px solid var(--border)",
-          padding: "40px 24px",
-          marginTop: 60,
-          textAlign: "center",
-          color: "var(--text-muted)",
-          fontSize: 14,
-        }}
-      >
-        <div style={{ display: "flex", justifyContent: "center", gap: 24, marginBottom: 16, flexWrap: "wrap" }}>
-          <a href="/careers/status" style={{ color: "var(--text-secondary)", textDecoration: "none" }}>Track Application</a>
-          <a href="mailto:careers@cyberlabsec.tech" style={{ color: "var(--text-secondary)", textDecoration: "none" }}>careers@cyberlabsec.tech</a>
-          <a href="https://cyberlabsec.tech" style={{ color: "var(--text-secondary)", textDecoration: "none" }}>cyberlabsec.tech</a>
-        </div>
-        © {new Date().getFullYear()} CyberLabSec. All rights reserved.
-      </footer>
-    </div>
+        <footer style={{ borderTop: "1px solid var(--border)", padding: "36px 24px", textAlign: "center", color: "var(--text-muted)", fontSize: 13 }}>
+          <div style={{ display: "flex", justifyContent: "center", gap: 24, marginBottom: 12, flexWrap: "wrap" }}>
+            <a href="/careers/status" style={{ color: "var(--text-secondary)", textDecoration: "none" }}>Track Application</a>
+            <a href="mailto:careers@cyberlabsec.tech" style={{ color: "var(--text-secondary)", textDecoration: "none" }}>careers@cyberlabsec.tech</a>
+            <a href="https://cyberlabsec.tech" style={{ color: "var(--text-secondary)", textDecoration: "none" }}>cyberlabsec.tech</a>
+          </div>
+          © {new Date().getFullYear()} CyberLabSec. All rights reserved.
+        </footer>
+      </div>
+    </>
   );
 }
