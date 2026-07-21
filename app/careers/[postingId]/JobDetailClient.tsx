@@ -362,7 +362,7 @@ export default function JobDetailClient({ posting }: { posting: Posting }) {
             <div style={{ minWidth: 0 }}>
               <div style={{ fontWeight: 700, color: "var(--text-primary)", fontSize: 15, marginBottom: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{posting.title}</div>
               {postedDays !== null && (
-                <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                <div style={{ fontSize: 12, color: "var(--text-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {postedDays === 0 ? "Posted today" : `Posted ${postedDays}d ago`}
                   {posting.showApplicantCount && ` · ${posting._count.applicants} applicant${posting._count.applicants !== 1 ? "s" : ""}`}
                   {posting.stipend && ` · ${posting.stipend}/mo`}

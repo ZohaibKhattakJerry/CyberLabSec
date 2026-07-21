@@ -275,16 +275,18 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
         </div>
 
         {/* Step indicator */}
-        <div style={{ display: "flex", gap: 12, marginBottom: 36, alignItems: "center", overflowX: "auto", paddingBottom: 8, WebkitOverflowScrolling: "touch", scrollbarWidth: "none", flexWrap: "nowrap" }}>
-          {[1, 2, 3, 4].map((s) => (
-            <div key={s} style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
-              <div style={{ width: 32, height: 32, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, background: s === step ? "var(--purple)" : s < step ? "rgba(168,85,247,0.2)" : "rgba(255,255,255,0.04)", color: s === step ? "#fff" : s < step ? "var(--purple-light)" : "var(--text-muted)", transition: "all 0.3s ease", border: s === step ? "none" : "1px solid rgba(255,255,255,0.05)" }}>
-                {s < step ? <CheckCircle size={16} /> : s}
+        <div style={{ display: "flex", gap: 12, marginBottom: 36, alignItems: "center", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "clamp(4px, 2vw, 12px)", flex: "1 1 auto", minWidth: 200 }}>
+            {[1, 2, 3, 4].map((s) => (
+              <div key={s} style={{ display: "flex", alignItems: "center", flex: s < 4 ? "1 1 auto" : "0 0 auto", gap: "clamp(4px, 2vw, 12px)" }}>
+                <div style={{ width: 32, height: 32, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, background: s === step ? "var(--purple)" : s < step ? "rgba(168,85,247,0.2)" : "rgba(255,255,255,0.04)", color: s === step ? "#fff" : s < step ? "var(--purple-light)" : "var(--text-muted)", transition: "all 0.3s ease", border: s === step ? "none" : "1px solid rgba(255,255,255,0.05)", flexShrink: 0 }}>
+                  {s < step ? <CheckCircle size={16} /> : s}
+                </div>
+                {s < 4 && <div style={{ flex: "1 1 auto", minWidth: 10, height: 2, background: s < step ? "rgba(168,85,247,0.4)" : "rgba(255,255,255,0.06)", transition: "all 0.3s ease", borderRadius: 1 }} />}
               </div>
-              {s < 4 && <div style={{ width: 32, height: 2, background: s < step ? "rgba(168,85,247,0.4)" : "rgba(255,255,255,0.06)", transition: "all 0.3s ease", borderRadius: 1 }} />}
-            </div>
-          ))}
-          <span style={{ marginLeft: 16, fontSize: 14, color: "var(--text-primary)", fontWeight: 600, whiteSpace: "nowrap", flexShrink: 0 }}>
+            ))}
+          </div>
+          <span style={{ fontSize: 14, color: "var(--text-primary)", fontWeight: 600, flexShrink: 0 }}>
             {step === 1 ? "Personal Info" : step === 2 ? "Security Profile" : step === 3 ? "Documents" : "Review"}
           </span>
         </div>
@@ -324,7 +326,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                   )}
 
 
-                  <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
                     <Field label="Phone Number" required error={errors.phone}>
                       <input className={`input${errors.phone ? " input-error" : ""}`} value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="03XX-XXXXXXX" />
                     </Field>
@@ -349,7 +351,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                   
                   {posting.universityRequired && (
                     <>
-                      <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
                         <Field label="University Name" required error={errors.universityName}>
                           <input className={`input${errors.universityName ? " input-error" : ""}`} value={form.universityName} onChange={(e) => set("universityName", e.target.value)} placeholder="University name" />
                         </Field>
@@ -360,7 +362,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                           </select>
                         </Field>
                       </div>
-                      <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
                         <Field label="Degree & Field of Study" required error={errors.degree}>
                           <input className={`input${errors.degree ? " input-error" : ""}`} value={form.degree} onChange={(e) => set("degree", e.target.value)} placeholder="e.g. BS Computer Science" />
                         </Field>
@@ -371,7 +373,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                     </>
                   )}
 
-                  <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
                     <Field label="LinkedIn">
                       <input className="input" value={form.linkedIn} onChange={(e) => set("linkedIn", e.target.value)} placeholder="https://linkedin.com/in/..." />
                     </Field>
@@ -566,9 +568,9 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                       ...(form.hackTheBox ? [["HackTheBox", form.hackTheBox]] : []),
                       ...(form.certifications && form.certifications !== "None yet" ? [["Certs", form.certifications]] : []),
                     ].map(([k, v]) => (
-                      <div key={k} style={{ display: "flex", gap: 16, borderBottom: "1px solid rgba(255,255,255,0.03)", paddingBottom: 16, alignItems: "flex-start" }}>
+                      <div key={k} style={{ display: "flex", flexWrap: "wrap", gap: "4px 16px", borderBottom: "1px solid rgba(255,255,255,0.03)", paddingBottom: 16, alignItems: "baseline" }}>
                         <span style={{ color: "var(--text-muted)", width: 100, flexShrink: 0, fontWeight: 500 }}>{k}</span>
-                        <span style={{ color: "var(--text-primary)", wordBreak: "break-word", fontWeight: 600 }}>{v}</span>
+                        <span style={{ color: "var(--text-primary)", wordBreak: "break-word", fontWeight: 600, flex: "1 1 auto", minWidth: 150 }}>{v}</span>
                       </div>
                     ))}
                   </div>
