@@ -111,7 +111,11 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
     setTrackResult(null);
     setTrackLoading(true);
     try {
-      const res = await fetch(`/api/applications/status?ref=${encodeURIComponent(refId.trim())}`);
+      const res = await fetch(`/api/applications/status-check`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ referenceId: refId.trim() })
+      });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
         setTrackError(d.error || "No application found with that reference ID.");
