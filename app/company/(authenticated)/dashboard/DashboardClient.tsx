@@ -106,13 +106,13 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
 
         /* === KPI CARD === */
         .co-kpi-card {
-          background: linear-gradient(145deg, rgba(20,30,50,0.75) 0%, rgba(10,15,30,0.85) 100%);
+          background: rgba(15,20,35,0.5);
           border-radius: 16px;
           padding: 20px;
           border-top: 3px solid var(--kpi-color, rgba(255,255,255,0.1));
-          border-left: 1px solid rgba(255,255,255,0.05);
-          border-right: 1px solid rgba(255,255,255,0.05);
-          border-bottom: 1px solid rgba(255,255,255,0.05);
+          border-left: 1px solid rgba(255,255,255,0.07);
+          border-right: 1px solid rgba(255,255,255,0.07);
+          border-bottom: 1px solid rgba(255,255,255,0.07);
           display: flex;
           flex-direction: column;
           gap: 14px;
@@ -121,8 +121,8 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
           transition: transform 0.25s ease, box-shadow 0.25s ease, border-top-color 0.25s ease;
           cursor: pointer;
           text-decoration: none;
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
           -webkit-tap-highlight-color: transparent;
           touch-action: manipulation;
         }
@@ -137,22 +137,27 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
           pointer-events: none;
         }
         .co-kpi-card:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 16px 36px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06);
+          transform: translateY(-3px);
+          border-color: rgba(168,85,247,0.25);
+          box-shadow: 0 12px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(168,85,247,0.08);
         }
         .co-kpi-card:active {
-          transform: scale(0.97);
+          transform: scale(0.98) translateY(0);
           box-shadow: none;
         }
 
         /* === GLASS CARD === */
         .co-glass {
-          background: rgba(10,15,30,0.65);
+          background: rgba(15,20,35,0.45);
           border: 1px solid rgba(255,255,255,0.07);
           border-radius: 18px;
           backdrop-filter: blur(12px);
           -webkit-backdrop-filter: blur(12px);
           box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+        }
+        .co-glass:hover {
+          border-color: rgba(255,255,255,0.12);
+          box-shadow: 0 12px 40px rgba(0,0,0,0.35);
         }
 
         /* === ATTENTION CARD === */
@@ -162,9 +167,9 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
           justify-content: space-between;
           gap: 12px;
           padding: 12px 14px;
-          background: rgba(10,15,30,0.5);
+          background: rgba(255,255,255,0.02);
           border-radius: 10px;
-          border: 1px solid rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,255,255,0.05);
           flex-wrap: wrap;
         }
 
