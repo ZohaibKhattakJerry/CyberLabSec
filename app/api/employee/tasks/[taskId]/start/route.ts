@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthFromCookies } from "@/lib/auth";
 
-export async function PATCH(req: NextRequest, { params }: { params: { taskId: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ taskId: string }> }) {
   const auth = await getAuthFromCookies("employee");
   if (!auth || auth.role !== "employee") return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const task = await prisma.task.findUnique({ where: { id: params.taskId } });
+  const { taskId } = await params;
+  const task = await prisma.task.findUnique({ where: { id: taskId } });
   if (!task) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   // IDOR: employee must be on the same team
@@ -15,7 +16,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { taskId: st
 
   if (task.status !== "Assigned") return NextResponse.json({ message: "Already started" }, { status: 200 });
 
-  await prisma.task.update({ where: { id: params.taskId }, data: { status: "In Progress" } });
+  await prisma.task.update({ where: { id: taskId }, data: { status: "In Progress" } });
 
   // Notify via activity log
   await prisma.activityLog.create({

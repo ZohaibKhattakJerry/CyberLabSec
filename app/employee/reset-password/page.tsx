@@ -57,19 +57,26 @@ function ResetPasswordForm() {
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error || "Reset failed"); return; }
-      setSuccess(true);
+      
+      if (!token) {
+        // Authenticated forced-reset flow: redirect straight to dashboard/onboarding
+        router.push("/employee/dashboard");
+      } else {
+        // Public forgot-password flow: show success screen with login link
+        setSuccess(true);
+      }
     } catch { setError("Network error. Please try again."); }
     finally { setLoading(false); }
   };
 
   if (success) {
     return (
-      <div style={{ textAlign: "center", padding: "20px 0" }}>
+      <div style={{ textAlign: "center", padding: "20px 0", animation: "fadeIn 0.3s ease-out" }}>
         <CheckCircle size={40} color="var(--green)" style={{ margin: "0 auto 16px" }} />
-        <h3 style={{ fontSize: 16, fontWeight: 600, color: "var(--green)", marginBottom: 8 }}>Password Reset Successful</h3>
-        <p style={{ fontSize: 14, color: "var(--text-secondary)" }}>Your password has been securely updated.</p>
-        <div style={{ marginTop: 24 }}>
-          <Link href="/employee/login" className="btn btn-secondary" style={{ width: "100%", justifyContent: "center", textDecoration: "none" }}>Sign In Now</Link>
+        <h3 style={{ fontSize: 18, fontWeight: 700, color: "var(--green)", marginBottom: 8 }}>Password Reset Successful</h3>
+        <p style={{ fontSize: 14, color: "var(--text-secondary)", marginBottom: 24 }}>Your password has been securely updated.</p>
+        <div>
+          <Link href="/employee/login" className="btn btn-primary" style={{ width: "100%", justifyContent: "center", textDecoration: "none", padding: "12px" }}>Sign In Now</Link>
         </div>
       </div>
     );

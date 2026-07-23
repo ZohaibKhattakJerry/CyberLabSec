@@ -20,6 +20,10 @@ export async function PATCH(
   if (tier !== undefined) updateData.tier = tier;
   if (startDate !== undefined) updateData.startDate = startDate ? new Date(startDate) : null;
   if (endDate !== undefined) updateData.endDate = endDate ? new Date(endDate) : null;
+  if (body.resetOnboarding) {
+    updateData.policyAcknowledgedAt = null;
+    updateData.onboardingCompleted = false;
+  }
   
   const emp = await prisma.employee.findUnique({ where: { id: employeeId } });
   if (!emp) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -50,6 +54,19 @@ export async function PATCH(
         });
       } catch (e) {
         console.error("Failed to send termination email:", e);
+      }
+
+      if (terminationFileBase64) {
+        await prisma.employeeDocument.create({
+          data: {
+            employeeId: emp.id,
+            title: emp.employmentType === "Intern" ? "Internship Completion Certificate" : "Relieving Letter",
+            type: "Exit",
+            fileUrl: `data:application/pdf;base64,${terminationFileBase64}`,
+            status: "Available",
+            uploadedBy: auth.sub
+          }
+        });
       }
     }
   }

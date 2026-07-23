@@ -4,7 +4,8 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { format } from "date-fns";
-import { Search, UserX, UserCheck, Edit2, X, Loader2, Shield, Award, UserPlus, FileSignature, CheckCircle, UserMinus, Download, Star, Users } from "lucide-react";
+import { Search, UserX, UserCheck, Edit2, X, Loader2, Shield, Award, UserPlus, FileSignature, CheckCircle, UserMinus, Download, Star, Users, UploadCloud, RotateCw } from "lucide-react";
+import confetti from "canvas-confetti";
 
 type Employee = {
   id: string; name: string; email: string; designation: string;
@@ -168,23 +169,51 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
     startTransition(() => { router.refresh(); setEditEmployee(null); });
   };
 
-  const submitDirectHire = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const reRunOnboarding = async () => {
+    if (!editEmployee) return;
     setLoading(true); setMsg("");
-    const res = await fetch(`/api/company/employees/direct-hire`, {
-      method: "POST",
+    const res = await fetch(`/api/company/employees/${editEmployee.id}`, {
+      method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(dhData),
+      body: JSON.stringify({ resetOnboarding: true }),
     });
     const data = await res.json();
     setLoading(false);
-    if (!res.ok) { setMsg(data.error || "Failed to create employee."); return; }
-    setMsg(`Success! Employee code: ${data.employeeCode}`);
-    setTimeout(() => {
-      setShowDirectHire(false);
-      startTransition(() => router.refresh());
-      setDhData({ name: "", email: "", designation: "", teamId: "", tier: "Standard", employmentType: "Employee", startDate: new Date().toISOString().split('T')[0], durationMonths: "3", offerLetterBase64: "", cvBase64: "", linkedinUrl: "" });
-    }, 1500);
+    if (!res.ok) { setMsg(data.error || "Failed"); return; }
+    setMsg("Onboarding reset. Employee will see it on next login.");
+    startTransition(() => { router.refresh(); });
+  };
+
+  const submitDirectHire = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!dhData.cvBase64 || !dhData.offerLetterBase64) {
+      setMsg("Please provide both the CV and Offer Letter (PDFs).");
+      return;
+    }
+    setLoading(true); setMsg("");
+    try {
+      const res = await fetch(`/api/company/employees/direct-hire`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dhData),
+      });
+      const data = await res.json();
+      setLoading(false);
+      if (!res.ok) { setMsg(data.error || "Failed to create employee."); return; }
+      
+      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+      setMsg(`Success! Employee code: ${data.employeeCode}`);
+      
+      setTimeout(() => {
+        setShowDirectHire(false);
+        startTransition(() => router.refresh());
+        setDhData({ name: "", email: "", designation: "", teamId: "", tier: "Standard", employmentType: "Employee", startDate: new Date().toISOString().split('T')[0], durationMonths: "3", offerLetterBase64: "", cvBase64: "", linkedinUrl: "" });
+      }, 1500);
+    } catch (error) {
+      console.error(error);
+      setLoading(false);
+      setMsg("A critical error occurred. Please try again.");
+    }
   };
 
   const handleOfferLetterUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -375,100 +404,145 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
         </button>
       </div>
 
-      <div className="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Employee</th>
-              <th>Role</th>
-              <th>Tier</th>
-              <th>Team</th>
-              <th>Type</th>
-              <th>Onboarding</th>
-              <th>Start Date</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((e: any) => (
-              <tr key={e.id}>
-                <td data-label="Employee">
-                  <div style={{ fontWeight: 600, fontSize: 13, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 6 }}>
-                    {e.name}
-                    {e.mustResetPassword && <span className="badge badge-amber" style={{ fontSize: 9 }}>Must Reset PW</span>}
-                  </div>
-                  <div style={{ fontSize: 11, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginTop: 4 }}>
-                    <span>{e.employeeCode} · {e.email}</span>
-                    <span className={`badge ${e.applicantId ? "badge-blue" : "badge-purple"}`} style={{ fontSize: 9, padding: "2px 6px" }}>
-                      Source: {e.applicantId ? "Application Hire" : "Direct Hire"}
-                    </span>
-                  </div>
-                </td>
-                <td data-label="Role" style={{ fontSize: 13 }}>{e.designation}</td>
-                <td data-label="Tier" style={{ fontSize: 13 }}>
-                  <span className={`badge ${e.tier === "Executive" ? "badge-amber" : e.tier === "Lead" ? "badge-blue" : "badge-gray"}`}>{e.tier || "Standard"}</span>
-                </td>
-                <td data-label="Team" style={{ fontSize: 13 }}>{e.team?.name || <span style={{ color: "var(--text-muted)" }}>Unassigned</span>}</td>
-                <td data-label="Type">
-                  <span className={`badge ${e.employmentType === "Employee" ? "badge-blue" : "badge-purple"}`}>
-                    {e.employmentType === "Employee" ? <Shield size={10} /> : <Award size={10} />}
-                    {e.employmentType}
-                  </span>
-                </td>
-                <td data-label="Onboarding" style={{ fontSize: 13 }}>
-                  {e.onboardingCompleted ? <span style={{ color: "var(--green)", display: "flex", alignItems: "center", gap: 4 }}><CheckCircle size={12} /> Completed</span> : <span style={{ color: "var(--amber)" }}>Pending</span>}
-                </td>
-                <td data-label="Start Date" style={{ fontSize: 12, color: "var(--text-muted)" }}>{format(new Date(e.startDate), "MMM d, yyyy")}</td>
-                <td data-label="Status">
-                  <span className={`badge ${e.status === "Active" ? "badge-green" : e.status === "Inactive" ? "badge-gray" : "badge-red"}`}>{e.status}</span>
-                </td>
-                <td data-label="Actions">
-                  <div style={{ display: "flex", gap: 6 }}>
-                    <button className="btn btn-ghost btn-sm" onClick={() => { setBadgeEmployee(e); setMsg(""); }} title="Award Badge"><Star size={13} color="var(--amber)" /></button>
-                    <button className="btn btn-ghost btn-sm" onClick={() => { setAnalyticsEmployee(e); setGeneratedReport(null); }} title="Performance Analytics"><Award size={13} /></button>
-                    <button className="btn btn-ghost btn-sm" onClick={() => openEdit(e)} title="Edit"><Edit2 size={13} /></button>
-                    <Link href={`/company/employees/${e.id}`} className="btn btn-ghost btn-sm" title="View Profile & Documents"><FileSignature size={13} /></Link>
-                    {e.status === "Active" && (
-                      <>
-                        <button
-                          className="btn btn-sm btn-danger"
-                          onClick={() => toggleStatus(e.id, e.status)}
-                          title="Terminate Employee"
-                        >
-                          <UserX size={13} />
-                        </button>
-                        <button
-                          className="btn btn-sm btn-secondary"
-                          onClick={() => { setOffboardEmployee(e); setOffboardForm({ reason: "internship_completed", effectiveDate: "", generateCertificate: false, generateLoR: false, customCertificateBase64: "", customLorBase64: "" }); setMsg(""); setOffboardSuccessLinks({cert: null, lor: null}); }}
-                          title="Offboard Employee"
-                        >
-                          <UserMinus size={13} />
-                        </button>
-                      </>
-                    )}
-                    {(e.status === "Terminated" || e.status === "Inactive") && (
-                      <>
-                        <button className="btn btn-sm btn-secondary" onClick={() => toggleStatus(e.id, e.status)} disabled={loading} title="Reactivate"><UserCheck size={13} /></button>
-                        <button className="btn btn-sm btn-danger" onClick={() => deleteEmployee(e.id)} disabled={loading} title="Delete"><X size={13} /></button>
-                      </>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* ── Stats Bar ── */}
+      <div className="emp-stats-row">
+        <div className="emp-stat-chip">
+          <span className="emp-stat-num">{employees.length}</span>
+          <span className="emp-stat-label">Total</span>
+        </div>
+        <div className="emp-stat-chip">
+          <span className="emp-stat-num" style={{ color: "var(--green)" }}>{employees.filter(e => e.status === "Active").length}</span>
+          <span className="emp-stat-label">Active</span>
+        </div>
+        <div className="emp-stat-chip">
+          <span className="emp-stat-num" style={{ color: "var(--amber)" }}>{employees.filter(e => e.employmentType === "Intern").length}</span>
+          <span className="emp-stat-label">Interns</span>
+        </div>
+        <div className="emp-stat-chip">
+          <span className="emp-stat-num" style={{ color: "var(--purple)" }}>{employees.filter(e => e.employmentType === "Employee" || e.employmentType === "Full-Time").length}</span>
+          <span className="emp-stat-label">Employees</span>
+        </div>
+        <div className="emp-stat-chip">
+          <span className="emp-stat-num" style={{ color: "#60a5fa" }}>{employees.filter(e => !e.onboardingCompleted).length}</span>
+          <span className="emp-stat-label">Pending Onboard</span>
+        </div>
       </div>
+
+      {/* ── Employee Card Grid ── */}
+      <div className="emp-card-grid">
+        {filtered.map((e: any) => {
+          const initials = e.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase();
+          const gradients = [
+            "linear-gradient(135deg, #7c3aed, #a855f7)",
+            "linear-gradient(135deg, #1d4ed8, #3b82f6)",
+            "linear-gradient(135deg, #065f46, #10b981)",
+            "linear-gradient(135deg, #92400e, #f59e0b)",
+            "linear-gradient(135deg, #9f1239, #f43f5e)",
+          ];
+          const grad = gradients[e.name.charCodeAt(0) % gradients.length];
+
+          return (
+            <div key={e.id} className="emp-card">
+              {/* Card Header */}
+              <div className="emp-card-header">
+                <div className="emp-avatar" style={{ background: grad }}>{initials}</div>
+                <div className="emp-card-identity">
+                  <div className="emp-card-name">
+                    {e.name}
+                    {e.mustResetPassword && <span className="badge badge-amber" style={{ fontSize: 9 }}>Reset PW</span>}
+                  </div>
+                  <div className="emp-card-code">{e.employeeCode}</div>
+                  <div className="emp-card-email">{e.email}</div>
+                </div>
+                <div className="emp-card-status-col">
+                  <span className={`badge ${e.status === "Active" ? "badge-green" : e.status === "Terminated" ? "badge-red" : "badge-gray"}`}>
+                    {e.status}
+                  </span>
+                </div>
+              </div>
+
+              {/* Card Meta */}
+              <div className="emp-card-meta">
+                <div className="emp-meta-item">
+                  <span className="emp-meta-label">Role</span>
+                  <span className="emp-meta-value">{e.designation || "—"}</span>
+                </div>
+                <div className="emp-meta-item">
+                  <span className="emp-meta-label">Team</span>
+                  <span className="emp-meta-value">{e.team?.name || <span style={{ color: "var(--text-muted)" }}>Unassigned</span>}</span>
+                </div>
+                <div className="emp-meta-item">
+                  <span className="emp-meta-label">Start Date</span>
+                  <span className="emp-meta-value">{format(new Date(e.startDate), "MMM d, yyyy")}</span>
+                </div>
+                <div className="emp-meta-item">
+                  <span className="emp-meta-label">Onboarding</span>
+                  <span className="emp-meta-value" style={{ color: e.onboardingCompleted ? "var(--green)" : "var(--amber)", display: "flex", alignItems: "center", gap: 4 }}>
+                    {e.onboardingCompleted ? <><CheckCircle size={11} /> Done</> : "Pending"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Badges Row */}
+              <div className="emp-card-badges">
+                <span className={`badge ${e.tier === "Executive" ? "badge-amber" : e.tier === "Lead" ? "badge-blue" : "badge-gray"}`} style={{ fontSize: 10 }}>
+                  {e.tier || "Standard"}
+                </span>
+                <span className={`badge ${e.employmentType === "Employee" || e.employmentType === "Full-Time" ? "badge-blue" : "badge-purple"}`} style={{ fontSize: 10 }}>
+                  {e.employmentType === "Employee" ? <Shield size={9} /> : <Award size={9} />}{e.employmentType}
+                </span>
+                <span className={`badge ${e.applicantId ? "badge-blue" : "badge-purple"}`} style={{ fontSize: 9, opacity: 0.8 }}>
+                  {e.applicantId ? "Application" : "Direct Hire"}
+                </span>
+              </div>
+
+              {/* Action Tray */}
+              <div className="emp-card-actions">
+                <button className="emp-action-btn" onClick={() => { setBadgeEmployee(e); setMsg(""); }} title="Award Badge">
+                  <Star size={13} color="var(--amber)" /><span>Badge</span>
+                </button>
+                <button className="emp-action-btn" onClick={() => { setAnalyticsEmployee(e); setGeneratedReport(null); }} title="Performance Analytics">
+                  <Award size={13} /><span>Analytics</span>
+                </button>
+                <button className="emp-action-btn" onClick={() => openEdit(e)} title="Edit">
+                  <Edit2 size={13} /><span>Edit</span>
+                </button>
+                <Link href={`/company/employees/${e.id}`} className="emp-action-btn" title="View Profile & Documents">
+                  <FileSignature size={13} /><span>Docs</span>
+                </Link>
+                {e.status === "Active" && (
+                  <>
+                    <button className="emp-action-btn emp-action-danger" onClick={() => toggleStatus(e.id, e.status)} title="Terminate">
+                      <UserX size={13} /><span>Terminate</span>
+                    </button>
+                    <button className="emp-action-btn emp-action-secondary" onClick={() => { setOffboardEmployee(e); setOffboardForm({ reason: "internship_completed", effectiveDate: "", generateCertificate: false, generateLoR: false, customCertificateBase64: "", customLorBase64: "" }); setMsg(""); setOffboardSuccessLinks({cert: null, lor: null}); }} title="Offboard">
+                      <UserMinus size={13} /><span>Offboard</span>
+                    </button>
+                  </>
+                )}
+                {(e.status === "Terminated" || e.status === "Inactive") && (
+                  <>
+                    <button className="emp-action-btn emp-action-danger" onClick={() => deleteEmployee(e.id)} disabled={loading} title="Delete Permanently">
+                      <X size={13} /><span>Delete</span>
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
       {filtered.length === 0 && (
         <div className="empty-state">
           <div className="empty-state-icon-wrapper">
-            <Search size={28} />
+            <Users size={28} />
           </div>
           <div className="empty-state-title">No employees found</div>
-          <div className="empty-state-description">We couldn't find any employees matching your current search or filter criteria.</div>
+          <div className="empty-state-description">We couldn&apos;t find any employees matching your current search or filter criteria.</div>
         </div>
       )}
+
       
       {/* Terminate Employee Modal */}
       {terminateEmployee && (
@@ -511,26 +585,26 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
       {/* Direct Hire Modal */}
       {showDirectHire && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-          <div className="card" style={{ maxWidth: 500, width: "100%", padding: 32 }}>
-            <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-              <h2 style={{ fontSize: 18, fontWeight: 700 }}>Direct Hire</h2>
-              <button onClick={() => setShowDirectHire(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}><X size={18} /></button>
+          <div className="card" style={{ maxWidth: 500, width: "100%", maxHeight: "90vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+            <div style={{ padding: 24, borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
+              <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Direct Hire</h2>
+              <button onClick={() => setShowDirectHire(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: 0 }}><X size={18} /></button>
             </div>
             
-            <form onSubmit={submitDirectHire} style={{ display: "grid", gap: 16 }}>
+            <form onSubmit={submitDirectHire} style={{ overflowY: "auto", padding: 24, display: "grid", gap: 16 }}>
               <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 <div>
-                  <label className="label">Full Name</label>
+                  <label className="label label-required">Full Name</label>
                   <input required className="input" value={dhData.name} onChange={e => setDhData({...dhData, name: e.target.value})} />
                 </div>
                 <div>
-                  <label className="label">Email</label>
+                  <label className="label label-required">Email</label>
                   <input required type="email" className="input" value={dhData.email} onChange={e => setDhData({...dhData, email: e.target.value})} />
                 </div>
               </div>
               
               <div>
-                <label className="label">Role / Designation</label>
+                <label className="label label-required">Role / Designation</label>
                 <input required className="input" placeholder="e.g. SOC Analyst" value={dhData.designation} onChange={e => setDhData({...dhData, designation: e.target.value})} />
               </div>
 
@@ -541,12 +615,12 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
                 </p>
                 <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                   <div>
-                    <label className="label">Start Date</label>
-                    <input type="date" className="input" value={dhData.startDate} onChange={e => setDhData({...dhData, startDate: e.target.value})} />
+                    <label className="label label-required">Start Date</label>
+                    <input type="date" className="input" required value={dhData.startDate} onChange={e => setDhData({...dhData, startDate: e.target.value})} />
                   </div>
                   <div>
-                    <label className="label">Duration (Months)</label>
-                    <input type="number" min="1" className="input" value={dhData.durationMonths} onChange={e => setDhData({...dhData, durationMonths: e.target.value})} />
+                    <label className="label label-required">Duration (Months)</label>
+                    <input type="number" min="1" required className="input" value={dhData.durationMonths} onChange={e => setDhData({...dhData, durationMonths: e.target.value})} />
                   </div>
                 </div>
               </div>
@@ -585,23 +659,37 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
 
               <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 <div>
-                  <label className="label">CV / Resume (PDF, Optional)</label>
-                  <input type="file" accept="application/pdf" className="input" onChange={handleCvUpload} />
-                  {dhData.cvBase64 && <p style={{ fontSize: 13, color: "var(--green)", marginTop: 8, display: "flex", alignItems: "center", gap: 6 }}><CheckCircle size={14} /> CV attached</p>}
+                  <label className="label label-required">CV / Resume (PDF)</label>
+                  <div style={{ position: "relative" }}>
+                    <input type="file" accept="application/pdf" className="input" required style={{ opacity: 0, position: "absolute", inset: 0, cursor: "pointer", zIndex: 10 }} onChange={handleCvUpload} />
+                    <div className="input" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", color: dhData.cvBase64 ? "var(--green)" : "var(--text-muted)", background: dhData.cvBase64 ? "rgba(34,197,94,0.05)" : "transparent", borderColor: dhData.cvBase64 ? "rgba(34,197,94,0.4)" : "var(--border)" }}>
+                      <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: 13, fontWeight: dhData.cvBase64 ? 600 : 400 }}>
+                        {dhData.cvBase64 ? "CV Attached" : "Choose File"}
+                      </span>
+                      {dhData.cvBase64 ? <CheckCircle size={16} /> : <UploadCloud size={16} />}
+                    </div>
+                  </div>
                 </div>
                 <div>
-                  <label className="label">Offer Letter (PDF, Optional)</label>
-                  <input type="file" accept="application/pdf" className="input" onChange={handleOfferLetterUpload} />
-                  {dhData.offerLetterBase64 && <p style={{ fontSize: 13, color: "var(--green)", marginTop: 8, display: "flex", alignItems: "center", gap: 6 }}><CheckCircle size={14} /> Offer Letter attached</p>}
+                  <label className="label label-required">Offer Letter (PDF)</label>
+                  <div style={{ position: "relative" }}>
+                    <input type="file" accept="application/pdf" className="input" required style={{ opacity: 0, position: "absolute", inset: 0, cursor: "pointer", zIndex: 10 }} onChange={handleOfferLetterUpload} />
+                    <div className="input" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", color: dhData.offerLetterBase64 ? "var(--green)" : "var(--text-muted)", background: dhData.offerLetterBase64 ? "rgba(34,197,94,0.05)" : "transparent", borderColor: dhData.offerLetterBase64 ? "rgba(34,197,94,0.4)" : "var(--border)" }}>
+                      <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: 13, fontWeight: dhData.offerLetterBase64 ? 600 : 400 }}>
+                        {dhData.offerLetterBase64 ? "Offer Attached" : "Choose File"}
+                      </span>
+                      {dhData.offerLetterBase64 ? <CheckCircle size={16} /> : <UploadCloud size={16} />}
+                    </div>
+                  </div>
                 </div>
               </div>
 
               {msg && <div style={{ padding: 12, background: "rgba(147,51,234,0.1)", color: "var(--purple)", borderRadius: 8, fontSize: 13 }}>{msg}</div>}
 
-              <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
+              <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
                 <button type="button" className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setShowDirectHire(false)} disabled={loading}>Cancel</button>
-                <button type="submit" className="btn btn-primary" style={{ flex: 1 }} disabled={loading}>
-                  {loading ? <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> : "Create Account"}
+                <button type="submit" className="btn btn-primary" style={{ flex: 1, justifyContent: "center" }} disabled={loading}>
+                  {loading ? <Loader2 size={14} className="spin" /> : "Hire Now"}
                 </button>
               </div>
             </form>
@@ -612,7 +700,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
       {/* Edit Modal */}
       {editEmployee && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-          <div className="card" style={{ maxWidth: 480, width: "100%", padding: 32 }}>
+          <div className="card" style={{ maxWidth: 480, width: "100%", padding: 32, maxHeight: "90vh", overflowY: "auto" }}>
             <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
               <h2 style={{ fontSize: 16, fontWeight: 700 }}>Edit Employee — {editEmployee.name}</h2>
               <button onClick={() => setEditEmployee(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}><X size={18} /></button>
@@ -658,7 +746,20 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
               </div>
 
               {msg && <p style={{ fontSize: 13, color: "var(--green)" }}>{msg}</p>}
-              <div style={{ display: "flex", gap: 10 }}>
+              
+              <div style={{ marginTop: 8, padding: 16, background: "rgba(168,85,247,0.05)", border: "1px solid rgba(168,85,247,0.2)", borderRadius: 12 }}>
+                <h4 style={{ fontSize: 13, fontWeight: 700, color: "var(--purple)", marginBottom: 4, display: "flex", alignItems: "center", gap: 6 }}>
+                  <RotateCw size={14} /> Re-run Onboarding
+                </h4>
+                <p style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 12 }}>
+                  Clicking this will reset the employee's onboarding status. They will be forced to complete the onboarding wizard and view the guide again on their next login.
+                </p>
+                <button className="btn btn-secondary btn-sm" onClick={reRunOnboarding} disabled={loading} type="button" style={{ width: "100%", justifyContent: "center" }}>
+                  <RotateCw size={14} /> Trigger Re-run
+                </button>
+              </div>
+
+              <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
                 <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setEditEmployee(null)} disabled={loading}>Cancel</button>
                 <button className="btn btn-primary" style={{ flex: 1 }} onClick={saveEdit} disabled={loading}>
                   {loading ? <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> : "Save Changes"}

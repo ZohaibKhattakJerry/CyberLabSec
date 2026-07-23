@@ -65,62 +65,17 @@ export async function POST(
     }
   });
 
-  // Upload to Vercel Blob
-  let finalOfferLetterUrl = "";
   if (offerLetterBase64) {
-    const { put } = await import("@vercel/blob");
-    const buffer = Buffer.from(offerLetterBase64, "base64");
-    const blob = await put(`offer-letter-${code}.pdf`, buffer, {
-      access: "private",
-      contentType: "application/pdf"
+    await prisma.employeeDocument.create({
+      data: {
+        employeeId: employee.id,
+        title: "Initial Offer Letter",
+        type: "Offer Letter",
+        fileUrl: offerLetterBase64,
+        status: "Approved",
+        uploadedBy: auth.sub
+      }
     });
-    finalOfferLetterUrl = `/api/blob?url=${encodeURIComponent(blob.url)}`;
-  }
-
-  await prisma.employeeDocument.create({
-    data: {
-      employeeId: employee.id,
-      title: "Initial Offer Letter",
-      type: "Offer Letter",
-      fileUrl: finalOfferLetterUrl,
-      status: "Approved",
-      uploadedBy: auth.sub
-    }
-  });
-
-  const { generateAndUploadDocument, getNDATemplate, getCodeOfConductTemplate, getInternshipAgreementTemplate, getEmploymentContractTemplate, getFixedTermAgreementTemplate, getHandbookAcknowledgmentTemplate } = await import("@/lib/document-generator");
-  const d = new Date().toLocaleDateString("en-US");
-  
-  const ndaUrl = await generateAndUploadDocument(
-    "Non-Disclosure Agreement", employee.name, employee.designation, d, employee.employeeCode, getNDATemplate("CyberLabSec", employee.designation)
-  );
-  await prisma.employeeDocument.create({ data: { employeeId: employee.id, title: "NDA", type: "NDA", fileUrl: ndaUrl, status: "Pending Consent" } });
-
-  const cocUrl = await generateAndUploadDocument(
-    "Code of Conduct Acceptance", employee.name, employee.designation, d, employee.employeeCode, getCodeOfConductTemplate()
-  );
-  await prisma.employeeDocument.create({ data: { employeeId: employee.id, title: "Code of Conduct Acceptance", type: "Policy", fileUrl: cocUrl, status: "Pending Consent" } });
-
-  if (employee.employmentType === "Intern") {
-    const iaUrl = await generateAndUploadDocument(
-      "Internship Agreement", employee.name, employee.designation, d, employee.employeeCode, getInternshipAgreementTemplate(employee.designation)
-    );
-    await prisma.employeeDocument.create({ data: { employeeId: employee.id, title: "Internship Agreement", type: "Agreement", fileUrl: iaUrl, status: "Approved" } });
-  } else if (employee.employmentType === "Employee" || employee.employmentType === "Full-Time") {
-    const ecUrl = await generateAndUploadDocument(
-      "Employment Contract", employee.name, employee.designation, d, employee.employeeCode, getEmploymentContractTemplate(employee.designation)
-    );
-    await prisma.employeeDocument.create({ data: { employeeId: employee.id, title: "Employment Contract", type: "Agreement", fileUrl: ecUrl, status: "Approved" } });
-
-    const haUrl = await generateAndUploadDocument(
-      "Employee Handbook Acknowledgment", employee.name, employee.designation, d, employee.employeeCode, getHandbookAcknowledgmentTemplate()
-    );
-    await prisma.employeeDocument.create({ data: { employeeId: employee.id, title: "Employee Handbook Acknowledgment", type: "Policy", fileUrl: haUrl, status: "Pending Consent" } });
-  } else if (employee.employmentType === "Contract") {
-    const ftaUrl = await generateAndUploadDocument(
-      "Fixed-Term Agreement", employee.name, employee.designation, d, employee.employeeCode, getFixedTermAgreementTemplate(employee.designation)
-    );
-    await prisma.employeeDocument.create({ data: { employeeId: employee.id, title: "Fixed-Term Agreement", type: "Agreement", fileUrl: ftaUrl, status: "Approved" } });
   }
 
   await prisma.activityLog.create({

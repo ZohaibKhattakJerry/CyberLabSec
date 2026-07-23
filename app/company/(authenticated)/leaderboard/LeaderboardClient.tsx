@@ -132,41 +132,56 @@ export default function LeaderboardClient({
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg-base)", color: "var(--text-primary)", paddingBottom: 60 }}>
       <style>{`
-        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes pulseGlow { 0% { box-shadow: 0 0 10px rgba(168,85,247,0.2); } 50% { box-shadow: 0 0 30px rgba(168,85,247,0.6); } 100% { box-shadow: 0 0 10px rgba(168,85,247,0.2); } }
-        .row-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .row-hover:hover { background: rgba(255,255,255,0.06); transform: scale(1.02) translateX(6px); z-index: 10; position: relative; box-shadow: -4px 0 0 var(--purple), 0 15px 40px rgba(0,0,0,0.4); border-radius: 12px; }
-        .glass-header { background: radial-gradient(circle at 50% 0%, rgba(168,85,247,0.15) 0%, rgba(0,0,0,0) 70%), linear-gradient(135deg, rgba(168,85,247,0.1) 0%, rgba(59,130,246,0.1) 100%); border-bottom: 1px solid rgba(168,85,247,0.2); backdrop-filter: blur(20px); box-shadow: inset 0 0 60px rgba(168,85,247,0.05), 0 20px 60px rgba(0,0,0,0.3); }
-        .stat-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 24px; transition: 0.3s; backdrop-filter: blur(12px); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .stat-card:hover { border-color: rgba(168,85,247,0.4); background: rgba(168,85,247,0.08); transform: translateY(-4px); box-shadow: 0 15px 40px rgba(168,85,247,0.15); }
-        .input-dark { width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; color: var(--text-primary); font-size: 14px; outline: none; transition: 0.2s; }
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulseGlow { 0%,100% { box-shadow: 0 0 10px rgba(168,85,247,0.2); } 50% { box-shadow: 0 0 30px rgba(168,85,247,0.5); } }
+        .row-hover { transition: all 0.25s cubic-bezier(0.4,0,0.2,1); }
+        .row-hover:hover { background: rgba(168,85,247,0.08) !important; transform: translateX(4px); box-shadow: -3px 0 0 #a855f7; border-radius: 12px; }
+        .glass-header { background: radial-gradient(circle at 50% 0%, rgba(168,85,247,0.15), transparent 70%), linear-gradient(135deg, rgba(168,85,247,0.1), rgba(59,130,246,0.1)); border-bottom: 1px solid rgba(168,85,247,0.2); }
+        .stat-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 20px; transition: 0.3s; }
+        .stat-card:hover { border-color: rgba(168,85,247,0.4); background: rgba(168,85,247,0.06); transform: translateY(-3px); box-shadow: 0 12px 32px rgba(168,85,247,0.12); }
+        .input-dark { width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 14px; color: #fff; font-size: 14px; outline: none; transition: 0.2s; }
         .input-dark:focus { border-color: #a855f7; }
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: flex; alignItems: center; justify-content: center; z-index: 1000; }
-        .modal-content { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; width: 440px; max-width: 90%; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
-        .nav-btn { padding: 12px 28px; borderRadius: 30px; fontWeight: 700; cursor: pointer; transition: 0.3s; border: 1px solid transparent; text-transform: uppercase; letter-spacing: 1px; font-size: 13px; }
-        .nav-btn.active { background: linear-gradient(135deg, var(--purple), #6b21a8); color: #fff; animation: pulseGlow 2s infinite; border-color: rgba(168,85,247,0.5); }
-        .nav-btn.inactive { background: rgba(255,255,255,0.03); color: var(--text-secondary); border: 1px solid rgba(255,255,255,0.05); }
-        .nav-btn.inactive:hover { background: rgba(255,255,255,0.08); color: var(--text-primary); border-color: rgba(255,255,255,0.2); }
-        
-        .hero-title { font-size: 56px; font-weight: 900; margin-bottom: 16px; background: linear-gradient(to right, #fff, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.03em; }
-        .top-stats-container { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 24px; margin-top: -40px; position: relative; z-index: 10; margin-bottom: 60px; }
-        .action-buttons { display: flex; flex-direction: column; gap: 12px; }
-        .podium-container { display: flex; justify-content: center; align-items: flex-end; gap: min(5vw, 40px); margin-bottom: 80px; min-height: 300px; flex-wrap: wrap; }
-        .table-grid { display: grid; grid-template-columns: 80px 1fr 1fr 1.5fr 1fr; gap: 16px; padding: 16px 24px; }
-        .table-row-padding { padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.05); align-items: center; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 16px; }
+        .modal-content { background: var(--bg-card); border: 1px solid rgba(168,85,247,0.2); border-radius: 20px; width: 100%; max-width: 440px; padding: 28px; box-shadow: 0 25px 60px rgba(0,0,0,0.5); }
+        .nav-btn { padding: 10px 24px; border-radius: 30px; font-weight: 700; cursor: pointer; transition: 0.2s; border: 1px solid transparent; text-transform: uppercase; letter-spacing: 1px; font-size: 12px; }
+        .nav-btn.active { background: linear-gradient(135deg, #a855f7, #7c3aed); color: #fff; animation: pulseGlow 2s infinite; border-color: rgba(168,85,247,0.5); }
+        .nav-btn.inactive { background: rgba(255,255,255,0.04); color: #9ca3af; border: 1px solid rgba(255,255,255,0.07); }
+        .nav-btn.inactive:hover { background: rgba(255,255,255,0.08); color: #fff; }
 
-        @media (max-width: 768px) {
-          .hero-title { font-size: clamp(32px, 8vw, 48px); }
-          .top-stats-container { flex-direction: column; margin-top: -20px; }
-          .action-buttons { flex-direction: row; width: 100%; }
-          .action-buttons button { flex: 1; justify-content: center; }
-          .podium-container { gap: 10px; margin-bottom: 40px; min-height: 220px; }
-          .table-grid { grid-template-columns: 50px 1fr 1fr; padding: 12px 16px; gap: 8px; }
-          .table-row-padding { padding: 12px 16px; gap: 8px; }
-          .table-hide-mobile { display: none !important; }
+        /* HERO */
+        .hero-title { font-size: clamp(28px,7vw,52px); font-weight: 900; background: linear-gradient(to right, #fff, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.03em; margin-bottom: 16px; }
+
+        /* STATS */
+        .top-stats-container { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 40px; }
+
+        /* PODIUM */
+        .podium-container { display: flex; justify-content: center; align-items: flex-end; gap: clamp(10px,4vw,40px); margin-bottom: 60px; min-height: 250px; flex-wrap: wrap; }
+
+        /* TABLE — responsive */
+        .lb-table-wrap { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; overflow: hidden; }
+        .lb-header { display: grid; grid-template-columns: 56px 1fr auto; gap: 12px; padding: 12px 20px; background: rgba(0,0,0,0.25); font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.07em; }
+        .lb-row { display: grid; grid-template-columns: 56px 1fr auto; gap: 12px; padding: 14px 20px; border-top: 1px solid rgba(255,255,255,0.04); align-items: center; }
+        .lb-team-col { font-size: 12px; color: #6b7280; margin-top: 2px; }
+        .lb-bar-col { display: none; }
+        .lb-badge-col { display: none; }
+
+        @media (min-width: 600px) {
+          .lb-header { grid-template-columns: 60px 1fr 1fr 1.5fr auto; }
+          .lb-row { grid-template-columns: 60px 1fr 1fr 1.5fr auto; }
+          .lb-team-col { display: block; font-size: 13px; }
+          .lb-bar-col { display: flex; align-items: center; }
         }
+
+        /* DEPT bars — always visible */
+        .dept-row { display: grid; grid-template-columns: minmax(70px,140px) 1fr minmax(60px,90px); align-items: center; gap: 10px; }
+        @media (max-width: 480px) { .dept-row { grid-template-columns: minmax(60px,100px) 1fr 70px; gap: 6px; } }
+
+        /* Action buttons */
+        .action-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+        .action-buttons button { flex: 1; min-width: 130px; justify-content: center; }
       `}</style>
+
 
       {/* HEADER SECTION */}
       <div className="glass-header" style={{ padding: "60px 40px", textAlign: "center", position: "relative", overflow: "hidden" }}>
@@ -196,23 +211,23 @@ export default function LeaderboardClient({
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
         
         {/* TOP STATS & ACTIONS */}
-        <div className="top-stats-container">
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 20, flex: 1 }}>
+        <div className="top-stats-container" style={{ paddingTop: 20 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 14, flex: 1 }}>
             <div className="stat-card">
-              <div style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 8, fontWeight: 600 }}>Total Points Awarded</div>
-              <div style={{ fontSize: 32, fontWeight: 800, color: "#a855f7" }}>{totalPointsThisMonth.toLocaleString()}</div>
+              <div style={{ fontSize: 12, color: "#9ca3af", marginBottom: 6, fontWeight: 600 }}>Total Points</div>
+              <div style={{ fontSize: 28, fontWeight: 900, color: "#a855f7" }}>{totalPointsThisMonth.toLocaleString()}</div>
             </div>
             <div className="stat-card">
-              <div style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 8, fontWeight: 600 }}>Active Employees</div>
-              <div style={{ fontSize: 32, fontWeight: 800 }}>{employees.length}</div>
+              <div style={{ fontSize: 12, color: "#9ca3af", marginBottom: 6, fontWeight: 600 }}>Active Employees</div>
+              <div style={{ fontSize: 28, fontWeight: 900 }}>{employees.length}</div>
             </div>
           </div>
           <div className="action-buttons">
-            <button onClick={handleExport} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "white", padding: "12px 20px", borderRadius: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, transition: "0.2s" }}>
-              <Download size={18} /> Export CSV
+            <button onClick={handleExport} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", padding: "10px 18px", borderRadius: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
+              <Download size={16} /> Export CSV
             </button>
-            <button onClick={() => setShowAdjustModal(true)} style={{ background: "#a855f7", border: "none", color: "white", padding: "12px 20px", borderRadius: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, transition: "0.2s" }}>
-              <PlusCircle size={18} /> Adjust Points
+            <button onClick={() => setShowAdjustModal(true)} style={{ background: "linear-gradient(135deg, #a855f7, #7c3aed)", border: "none", color: "#fff", padding: "10px 18px", borderRadius: 12, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
+              <PlusCircle size={16} /> Adjust Points
             </button>
           </div>
         </div>
@@ -225,21 +240,21 @@ export default function LeaderboardClient({
         </div>
 
         {/* DEPARTMENT BREAKDOWN CHART */}
-        <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)", borderRadius: 16, padding: "24px 32px", marginBottom: 40, boxShadow: "0 10px 40px rgba(0,0,0,0.1)" }}>
-          <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 24, display: "flex", alignItems: "center", gap: 10 }}>
-            <Users size={20} color="#3b82f6" /> Department Performance
+        <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: "clamp(16px,3vw,28px)", marginBottom: 36 }}>
+          <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 20, display: "flex", alignItems: "center", gap: 10 }}>
+            <Users size={18} color="#3b82f6" /> Team Performance
           </h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {teamRankings.map((t, i) => {
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {teamRankings.map((t) => {
               const pts = getTeamPoints(t);
               const percent = maxTeamPoints > 0 ? (pts / maxTeamPoints) * 100 : 0;
               return (
-                <div key={t.id} style={{ display: "grid", gridTemplateColumns: "minmax(80px, 150px) 1fr minmax(60px, 100px)", alignItems: "center", gap: 10 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600 }}>{t.name} <span style={{ fontSize: 11, color: "var(--text-muted)" }}>({t.memberCount})</span></div>
-                  <div style={{ height: 16, background: "rgba(255,255,255,0.05)", borderRadius: 8, overflow: "hidden" }}>
-                    <div style={{ height: "100%", width: `\${percent}%`, background: "linear-gradient(90deg, #3b82f6, #a855f7)", borderRadius: 8 }} />
+                <div key={t.id} className="dept-row">
+                  <div style={{ fontSize: 13, fontWeight: 600 }}>{t.name} <span style={{ fontSize: 10, color: "#6b7280" }}>({t.memberCount})</span></div>
+                  <div style={{ height: 10, background: "rgba(255,255,255,0.06)", borderRadius: 20, overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: `${percent}%`, background: "linear-gradient(90deg, #3b82f6, #a855f7)", borderRadius: 20, transition: "width 0.6s" }} />
                   </div>
-                  <div style={{ fontSize: 14, fontWeight: 700, textAlign: "right", color: "var(--text-secondary)" }}>{pts.toLocaleString()} pts</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, textAlign: "right", color: "#9ca3af" }}>{pts.toLocaleString()}</div>
                 </div>
               );
             })}
@@ -270,17 +285,14 @@ export default function LeaderboardClient({
               </select>
             </div>
           </div>
-        </div>
-
-        {/* TABLE */}
-        <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)", borderRadius: 16, overflowX: "auto", boxShadow: "0 10px 40px rgba(0,0,0,0.1)" }}>
-          <div style={{ minWidth: 800 }}>
-          <div className="table-grid" style={{ borderBottom: "1px solid var(--border)", fontSize: 12, fontWeight: 700, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: 1, background: "rgba(0,0,0,0.2)" }}>
+           {/* TABLE */}
+        <div className="lb-table-wrap">
+          <div className="lb-header">
             <div>Rank</div>
             <div>Employee</div>
-            <div className="table-hide-mobile">Department</div>
-            <div className="table-hide-mobile">Points Bar</div>
-            <div style={{ textAlign: "right" }}>Total Points</div>
+            <div className="lb-team-col">Team</div>
+            <div className="lb-bar-col">Performance</div>
+            <div style={{ textAlign: "right" }}>Points</div>
           </div>
 
           <div>
@@ -288,53 +300,46 @@ export default function LeaderboardClient({
               const rank = idx + 4;
               const pts = getPoints(e);
               const percent = maxPoints > 0 ? (pts / maxPoints) * 100 : 0;
-              
-              let rankColor = "var(--text-muted)";
+
+              let rankColor = "#6b7280";
               if (rank <= 10) rankColor = "#a855f7";
               else if (rank <= 25) rankColor = "#3b82f6";
 
               return (
-                <div key={e.id} className="row-hover table-grid table-row-padding" style={{ animation: "slideUp 0.3s ease-out forwards", animationDelay: `\${idx * 0.05}s`, opacity: 0 }}>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: rankColor }}>
-                    #{rank}
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
-                      {e.photoUrl ? <img src={e.photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 14, fontWeight: 700 }}>{e.name.substring(0, 2).toUpperCase()}</span>}
+                <div key={e.id} className="row-hover lb-row" style={{ animation: `slideUp 0.3s ease-out ${idx * 0.04}s both` }}>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: rankColor }}>#{rank}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
+                      {e.photoUrl ? <img src={e.photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 13, fontWeight: 700 }}>{e.name.substring(0, 2).toUpperCase()}</span>}
                     </div>
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: 15, display: "flex", alignItems: "center", gap: 8 }}>
-                        {e.name}
-                      </div>
-                      <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>{e.designation}</div>
+                      <div style={{ fontWeight: 700, fontSize: 14 }}>{e.name}</div>
+                      <div style={{ fontSize: 11, color: "#6b7280" }}>{e.designation}</div>
                     </div>
                   </div>
-                  <div className="table-hide-mobile" style={{ fontSize: 13, color: "var(--text-secondary)" }}>
-                    {e.team?.name || "No Team"}
-                  </div>
-                  <div className="table-hide-mobile" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <div style={{ flex: 1, height: 8, background: "rgba(255,255,255,0.1)", borderRadius: 4, overflow: "hidden" }}>
-                      <div style={{ height: "100%", width: `\${percent}%`, background: "linear-gradient(90deg, #a855f7, #3b82f6)", borderRadius: 4 }} />
+                  <div className="lb-team-col">{e.team?.name || "No Team"}</div>
+                  <div className="lb-bar-col" style={{ gap: 10 }}>
+                    <div style={{ flex: 1, height: 6, background: "rgba(255,255,255,0.08)", borderRadius: 10, overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${percent}%`, background: "linear-gradient(90deg, #a855f7, #3b82f6)", borderRadius: 10, transition: "width 0.6s" }} />
                     </div>
                   </div>
-                  <div style={{ textAlign: "right", fontWeight: 800, fontSize: 16 }}>
-                    {pts.toLocaleString()}
-                    <div style={{ fontSize: 12, fontWeight: 500, color: "var(--text-muted)", display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 4, marginTop: 4 }}>
-                      <Medal size={12} color="#eab308" /> {e.badges?.length || 0} badges
-                    </div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ fontWeight: 800, fontSize: 15 }}>{pts.toLocaleString()}</div>
+                    <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>🏅 {e.badges?.length || 0}</div>
                   </div>
                 </div>
               );
             })}
-            
+
             {rest.length === 0 && (
-              <div style={{ padding: 40, textAlign: "center", color: "var(--text-muted)" }}>
+              <div style={{ padding: 40, textAlign: "center", color: "#6b7280" }}>
                 No employees found matching the filters.
               </div>
             )}
-            </div>
           </div>
         </div>
+      </div>
+
       </div>
 
       {/* ADJUST POINTS MODAL */}

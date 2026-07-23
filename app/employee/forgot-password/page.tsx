@@ -29,7 +29,7 @@ export default function ForgotPassword() {
   };
 
   return (
-    <AuthLayout title="Forgot Password" subtitle="Enter your email address to receive a password reset link.">
+    <AuthLayout title="Forgot Password" subtitle="Enter your email address to receive a password reset link." variant="employee">
       {success ? (
         <div style={{ textAlign: "center", padding: "20px 0" }}>
           <CheckCircle size={40} color="var(--green)" style={{ margin: "0 auto 16px" }} />

@@ -4,7 +4,7 @@ import { getAuthFromCookies } from "@/lib/auth";
 
 export async function POST() {
   try {
-    const auth = await getAuthFromCookies();
+    const auth = await getAuthFromCookies("employee");
     console.log("skip-reset auth:", auth);
     if (!auth || !auth.sub) {
       return NextResponse.json({ error: "Unauthorized: getAuthFromCookies returned null" }, { status: 401 });

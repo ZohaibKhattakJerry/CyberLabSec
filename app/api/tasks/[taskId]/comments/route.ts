@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthFromCookies } from "@/lib/auth";
 
-export async function POST(req: NextRequest, { params }: { params: { taskId: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ taskId: string }> }) {
   const auth = await getAuthFromCookies("any");
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { text } = await req.json();
   if (!text?.trim()) return NextResponse.json({ error: "Comment cannot be empty" }, { status: 400 });
 
-  const task = await prisma.task.findUnique({ where: { id: params.taskId } });
+  const { taskId } = await params;
+  const task = await prisma.task.findUnique({ where: { id: taskId } });
   if (!task) return NextResponse.json({ error: "Task not found" }, { status: 404 });
 
   // Auth check: employee must be the assignee or same team; admin always allowed
@@ -45,7 +46,7 @@ export async function POST(req: NextRequest, { params }: { params: { taskId: str
   comments.push(newComment);
 
   await prisma.task.update({
-    where: { id: params.taskId },
+    where: { id: taskId },
     data: { comments: JSON.stringify(comments) },
   });
 

@@ -16,7 +16,11 @@ export default async function EmployeeDetailsPage({ params }: { params: Promise<
     include: {
       team: true,
       documents: { orderBy: { createdAt: "desc" } },
-      applicant: true
+      applicant: true,
+      documentSignatures: {
+        include: { document: true },
+        orderBy: { signedAt: "desc" }
+      }
     }
   });
 

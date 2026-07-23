@@ -4,7 +4,7 @@ import { getAuthFromCookies } from "@/lib/auth";
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { taskId: string } }
+  { params }: { params: Promise<{ taskId: string }> }
 ) {
   const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== "admin") {

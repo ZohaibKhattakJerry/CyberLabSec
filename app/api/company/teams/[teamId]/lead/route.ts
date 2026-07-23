@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthFromCookies } from "@/lib/auth";
 
-export async function PATCH(req: NextRequest, { params }: { params: { teamId: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ teamId: string }> }) {
   const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { leadEmployeeId } = await req.json();
 
+  const { teamId } = await params;
   const team = await prisma.team.update({
-    where: { id: params.teamId },
+    where: { id: teamId },
     data: { leadEmployeeId },
   });
 

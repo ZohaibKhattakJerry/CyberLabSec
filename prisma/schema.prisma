@@ -171,6 +171,7 @@ model Employee {
   appraisalsReceived   PerformanceAppraisal[]    @relation("AppraisalSubject")
   appraisalsGiven      PerformanceAppraisal[]    @relation("AppraisalReviewer")
   documents            EmployeeDocument[]
+  documentSignatures   DocumentSignature[]
 }
 
 model Team {
@@ -503,4 +504,31 @@ model PerformanceAppraisal {
   updatedAt    DateTime  @updatedAt
   employee     Employee  @relation("AppraisalSubject", fields: [employeeId], references: [id], onDelete: Cascade)
   reviewer     Employee  @relation("AppraisalReviewer", fields: [reviewerId], references: [id])
+}
+
+model OnboardingDocument {
+  id               String   @id @default(cuid())
+  title            String
+  subtitle         String
+  bodyText         String   @db.Text
+  version          Int      @default(1)
+  appliesToRoles   String   @default("[\"Employee\", \"Intern\"]")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  signatures       DocumentSignature[]
+}
+
+model DocumentSignature {
+  id              String   @id @default(cuid())
+  employeeId      String
+  documentId      String
+  documentVersion Int
+  signerName      String
+  signedAt        DateTime @default(now())
+  ipAddress       String?
+  pdfFileUrl      String?
+  employee        Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  document        OnboardingDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, documentId])
 }

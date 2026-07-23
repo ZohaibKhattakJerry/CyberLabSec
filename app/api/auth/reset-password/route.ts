@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
       }
       employeeId = employee.id;
     } else {
-      const auth = await getAuthFromCookies();
+      const auth = await getAuthFromCookies("employee");
       if (!auth || !auth.sub) {
         return NextResponse.json({ error: "Unauthorized or missing token" }, { status: 401 });
       }

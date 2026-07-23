@@ -10,6 +10,7 @@ import {
 import Link from "next/link";
 import CompletionDialog from "./CompletionDialog";
 import NotificationBell from "@/components/NotificationBell";
+import React from "react";
 import DashboardGreeting from "@/components/DashboardGreeting";
 
 export const dynamic = "force-dynamic";
@@ -387,6 +388,7 @@ export default async function Dashboard() {
         employmentType={employee.employmentType} 
       />
 
+
       {/* ── HERO BANNER ── */}
       <div className="dash-hero fade-up">
         <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', borderRadius: 'inherit' }}>
@@ -597,7 +599,7 @@ export default async function Dashboard() {
         </div>
 
         {/* Announcements */}
-        <div className="glass-card" style={{ padding: 'clamp(16px,3vw,24px)', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div id="tour-announcements" className="glass-card" style={{ padding: 'clamp(16px,3vw,24px)', display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 style={{ fontSize: 17, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
               <Bell size={17} color="var(--purple)" /> Announcements

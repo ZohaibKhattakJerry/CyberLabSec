@@ -143,7 +143,7 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
       const res = await fetch(`/api/applications/status-check`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ referenceId: refId.trim() })
+        body: JSON.stringify({ referenceId: refId.trim().toUpperCase() })
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));

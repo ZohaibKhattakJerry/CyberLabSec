@@ -54,7 +54,7 @@ export default function MeetingClient({ initialMeetings, currentUser }: { initia
       setForm({ title: '', description: '', proposedTimes: [''] });
       toast.success('Meeting request submitted!');
     } catch (err: unknown) {
-      toast.error(err.message);
+      toast.error((err as any)?.message || 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -70,10 +70,10 @@ export default function MeetingClient({ initialMeetings, currentUser }: { initia
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       
-      setMeetings(meetings.map(m => m.id === meetingId ? data.meeting : m));
+      setMeetings((meetings as any[]).map((m: any) => m.id === meetingId ? data.meeting : m));
       toast.success('Vote recorded');
     } catch (err: unknown) {
-      toast.error(err.message);
+      toast.error((err as any)?.message || 'An error occurred');
     }
   };
 
@@ -157,7 +157,7 @@ export default function MeetingClient({ initialMeetings, currentUser }: { initia
             const voteCounts: Record<string, number> = {};
             proposedTimes.forEach((t: string) => voteCounts[t] = 0);
             Object.values(votes).forEach((t: unknown) => {
-              if (voteCounts[t] !== undefined) voteCounts[t]++;
+              if (voteCounts[t as string] !== undefined) (voteCounts as Record<string, number>)[t as string]++;
             });
 
             return (

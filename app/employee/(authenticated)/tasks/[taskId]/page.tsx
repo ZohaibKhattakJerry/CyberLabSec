@@ -27,7 +27,7 @@ export default async function EmployeeTaskDetailPage({ params }: { params: { tas
     submissions: task.submissions.map(s => ({
       ...s,
       submittedAt: s.submittedAt.toISOString(),
-      gradedAt: s.gradedAt ? s.gradedAt.toISOString() : null,
+      
     }))
   };
 

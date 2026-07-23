@@ -15,13 +15,17 @@ export default async function DocumentsPage() {
     select: { 
       id: true, 
       name: true,
+      designation: true,
       status: true, 
       employmentType: true,
       startDate: true,
       endDate: true,
       documents: {
         orderBy: { createdAt: "desc" }
-      } 
+      },
+      documentSignatures: {
+        include: { document: true }
+      }
     },
   });
 
@@ -38,15 +42,17 @@ export default async function DocumentsPage() {
       isCompleted = true;
     }
   } else {
-    isCompleted = true;
+    // No end date means permanent employee – exit docs still available on request
+    isCompleted = employee.status === "Inactive" || employee.status === "Terminated";
   }
 
   const empType = employee.employmentType || "Employee";
 
   return (
     <DocumentsClient 
-      employee={employee} 
+      employee={{ id: employee.id, name: employee.name, designation: employee.designation }} 
       dbDocs={employee.documents || []} 
+      signatures={employee.documentSignatures || []}
       isCompleted={isCompleted} 
       empType={empType} 
     />

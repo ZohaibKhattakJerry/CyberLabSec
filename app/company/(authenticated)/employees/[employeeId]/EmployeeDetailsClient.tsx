@@ -2,50 +2,99 @@
 
 import { useState, useRef } from "react";
 import { format } from "date-fns";
-import { 
+import {
   FileText, Download, UploadCloud, Loader2, ArrowLeft, Trash2,
   Shield, Award, Briefcase, CheckCircle2,
-  Clock, User, Mail, Badge, Building2, Lock, Star
+  Clock, User, Mail, Badge, Building2, Lock, Star, Check, FileSignature, AlertCircle
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
-type Document = {
-  id: string;
+// ─── Types ─────────────────────────────────────────────────────────────────
+type DocSection = "pre" | "onboarding" | "during" | "exit" | "other";
+
+interface DocSlot {
   title: string;
-  type: string;
-  fileUrl: string | null;
-  status: string;
-  createdAt: string;
+  desc: string;
+  icon: string;
+  section: DocSection;
+  isSignable?: boolean;
+  isLocked?: boolean;
+  isOptional?: boolean;
+  isCompanyIssued?: boolean; // admin uploads, employee views
+  isRequestable?: boolean;   // employee can request
+}
+
+// ─── Status config (matches employee portal) ───────────────────────────────
+const STATUS_BADGES: Record<string, { label: string; emoji: string; bg: string; color: string; border: string }> = {
+  "pending_signature": { label: "Pending Signature", emoji: "🟡", bg: "rgba(245,158,11,0.12)", color: "#fbbf24", border: "rgba(245,158,11,0.3)" },
+  "signed":            { label: "Signed",             emoji: "🟢", bg: "rgba(16,185,129,0.12)", color: "#34d399", border: "rgba(16,185,129,0.3)" },
+  "uploaded":          { label: "Uploaded",            emoji: "📤", bg: "rgba(59,130,246,0.12)", color: "#60a5fa", border: "rgba(59,130,246,0.3)" },
+  "requested":         { label: "Requested",           emoji: "📥", bg: "rgba(249,115,22,0.12)", color: "#fb923c", border: "rgba(249,115,22,0.3)" },
+  "locked":            { label: "Locked",              emoji: "🔒", bg: "rgba(107,114,128,0.1)",  color: "#6b7280", border: "rgba(107,114,128,0.2)" },
+  "issued":            { label: "Issued",              emoji: "✅", bg: "rgba(34,197,94,0.12)",  color: "#4ade80", border: "rgba(34,197,94,0.3)" },
+  "responded":         { label: "Responded",           emoji: "💬", bg: "rgba(99,102,241,0.12)", color: "#818cf8", border: "rgba(99,102,241,0.3)" },
+  "not_uploaded":      { label: "Not Uploaded",        emoji: "—",  bg: "rgba(75,85,99,0.1)",   color: "#4b5563", border: "rgba(75,85,99,0.2)" },
 };
 
-type Employee = {
-  id: string;
-  name: string;
-  email: string;
-  employeeCode: string;
-  designation: string | null;
-  employmentType: string | null;
-  status: string | null;
-  team?: { name: string } | null;
-  documents: Document[];
-  cvUrl?: string | null;
-  linkedinUrl?: string | null;
-  applicant?: { cvFileUrl?: string | null; linkedIn?: string | null } | null;
-};
+// ─── Document Definitions by employee type ─────────────────────────────────
+function getDocSlots(empType: string, isCompleted: boolean): DocSlot[] {
+  const isIntern = empType === "Intern";
+  const isContract = empType === "Contract";
 
-const DOC_TYPES = [
-  "Offer Letter", "NDA", "Employment Contract", "Fixed-Term Agreement", "Internship Agreement", 
-  "Code of Conduct Acceptance", "Employee Handbook Acknowledgment",
-  "Performance Review", "Warning Letter", "Appreciation Letter", "Confirmation Letter", "Contract Extension Letter", "Training Certificate",
-  "Internship Completion Certificate", "Recommendation Letter", "Acceptance Letter", "Experience Letter", "No Due Certificate", "Contract Completion Certificate", "Contract End Letter", "Full & Final Settlement",
-  "ID Card / CNIC", "Resume / CV", "Other"
-];
+  const preSlots: DocSlot[] = [
+    { title: "Offer Letter", desc: "Emailed upon hire — uploaded by admin", icon: "📄", section: "pre", isCompanyIssued: true },
+    ...(isIntern
+      ? [{ title: "Internship Agreement", desc: "Formal internship engagement agreement — digitally signed", icon: "📋", section: "pre" as DocSection, isSignable: true }]
+      : isContract
+      ? [{ title: "Contract Agreement", desc: "Fixed-term contract agreement — digitally signed", icon: "📋", section: "pre" as DocSection, isSignable: true }]
+      : [{ title: "Employment Contract", desc: "Formal employment contract — digitally signed", icon: "📋", section: "pre" as DocSection, isSignable: true }]
+    ),
+    { title: "NDA", desc: "Non-Disclosure Agreement — digitally signed", icon: "🔐", section: "pre", isSignable: true },
+    { title: "Code of Conduct", desc: "Company code of conduct policy — digitally signed", icon: "📜", section: "pre", isSignable: true },
+  ];
 
-export default function EmployeeDetailsClient({ employee }: { employee: Employee }) {
+  const duringSlots: DocSlot[] = isIntern ? [
+    { title: "Training Certificate",  desc: "Issued on corporate training completion",          icon: "🎓", section: "during", isCompanyIssued: true, isRequestable: true },
+    { title: "Performance Review",    desc: "AI-evaluated performance report",                   icon: "📊", section: "during", isCompanyIssued: true, isRequestable: true, isOptional: true },
+    { title: "Appreciation Letter",   desc: "Recognition for outstanding work",                  icon: "🌟", section: "during", isCompanyIssued: true, isRequestable: true, isOptional: true },
+    { title: "Warning Letter",        desc: "Issued by company for disciplinary action",         icon: "⚠️", section: "during", isCompanyIssued: true },
+  ] : isContract ? [
+    { title: "Confirmation Letter",   desc: "Confirms official contract activation",              icon: "✅", section: "during", isCompanyIssued: true, isRequestable: true },
+    { title: "Training Certificate",  desc: "Issued on corporate training completion",           icon: "🎓", section: "during", isCompanyIssued: true, isRequestable: true },
+    { title: "Warning Letter",        desc: "Issued by company for disciplinary action",         icon: "⚠️", section: "during", isCompanyIssued: true },
+  ] : [
+    { title: "Confirmation Letter",   desc: "Confirms official employment status",               icon: "✅", section: "during", isCompanyIssued: true, isRequestable: true },
+    { title: "Training Certificate",  desc: "Issued on corporate training completion",           icon: "🎓", section: "during", isCompanyIssued: true, isRequestable: true },
+    { title: "Warning Letter",        desc: "Issued by company for disciplinary action",         icon: "⚠️", section: "during", isCompanyIssued: true },
+  ];
+
+  const exitSlots: DocSlot[] = isIntern ? [
+    { title: "Internship Completion Certificate", desc: "Official internship completion certificate", icon: "🏆", section: "exit", isCompanyIssued: true, isRequestable: true, isLocked: !isCompleted },
+    { title: "Recommendation Letter",             desc: "Letter of recommendation",                   icon: "👍", section: "exit", isCompanyIssued: true, isRequestable: true, isLocked: !isCompleted },
+    { title: "No Due Certificate",                desc: "Clearance and no-dues certificate",           icon: "💸", section: "exit", isCompanyIssued: true, isRequestable: true, isLocked: !isCompleted },
+    { title: "Full & Final Settlement",           desc: "Final financial settlement clearance",         icon: "💰", section: "exit", isCompanyIssued: true, isRequestable: true, isLocked: !isCompleted },
+  ] : isContract ? [
+    { title: "Contract Completion Certificate",   desc: "Official contract completion certificate",     icon: "🏆", section: "exit", isCompanyIssued: true, isRequestable: true, isLocked: !isCompleted },
+    { title: "Experience Letter",                 desc: "Official experience certificate",              icon: "📜", section: "exit", isCompanyIssued: true, isRequestable: true, isLocked: !isCompleted },
+    { title: "No Due Certificate",                desc: "Clearance and no-dues certificate",            icon: "💸", section: "exit", isCompanyIssued: true, isRequestable: true, isLocked: !isCompleted },
+    { title: "Full & Final Settlement",           desc: "Final financial settlement clearance",          icon: "💰", section: "exit", isCompanyIssued: true, isRequestable: true, isLocked: !isCompleted },
+  ] : [
+    { title: "Experience Letter",      desc: "Official experience certificate",                   icon: "📜", section: "exit", isCompanyIssued: true, isRequestable: true, isLocked: !isCompleted },
+    { title: "Relieving Letter",       desc: "Formal relieving letter",                           icon: "🤝", section: "exit", isCompanyIssued: true, isRequestable: true, isLocked: !isCompleted },
+    { title: "No Due Certificate",     desc: "Clearance and no-dues certificate",                 icon: "💸", section: "exit", isCompanyIssued: true, isRequestable: true, isLocked: !isCompleted },
+    { title: "Full & Final Settlement",desc: "Final financial settlement clearance",               icon: "💰", section: "exit", isCompanyIssued: true, isRequestable: true, isLocked: !isCompleted },
+  ];
+
+  return [...preSlots, ...duringSlots, ...exitSlots];
+}
+
+// ─── Component ─────────────────────────────────────────────────────────────
+export default function EmployeeDetailsClient({ employee }: { employee: any }) {
   const router = useRouter();
-  const [documents, setDocuments] = useState<Document[]>(employee.documents);
+  const [documents, setDocuments] = useState<any[]>(employee.documents || []);
+  const [signatures] = useState<any[]>(employee.documentSignatures || []);
   const [uploading, setUploading] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -54,14 +103,53 @@ export default function EmployeeDetailsClient({ employee }: { employee: Employee
 
   const empType = employee.employmentType || "Employee";
   const isIntern = empType === "Intern";
-  const isCompleted = employee.status === "Inactive";
+  const isCompleted = employee.status === "Inactive" || employee.status === "Terminated";
 
-  const getDoc = (title: string) => documents.find(d => d.title === title);
-  const getDocUrl = (title: string) => getDoc(title)?.fileUrl || null;
-  const getDocStatus = (title: string) => getDoc(title)?.status || "Pending";
+  // ── Lookups ────────────────────────────────────────────────────────────────
+  const findDoc = (title: string) =>
+    documents.find(d =>
+      d.title === title ||
+      d.title === title + " Acceptance" ||
+      // Offer letter variants
+      (title === "Offer Letter" && ["Job Offer Letter", "Internship Offer Letter", "Initial Offer Letter", "Contract Offer Letter", "Offer Letter"].some(t => d.title?.includes(t)))
+    );
 
-  const handleUploadSlot = (title: string, category: string) => {
-    setUploadForm({ title, type: category, base64: "", fileName: "" });
+  const findSig = (title: string) =>
+    signatures.find(s => {
+      const t = s.document?.title || "";
+      if (title === "Employment Contract") return t.includes("Employment Contract") || t.includes("Internship Agreement") || t.includes("Contract Agreement");
+      return t === title || t.includes(title);
+    });
+
+  // ── Resolve status for a slot ───────────────────────────────────────────
+  const resolveStatus = (slot: DocSlot): string => {
+    if (slot.isLocked) return "locked";
+
+    if (slot.isSignable) {
+      const sig = findSig(slot.title);
+      if (sig) return "signed";
+      // Check EmployeeDocument too (backfilled)
+      const doc = findDoc(slot.title);
+      if (doc?.status === "Signed") return "signed";
+      return "pending_signature";
+    }
+
+    const doc = findDoc(slot.title);
+    if (!doc) return "not_uploaded";
+    if (doc.status === "Requested") return "requested";
+    if (doc.status === "Signed" || doc.status === "Accepted") return "signed";
+    if (doc.fileUrl) return "issued";
+    return "not_uploaded";
+  };
+
+  const getFileUrl = (slot: DocSlot): string | null => {
+    if (slot.isSignable) return findSig(slot.title)?.pdfFileUrl || findDoc(slot.title)?.fileUrl || null;
+    return findDoc(slot.title)?.fileUrl || null;
+  };
+
+  // ── Actions ─────────────────────────────────────────────────────────────
+  const handleUploadSlot = (title: string) => {
+    setUploadForm({ title, type: "Other", base64: "", fileName: "" });
     setShowUploadModal(true);
   };
 
@@ -103,7 +191,7 @@ export default function EmployeeDetailsClient({ employee }: { employee: Employee
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed");
-      
+
       const newDoc = data.document;
       setDocuments(prev => {
         const idx = prev.findIndex(d => d.title === newDoc.title);
@@ -127,71 +215,84 @@ export default function EmployeeDetailsClient({ employee }: { employee: Employee
     }
   };
 
-  // Section 1: Pre-Joining Documents (Only show if they exist in dbDocs)
-  const preJoiningDocs = documents.filter(d => 
-    ["Job Offer Letter", "Internship Offer Letter", "Contract Offer Letter", "Offer Letter", "Employment Contract", "Internship Agreement", "Fixed-Term Agreement", "Resume / CV", "ID Card / CNIC"].includes(d.title)
-  ).map(d => ({
-    label: d.title,
-    desc: "Generated during application/hiring process",
-    icon: "📄",
-    status: d.status,
-    url: d.fileUrl,
-    category: "Joining"
-  }));
+  // ── Slot card ───────────────────────────────────────────────────────────
+  const DocSlotCard = ({ slot }: { slot: DocSlot }) => {
+    const status = resolveStatus(slot);
+    const fileUrl = getFileUrl(slot);
+    const badge = STATUS_BADGES[status] || STATUS_BADGES["not_uploaded"];
+    const dbDoc = findDoc(slot.title);
+    const canUpload = !slot.isSignable && !slot.isLocked && status !== "signed";
 
-  // Section 2: Onboarding Consents
-  const consentDocsRaw = [
-    { label: "NDA", desc: "Non-Disclosure Agreement" },
-    { label: "Code of Conduct Acceptance", desc: "Company Code of Conduct" },
-    ...(empType === "Employee" || empType === "Full-Time" ? [{ label: "Employee Handbook Acknowledgment", desc: "Company policies acknowledgment" }] : [])
-  ];
+    return (
+      <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 18px", background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, flexWrap: "wrap", transition: "background 0.2s" }}
+        onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
+        onMouseLeave={e => (e.currentTarget.style.background = "rgba(255,255,255,0.025)")}
+      >
+        {/* Icon */}
+        <div style={{ width: 40, height: 40, borderRadius: 10, background: status === "signed" || status === "issued" ? "rgba(16,185,129,0.1)" : status === "pending_signature" ? "rgba(245,158,11,0.1)" : status === "locked" ? "rgba(107,114,128,0.06)" : "rgba(168,85,247,0.08)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>
+          {slot.isLocked ? "🔒" : slot.icon}
+        </div>
 
-  const onboardingConsents = consentDocsRaw.map(d => {
-    const doc = getDoc(d.label);
-    return {
-      ...d,
-      icon: "📋",
-      status: doc?.status || "Pending Consent",
-      url: doc?.fileUrl,
-      category: "Consent"
-    };
-  });
+        {/* Info */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 3 }}>
+            <span style={{ fontWeight: 600, fontSize: 14, color: slot.isLocked ? "#4b5563" : "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{slot.title}</span>
+            {slot.isOptional && <span style={{ fontSize: 9, fontWeight: 700, color: "#6b7280", background: "rgba(107,114,128,0.1)", border: "1px solid rgba(107,114,128,0.2)", borderRadius: 20, padding: "1px 7px", letterSpacing: "0.05em" }}>OPTIONAL</span>}
+            {/* Status Badge */}
+            <span style={{ fontSize: 10, fontWeight: 800, padding: "2px 9px", borderRadius: 20, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`, letterSpacing: "0.04em", whiteSpace: "nowrap", flexShrink: 0 }}>
+              {badge.emoji} {badge.label}
+            </span>
+          </div>
+          <div style={{ fontSize: 12, color: "#4b5563" }}>{slot.desc}</div>
+        </div>
 
-  // Section 3: During Tenure
-  const duringTenureDocs = [
-    { label: "Confirmation Letter", desc: "Official confirmation of employment", icon: "✅", for: ["Employee", "Full-Time"] },
-    { label: "Performance Review", desc: "Performance evaluation", icon: "📊", for: ["Intern", "Employee", "Full-Time", "Contract"] },
-    { label: "Appreciation Letter", desc: "Recognition and appreciation", icon: "🌟", for: ["Intern", "Employee", "Full-Time", "Contract"] },
-    { label: "Contract Extension Letter", desc: "Contract extension approval", icon: "📅", for: ["Contract"] },
-    { label: "Warning Letter", desc: "Disciplinary action records", icon: "⚠️", for: ["Intern", "Employee", "Full-Time", "Contract"] },
-    { label: "Training Certificate", desc: "Corporate training completion", icon: "🎓", for: ["Employee", "Full-Time"] }
-  ].filter(d => d.for.includes(empType)).map(d => ({
-    ...d,
-    status: getDocUrl(d.label) ? "Available" : getDocStatus(d.label),
-    url: getDocUrl(d.label),
-    category: "During"
-  }));
+        {/* Actions */}
+        <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+          {fileUrl ? (
+            <>
+              <a href={fileUrl} target="_blank" rel="noreferrer" className="btn btn-secondary btn-sm" style={{ gap: 5 }}>
+                <Download size={13} /> View
+              </a>
+              {/* Allow re-upload for company-issued docs */}
+              {canUpload && (
+                <button className="btn btn-primary btn-sm" onClick={() => handleUploadSlot(slot.title)}>
+                  <UploadCloud size={13} /> Replace
+                </button>
+              )}
+              {/* Delete only company-issued docs */}
+              {dbDoc && slot.isCompanyIssued && !slot.isSignable && (
+                <button className="btn btn-danger btn-sm" onClick={() => handleDelete(dbDoc.id, slot.title)} disabled={deleting === dbDoc.id} style={{ padding: "0 10px" }}>
+                  {deleting === dbDoc.id ? <Loader2 size={13} className="spin" /> : <Trash2 size={13} />}
+                </button>
+              )}
+            </>
+          ) : canUpload && !slot.isLocked ? (
+            <button className="btn btn-primary btn-sm" onClick={() => handleUploadSlot(slot.title)}>
+              <UploadCloud size={13} /> {status === "requested" ? "Fulfill" : "Upload"}
+            </button>
+          ) : null}
+        </div>
+      </div>
+    );
+  };
 
-  // Section 4: Exit & Completion
-  const exitDocs = [
-    { label: "Internship Completion Certificate", desc: "Official completion certificate", icon: "🎓", for: ["Intern"] },
-    { label: "Recommendation Letter", desc: "Letter of recommendation", icon: "👍", for: ["Intern"] },
-    { label: "Acceptance Letter", desc: "Resignation Acceptance Letter", icon: "🤝", for: ["Employee", "Full-Time"] },
-    { label: "Experience Letter", desc: "Official experience certificate", icon: "📜", for: ["Employee", "Full-Time", "Contract", "Intern"] },
-    { label: "No Due Certificate", desc: "Clearance certificate", icon: "💸", for: ["Employee", "Full-Time"] },
-    { label: "Contract Completion Certificate", desc: "Project completion certificate", icon: "🎓", for: ["Contract"] },
-    { label: "Contract End Letter", desc: "Official end of contract", icon: "🛑", for: ["Contract"] },
-    { label: "Full & Final Settlement", desc: "F&F clearance", icon: "💰", for: ["Employee", "Full-Time", "Contract"] },
-  ].filter(d => d.for.includes(empType)).map(d => ({
-    ...d,
-    status: isCompleted ? (getDocUrl(d.label) ? "Available" : getDocStatus(d.label)) : "Locked",
-    url: getDocUrl(d.label),
-    category: "Exit"
-  }));
+  // ── Build sections ──────────────────────────────────────────────────────
+  const slots = getDocSlots(empType, isCompleted);
+  const preSlots = slots.filter(s => s.section === "pre");
+  const duringSlots = slots.filter(s => s.section === "during");
+  const exitSlots = slots.filter(s => s.section === "exit");
 
-  const knownTitles = [...preJoiningDocs, ...onboardingConsents, ...duringTenureDocs, ...exitDocs].map(d => d.label);
-  const extraDocs = documents.filter(d => !knownTitles.includes(d.title));
+  // Extra docs (admin custom uploads not in known slots)
+  const knownTitles = new Set(slots.map(s => s.title));
+  const offerVariants = ["Job Offer Letter", "Internship Offer Letter", "Initial Offer Letter", "Contract Offer Letter", "Offer Letter"];
+  const extraDocs = documents.filter(d =>
+    !knownTitles.has(d.title) &&
+    !d.title?.endsWith(" Acceptance") &&
+    !d.title?.includes("Warning Letter Response") &&
+    !offerVariants.some(v => d.title?.includes(v))
+  );
 
+  // ── Header badges ──────────────────────────────────────────────────────
   const empTypeBadge =
     isIntern ? { bg: "rgba(245,158,11,0.12)", color: "#f59e0b", border: "rgba(245,158,11,0.3)" }
     : empType === "Contract" ? { bg: "rgba(59,130,246,0.12)", color: "#3b82f6", border: "rgba(59,130,246,0.3)" }
@@ -205,52 +306,44 @@ export default function EmployeeDetailsClient({ employee }: { employee: Employee
   const cvLink = employee.cvUrl || employee.applicant?.cvFileUrl;
   const linkedInLink = employee.linkedinUrl || employee.applicant?.linkedIn;
 
-  const AdminDocCard = ({ doc }: { doc: any }) => (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 18px", background: "rgba(255,255,255,0.02)", border: "1px solid var(--border-subtle)", borderRadius: 12, gap: 14, flexWrap: "wrap", transition: "all 0.2s" }}>
-      <div style={{ display: "flex", gap: 14, alignItems: "center", minWidth: 0 }}>
-        <div style={{ width: 42, height: 42, borderRadius: 10, background: "rgba(168,85,247,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0, color: "var(--brand-primary)" }}>
-          {doc.icon || <FileText size={18} />}
-        </div>
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-            <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{doc.label}</span>
-            {doc.status === "Available" && <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 999, background: "rgba(34,197,94,0.1)", color: "#22c55e", border: "1px solid rgba(34,197,94,0.2)" }}>Available</span>}
-            {doc.status === "Accepted" && <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 999, background: "rgba(59,130,246,0.1)", color: "#3b82f6", border: "1px solid rgba(59,130,246,0.2)" }}>Accepted</span>}
-            {doc.status === "Pending Consent" && <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 999, background: "rgba(245,158,11,0.1)", color: "#f59e0b", border: "1px solid rgba(245,158,11,0.2)" }}>Employee Consent Required</span>}
-            {doc.status === "Requested" && <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 999, background: "rgba(245,158,11,0.1)", color: "#f59e0b", border: "1px solid rgba(245,158,11,0.2)" }}>Requested</span>}
-            {doc.status === "Locked" && <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 999, background: "rgba(255,255,255,0.05)", color: "var(--text-muted)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", gap: 3 }}><Lock size={10} /> Locked</span>}
-            {doc.status === "Pending" && <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 999, background: "rgba(255,255,255,0.05)", color: "var(--text-muted)", border: "1px solid rgba(255,255,255,0.1)" }}>Not Uploaded</span>}
+  // ── Section renderer ──────────────────────────────────────────────────
+  const renderSection = (
+    title: string,
+    icon: React.ReactNode,
+    color: string,
+    sectionSlots: DocSlot[],
+    opts?: { locked?: boolean; locked_msg?: string }
+  ) => {
+    const completedCount = sectionSlots.filter(s => ["signed","issued","responded"].includes(resolveStatus(s))).length;
+
+    return (
+      <div className="card" style={{ padding: 24, marginBottom: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ color, fontSize: 15 }}>{icon}</div>
+            <h2 style={{ fontSize: 12, fontWeight: 700, color, textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>{title}</h2>
+            <span style={{ fontSize: 11, color: "#4b5563", fontWeight: 500 }}>{completedCount}/{sectionSlots.length}</span>
           </div>
-          <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 3 }}>{doc.desc}</div>
+          {opts?.locked && (
+            <span style={{ fontSize: 11, fontWeight: 600, color: "#6b7280", background: "rgba(107,114,128,0.1)", border: "1px solid rgba(107,114,128,0.2)", borderRadius: 20, padding: "4px 12px", display: "flex", alignItems: "center", gap: 5 }}>
+              <Lock size={10} /> {opts.locked_msg || "Locked until tenure ends"}
+            </span>
+          )}
+        </div>
+        <div style={{ display: "grid", gap: 10 }}>
+          {sectionSlots.map(slot => <DocSlotCard key={slot.title} slot={slot} />)}
         </div>
       </div>
-      <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-        {doc.url ? (
-          <>
-            <a href={doc.url} target="_blank" rel="noreferrer" className="btn btn-secondary btn-sm" download style={{ gap: 5 }}>
-              <Download size={13} /> View
-            </a>
-            {getDoc(doc.label) && (
-              <button className="btn btn-danger btn-sm" onClick={() => handleDelete(getDoc(doc.label)!.id, doc.label)} disabled={deleting === getDoc(doc.label)!.id} style={{ padding: "0 10px" }}>
-                {deleting === getDoc(doc.label)!.id ? <Loader2 size={13} className="spin" /> : <Trash2 size={13} />}
-              </button>
-            )}
-          </>
-        ) : doc.status !== "Locked" && doc.status !== "Pending Consent" ? (
-          <button className="btn btn-primary btn-sm" onClick={() => handleUploadSlot(doc.label, doc.category)}>
-            <UploadCloud size={13} /> {doc.status === "Requested" ? "Fulfill Request" : "Upload"}
-          </button>
-        ) : null}
-      </div>
-    </div>
-  );
+    );
+  };
 
   return (
-    <div style={{ maxWidth: 900, margin: "0 auto" }}>
+    <div>
       <Link href="/company/employees" style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "var(--text-muted)", fontSize: 13, textDecoration: "none", marginBottom: 20 }}>
         <ArrowLeft size={14} /> Back to Employees
       </Link>
 
+      {/* ── Employee Header ──────────────────────────────────────────────── */}
       <div className="card" style={{ padding: "24px 28px", marginBottom: 24, background: "linear-gradient(135deg, rgba(168,85,247,0.06) 0%, transparent 100%)", border: "1px solid rgba(168,85,247,0.15)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
           <div style={{ width: 58, height: 58, borderRadius: 16, background: "linear-gradient(135deg, rgba(168,85,247,0.2), rgba(109,40,217,0.3))", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--purple)", flexShrink: 0, fontSize: 22, fontWeight: 800 }}>
@@ -287,57 +380,32 @@ export default function EmployeeDetailsClient({ employee }: { employee: Employee
         )}
       </div>
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+      {/* ── Document Management ──────────────────────────────────────────── */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
         <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Document Management</h2>
-        <button className="btn btn-primary btn-sm" onClick={() => handleUploadSlot("", "Other")}>
-          <UploadCloud size={14} /> Upload Custom
+        <button className="btn btn-primary btn-sm" onClick={() => { setUploadForm({ title: "", type: "Other", base64: "", fileName: "" }); setShowUploadModal(true); }}>
+          <UploadCloud size={14} /> Upload Custom Document
         </button>
       </div>
 
-      {preJoiningDocs.length > 0 && (
-        <div className="card" style={{ padding: 24, marginBottom: 20 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-            <Briefcase size={15} color="var(--brand-primary)" />
-            <h2 style={{ fontSize: 12, fontWeight: 700, color: "var(--brand-primary)", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>Pre-Joining Documents</h2>
-          </div>
-          <div style={{ display: "grid", gap: 10 }}>
-            {preJoiningDocs.map(doc => <AdminDocCard key={doc.label} doc={doc} />)}
-          </div>
-        </div>
+      {/* Pre-Joining — always shown */}
+      {renderSection("Pre-Joining Documents", <Briefcase size={15} />, "var(--brand-primary)", preSlots)}
+
+      {/* Onboarding Consents embedded in Pre-Joining above (signature docs are pre) */}
+
+      {/* During Tenure — always shown */}
+      {renderSection("During Tenure", <Clock size={15} />, "#3b82f6", duringSlots)}
+
+      {/* Completion & Exit — shown with lock badge if not complete */}
+      {renderSection(
+        "Completion & Exit Documents",
+        <Award size={15} />,
+        "#22c55e",
+        exitSlots,
+        !isCompleted ? { locked: true, locked_msg: "Unlocks when tenure ends" } : undefined
       )}
 
-      {onboardingConsents.length > 0 && (
-        <div className="card" style={{ padding: 24, marginBottom: 20 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-            <Shield size={15} color="#f97316" />
-            <h2 style={{ fontSize: 12, fontWeight: 700, color: "#f97316", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>Onboarding Consents</h2>
-          </div>
-          <div style={{ display: "grid", gap: 10 }}>
-            {onboardingConsents.map(doc => <AdminDocCard key={doc.label} doc={doc} />)}
-          </div>
-        </div>
-      )}
-
-      <div className="card" style={{ padding: 24, marginBottom: 20 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-          <Clock size={15} color="#3b82f6" />
-          <h2 style={{ fontSize: 12, fontWeight: 700, color: "#3b82f6", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>During Tenure</h2>
-        </div>
-        <div style={{ display: "grid", gap: 10 }}>
-          {duringTenureDocs.map(doc => <AdminDocCard key={doc.label} doc={doc} />)}
-        </div>
-      </div>
-
-      <div className="card" style={{ padding: 24, marginBottom: 20 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-          <Award size={15} color="#22c55e" />
-          <h2 style={{ fontSize: 12, fontWeight: 700, color: "#22c55e", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>Completion & Exit Documents</h2>
-        </div>
-        <div style={{ display: "grid", gap: 10 }}>
-          {exitDocs.map(doc => <AdminDocCard key={doc.label} doc={doc} />)}
-        </div>
-      </div>
-
+      {/* Extra / Custom Docs */}
       {extraDocs.length > 0 && (
         <div className="card" style={{ padding: 24, marginBottom: 20 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
@@ -346,52 +414,73 @@ export default function EmployeeDetailsClient({ employee }: { employee: Employee
           </div>
           <div style={{ display: "grid", gap: 10 }}>
             {extraDocs.map(doc => (
-              <AdminDocCard
-                key={doc.id}
-                doc={{
-                  label: doc.title,
-                  desc: `Type: ${doc.type}`,
-                  icon: <FileText size={18} />,
-                  category: doc.type,
-                  status: "Available",
-                  url: doc.fileUrl,
-                }}
-              />
+              <div key={doc.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 18px", background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, flexWrap: "wrap" }}>
+                <div style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(255,255,255,0.04)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <FileText size={17} style={{ color: "#6b7280" }} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 3, flexWrap: "wrap" }}>
+                    <span style={{ fontWeight: 600, fontSize: 14, color: "#fff" }}>{doc.title}</span>
+                    <span style={{ fontSize: 10, fontWeight: 800, padding: "2px 9px", borderRadius: 20, background: STATUS_BADGES.issued.bg, color: STATUS_BADGES.issued.color, border: `1px solid ${STATUS_BADGES.issued.border}`, letterSpacing: "0.04em" }}>✅ Issued</span>
+                  </div>
+                  <div style={{ fontSize: 12, color: "#4b5563" }}>Type: {doc.type}</div>
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  {doc.fileUrl && (
+                    <a href={doc.fileUrl} target="_blank" rel="noreferrer" className="btn btn-secondary btn-sm" style={{ gap: 5 }}>
+                      <Download size={13} /> View
+                    </a>
+                  )}
+                  <button className="btn btn-danger btn-sm" onClick={() => handleDelete(doc.id, doc.title)} disabled={deleting === doc.id} style={{ padding: "0 10px" }}>
+                    {deleting === doc.id ? <Loader2 size={13} className="spin" /> : <Trash2 size={13} />}
+                  </button>
+                </div>
+              </div>
             ))}
           </div>
         </div>
       )}
 
+      {/* ── Upload Modal ─────────────────────────────────────────────────── */}
       {showUploadModal && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-          <div className="card" style={{ maxWidth: 480, width: "100%", padding: 32, boxShadow: "0 24px 80px rgba(0,0,0,0.5)" }}>
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+          <div className="card" style={{ maxWidth: 500, width: "100%", padding: 32, boxShadow: "0 24px 80px rgba(0,0,0,0.6)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
               <div style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(168,85,247,0.12)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--purple)" }}>
                 <UploadCloud size={20} />
               </div>
               <div>
-                <h2 style={{ fontSize: 17, fontWeight: 700, margin: 0 }}>Upload Document</h2>
+                <h2 style={{ fontSize: 17, fontWeight: 700, margin: 0 }}>{uploadForm.title || "Upload Document"}</h2>
                 <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0 }}>For {employee.name}</p>
               </div>
             </div>
             <form onSubmit={handleUploadSubmit} style={{ display: "grid", gap: 16 }}>
+              {/* Title — prefilled if slot upload, editable if custom */}
               <div>
                 <label className="label label-required">Document Title</label>
-                <input className="input" list="doc-titles" placeholder="e.g. Non-Disclosure Agreement" value={uploadForm.title} onChange={e => setUploadForm(f => ({...f, title: e.target.value}))} required />
-                <datalist id="doc-titles">
-                  {DOC_TYPES.map(t => <option key={t} value={t} />)}
-                </datalist>
+                {uploadForm.title ? (
+                  <input className="input" value={uploadForm.title} readOnly style={{ opacity: 0.7 }} />
+                ) : (
+                  <>
+                    <input className="input" list="doc-suggestions" placeholder="e.g. Warning Letter, Certificate..." value={uploadForm.title} onChange={e => setUploadForm(f => ({ ...f, title: e.target.value }))} required />
+                    <datalist id="doc-suggestions">
+                      <option value="Warning Letter" />
+                      <option value="Appreciation Letter" />
+                      <option value="Training Certificate" />
+                      <option value="Performance Review" />
+                      <option value="Confirmation Letter" />
+                      <option value="No Due Certificate" />
+                      <option value="Full & Final Settlement" />
+                      <option value="Experience Letter" />
+                      <option value="Relieving Letter" />
+                      <option value="Recommendation Letter" />
+                      <option value="Internship Completion Certificate" />
+                    </datalist>
+                  </>
+                )}
               </div>
-              <div>
-                <label className="label">Document Category</label>
-                <select className="input" value={uploadForm.type} onChange={e => setUploadForm(f => ({...f, type: e.target.value}))}>
-                  <option value="Joining">Pre-Joining</option>
-                  <option value="Consent">Consent</option>
-                  <option value="During">During Tenure</option>
-                  <option value="Exit">Exit / Completion</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
+
+              {/* File dropzone */}
               <div>
                 <label className="label label-required">File (PDF / Image)</label>
                 <div
@@ -413,6 +502,7 @@ export default function EmployeeDetailsClient({ employee }: { employee: Employee
                 </div>
                 <input ref={fileInputRef} type="file" style={{ display: "none" }} accept="application/pdf,image/*" onChange={handleFileUpload} />
               </div>
+
               <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
                 <button type="button" className="btn btn-secondary" style={{ flex: 1 }} onClick={() => { setShowUploadModal(false); setUploadForm({ title: "", type: "Other", base64: "", fileName: "" }); }}>Cancel</button>
                 <button type="submit" className="btn btn-primary" style={{ flex: 1 }} disabled={uploading || !uploadForm.base64}>

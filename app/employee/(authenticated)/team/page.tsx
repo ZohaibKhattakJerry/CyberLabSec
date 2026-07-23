@@ -68,9 +68,9 @@ export default async function TeamPage() {
     <div>
       <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 24 }}>My Team</h1>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 24, alignItems: "start" }}>
-        <TeamChatClient team={serializedTeam} employeeId={employee.id} employeeName={employee.name} />
+        <TeamChatClient messages={serializedTeam.messages} currentUserId={employee.id} />
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-          <MeetingClient team={serializedTeam} />
+          <MeetingClient initialMeetings={[]} currentUser={employee.id} />
           <div className="card" style={{ padding: 24 }}>
             <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
               <Users size={18} color="var(--purple)" /> Team Members

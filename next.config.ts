@@ -47,7 +47,8 @@ const nextConfig: NextConfig = {
   },
 
   experimental: {
-    memoryBasedWorkersCount: true,
+    workerThreads: false,
+    cpus: 1,
   },
   images: {
     remotePatterns: [
