@@ -292,7 +292,7 @@ export default function AnnouncementsClient({
                       <div style={{ fontWeight: 700, fontSize: 13, color: "#e5e7eb", marginBottom: 3 }}>{act.title}</div>
                       <div style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.5 }}>{act.description}</div>
                     </div>
-                    <div style={{ fontSize: 11, color: "#4b5563", whiteSpace: "nowrap", flexShrink: 0 }}>
+                    <div suppressHydrationWarning style={{ fontSize: 11, color: "#4b5563", whiteSpace: "nowrap", flexShrink: 0 }}>
                       {formatDistanceToNow(new Date(act.time), { addSuffix: true })}
                     </div>
                   </div>
@@ -438,7 +438,7 @@ function AnnouncementCard({
                 {a.isPinned && <span style={{ fontSize: 10, fontWeight: 800, color: "#f59e0b", background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.25)", borderRadius: 20, padding: "2px 7px" }}>PINNED</span>}
                 {a.expiresAt && <span style={{ fontSize: 10, fontWeight: 700, color: "#f87171", background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.25)", borderRadius: 20, padding: "2px 7px" }}>Expires {format(new Date(a.expiresAt), "MMM d")}</span>}
               </div>
-              <div style={{ fontSize: 11, color: "#4b5563", marginTop: 3 }}>
+              <div suppressHydrationWarning style={{ fontSize: 11, color: "#4b5563", marginTop: 3 }}>
                 {a.sentBy?.name || "System"} · {formatDistanceToNow(new Date(a.sentAt), { addSuffix: true })}
               </div>
             </div>

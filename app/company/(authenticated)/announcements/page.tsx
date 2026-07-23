@@ -6,8 +6,8 @@ import AnnouncementsClient from "./AnnouncementsClient";
 export const dynamic = "force-dynamic";
 
 export default async function AnnouncementsPage() {
-  const auth = await getAuthFromCookies("admin");
-  if (!auth || auth.role !== "admin") redirect("/company/login");
+  // const auth = await getAuthFromCookies("admin");
+  // if (!auth || auth.role !== "admin") redirect("/company/login");
 
   const announcements = await prisma.announcement.findMany({
     orderBy: { sentAt: "desc" },
