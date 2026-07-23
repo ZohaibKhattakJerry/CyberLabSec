@@ -37,7 +37,7 @@ export default async function AnnouncementsPage() {
       orderBy: { createdAt: "desc" },
       select: { id: true, title: true, createdAt: true, team: { select: { name: true } } },
     }),
-    prisma.submission.findMany({
+    prisma.taskSubmission.findMany({
       take: 15,
       orderBy: { submittedAt: "desc" },
       include: {
