@@ -308,7 +308,6 @@ export default function EmployeeDetailsClient({ employee }: { employee: any }) {
 
   // Extra docs (admin custom uploads not in known slots)
   const knownTitles = new Set(slots.map(s => s.title));
-  const offerVariants = ["Job Offer Letter", "Internship Offer Letter", "Initial Offer Letter", "Contract Offer Letter", "Offer Letter"];
   const extraDocs = documents.filter(d =>
     !knownTitles.has(d.title) &&
     !d.title?.endsWith(" Acceptance") &&
