@@ -107,12 +107,13 @@ export default function OnboardingWizard({ employee }: { employee: Employee }) {
   const completeOnboarding = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/employee/onboarding", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
-      });
-      if (!res.ok) throw new Error("Failed to complete onboarding.");
+      const res = await fetch("/api/employee/onboarding", { method: "POST" });
+      if (res.ok) {
+        toast.success("Welcome aboard!");
+        router.refresh();
+      } else {
+        throw new Error("Failed to complete onboarding.");
+      }
       confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 }, zIndex: 9999 });
       toast.success("Welcome to CyberLabSec! 🎉");
       router.push("/employee/dashboard");

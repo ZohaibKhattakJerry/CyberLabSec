@@ -12,6 +12,31 @@ import { useRouter } from "next/navigation";
 import confetti from "canvas-confetti";
 import jsPDF from "jspdf";
 
+// Helper to view/download Base64 correctly (Chrome blocks data URLs on target=_blank)
+const handleDownloadBase64 = (url: string, title: string) => {
+  if (url.startsWith("data:")) {
+    const arr = url.split(',');
+    const mimeMatch = arr[0].match(/:(.*?);/);
+    const mime = mimeMatch ? mimeMatch[1] : 'application/pdf';
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) u8arr[n] = bstr.charCodeAt(n);
+    const blob = new Blob([u8arr], { type: mime });
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = `${title.replace(/\s+/g, '_')}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(blobUrl);
+  } else {
+    // Normal URL
+    window.open(url, '_blank');
+  }
+};
+
 // ─── Types ─────────────────────────────────────────────────────────────────
 type DocStatus = "pending_signature" | "signed" | "uploaded" | "requested" | "locked" | "issued" | "responded" | "not_available";
 
@@ -241,9 +266,9 @@ export default function DocumentsClient({
         {/* Actions */}
         <div className="flex items-center gap-2 flex-shrink-0 mt-3 sm:mt-0">
           {fileUrl && (
-            <a href={fileUrl} target="_blank" rel="noreferrer" className="doc-btn doc-btn-secondary">
+            <button onClick={() => handleDownloadBase64(fileUrl, def.title)} className="doc-btn doc-btn-secondary">
               <Download size={13} /> Download
-            </a>
+            </button>
           )}
           {canRequest && (
             <button
@@ -467,9 +492,9 @@ export default function DocumentsClient({
                     </div>
                   </div>
                   {doc.fileUrl && (
-                    <a href={doc.fileUrl} target="_blank" rel="noreferrer" className="doc-btn doc-btn-secondary mt-3 sm:mt-0">
+                    <button onClick={() => handleDownloadBase64(doc.fileUrl, doc.title)} className="doc-btn doc-btn-secondary mt-3 sm:mt-0">
                       <Download size={13} /> Download
-                    </a>
+                    </button>
                   )}
                 </div>
               ))}

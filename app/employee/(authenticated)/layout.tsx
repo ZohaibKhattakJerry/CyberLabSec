@@ -23,7 +23,7 @@ export default async function EmployeePortalLayout({
     select: {
       id: true, name: true, email: true, designation: true, employeeCode: true,
       employmentType: true, photoUrl: true, mustResetPassword: true,
-      policyAcknowledgedAt: true, teamId: true, status: true,
+      onboardingCompleted: true, teamId: true, status: true,
       team: { select: { id: true, name: true } },
     },
   });
@@ -52,7 +52,7 @@ export default async function EmployeePortalLayout({
     );
   }
 
-  if (!employee.policyAcknowledgedAt) {
+  if (!employee.onboardingCompleted) {
     return <OnboardingWizard employee={employee} />;
   }
 

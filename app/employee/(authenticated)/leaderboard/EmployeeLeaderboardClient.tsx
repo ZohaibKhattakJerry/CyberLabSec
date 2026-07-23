@@ -59,8 +59,9 @@ export default function EmployeeLeaderboardClient({
     });
   }, [employees, timeframe, search, teamFilter]);
 
-  const top3 = sortedEmployees.slice(0, 3);
-  const rest = sortedEmployees.slice(3);
+  const isFiltering = search.length > 0 || teamFilter !== "All";
+  const top3 = isFiltering ? [] : sortedEmployees.slice(0, 3);
+  const rest = isFiltering ? sortedEmployees : sortedEmployees.slice(3);
 
   const getPoints = (e: Employee) => timeframe === "monthly" ? e.monthlyPoints : e.points;
   const maxPoints = sortedEmployees.length > 0 ? getPoints(sortedEmployees[0]) : 1;

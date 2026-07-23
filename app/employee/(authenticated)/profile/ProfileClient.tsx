@@ -112,7 +112,7 @@ export default function ProfileClient({ employee, activityLogs }: { employee: Em
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 24, alignItems: "start" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))", gap: 24, alignItems: "start" }}>
         
         {/* Left Column */}
         <div style={{ display: "grid", gap: 24 }}>

@@ -12,6 +12,30 @@ import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
+// Helper to view/download Base64 correctly (Chrome blocks data URLs on target=_blank)
+const handleDownloadBase64 = (url: string, title: string) => {
+  if (url.startsWith("data:")) {
+    const arr = url.split(',');
+    const mimeMatch = arr[0].match(/:(.*?);/);
+    const mime = mimeMatch ? mimeMatch[1] : 'application/pdf';
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) u8arr[n] = bstr.charCodeAt(n);
+    const blob = new Blob([u8arr], { type: mime });
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = `${title.replace(/\s+/g, '_')}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(blobUrl);
+  } else {
+    // Normal URL
+    window.open(url, '_blank');
+  }
+};
 type DocSection = "pre" | "onboarding" | "during" | "exit" | "other";
 
 interface DocSlot {
@@ -104,15 +128,15 @@ export default function EmployeeDetailsClient({ employee }: { employee: any }) {
   const empType = employee.employmentType || "Employee";
   const isIntern = empType === "Intern";
   const isCompleted = employee.status === "Inactive" || employee.status === "Terminated";
+  const offerVariants = ["Job Offer Letter", "Internship Offer Letter", "Initial Offer Letter", "Contract Offer Letter", "Offer Letter"];
 
   // ── Lookups ────────────────────────────────────────────────────────────────
-  const findDoc = (title: string) =>
-    documents.find(d =>
-      d.title === title ||
-      d.title === title + " Acceptance" ||
-      // Offer letter variants
-      (title === "Offer Letter" && ["Job Offer Letter", "Internship Offer Letter", "Initial Offer Letter", "Contract Offer Letter", "Offer Letter"].some(t => d.title?.includes(t)))
-    );
+  const findDoc = (title: string) => {
+    if (title === "Offer Letter") {
+      return documents.find(d => offerVariants.some(v => d.title?.includes(v)));
+    }
+    return documents.find(d => d.title === title);
+  };
 
   const findSig = (title: string) =>
     signatures.find(s => {
@@ -250,9 +274,9 @@ export default function EmployeeDetailsClient({ employee }: { employee: any }) {
         <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
           {fileUrl ? (
             <>
-              <a href={fileUrl} target="_blank" rel="noreferrer" className="btn btn-secondary btn-sm" style={{ gap: 5 }}>
+              <button onClick={() => handleDownloadBase64(fileUrl, slot.title)} className="btn btn-secondary btn-sm" style={{ gap: 5 }}>
                 <Download size={13} /> View
-              </a>
+              </button>
               {/* Allow re-upload for company-issued docs */}
               {canUpload && (
                 <button className="btn btn-primary btn-sm" onClick={() => handleUploadSlot(slot.title)}>
@@ -367,9 +391,9 @@ export default function EmployeeDetailsClient({ employee }: { employee: any }) {
         {(cvLink || linkedInLink) && (
           <div style={{ marginTop: 24, paddingTop: 16, borderTop: "1px solid rgba(168,85,247,0.1)", display: "flex", gap: 12, flexWrap: "wrap" }}>
             {cvLink && (
-              <a href={cvLink} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm" style={{ fontWeight: 600, gap: 6 }}>
+              <button onClick={() => handleDownloadBase64(cvLink, `${employee.name}_CV`)} className="btn btn-secondary btn-sm" style={{ fontWeight: 600, gap: 6 }}>
                 <FileText size={14} color="var(--purple)" /> View Resume / CV
-              </a>
+              </button>
             )}
             {linkedInLink && (
               <a href={linkedInLink} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm" style={{ fontWeight: 600, gap: 6, color: "#3b82f6" }}>
@@ -427,9 +451,9 @@ export default function EmployeeDetailsClient({ employee }: { employee: any }) {
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
                   {doc.fileUrl && (
-                    <a href={doc.fileUrl} target="_blank" rel="noreferrer" className="btn btn-secondary btn-sm" style={{ gap: 5 }}>
+                    <button onClick={() => handleDownloadBase64(doc.fileUrl, doc.title)} className="btn btn-secondary btn-sm" style={{ gap: 5 }}>
                       <Download size={13} /> View
-                    </a>
+                    </button>
                   )}
                   <button className="btn btn-danger btn-sm" onClick={() => handleDelete(doc.id, doc.title)} disabled={deleting === doc.id} style={{ padding: "0 10px" }}>
                     {deleting === doc.id ? <Loader2 size={13} className="spin" /> : <Trash2 size={13} />}
