@@ -181,6 +181,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
     setLoading(false);
     if (!res.ok) { setMsg(data.error || "Failed"); return; }
     setMsg("Onboarding reset. Employee will see it on next login.");
+    setEditEmployee({ ...editEmployee, onboardingCompleted: false });
     startTransition(() => { router.refresh(); });
   };
 
@@ -748,13 +749,18 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
               {msg && <p style={{ fontSize: 13, color: "var(--green)" }}>{msg}</p>}
               
               <div style={{ marginTop: 8, padding: 16, background: "rgba(168,85,247,0.05)", border: "1px solid rgba(168,85,247,0.2)", borderRadius: 12 }}>
-                <h4 style={{ fontSize: 13, fontWeight: 700, color: "var(--purple)", marginBottom: 4, display: "flex", alignItems: "center", gap: 6 }}>
-                  <RotateCw size={14} /> Re-run Onboarding
-                </h4>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                  <h4 style={{ fontSize: 13, fontWeight: 700, color: "var(--purple)", display: "flex", alignItems: "center", gap: 6, margin: 0 }}>
+                    <RotateCw size={14} /> Re-run Onboarding
+                  </h4>
+                  <span className={`badge ${editEmployee.onboardingCompleted ? "badge-green" : "badge-amber"}`} style={{ fontSize: 10 }}>
+                    {editEmployee.onboardingCompleted ? "Done" : "Pending"}
+                  </span>
+                </div>
                 <p style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 12 }}>
                   Clicking this will reset the employee's onboarding status. They will be forced to complete the onboarding wizard and view the guide again on their next login.
                 </p>
-                <button className="btn btn-secondary btn-sm" onClick={reRunOnboarding} disabled={loading} type="button" style={{ width: "100%", justifyContent: "center" }}>
+                <button className="btn btn-secondary btn-sm" onClick={reRunOnboarding} disabled={loading || !editEmployee.onboardingCompleted} type="button" style={{ width: "100%", justifyContent: "center" }}>
                   <RotateCw size={14} /> Trigger Re-run
                 </button>
               </div>

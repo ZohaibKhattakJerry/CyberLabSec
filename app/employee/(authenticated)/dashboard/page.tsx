@@ -433,9 +433,7 @@ export default async function Dashboard() {
                 </div>
               </div>
 
-              <div style={{ position: 'relative', zIndex: 99999 }}>
-                <NotificationBell placement="top-right" variant="dashboard" />
-              </div>
+
             </div>
           </div>
         </div>
