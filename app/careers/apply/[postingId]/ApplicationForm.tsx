@@ -557,8 +557,8 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                 <h2 style={{ fontSize: 17, fontWeight: 700, marginBottom: 6 }}>Review & Consent</h2>
                 <p style={{ color: "var(--text-secondary)", fontSize: 13, marginBottom: 20 }}>Please review your details and accept the required consents before submitting.</p>
 
-                <div style={{ background: "rgba(255,255,255,0.015)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.05)", padding: "16px 20px", marginBottom: 24, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)" }}>
-                  <div style={{ display: "grid", gap: 12, fontSize: 13.5 }}>
+                <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.04)", padding: "14px 16px", marginBottom: 20 }}>
+                  <div style={{ display: "grid", gap: 8, fontSize: 13 }}>
                     {[
                       ["Name", form.fullName], ["Email", form.email], ["Phone", form.phone],
                       ["Position", posting.title], ["CV", cvFile?.name || "—"],
@@ -570,30 +570,30 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                       ...(form.hackTheBox ? [["HackTheBox", form.hackTheBox]] : []),
                       ...(form.certifications && form.certifications !== "None yet" ? [["Certs", form.certifications]] : []),
                     ].map(([k, v]) => (
-                      <div key={k} style={{ display: "flex", flexWrap: "wrap", gap: "4px 16px", borderBottom: "1px solid rgba(255,255,255,0.03)", paddingBottom: 16, alignItems: "baseline" }}>
-                        <span style={{ color: "var(--text-muted)", width: 100, flexShrink: 0, fontWeight: 500 }}>{k}</span>
+                      <div key={k} style={{ display: "flex", flexWrap: "wrap", gap: "2px 12px", borderBottom: "1px solid rgba(255,255,255,0.02)", paddingBottom: 8, alignItems: "baseline" }}>
+                        <span style={{ color: "var(--text-muted)", width: 80, flexShrink: 0, fontWeight: 500, fontSize: 12.5 }}>{k}</span>
                         <span style={{ color: "var(--text-primary)", wordBreak: "break-word", fontWeight: 600, flex: "1 1 auto", minWidth: 150 }}>{v}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div style={{ display: "grid", gap: 12, marginBottom: 24 }}>
-                  <label style={{ display: "flex", gap: 12, alignItems: "flex-start", cursor: "pointer" }}>
+                <div style={{ display: "grid", gap: 10, marginBottom: 20 }}>
+                  <label style={{ display: "flex", gap: 12, alignItems: "flex-start", cursor: "pointer", background: form.consentData ? "rgba(168,85,247,0.08)" : "rgba(255,255,255,0.02)", border: `1px solid ${form.consentData ? "rgba(168,85,247,0.3)" : "rgba(255,255,255,0.05)"}`, padding: "12px 14px", borderRadius: 10, transition: "all 0.2s" }}>
                     <input type="checkbox" checked={form.consentData} onChange={(e) => set("consentData", e.target.checked)} style={{ marginTop: 2, accentColor: "var(--purple)", width: 16, height: 16, flexShrink: 0 }} />
-                    <span style={{ fontSize: 12.5, color: "var(--text-secondary)", lineHeight: 1.5 }}>
-                      I consent to CyberLabSec processing my personal data (including CV, contact details, and government ID) for recruitment purposes, in accordance with applicable data protection laws. My data will be stored securely and not shared with third parties.
+                    <span style={{ fontSize: 12, color: form.consentData ? "var(--text-primary)" : "var(--text-secondary)", lineHeight: 1.4 }}>
+                      I consent to CyberLabSec processing my personal data (including CV and contact details) for recruitment purposes. My data will be stored securely and not shared with third parties.
                     </span>
                   </label>
-                  <label style={{ display: "flex", gap: 12, alignItems: "flex-start", cursor: "pointer" }}>
+                  <label style={{ display: "flex", gap: 12, alignItems: "flex-start", cursor: "pointer", background: form.consentInterview ? "rgba(168,85,247,0.08)" : "rgba(255,255,255,0.02)", border: `1px solid ${form.consentInterview ? "rgba(168,85,247,0.3)" : "rgba(255,255,255,0.05)"}`, padding: "12px 14px", borderRadius: 10, transition: "all 0.2s" }}>
                     <input type="checkbox" checked={form.consentInterview} onChange={(e) => set("consentInterview", e.target.checked)} style={{ marginTop: 2, accentColor: "var(--purple)", width: 16, height: 16, flexShrink: 0 }} />
-                    <span style={{ fontSize: 12.5, color: "var(--text-secondary)", lineHeight: 1.5 }}>
-                      I understand that shortlisted candidates will undergo an automated technical assessment. I agree to complete this assessment independently. I acknowledge that any use of unauthorized assistance or automated tools will result in disqualification.
+                    <span style={{ fontSize: 12, color: form.consentInterview ? "var(--text-primary)" : "var(--text-secondary)", lineHeight: 1.4 }}>
+                      I agree to complete the automated technical assessment independently without unauthorized assistance or automated tools.
                     </span>
                   </label>
                 </div>
 
-                <div style={{ background: "rgba(168,85,247,0.06)", border: "1px solid rgba(168,85,247,0.15)", borderRadius: 8, padding: "10px 14px", fontSize: 12.5, color: "var(--text-secondary)", marginBottom: 24 }}>
+                <div style={{ background: "rgba(168,85,247,0.06)", border: "1px solid rgba(168,85,247,0.15)", borderRadius: 8, padding: "8px 12px", fontSize: 12, color: "var(--text-secondary)", marginBottom: 20 }}>
                   Please note: Multiple applications for the same role using identical credentials will be automatically flagged and may affect your candidacy.
                 </div>
 
