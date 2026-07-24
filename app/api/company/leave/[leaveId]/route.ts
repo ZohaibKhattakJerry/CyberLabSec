@@ -36,5 +36,15 @@ export async function PATCH(
     },
   });
 
+  // Log activity
+  await prisma.activityLog.create({
+    data: {
+      actorId: auth.sub,
+      actorType: "Admin",
+      action: "LEAVE_REVIEWED",
+      metadata: JSON.stringify({ leaveId, status })
+    }
+  });
+
   return NextResponse.json({ success: true, leave });
 }

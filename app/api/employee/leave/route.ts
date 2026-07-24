@@ -31,6 +31,28 @@ export async function POST(req: NextRequest) {
   const leave = await (prisma as unknown).leaveRequest.create({
     data: { employeeId: auth.sub, type, startDate: start, endDate: end, totalDays, reason }
   });
+
+  // Log activity
+  await prisma.activityLog.create({
+    data: {
+      actorId: auth.sub,
+      actorType: "Employee",
+      action: "LEAVE_REQUESTED",
+      metadata: JSON.stringify({ leaveId: leave.id, type, totalDays })
+    }
+  });
+
+  // Notify admin
+  await prisma.notification.create({
+    data: {
+      userId: "admin", // Represents admins
+      title: "New Leave Request",
+      message: `An employee has submitted a ${totalDays}-day ${type} leave request.`,
+      type: "Leave",
+      link: "/company/leaves"
+    }
+  });
+
   return NextResponse.json({ success: true, leave });
 }
 

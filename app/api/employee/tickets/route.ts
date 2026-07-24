@@ -10,6 +10,28 @@ export async function POST(req: NextRequest) {
   const ticket = await prisma.supportTicket.create({
     data: { employeeId: auth.sub, category: category || 'General', title, description, priority: priority || 'Medium' }
   });
+
+  // Log activity
+  await prisma.activityLog.create({
+    data: {
+      actorId: auth.sub,
+      actorType: "Employee",
+      action: "TICKET_SUBMITTED",
+      metadata: JSON.stringify({ ticketId: ticket.id, category, priority: priority || 'Medium' })
+    }
+  });
+
+  // Notify admin
+  await prisma.notification.create({
+    data: {
+      userId: "admin",
+      title: "New Support Ticket",
+      message: `A new ${priority || 'Medium'} priority support ticket has been submitted.`,
+      type: "Ticket",
+      link: "/company/support"
+    }
+  });
+
   return NextResponse.json({ success: true, ticket });
 }
 

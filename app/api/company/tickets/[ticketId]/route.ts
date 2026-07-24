@@ -35,5 +35,15 @@ export async function PATCH(
     });
   }
 
+  // Log activity
+  await prisma.activityLog.create({
+    data: {
+      actorId: auth.sub,
+      actorType: "Admin",
+      action: "TICKET_REVIEWED",
+      metadata: JSON.stringify({ ticketId, status })
+    }
+  });
+
   return NextResponse.json({ success: true, ticket });
 }

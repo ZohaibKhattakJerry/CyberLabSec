@@ -65,6 +65,26 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ emp
       }
     });
   }
+  // Log activity
+  await prisma.activityLog.create({
+    data: {
+      actorId: auth.sub,
+      actorType: "Admin",
+      action: "DOCUMENT_UPLOADED",
+      metadata: JSON.stringify({ documentId: doc.id, employeeId, title, type })
+    }
+  });
+
+  // Notify employee
+  await prisma.notification.create({
+    data: {
+      userId: employeeId,
+      title: "New Document Uploaded",
+      message: `A new document (${title}) has been uploaded to your profile.`,
+      type: "Document",
+      link: "/employee/documents"
+    }
+  });
 
   return NextResponse.json({ success: true, document: doc });
 }
