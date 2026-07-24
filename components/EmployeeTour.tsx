@@ -136,6 +136,7 @@ export default function EmployeeTour() {
   useEffect(() => {
     const hasSeenTour = localStorage.getItem("hasSeenEmployeeTour");
     if (!hasSeenTour) {
+      localStorage.setItem("hasSeenEmployeeTour", "true");
       setTimeout(() => setRun(true), 1500); 
     }
   }, []);
@@ -154,7 +155,6 @@ export default function EmployeeTour() {
 
     if (([STATUS.FINISHED, STATUS.SKIPPED] as string[]).includes(status)) {
       setRun(false);
-      localStorage.setItem("hasSeenEmployeeTour", "true");
     }
   };
 
