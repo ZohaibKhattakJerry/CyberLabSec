@@ -364,20 +364,7 @@ export default function PortalLayout({ children, employee }: { children: React.R
 
       {/* Main content */}
       <div className="main-content">
-        {/* Desktop topbar */}
-        <div
-          className="desktop-topbar"
-          style={{
-            alignItems: "center", justifyContent: "flex-end",
-            padding: "0 24px", height: 56, borderBottom: "1px solid rgba(255,255,255,0.05)",
-            background: "rgba(7,5,15,0.9)", backdropFilter: "blur(20px)",
-            position: "sticky", top: 0, zIndex: 50, gap: 12,
-          }}
-        >
-          <div id="tour-notification-bell">
-            <NotificationBell placement="bottom-left" />
-          </div>
-        </div>
+
 
         {/* Mobile topbar */}
         <div
@@ -396,9 +383,6 @@ export default function PortalLayout({ children, employee }: { children: React.R
             {mobileOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
           <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 24, objectFit: "contain" }} />
-          <div id="tour-notification-bell" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <NotificationBell placement="top-right" />
-          </div>
         </div>
 
         <main style={{ padding: "24px 20px", maxWidth: 1200, margin: "0 auto" }}>

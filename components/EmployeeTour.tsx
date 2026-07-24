@@ -43,12 +43,6 @@ const TOUR_STEPS: Step[] = [
     title: "Leaderboard & Points",
     placement: "right",
   },
-  {
-    target: "#tour-notification-bell",
-    content: "Don't forget to check your notifications for announcements, task updates, and rewards!",
-    title: "Stay Updated",
-    placement: "bottom",
-  },
 ];
 
 const TooltipComponent = ({
