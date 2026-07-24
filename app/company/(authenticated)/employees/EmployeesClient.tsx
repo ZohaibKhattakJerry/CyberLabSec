@@ -210,7 +210,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
         startTransition(() => router.refresh());
         setDhData({ name: "", email: "", designation: "", teamId: "", tier: "Standard", employmentType: "Employee", startDate: new Date().toISOString().split('T')[0], durationMonths: "3", offerLetterBase64: "", cvBase64: "", linkedinUrl: "" });
       }, 1500);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
       setLoading(false);
       setMsg("A critical error occurred. Please try again.");

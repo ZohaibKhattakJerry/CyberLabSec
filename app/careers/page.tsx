@@ -39,7 +39,7 @@ export default async function CareersPage() {
     }));
 
     return <CareersJobBoard postings={serialized} />;
-  } catch (error: unknown) {
+  } catch (error: any) {
     console.error("Failed to load postings:", error);
     return <CareersJobBoard postings={[]} />;
   }

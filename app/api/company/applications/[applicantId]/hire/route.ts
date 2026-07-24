@@ -4,7 +4,7 @@ import { getAuthFromCookies } from "@/lib/auth";
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ applicantId: string }> }
+  { params }: { params: Promise<any> }
 ) {
   const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -15,7 +15,7 @@ export async function POST(
   let body: any = {};
   try {
     body = await req.json();
-  } catch(e) {}
+  } catch (e: any) {}
   const { offerLetterBase64, customMessage, startingSalary, expectedJoinDate, durationMonths, employmentType } = body;
 
   if (!offerLetterBase64) {

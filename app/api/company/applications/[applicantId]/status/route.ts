@@ -5,7 +5,7 @@ import crypto from "crypto";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ applicantId: string }> }
+  { params }: { params: Promise<any> }
 ) {
   const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -71,7 +71,7 @@ export async function PATCH(
         },
       });
       interviewToken = session.token;
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to create interview session for manual invite:", err);
       // Don't block the status update if session creation fails; just skip the link
     }

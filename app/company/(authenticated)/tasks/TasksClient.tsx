@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Search, _Calendar, _ChevronRight, FileText, CheckCircle, Clock, AlertTriangle, Star, _X, Loader2, ExternalLink, Eye, _Filter, LayoutList, LayoutGrid, Globe, Target, ShieldAlert, Trash2 } from "lucide-react";
+import { Plus, Search, Calendar, ChevronRight, FileText, CheckCircle, Clock, AlertTriangle, Star, X, Loader2, ExternalLink, Eye, Filter, LayoutList, LayoutGrid, Globe, Target, ShieldAlert, Trash2 } from "lucide-react";
 import { format, formatDistanceToNow, isPast } from "date-fns";
 import toast from "react-hot-toast";
 
@@ -147,7 +147,7 @@ export default function TasksClient({ initialTasks, teams, employees, hideHeader
 
   const handleReview = async () => {
     if (!reviewAction) return;
-    if (reviewAction.action === "request_changes" && !feedback.trim()) {
+    if (reviewAction?.action === "request_changes" && !feedback.trim()) {
       toast.error("Feedback is required when requesting changes");
       return;
     }
@@ -156,10 +156,10 @@ export default function TasksClient({ initialTasks, teams, employees, hideHeader
       const res = await fetch("/api/company/tasks/review", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ submissionId: reviewAction.submissionId, action: reviewAction.action, feedback: feedback.trim(), qualityRating: qualityRating || null }),
+        body: JSON.stringify({ submissionId: reviewAction.submissionId, action: reviewAction?.action, feedback: feedback.trim(), qualityRating: qualityRating || null }),
       });
       if (!res.ok) throw new Error("Failed");
-      toast.success(reviewAction.action === "approve" ? "Task approved — points awarded! 🎉" : "More information requested — employee notified");
+      toast.success(reviewAction?.action === "approve" ? "Task approved — points awarded! 🎉" : "More information requested — employee notified");
       setReviewAction(null);
       setFeedback("");
       setQualityRating(0);
@@ -541,10 +541,10 @@ export default function TasksClient({ initialTasks, teams, employees, hideHeader
                                   {reviewAction?.submissionId === sub.id && (
                                     <div style={{ marginTop: 12, padding: 16, background: "rgba(168,85,247,0.05)", border: "1px solid var(--border-accent)", borderRadius: 10 }}>
                                       <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 12 }}>
-                                        {reviewAction.action === "approve" ? "✅ Approve Submission" : "🔄 Need more information"}
+                                        {reviewAction?.action === "approve" ? "✅ Approve Submission" : "🔄 Need more information"}
                                       </div>
 
-                                      {reviewAction.action === "approve" && (
+                                      {reviewAction?.action === "approve" && (
                                         <div style={{ marginBottom: 12 }}>
                                           <label className="label">Quality Rating (affects bonus points)</label>
                                           <div style={{ display: "flex", gap: 6 }}>
@@ -564,15 +564,15 @@ export default function TasksClient({ initialTasks, teams, employees, hideHeader
                                       )}
 
                                       <div style={{ marginBottom: 12 }}>
-                                        <label className={`label ${reviewAction.action === "request_changes" ? "label-required" : ""}`}>
-                                          {reviewAction.action === "approve" ? "Optional feedback" : "Feedback (required)"}
+                                        <label className={`label ${reviewAction?.action === "request_changes" ? "label-required" : ""}`}>
+                                          {reviewAction?.action === "approve" ? "Optional feedback" : "Feedback (required)"}
                                         </label>
                                         <textarea
                                           className="input"
                                           rows={3}
                                           value={feedback}
                                           onChange={e => setFeedback(e.target.value)}
-                                          placeholder={reviewAction.action === "approve" ? "Great work! Specific notes..." : "What needs to be changed and why..."}
+                                          placeholder={reviewAction?.action === "approve" ? "Great work! Specific notes..." : "What needs to be changed and why..."}
                                         />
                                       </div>
 
@@ -581,7 +581,7 @@ export default function TasksClient({ initialTasks, teams, employees, hideHeader
                                         <button
                                           className="btn btn-primary btn-sm"
                                           onClick={handleReview}
-                                          disabled={loading || (reviewAction.action === "request_changes" && !feedback.trim())}
+                                          disabled={loading || (reviewAction?.action === "request_changes" && !feedback.trim())}
                                         >
                                           {loading ? <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> : "Submit Review"}
                                         </button>

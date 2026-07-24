@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
           fileSize: null
         }
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to cleanup old chat files:", err);
     }
 
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ message: newMsg });
-  } catch (error: unknown) {
+  } catch (error: any) {
     console.error("Team message error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }

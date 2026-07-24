@@ -5,7 +5,7 @@ import { getAuthFromCookies } from "@/lib/auth";
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: Promise<{ applicantId: string }> }
+  { params }: { params: Promise<any> }
 ) {
   const auth = await getAuthFromCookies("admin");
   // Ensure the user is an admin/company user
@@ -52,7 +52,7 @@ export async function DELETE(
     await prisma.applicant.delete({ where: { id: applicant.id } });
 
     return NextResponse.json({ success: true, message: "Applicant deleted successfully." });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Failed to delete applicant:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }

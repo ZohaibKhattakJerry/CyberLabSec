@@ -5,7 +5,7 @@ import { sendEmail } from "@/lib/email";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ employeeId: string }> }
+  { params }: { params: Promise<any> }
 ) {
   const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -57,7 +57,7 @@ export async function PATCH(
             { filename: "CyberLabSec_Termination_Letter.pdf", content: terminationFileBase64, encoding: "base64" }
           ] : undefined
         });
-      } catch (e) {
+      } catch (e: any) {
         console.error("Failed to send termination email:", e);
       }
 
@@ -93,7 +93,7 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: Promise<{ employeeId: string }> }
+  { params }: { params: Promise<any> }
 ) {
   const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -135,7 +135,7 @@ export async function DELETE(
     }).catch(() => {});
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Failed to delete employee:", error);
     return NextResponse.json({ error: "Failed to delete employee data." }, { status: 500 });
   }

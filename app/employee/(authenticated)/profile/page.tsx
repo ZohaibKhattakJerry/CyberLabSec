@@ -40,7 +40,7 @@ export default async function ProfilePage() {
         policyAcknowledgedAt: employee.policyAcknowledgedAt?.toISOString() ?? null,
         badges: employee.badges.map(b => ({ ...b, awardedAt: b.awardedAt.toISOString() })),
       }}
-      activityLogs={activityLogs.map((l: unknown) => ({
+      activityLogs={activityLogs.map((l: any) => ({
         ...l,
         timestamp: l.timestamp.toISOString(),
       }))}

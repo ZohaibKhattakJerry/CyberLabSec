@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthFromCookies } from "@/lib/auth";
 
-export async function POST(req: NextRequest, { params }: { params: Promise<{ employeeId: string }> }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<any> }) {
   const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== "admin") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ emp
     });
 
     return NextResponse.json({ report });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Report generation error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }

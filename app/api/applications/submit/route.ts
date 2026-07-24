@@ -176,7 +176,7 @@ export async function POST(req: NextRequest) {
     waitUntil(runScreening(applicant.id, cvUrl, { fullName, email, posting, referenceId: applicant.referenceId }));
 
     return NextResponse.json({ applicationId: applicant.id, referenceId: applicant.referenceId, message: "Application received and screened" }, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Database or processing error during application submission:", error);
     return NextResponse.json({ error: "Service temporarily unavailable. Please try again later." }, { status: 503 });
   }
@@ -281,7 +281,7 @@ async function runScreening(
       });
       // Admin will manually review and trigger invite
     }
-  } catch (err) {
+  } catch (err: any) {
     console.error("Screening error:", err);
     await prisma.applicant.update({
       where: { id: applicantId },

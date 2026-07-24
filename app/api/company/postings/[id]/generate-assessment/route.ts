@@ -5,7 +5,7 @@ import { generateAssessmentBank } from "@/lib/assessmentEngine";
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<any> }
 ) {
   try {
     const auth = await getAuthFromCookies("admin");

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthFromCookies } from "@/lib/auth";
 
-export async function GET(req: NextRequest, { params }: { params: Promise<{ employeeId: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<any> }) {
   const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   

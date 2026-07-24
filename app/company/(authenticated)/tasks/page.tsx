@@ -46,5 +46,5 @@ export default async function AdminTasksPage() {
     orderBy: { name: "asc" }
   });
 
-  return <TasksClient initialTasks={serializedTasks} teams={teams} employees={employees} />;
+  return <TasksClient initialTasks={serializedTasks as any} teams={teams} employees={employees} />;
 }

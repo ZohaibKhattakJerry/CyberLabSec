@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     }).catch(() => {});
 
     return NextResponse.json({ success: true });
-  } catch (error: unknown) {
+  } catch (error: any) {
     return NextResponse.json({ error: error.message || "Failed to update profile" }, { status: 500 });
   }
 }

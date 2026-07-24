@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { ArrowLeft, Send, CheckCircle, FileText, Loader2, Link as LinkIcon, Download, UploadCloud, File, Image as ImageIcon, Briefcase, Calendar, AlertTriangle, MessageSquare, Zap, ShieldAlert, Box, Star } from "lucide-react";
+import { ArrowLeft, Send, CheckCircle, FileText, Loader2, Link as LinkIcon, Download, UploadCloud, File, Image as ImageIcon, Briefcase, Calendar, AlertTriangle, MessageSquare, Zap, ShieldAlert, Box, Star, Clock } from "lucide-react";
 import toast from "react-hot-toast";
 import confetti from "canvas-confetti";
 
@@ -50,7 +50,7 @@ export default function TaskDetailClient({ task, employeeId }: { task: any; empl
       } else {
         toast.error("Failed to submit task.");
       }
-    } catch (err) {
+    } catch (err: any) {
       toast.error("An error occurred.");
     } finally {
       setLoading(false);
@@ -76,7 +76,7 @@ export default function TaskDetailClient({ task, employeeId }: { task: any; empl
     if (task.attachments && task.attachments !== "[]") {
       attachments = JSON.parse(task.attachments);
     }
-  } catch (e) {}
+  } catch (e: any) {}
 
   return (
     <div style={{ animation: "fadeIn 0.5s ease", paddingBottom: 60, maxWidth: 1000, margin: "0 auto" }}>
@@ -170,7 +170,7 @@ export default function TaskDetailClient({ task, employeeId }: { task: any; empl
 
           <form onSubmit={handleSubmit} style={{ display: "grid", gap: 24 }}>
             <div>
-              <label style={{ display: "block", fontSize: 13, fontWeight: 700, color: "#d1d5db", marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}><MessageSquare size={14} color="#a855f7"/> Text Response / Notes</label>
+              <label style={{ display: "flex", fontSize: 13, fontWeight: 700, color: "#d1d5db", marginBottom: 8, alignItems: "center", gap: 8 }}><MessageSquare size={14} color="#a855f7"/> Text Response / Notes</label>
               <textarea 
                 className="form-input" 
                 rows={5} 
@@ -182,7 +182,7 @@ export default function TaskDetailClient({ task, employeeId }: { task: any; empl
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: 13, fontWeight: 700, color: "#d1d5db", marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}><LinkIcon size={14} color="#3b82f6"/> Submission Link (Optional)</label>
+              <label style={{ display: "flex", fontSize: 13, fontWeight: 700, color: "#d1d5db", marginBottom: 8, alignItems: "center", gap: 8 }}><LinkIcon size={14} color="#3b82f6"/> Submission Link (Optional)</label>
               <div style={{ position: "relative" }}>
                 <input 
                   type="url" 
@@ -197,7 +197,7 @@ export default function TaskDetailClient({ task, employeeId }: { task: any; empl
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: 13, fontWeight: 700, color: "#d1d5db", marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}><UploadCloud size={14} color="#34d399"/> Upload Files (Optional)</label>
+              <label style={{ display: "flex", fontSize: 13, fontWeight: 700, color: "#d1d5db", marginBottom: 8, alignItems: "center", gap: 8 }}><UploadCloud size={14} color="#34d399"/> Upload Files (Optional)</label>
               <label className="upload-area">
                 <div style={{ width: 48, height: 48, borderRadius: "50%", background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <UploadCloud size={24} color="#9ca3af" />

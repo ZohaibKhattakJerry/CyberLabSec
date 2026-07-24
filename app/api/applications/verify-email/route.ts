@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit, getIpFromRequest, rateLimitResponse } from "@/lib/rateLimit";
 
 export async function POST(req: Request) {
+  const ip = getIpFromRequest(req);
+  const { blocked, resetAt } = await checkRateLimit(`verify-email-ip:${ip}`, 10, 15);
+  if (blocked) return rateLimitResponse(resetAt);
+
   try {
     const { email, code } = await bodyParse(req);
     if (!email || !code) return NextResponse.json({ error: "Email and code required" }, { status: 400 });
@@ -21,7 +26,7 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ success: true, verified: true });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Failed to verify OTP:", error);
     return NextResponse.json({ error: "Verification failed" }, { status: 500 });
   }

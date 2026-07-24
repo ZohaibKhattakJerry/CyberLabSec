@@ -128,7 +128,7 @@ export default function CareersJobBoard({ postings }: { postings: Posting[] }) {
         const data = await res.json();
         toast.error(data.error || "Failed to join talent pool");
       }
-    } catch (err: unknown) {
+    } catch (err: any) {
       toast.error("Network error");
     }
   };

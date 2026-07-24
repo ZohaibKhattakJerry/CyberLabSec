@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashCNIC } from "@/lib/cnic";
-import { _decryptCNIC } from "@/lib/cnic";
+import { decryptCNIC } from "@/lib/cnic";
+import { checkRateLimit, getIpFromRequest, rateLimitResponse } from "@/lib/rateLimit";
 
 export async function POST(req: NextRequest) {
+  const ip = getIpFromRequest(req);
+  const { blocked, resetAt } = await checkRateLimit(`interview-verify-ip:${ip}`, 5, 15);
+  if (blocked) return rateLimitResponse(resetAt);
+
   const { token, email, cnic } = await req.json();
 
   const session = await prisma.interviewSession.findUnique({

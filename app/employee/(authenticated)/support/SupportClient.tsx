@@ -49,7 +49,7 @@ export default function SupportClient({ initialTickets }: { initialTickets: any[
       setShowForm(false);
       setForm({ category: 'General', title: '', description: '', priority: 'Medium' });
       toast.success('Support ticket submitted!');
-    } catch (err: unknown) {
+    } catch (err: any) {
       toast.error(err.message || 'Failed to submit ticket');
     } finally {
       setLoading(false);

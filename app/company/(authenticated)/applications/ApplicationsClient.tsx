@@ -152,7 +152,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
         const blobUrl = URL.createObjectURL(blob);
         
         window.open(blobUrl, "_blank");
-      } catch (e) {
+      } catch (e: any) {
         console.error("Failed to parse base64 for viewing", e);
         window.open(url, "_blank");
       }
@@ -494,7 +494,7 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
             {/* SELECTED – WAITING FOR APPROVAL */}
             {s === "Selected \u2013 Waiting for Approval" && (
               <>
-                <button className="btn btn-primary" onClick={() => { setShowOfferModal(true); }} disabled={actionLoading} style={{ flex: 1 }}>
+                <button className="btn btn-primary" onClick={() => { setActionTarget("single"); setShowBulkHireModal(true); }} disabled={actionLoading} style={{ flex: 1 }}>
                   {actionLoading ? <Loader2 size={15} className="spin" /> : <UserCheck size={15} />} Approve & Hire
                 </button>
                 <button className="btn btn-secondary" onClick={() => { setActionTarget("single"); setShowRejectModal(true); }} disabled={actionLoading} style={{ flex: 1 }}>

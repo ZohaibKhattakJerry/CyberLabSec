@@ -4,7 +4,7 @@ import { getAuthFromCookies } from "@/lib/auth";
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ employeeId: string }> }
+  { params }: { params: Promise<any> }
 ) {
   const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -48,7 +48,7 @@ export async function POST(
     }).catch(() => {});
 
     return NextResponse.json({ success: true, badge });
-  } catch (error: unknown) {
+  } catch (error: any) {
     console.error("Failed to award badge:", error);
     return NextResponse.json({ error: "Failed to award badge." }, { status: 500 });
   }

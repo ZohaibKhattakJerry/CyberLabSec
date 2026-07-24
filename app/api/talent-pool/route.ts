@@ -14,14 +14,14 @@ export async function POST(req: NextRequest) {
       await prisma.talentPool.create({
         data: { email }
       });
-    } catch (e: unknown) {
+    } catch (e: any) {
       if (e.code !== 'P2002') { // Not a unique constraint error
         throw e;
       }
     }
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Talent pool error:", error);
     return NextResponse.json({ error: "Failed to join talent pool" }, { status: 500 });
   }

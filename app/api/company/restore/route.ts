@@ -186,7 +186,7 @@ export async function POST(req: Request) {
       message: `Database fully wiped and restored! ${totalRestored} total records recovered.`,
       counts: parsedData.counts ?? {}
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Restore failed:", error);
     return NextResponse.json({ error: "Restore failed. Please check file and password." }, { status: 500 });
   }

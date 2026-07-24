@@ -14,7 +14,7 @@ import {
   EyeOff,
   Trash2,
   Loader2,
-  Linkedin,
+  
 } from "lucide-react";
 
 export default function SettingsPage() {
@@ -123,7 +123,7 @@ export default function SettingsPage() {
         try {
           const errData = await res.json();
           if (errData.error) errStr += ` Reason: ${errData.error}`;
-        } catch(e) {}
+        } catch (e: any) {}
         setMessage({ type: "error", text: errStr });
         return;
       }
@@ -353,7 +353,7 @@ export default function SettingsPage() {
               </div>
 
               <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "16px", background: "rgba(34,197,94,0.05)", border: "1px solid rgba(34,197,94,0.15)", borderRadius: 12 }}>
-                <ShieldCheck size={24} color="#22c55e" flexShrink={0} />
+                <ShieldCheck size={24} color="#22c55e" style={{ flexShrink: 0 }} />
                 <div>
                   <div style={{ fontSize: 14, fontWeight: 600, color: "#22c55e" }}>AES-256 Encryption Active</div>
                   <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>Data is currently encrypted at rest.</div>

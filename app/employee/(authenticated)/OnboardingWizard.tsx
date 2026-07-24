@@ -78,7 +78,7 @@ export default function OnboardingWizard({ employee }: { employee: Employee }) {
         );
         setOfferLetter(ol || null);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
     } finally {
       setLoadingDocs(false);

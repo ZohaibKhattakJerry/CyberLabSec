@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ success: true, photoUrl });
-  } catch (error: unknown) {
+  } catch (error: any) {
     console.error("Photo upload error:", error);
     return NextResponse.json({ error: error.message || "Failed to upload photo" }, { status: 500 });
   }

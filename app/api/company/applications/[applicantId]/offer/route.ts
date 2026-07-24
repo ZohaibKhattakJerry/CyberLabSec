@@ -4,7 +4,7 @@ import { getAuthFromCookies } from "@/lib/auth";
 import { randomBytes } from "crypto";
 import { sendEmail, sendOfferLetter } from "@/lib/email";
 
-export async function POST(req: NextRequest, { params }: { params: Promise<{ applicantId: string }> }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<any> }) {
   const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 

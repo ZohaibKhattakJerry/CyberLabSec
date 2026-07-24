@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
       try {
         const roles = JSON.parse(doc.appliesToRoles);
         return roles.includes(employee.employmentType);
-      } catch (e) {
+      } catch (e: any) {
         return false;
       }
     });

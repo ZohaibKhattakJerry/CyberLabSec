@@ -53,7 +53,7 @@ export default function MeetingClient({ initialMeetings, currentUser }: { initia
       setShowForm(false);
       setForm({ title: '', description: '', proposedTimes: [''] });
       toast.success('Meeting request submitted!');
-    } catch (err: unknown) {
+    } catch (err: any) {
       toast.error((err as any)?.message || 'An error occurred');
     } finally {
       setLoading(false);
@@ -72,7 +72,7 @@ export default function MeetingClient({ initialMeetings, currentUser }: { initia
       
       setMeetings((meetings as any[]).map((m: any) => m.id === meetingId ? data.meeting : m));
       toast.success('Vote recorded');
-    } catch (err: unknown) {
+    } catch (err: any) {
       toast.error((err as any)?.message || 'An error occurred');
     }
   };

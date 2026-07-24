@@ -196,15 +196,15 @@ export default function TeamsClient({
 
   const handleReview = async () => {
     if (!reviewAction) return;
-    if (reviewAction.action === "request_changes" && !feedback.trim()) return toast.error("Feedback required");
+    if (reviewAction?.action === "request_changes" && !feedback.trim()) return toast.error("Feedback required");
     setTaskLoading(true);
     try {
       const res = await fetch("/api/company/tasks/review", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ submissionId: reviewAction.submissionId, action: reviewAction.action, feedback: feedback.trim(), qualityRating: qualityRating || null }),
+        body: JSON.stringify({ submissionId: reviewAction.submissionId, action: reviewAction?.action, feedback: feedback.trim(), qualityRating: qualityRating || null }),
       });
       if (!res.ok) throw new Error("Failed");
-      toast.success(reviewAction.action === "approve" ? "Approved! 🎉 Points awarded!" : "Revisions requested ✓");
+      toast.success(reviewAction?.action === "approve" ? "Approved! 🎉 Points awarded!" : "Revisions requested ✓");
       setReviewAction(null); setFeedback(""); setQualityRating(0); setReviewTask(null);
       startTransition(() => router.refresh());
     } catch { toast.error("Failed to submit review"); }
@@ -833,10 +833,10 @@ export default function TeamsClient({
                                 reviewAction?.submissionId === sub.id ? (
                                   <div className="ws-review-panel">
                                     <div style={{ fontWeight: 700, fontSize: 13, color: "#fff" }}>
-                                      {reviewAction.action === "approve" ? "✅ Approving Submission" : "🔄 Requesting Revisions"}
+                                      {reviewAction?.action === "approve" ? "✅ Approving Submission" : "🔄 Requesting Revisions"}
                                     </div>
 
-                                    {reviewAction.action === "approve" && (
+                                    {reviewAction?.action === "approve" && (
                                       <div>
                                         <label className="ws-label">Quality Rating (bonus points)</label>
                                         <div style={{ display: "flex", gap: 4 }}>
@@ -851,23 +851,23 @@ export default function TeamsClient({
                                     )}
 
                                     <div>
-                                      <label className="ws-label" style={{ color: reviewAction.action === "request_changes" ? "#f59e0b" : "#6b7280" }}>
-                                        {reviewAction.action === "approve" ? "Optional Feedback" : "Required Feedback ✱"}
+                                      <label className="ws-label" style={{ color: reviewAction?.action === "request_changes" ? "#f59e0b" : "#6b7280" }}>
+                                        {reviewAction?.action === "approve" ? "Optional Feedback" : "Required Feedback ✱"}
                                       </label>
                                       <textarea className="ws-input" rows={3} value={feedback} onChange={e => setFeedback(e.target.value)}
-                                        placeholder={reviewAction.action === "approve" ? "Great work! Specific notes..." : "What needs to be changed and why..."} style={{ resize: "vertical" }} />
+                                        placeholder={reviewAction?.action === "approve" ? "Great work! Specific notes..." : "What needs to be changed and why..."} style={{ resize: "vertical" }} />
                                     </div>
 
                                     <div style={{ display: "flex", gap: 8 }}>
                                       <button className="ws-btn-secondary" style={{ flex: 1, padding: "9px" }} onClick={() => setReviewAction(null)}>Cancel</button>
                                       <button
                                         className="ws-btn-primary"
-                                        style={{ flex: 2, padding: "9px", background: reviewAction.action === "approve" ? "linear-gradient(135deg, #22c55e, #16a34a)" : "linear-gradient(135deg, #f59e0b, #d97706)" }}
+                                        style={{ flex: 2, padding: "9px", background: reviewAction?.action === "approve" ? "linear-gradient(135deg, #22c55e, #16a34a)" : "linear-gradient(135deg, #f59e0b, #d97706)" }}
                                         onClick={handleReview}
-                                        disabled={taskLoading || (reviewAction.action === "request_changes" && !feedback.trim())}
+                                        disabled={taskLoading || (reviewAction?.action === "request_changes" && !feedback.trim())}
                                       >
-                                        {taskLoading ? <Loader2 size={14} className="animate-spin" /> : reviewAction.action === "approve" ? <CheckCircle2 size={14} /> : <AlertTriangle size={14} />}
-                                        {reviewAction.action === "approve" ? "Approve & Award Points" : "Request Revisions"}
+                                        {taskLoading ? <Loader2 size={14} className="animate-spin" /> : reviewAction?.action === "approve" ? <CheckCircle2 size={14} /> : <AlertTriangle size={14} />}
+                                        {reviewAction?.action === "approve" ? "Approve & Award Points" : "Request Revisions"}
                                       </button>
                                     </div>
                                   </div>

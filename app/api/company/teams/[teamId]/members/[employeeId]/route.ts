@@ -5,7 +5,7 @@ import { getAuthFromCookies } from "@/lib/auth";
 // DELETE /api/company/teams/[teamId]/members/[employeeId] — remove member from team
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: Promise<{ teamId: string; employeeId: string }> }
+  { params }: { params: Promise<any> }
 ) {
   const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });

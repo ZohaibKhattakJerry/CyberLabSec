@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     }).catch(() => {});
 
     return NextResponse.json({ success: true, document: doc });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Document upload error:", error);
     return NextResponse.json({ error: "Failed to upload document" }, { status: 500 });
   }

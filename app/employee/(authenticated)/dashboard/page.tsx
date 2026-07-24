@@ -72,7 +72,7 @@ export default async function Dashboard() {
       prisma.announcementReadReceipt.findMany({ where: { employeeId: auth.sub }, select: { announcementId: true } }),
       prisma.activityLog.findMany({ where: { actorId: auth.sub }, orderBy: { timestamp: 'desc' }, take: 5, select: { id: true, action: true, timestamp: true } }),
     ]);
-  } catch (err) {
+  } catch (err: any) {
     console.error('Dashboard error:', err);
     redirect('/employee/login');
   }

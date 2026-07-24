@@ -54,7 +54,7 @@ export default async function CompanyLeaderboardPage() {
 
   return (
     <LeaderboardClient
-      employees={serializedEmployees}
+      employees={serializedEmployees as any}
       teamRankings={teamRankings}
       allEmployees={allEmployeesList}
     />

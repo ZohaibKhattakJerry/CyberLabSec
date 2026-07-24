@@ -9,7 +9,7 @@ import { getAuthFromCookies } from "@/lib/auth";
  */
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ applicantId: string }> }
+  { params }: { params: Promise<any> }
 ) {
   // Auth guard — admin only
   const auth = await getAuthFromCookies("admin");

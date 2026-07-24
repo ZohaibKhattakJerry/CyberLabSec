@@ -2,11 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { gradeOpenAnswer } from "@/lib/gemini";
 import { sendInterviewCompleteEmail, sendInterviewRetryEmail } from "@/lib/email";
+import { checkRateLimit, getIpFromRequest, rateLimitResponse } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
 
 export async function POST(req: NextRequest) {
+  const ip = getIpFromRequest(req);
+  const { blocked, resetAt } = await checkRateLimit(`interview-submit-ip:${ip}`, 3, 15);
+  if (blocked) return rateLimitResponse(resetAt);
+
   const { sessionId, answers, cheatingSignals, suspicionFlag } = await req.json();
 
   const session = await prisma.interviewSession.findUnique({

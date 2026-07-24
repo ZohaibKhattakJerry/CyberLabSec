@@ -60,7 +60,7 @@ export async function POST(req: Request) {
     await wipeDatabase();
 
     return NextResponse.json({ success: true, message: "All database records have been permanently deleted." });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Database wipe failed:", error);
     return NextResponse.json({ error: "Failed to clear database." }, { status: 500 });
   }

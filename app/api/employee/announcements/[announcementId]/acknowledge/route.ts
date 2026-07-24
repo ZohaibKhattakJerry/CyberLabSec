@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthFromCookies } from "@/lib/auth";
 
-export async function POST(req: NextRequest, { params }: { params: Promise<{ announcementId: string }> }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<any> }) {
   const auth = await getAuthFromCookies("employee");
   if (!auth || auth.role !== "employee") return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

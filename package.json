@@ -4,11 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npx prisma generate && next build",
+    "build": "npx prisma generate && node --max-old-space-size=4096 node_modules/next/dist/bin/next build",
     "start": "next start",
     "lint": "eslint",
     "seed": "ts-node --project tsconfig.node.json prisma/seed.ts",
-    "backup": "node scripts/backup.js",
     "postinstall": "prisma generate"
   },
   "prisma": {
@@ -42,9 +41,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
-    "driver.js": "^1.6.0",
     "framer-motion": "^12.42.2",
-    "html2canvas": "^1.4.1",
     "jose": "^6.2.3",
     "jsonwebtoken": "^9.0.3",
     "jspdf": "^4.2.1",

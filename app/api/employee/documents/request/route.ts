@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ success: true, document: newDoc });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Doc request error:", error);
     return NextResponse.json({ error: "Failed to request document" }, { status: 500 });
   }

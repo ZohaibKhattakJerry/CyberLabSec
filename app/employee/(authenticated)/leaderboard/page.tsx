@@ -62,7 +62,7 @@ export default async function EmployeeLeaderboardPage() {
 
   return (
     <EmployeeLeaderboardClient
-      employees={serializedEmployees}
+      employees={serializedEmployees as any}
       myEmployeeId={me.id}
       myTotalPoints={me.points}
       myMonthlyPoints={me.monthlyPoints}

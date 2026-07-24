@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { _Toaster } from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {
   title: "Careers — CyberLabSec",

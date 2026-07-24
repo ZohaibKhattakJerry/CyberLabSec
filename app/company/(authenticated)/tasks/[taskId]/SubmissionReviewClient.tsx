@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { format } from "date-fns";
-import { FileDown, CheckCircle, XCircle, Loader2, Sparkles, _Send, Type, Link as LinkIcon, MessageSquare } from "lucide-react";
+import { FileDown, CheckCircle, XCircle, Loader2, Sparkles, Send, Type, Link as LinkIcon, MessageSquare } from "lucide-react";
 import toast from "react-hot-toast";
 
-export default function SubmissionReviewClient({ submission }: { submission: unknown }) {
+export default function SubmissionReviewClient({ submission }: { submission: any }) {
   const [status, setStatus] = useState(submission.status);
   const [loading, setLoading] = useState(false);
   const [aiSummary, setAiSummary] = useState(submission.aiSummary || "");

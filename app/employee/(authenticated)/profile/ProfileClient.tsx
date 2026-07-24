@@ -57,7 +57,7 @@ export default function ProfileClient({ employee, activityLogs }: { employee: Em
       });
       if (!res.ok) throw new Error("Failed to upload photo");
       router.refresh();
-    } catch (err: unknown) {
+    } catch (err: any) {
       alert(err.message);
     } finally {
       setUploadingPhoto(false);
@@ -216,7 +216,7 @@ export default function ProfileClient({ employee, activityLogs }: { employee: Em
               {[
                 { label: "Current Passcode", val: currentPw, setter: setCurrentPw, show: showCurrent, toggle: () => setShowCurrent(p => !p) },
                 { label: "New Passcode", val: newPw, setter: setNewPw, show: showNew, toggle: () => setShowNew(p => !p) },
-                { label: "Verify New Passcode", val: confirmPw, setter: setConfirmPw, show: showNew, toggle: () => {} },
+                { label: "Verify New Passcode", val: confirmPw, setter: setConfirmPw, show: showNew, toggle: () => setShowNew(p => !p) },
               ].map((f, i) => (
                 <div key={i}>
                   <label className="label label-required">{f.label}</label>

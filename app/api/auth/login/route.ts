@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { signToken } from "@/lib/auth";
-import { checkRateLimit, getIpFromRequest } from "@/lib/rateLimit";
+import { checkRateLimit, getIpFromRequest, rateLimitResponse } from "@/lib/rateLimit";
 
 export async function POST(req: NextRequest) {
   const ip = getIpFromRequest(req);
+  const { blocked, resetAt } = await checkRateLimit(`login-ip:${ip}`, 5, 15);
+  if (blocked) return rateLimitResponse(resetAt);
 
   try {
     const { employeeCode, password } = await req.json();

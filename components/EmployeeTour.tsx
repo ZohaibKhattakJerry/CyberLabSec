@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Joyride, Step, CallBackProps, STATUS } from "react-joyride";
+import { Joyride, Step, STATUS } from "react-joyride";
 import confetti from "canvas-confetti";
 import { X, ChevronRight, Check } from "lucide-react";
 
@@ -11,7 +11,6 @@ const TOUR_STEPS: Step[] = [
     placement: "center",
     content: "Welcome to your Employee Portal! Let's take a quick look at your command center.",
     title: "Welcome Aboard 🚀",
-    disableBeacon: true,
   },
   {
     target: "#tour-nav-dashboard",
@@ -141,7 +140,7 @@ export default function EmployeeTour() {
     }
   }, []);
 
-  const handleJoyrideCallback = (data: CallBackProps) => {
+  const handleJoyrideCallback = (data: any) => {
     const { status, type, action } = data;
 
     if (action === "next" || action === "close" || status === STATUS.FINISHED) {
@@ -172,7 +171,8 @@ export default function EmployeeTour() {
       spotlightPadding={8}
       tooltipComponent={TooltipComponent}
       styles={{
-        options: { zIndex: 10000 },
+        // @ts-ignore
+options: { zIndex: 10000 } as any,
         overlay: { backgroundColor: "rgba(0, 0, 0, 0.75)", backdropFilter: "blur(4px)" },
       }}
       callback={handleJoyrideCallback}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Edit2, Loader2, _RefreshCw } from "lucide-react";
+import { Plus, Trash2, Edit2, Loader2, RefreshCw } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface Question {

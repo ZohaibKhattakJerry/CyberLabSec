@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit, getIpFromRequest, rateLimitResponse } from "@/lib/rateLimit";
 
 export async function POST(req: NextRequest) {
+  const ip = getIpFromRequest(req);
+  const { blocked, resetAt } = await checkRateLimit(`status-check-ip:${ip}`, 10, 15);
+  if (blocked) return rateLimitResponse(resetAt);
+
   try {
     const { referenceId } = await req.json();
 
@@ -35,7 +40,7 @@ export async function POST(req: NextRequest) {
         department: applicant.jobPosting.department
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Status check error:", error);
     return NextResponse.json({ error: "Service unavailable" }, { status: 500 });
   }

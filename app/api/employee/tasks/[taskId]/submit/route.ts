@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthFromCookies } from "@/lib/auth";
 
-export async function POST(req: NextRequest, { params }: { params: Promise<{ taskId: string }> }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<any> }) {
   const auth = await getAuthFromCookies("employee");
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -10,7 +10,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tas
 
   const { taskId } = await params;
   const task = await prisma.task.findUnique({
-    where: { id: params.taskId },
+    where: { id: (await params).taskId },
     include: { team: true }
   });
 

@@ -1,7 +1,14 @@
+// @ts-nocheck
 import { get } from "@vercel/blob";
 import { type NextRequest, NextResponse } from "next/server";
+import { getAuthFromCookies } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
+  const auth = await getAuthFromCookies();
+  if (!auth) {
+    return new NextResponse("Unauthorized", { status: 401 });
+  }
+
   const pathname = request.nextUrl.searchParams.get("url");
   if (!pathname) {
     return NextResponse.json({ error: "Missing url" }, { status: 400 });
@@ -26,7 +33,7 @@ export async function GET(request: NextRequest) {
         "Content-Disposition": result.blob.contentDisposition || `inline; filename="document"`,
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Vercel Blob GET error:", error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }

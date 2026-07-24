@@ -189,19 +189,19 @@ export async function GET(req: Request) {
                   const nodeStream = Readable.fromWeb(res.body as any);
                   archive.append(nodeStream, { name: `uploads/${blob.pathname}` });
                 }
-              } catch (e) {
+              } catch (e: any) {
                 console.error("Failed to fetch blob for backup", blob.url);
               }
             }
             hasMore = listResult.hasMore;
             cursor = listResult.cursor;
           }
-        } catch (e) {
+        } catch (e: any) {
           console.error("Failed to list blobs", e);
         }
 
         await archive.finalize();
-      } catch (err) {
+      } catch (err: any) {
         console.error("Backup stream generation failed", err);
         passThrough.destroy(err as Error);
       }

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuthFromCookies } from "@/lib/auth";
 
 // POST /api/company/teams/[teamId]/members — add member to team
-export async function POST(req: NextRequest, { params }: { params: Promise<{ teamId: string }> }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<any> }) {
   const auth = await getAuthFromCookies("admin");
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 

@@ -41,7 +41,7 @@ export default async function ApplyPage({
         deadline: true,
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Failed to load posting for application:", error);
     return (
       <div style={{ minHeight: "100vh", background: "var(--bg-primary)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>

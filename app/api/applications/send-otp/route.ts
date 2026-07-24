@@ -2,8 +2,13 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendApplicantOTPEmail } from "@/lib/email";
 import crypto from "crypto";
+import { checkRateLimit, getIpFromRequest, rateLimitResponse } from "@/lib/rateLimit";
 
 export async function POST(req: Request) {
+  const ip = getIpFromRequest(req);
+  const { blocked, resetAt } = await checkRateLimit(`send-otp-ip:${ip}`, 5, 15);
+  if (blocked) return rateLimitResponse(resetAt);
+
   try {
     const { email } = await bodyParse(req);
     if (!email) return NextResponse.json({ error: "Email is required" }, { status: 400 });
@@ -26,7 +31,7 @@ export async function POST(req: Request) {
     await sendApplicantOTPEmail(email, code);
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Failed to send OTP:", error);
     return NextResponse.json({ error: "Failed to send verification code" }, { status: 500 });
   }

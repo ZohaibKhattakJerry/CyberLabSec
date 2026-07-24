@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     }).catch(() => {});
 
     return NextResponse.json({ success: true, document: updated });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Document accept error:", error);
     return NextResponse.json({ error: "Failed to accept document" }, { status: 500 });
   }

@@ -173,7 +173,7 @@ export default async function AnnouncementsPage({ searchParams }: { searchParams
       )}
     </div>
   );
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
     return <div>This page couldn't load. Please try again.</div>;
   }

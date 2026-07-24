@@ -2,13 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { getAuthFromCookies } from "@/lib/auth";
+import { checkRateLimit, getIpFromRequest, rateLimitResponse } from "@/lib/rateLimit";
 
 export async function POST(req: NextRequest) {
+  const ip = getIpFromRequest(req);
+  const { blocked, resetAt } = await checkRateLimit(`reset-password-ip:${ip}`, 5, 15);
+  if (blocked) return rateLimitResponse(resetAt);
+
   try {
     const { token, password } = await req.json();
     if (!password) return NextResponse.json({ error: "Missing password" }, { status: 400 });
 
-    let employeeId = null;
+    let employeeId: string | null = null;
 
     if (token) {
       const employee = await prisma.employee.findUnique({ where: { resetToken: token } });

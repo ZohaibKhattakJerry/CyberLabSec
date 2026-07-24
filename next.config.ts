@@ -45,6 +45,7 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  
 
   experimental: {
     workerThreads: false,

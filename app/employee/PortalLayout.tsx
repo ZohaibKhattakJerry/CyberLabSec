@@ -189,9 +189,8 @@ export default function PortalLayout({ children, employee }: { children: React.R
           margin: 7px 2px;
         }
 
-        /* Footer */
         .emp-sidebar-footer {
-          padding: 10px;
+          padding: 10px 10px calc(10px + env(safe-area-inset-bottom)) 10px;
           border-top: 1px solid rgba(255,255,255,0.05);
           background: rgba(0,0,0,0.15);
         }
@@ -292,7 +291,7 @@ export default function PortalLayout({ children, employee }: { children: React.R
           </div>
           
           <div style={{ marginLeft: "auto" }}>
-            <NotificationBell isAdmin={false} placement="right-start" />
+            <NotificationBell isAdmin={false} placement="top-right" />
           </div>
         </div>
         {employee.team && (

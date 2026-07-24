@@ -262,7 +262,7 @@ export default function DocumentsClient({
         {/* Actions */}
         <div className="flex items-center gap-2 flex-shrink-0 mt-3 sm:mt-0">
           {fileUrl && (
-            <button onClick={() => handleViewBase64(fileUrl, def.title)} className="doc-btn doc-btn-secondary">
+            <button onClick={() => handleViewBase64(fileUrl, (def as any).title)} className="doc-btn doc-btn-secondary">
               <Eye size={13} /> View
             </button>
           )}

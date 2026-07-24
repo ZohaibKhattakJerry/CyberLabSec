@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { signToken } from "@/lib/auth";
-import { getIpFromRequest } from "@/lib/rateLimit";
+import { checkRateLimit, getIpFromRequest, rateLimitResponse } from "@/lib/rateLimit";
 
 const ADMIN_CODE = "CyberLabSec";
 
 export async function POST(req: NextRequest) {
   const ip = getIpFromRequest(req);
+  const { blocked, resetAt } = await checkRateLimit(`admin-login-ip:${ip}`, 5, 15);
+  if (blocked) return rateLimitResponse(resetAt);
 
   try {
     const { adminId, password } = await req.json();

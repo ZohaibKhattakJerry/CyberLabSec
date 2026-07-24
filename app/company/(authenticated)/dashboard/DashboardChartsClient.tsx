@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell } from "recharts";
-import { _motion } from "framer-_motion";
+import { motion } from "framer-motion";
 
 interface ChartData {
   applicationsData: unknown[];
