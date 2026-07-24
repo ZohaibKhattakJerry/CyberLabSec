@@ -138,7 +138,7 @@ export async function POST(req: NextRequest) {
           const existingEmployee = await prisma.employee.findUnique({ where: { applicantId: app.id } });
           if (!existingEmployee) {
             const year = new Date().getFullYear();
-            const code = \`CL-\${year}-\${crypto.randomBytes(2).toString("hex").toUpperCase()}\`;
+            const code = `CL-${year}-${crypto.randomBytes(2).toString("hex").toUpperCase()}`;
             const rawPassword = crypto.randomBytes(4).toString("hex");
             const passwordHash = await bcrypt.hash(rawPassword, 10);
             
