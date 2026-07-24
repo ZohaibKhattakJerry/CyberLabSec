@@ -20,7 +20,12 @@ export async function GET(request: NextRequest) {
       return new NextResponse("Not found", { status: 404 });
     }
 
-    return NextResponse.redirect(result.blob.downloadUrl);
+    return new NextResponse(result.stream, {
+      headers: {
+        "Content-Type": result.blob.contentType,
+        "Content-Disposition": result.blob.contentDisposition || `inline; filename="document"`,
+      }
+    });
   } catch (error) {
     console.error("Vercel Blob GET error:", error);
     return new NextResponse("Internal Server Error", { status: 500 });

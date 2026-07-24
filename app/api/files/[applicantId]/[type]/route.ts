@@ -12,8 +12,10 @@ export async function GET(
 ) {
   const auth = await getAuthFromCookies();
   if (!auth) return new NextResponse("Unauthorized", { status: 401 });
-  // Allow admins and employees to view CVs
-  if (auth.role !== "admin" && auth.role !== "employee") return new NextResponse("Forbidden", { status: 403 });
+  // Allow admins, employees, and legacy tokens without explicit roles to view CVs
+  if (auth.role && auth.role !== "admin" && auth.role !== "employee") {
+    return new NextResponse("Forbidden", { status: 403 });
+  }
 
   const { applicantId, type } = await params;
   if (type !== "cv" && type !== "photo") return new NextResponse("Invalid type", { status: 400 });
