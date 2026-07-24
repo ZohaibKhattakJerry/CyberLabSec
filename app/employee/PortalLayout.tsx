@@ -8,7 +8,6 @@ import {
   LayoutDashboard, User, Briefcase, Users, LogOut,
   Calendar, CalendarDays, Sparkles
 } from "lucide-react";
-import AttendanceTracker from "@/components/AttendanceTracker";
 import EmployeeTour from "@/components/EmployeeTour";
 import NotificationBell from "@/components/NotificationBell";
 
@@ -354,7 +353,6 @@ export default function PortalLayout({ children, employee }: { children: React.R
   return (
     <div className="layout-sidebar">
       <EmployeeTour />
-      <AttendanceTracker />
       {sidebarContent}
 
       {/* Mobile overlay */}
