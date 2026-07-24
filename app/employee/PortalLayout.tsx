@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import AttendanceTracker from "@/components/AttendanceTracker";
 import EmployeeTour from "@/components/EmployeeTour";
+import NotificationBell from "@/components/NotificationBell";
 
 interface Employee {
   id: string; name: string; email: string; designation: string; employeeCode: string;
@@ -362,8 +363,17 @@ export default function PortalLayout({ children, employee }: { children: React.R
       )}
 
       {/* Main content */}
-      <div className="main-content">
-
+      <div className="main-content" style={{ position: "relative" }}>
+        
+        {/* Desktop top-right actions */}
+        <div
+          className="hide-mobile"
+          style={{
+            position: "absolute", top: 20, right: 24, display: "flex", gap: 12, zIndex: 50,
+          }}
+        >
+          <NotificationBell isAdmin={false} placement="bottom-left" />
+        </div>
 
         {/* Mobile topbar */}
         <div
@@ -382,6 +392,9 @@ export default function PortalLayout({ children, employee }: { children: React.R
             {mobileOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
           <img src="/logo.png" alt="CyberLabSec Logo" style={{ height: 24, objectFit: "contain" }} />
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <NotificationBell isAdmin={false} placement="top-right" />
+          </div>
         </div>
 
         <main style={{ padding: "24px 20px", maxWidth: 1200, margin: "0 auto" }}>

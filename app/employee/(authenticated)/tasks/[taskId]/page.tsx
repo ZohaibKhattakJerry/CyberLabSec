@@ -5,12 +5,14 @@ import TaskDetailClient from "./TaskDetailClient";
 
 export const dynamic = "force-dynamic";
 
-export default async function EmployeeTaskDetailPage({ params }: { params: { taskId: string } }) {
+export default async function EmployeeTaskDetailPage({ params }: { params: Promise<{ taskId: string }> }) {
   const auth = await getAuthFromCookies("employee");
   if (!auth) redirect("/employee/login");
 
+  const { taskId } = await params;
+
   const task = await prisma.task.findUnique({
-    where: { id: params.taskId },
+    where: { id: taskId },
     include: {
       team: { select: { id: true, name: true } },
       submissions: { where: { employeeId: auth.sub }, orderBy: { submittedAt: 'desc' } }
