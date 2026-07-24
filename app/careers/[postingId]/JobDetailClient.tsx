@@ -202,7 +202,7 @@ export default function JobDetailClient({ posting }: { posting: Posting }) {
           }
         />
 
-        <div className="job-detail-content" style={{ maxWidth: 800, margin: "0 auto", padding: "clamp(32px, 5vw, 56px) clamp(16px, 5vw, 24px) 120px" }}>
+        <div className="job-detail-content" style={{ maxWidth: 800, margin: "0 auto", padding: "clamp(32px, 5vw, 56px) clamp(16px, 5vw, 24px) calc(100px + env(safe-area-inset-bottom))" }}>
 
           {/* ── HERO HEADER ── */}
           <motion.div variants={stagger} initial="hidden" animate="visible">
@@ -356,6 +356,7 @@ export default function JobDetailClient({ posting }: { posting: Posting }) {
             borderTop: "1px solid rgba(168,85,247,0.14)",
             boxShadow: "0 -6px 30px rgba(0,0,0,0.45), 0 -1px 0 rgba(168,85,247,0.08)",
             padding: "14px clamp(16px,5vw,24px)",
+            paddingBottom: "calc(14px + env(safe-area-inset-bottom))",
             zIndex: 100,
           }}
         >

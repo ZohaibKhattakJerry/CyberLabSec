@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Shield, Upload, X, CheckCircle, Loader2, AlertCircle, ChevronLeft, ChevronRight, Check, Copy } from "lucide-react";
 import PublicNav from "@/components/public/PublicNav";
+import confetti from "canvas-confetti";
 
 interface Posting {
   id: string; title: string; type: string; department: string;
@@ -264,7 +265,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
         }
       />
 
-      <div style={{ maxWidth: 680, margin: "0 auto", padding: "clamp(24px, 5vw, 40px) clamp(16px, 4vw, 24px)" }}>
+      <div style={{ maxWidth: 720, margin: "0 auto", padding: "clamp(16px, 4vw, 32px) clamp(12px, 3vw, 20px)", paddingBottom: "env(safe-area-inset-bottom, 24px)" }}>
         {/* Header */}
         <div style={{ marginBottom: 32 }}>
           <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
@@ -276,18 +277,18 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
         </div>
 
         {/* Step indicator */}
-        <div style={{ display: "flex", gap: 12, marginBottom: 36, alignItems: "center", flexWrap: "wrap" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "clamp(4px, 2vw, 12px)", flex: "1 1 auto", minWidth: 200 }}>
+        <div style={{ display: "flex", gap: "clamp(6px, 2vw, 12px)", marginBottom: 28, alignItems: "center", flexWrap: "nowrap", overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none", msOverflowStyle: "none" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "clamp(4px, 1.5vw, 10px)", flex: "1 1 auto" }}>
             {[1, 2, 3, 4].map((s) => (
-              <div key={s} style={{ display: "flex", alignItems: "center", flex: s < 4 ? "1 1 auto" : "0 0 auto", gap: "clamp(4px, 2vw, 12px)" }}>
-                <div style={{ width: 32, height: 32, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, background: s === step ? "var(--purple)" : s < step ? "rgba(168,85,247,0.2)" : "rgba(255,255,255,0.04)", color: s === step ? "#fff" : s < step ? "var(--purple-light)" : "var(--text-muted)", transition: "all 0.3s ease", border: s === step ? "none" : "1px solid rgba(255,255,255,0.05)", flexShrink: 0 }}>
-                  {s < step ? <CheckCircle size={16} /> : s}
+              <div key={s} style={{ display: "flex", alignItems: "center", flex: s < 4 ? "1 1 auto" : "0 0 auto", gap: "clamp(4px, 1.5vw, 10px)" }}>
+                <div style={{ width: 28, height: 28, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, background: s === step ? "var(--purple)" : s < step ? "rgba(168,85,247,0.2)" : "rgba(255,255,255,0.04)", color: s === step ? "#fff" : s < step ? "var(--purple-light)" : "var(--text-muted)", transition: "all 0.3s ease", border: s === step ? "none" : "1px solid rgba(255,255,255,0.05)", flexShrink: 0 }}>
+                  {s < step ? <CheckCircle size={14} /> : s}
                 </div>
-                {s < 4 && <div style={{ flex: "1 1 auto", minWidth: 10, height: 2, background: s < step ? "rgba(168,85,247,0.4)" : "rgba(255,255,255,0.06)", transition: "all 0.3s ease", borderRadius: 1 }} />}
+                {s < 4 && <div style={{ flex: "1 1 auto", minWidth: 12, height: 2, background: s < step ? "rgba(168,85,247,0.4)" : "rgba(255,255,255,0.06)", transition: "all 0.3s ease", borderRadius: 1 }} />}
               </div>
             ))}
           </div>
-          <span style={{ fontSize: 14, color: "var(--text-primary)", fontWeight: 600, flexShrink: 0 }}>
+          <span style={{ fontSize: 13, color: "var(--text-primary)", fontWeight: 600, flexShrink: 0 }}>
             {step === 1 ? "Personal Info" : step === 2 ? "Security Profile" : step === 3 ? "Documents" : "Review"}
           </span>
         </div>
@@ -295,9 +296,9 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
         <AnimatePresence mode="wait">
           {step === 1 && (
             <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }}>
-              <div className="card" style={{ padding: "clamp(20px, 4vw, 28px)" }}>
-                <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 24 }}>Personal Information</h2>
-                <div style={{ display: "grid", gap: 20 }}>
+              <div className="card" style={{ padding: "clamp(16px, 4vw, 24px)" }}>
+                <h2 style={{ fontSize: 17, fontWeight: 700, marginBottom: 20 }}>Personal Information</h2>
+                <div style={{ display: "grid", gap: 16 }}>
                   <Field label="Full Name" required error={errors.fullName}>
                     <input className={`input${errors.fullName ? " input-error" : ""}`} value={form.fullName} onChange={(e) => set("fullName", e.target.value)} placeholder="Your full legal name" />
                   </Field>
@@ -346,9 +347,9 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
 
           {step === 2 && (
             <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }}>
-              <div className="card" style={{ padding: "clamp(20px, 4vw, 28px)" }}>
-                <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 24 }}>Education & Security Profiles</h2>
-                <div style={{ display: "grid", gap: 20 }}>
+              <div className="card" style={{ padding: "clamp(16px, 4vw, 24px)" }}>
+                <h2 style={{ fontSize: 17, fontWeight: 700, marginBottom: 20 }}>Education & Security Profiles</h2>
+                <div style={{ display: "grid", gap: 16 }}>
                   
                   {posting.universityRequired && (
                     <>
@@ -443,9 +444,9 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
 
           {step === 3 && (
             <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }}>
-              <div className="card" style={{ padding: "clamp(20px, 4vw, 28px)" }}>
-                <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 24 }}>Documents & Motivation</h2>
-                <div style={{ display: "grid", gap: 20 }}>
+              <div className="card" style={{ padding: "clamp(16px, 4vw, 24px)" }}>
+                <h2 style={{ fontSize: 17, fontWeight: 700, marginBottom: 20 }}>Documents & Motivation</h2>
+                <div style={{ display: "grid", gap: 16 }}>
                   
                   {/* CV Upload */}
                   <Field label="CV / Resume" required error={errors.cv}>
@@ -552,12 +553,12 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
 
           {step === 4 && (
             <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.25 }}>
-              <div className="card" style={{ padding: "clamp(20px, 4vw, 28px)" }}>
-                <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Review & Consent</h2>
-                <p style={{ color: "var(--text-secondary)", fontSize: 14, marginBottom: 24 }}>Please review your details and accept the required consents before submitting.</p>
+              <div className="card" style={{ padding: "clamp(16px, 4vw, 24px)" }}>
+                <h2 style={{ fontSize: 17, fontWeight: 700, marginBottom: 6 }}>Review & Consent</h2>
+                <p style={{ color: "var(--text-secondary)", fontSize: 13, marginBottom: 20 }}>Please review your details and accept the required consents before submitting.</p>
 
-                <div style={{ background: "rgba(255,255,255,0.015)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.05)", padding: 24, marginBottom: 32, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)" }}>
-                  <div style={{ display: "grid", gap: 16, fontSize: 14 }}>
+                <div style={{ background: "rgba(255,255,255,0.015)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.05)", padding: "16px 20px", marginBottom: 24, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)" }}>
+                  <div style={{ display: "grid", gap: 12, fontSize: 13.5 }}>
                     {[
                       ["Name", form.fullName], ["Email", form.email], ["Phone", form.phone],
                       ["Position", posting.title], ["CV", cvFile?.name || "—"],
@@ -577,22 +578,22 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                   </div>
                 </div>
 
-                <div style={{ display: "grid", gap: 16, marginBottom: 28 }}>
+                <div style={{ display: "grid", gap: 12, marginBottom: 24 }}>
                   <label style={{ display: "flex", gap: 12, alignItems: "flex-start", cursor: "pointer" }}>
                     <input type="checkbox" checked={form.consentData} onChange={(e) => set("consentData", e.target.checked)} style={{ marginTop: 2, accentColor: "var(--purple)", width: 16, height: 16, flexShrink: 0 }} />
-                    <span style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6 }}>
+                    <span style={{ fontSize: 12.5, color: "var(--text-secondary)", lineHeight: 1.5 }}>
                       I consent to CyberLabSec processing my personal data (including CV, contact details, and government ID) for recruitment purposes, in accordance with applicable data protection laws. My data will be stored securely and not shared with third parties.
                     </span>
                   </label>
                   <label style={{ display: "flex", gap: 12, alignItems: "flex-start", cursor: "pointer" }}>
                     <input type="checkbox" checked={form.consentInterview} onChange={(e) => set("consentInterview", e.target.checked)} style={{ marginTop: 2, accentColor: "var(--purple)", width: 16, height: 16, flexShrink: 0 }} />
-                    <span style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6 }}>
+                    <span style={{ fontSize: 12.5, color: "var(--text-secondary)", lineHeight: 1.5 }}>
                       I understand that shortlisted candidates will undergo an automated technical assessment. I agree to complete this assessment independently. I acknowledge that any use of unauthorized assistance or automated tools will result in disqualification.
                     </span>
                   </label>
                 </div>
 
-                <div style={{ background: "rgba(168,85,247,0.06)", border: "1px solid rgba(168,85,247,0.15)", borderRadius: 8, padding: "12px 16px", fontSize: 13, color: "var(--text-secondary)", marginBottom: 24 }}>
+                <div style={{ background: "rgba(168,85,247,0.06)", border: "1px solid rgba(168,85,247,0.15)", borderRadius: 8, padding: "10px 14px", fontSize: 12.5, color: "var(--text-secondary)", marginBottom: 24 }}>
                   Please note: Multiple applications for the same role using identical credentials will be automatically flagged and may affect your candidacy.
                 </div>
 
@@ -690,6 +691,15 @@ function ScreeningScreen({ status, message, referenceId }: { status: ScreeningSt
         setCurrentStep(steps.length);
         setIsAnimationComplete(true);
         clearInterval(timer);
+        
+        // Trigger Canvas Confetti Reward Effect!
+        confetti({
+          particleCount: 150,
+          spread: 70,
+          origin: { y: 0.55 },
+          colors: ['#7c3aed', '#2563eb', '#22c55e', '#f59e0b', '#ec4899', '#06b6d4'],
+          zIndex: 9999
+        });
       }
     }, intervalTime);
     
@@ -707,10 +717,6 @@ function ScreeningScreen({ status, message, referenceId }: { status: ScreeningSt
           0% { transform: scale(0.9); opacity: 0.8; }
           50% { transform: scale(1.05); opacity: 0.3; }
           100% { transform: scale(0.9); opacity: 0.8; }
-        }
-        @keyframes confettiFall {
-          0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
-          100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
         }
         .ai-core-container {
           position: relative;
@@ -742,23 +748,6 @@ function ScreeningScreen({ status, message, referenceId }: { status: ScreeningSt
         }
         @keyframes spin { 100% { transform: rotate(360deg); } }
       `}</style>
-
-      {/* Confetti if shortlisted */}
-      {isShortlisted && isDone && (
-        <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
-          {[...Array(40)].map((_, i) => (
-            <div key={i} style={{
-              position: 'absolute',
-              width: Math.random() * 10 + 6, height: Math.random() * 10 + 6,
-              borderRadius: i % 3 === 0 ? '50%' : '2px',
-              background: ['#7c3aed', '#2563eb', '#22c55e', '#f59e0b', '#ec4899', '#06b6d4'][i % 6],
-              left: `${Math.random() * 100}%`, top: '-20px',
-              animation: `confettiFall ${3 + Math.random() * 4}s ${Math.random() * 1.5}s linear infinite`,
-              opacity: 0.85
-            }} />
-          ))}
-        </div>
-      )}
       
       {/* Background glow */}
       <div style={{ position: "absolute", inset: 0, overflow: "hidden", zIndex: 0, background: "radial-gradient(circle at 50% 20%, rgba(124, 58, 237, 0.08), transparent 60%)", pointerEvents: "none" }} />
