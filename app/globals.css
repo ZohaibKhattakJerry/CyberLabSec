@@ -6,6 +6,7 @@
    ============================================================ */
 /* CSS Custom Properties */
 :root {
+  color-scheme: dark;
   /* Background scale */
   --bg-base: #050505;
   --bg-primary: #050505;
@@ -85,6 +86,8 @@
 /* Base reset */
 *, *::before, *::after {
   box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-accent) var(--bg-primary);
 }
 
 html {

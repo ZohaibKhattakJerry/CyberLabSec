@@ -218,8 +218,64 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div style={{ display: "flex", minHeight: "80vh", background: "var(--bg-base)", color: "var(--text-primary)", borderRadius: 12, overflow: "hidden", border: "1px solid var(--border)", boxShadow: "0 4px 24px rgba(0,0,0,0.2)" }}>
+    <div className="settings-layout" style={{ minHeight: "80vh", background: "var(--bg-base)", color: "var(--text-primary)", borderRadius: 12, overflow: "hidden", border: "1px solid var(--border)", boxShadow: "0 4px 24px rgba(0,0,0,0.2)" }}>
       <style>{`
+        .settings-layout {
+          display: flex;
+          flex-direction: row;
+        }
+        .settings-sidebar {
+          width: 240px;
+          flex-shrink: 0;
+          background: var(--bg-card);
+          border-right: 1px solid var(--border);
+          padding: 24px 0;
+        }
+        .settings-content {
+          flex: 1;
+          padding: 40px;
+          overflow-y: auto;
+        }
+        .settings-nav-list {
+          display: flex;
+          flex-direction: column;
+        }
+        .form-grid-2 {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+        }
+        
+        @media (max-width: 800px) {
+          .settings-layout {
+            flex-direction: column;
+          }
+          .settings-sidebar {
+            width: 100%;
+            border-right: none;
+            border-bottom: 1px solid var(--border);
+            padding: 16px 0;
+          }
+          .settings-nav-list {
+            flex-direction: row;
+            overflow-x: auto;
+            padding: 0 16px;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+          }
+          .settings-nav-list::-webkit-scrollbar { display: none; }
+          .settings-content {
+            padding: 20px 16px;
+          }
+          .nav-item {
+            white-space: nowrap;
+            margin: 0 4px;
+            padding: 10px 14px;
+          }
+          .form-grid-2 {
+            grid-template-columns: 1fr;
+          }
+        }
         @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
         .tab-content { animation: fadeIn 0.3s ease-out forwards; }
         .nav-item { display: flex; align-items: center; gap: 10px; padding: 12px 16px; margin: 4px 8px; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-size: 14px; font-weight: 500; color: var(--text-secondary); border-left: 3px solid transparent; }
@@ -229,8 +285,10 @@ export default function SettingsPage() {
         .input-dark { width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; color: var(--text-primary); font-size: 14px; transition: border-color 0.2s, box-shadow 0.2s; outline: none; }
         .input-dark:focus { border-color: #a855f7; box-shadow: 0 0 0 2px rgba(168,85,247,0.2); }
         .label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .btn-primary { background: #a855f7; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary { background: #a855f7; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-primary:hover { background: #9333ea; }
+        .btn-secondary { background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--border); padding: 10px 20px; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-secondary:hover { background: rgba(255,255,255,0.1); }
         .toggle { appearance: none; width: 40px; height: 22px; background: rgba(255,255,255,0.1); border-radius: 20px; position: relative; cursor: pointer; outline: none; transition: 0.3s; }
         .toggle:checked { background: #a855f7; }
         .toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; background: white; border-radius: 50%; transition: 0.3s; }
@@ -240,9 +298,9 @@ export default function SettingsPage() {
       `}</style>
 
       {/* LEFT SIDEBAR */}
-      <div style={{ width: 220, flexShrink: 0, background: "var(--bg-card)", borderRight: "1px solid var(--border)", padding: "24px 0" }}>
+      <div className="settings-sidebar">
         <h2 style={{ padding: "0 24px", fontSize: 13, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 16 }}>Settings</h2>
-        <div style={{ display: "flex", flexDirection: "column" }}>
+        <div className="settings-nav-list">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isDanger = item.id === "danger";
@@ -262,7 +320,7 @@ export default function SettingsPage() {
       </div>
 
       {/* RIGHT CONTENT */}
-      <div style={{ flex: 1, padding: "40px", overflowY: "auto" }}>
+      <div className="settings-content">
         {message && (
           <div style={{ padding: "12px 16px", borderRadius: 8, marginBottom: 24, fontSize: 13, fontWeight: 500, background: message.type === "success" ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)", color: message.type === "success" ? "#22c55e" : "#ef4444", border: `1px solid \${message.type === "success" ? "rgba(34,197,94,0.2)" : "rgba(239,68,68,0.2)"}`, display: "flex", alignItems: "center", gap: 10 }}>
             <AlertTriangle size={16} />
@@ -277,7 +335,7 @@ export default function SettingsPage() {
             <p style={{ color: "var(--text-secondary)", marginBottom: 32, fontSize: 14 }}>Manage your organization's public details and branding.</p>
             
             <div style={{ display: "grid", gap: 24 }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <div className="form-grid-2">
                 <div>
                   <label className="label">Company Name</label>
                   <input className="input-dark" value={companyName} onChange={e => setCompanyName(e.target.value)} />
@@ -293,7 +351,7 @@ export default function SettingsPage() {
                 <textarea className="input-dark" rows={4} value={companyDesc} onChange={e => setCompanyDesc(e.target.value)} />
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <div className="form-grid-2">
                 <div>
                   <label className="label">LinkedIn URL</label>
                   <input className="input-dark" value={linkedinUrl} onChange={e => setLinkedinUrl(e.target.value)} />
@@ -304,7 +362,7 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <div className="form-grid-2">
                 <div>
                   <label className="label">Contact Email</label>
                   <input className="input-dark" value={contactEmail} onChange={e => setContactEmail(e.target.value)} placeholder="hello@company.com" />
@@ -315,7 +373,7 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <div className="form-grid-2">
                 <div>
                   <label className="label">Team Size</label>
                   <select className="input-dark" value={teamSize} onChange={e => setTeamSize(e.target.value)}>
@@ -450,12 +508,12 @@ export default function SettingsPage() {
                   <h3 style={{ fontSize: 18, fontWeight: 600 }}>Restore from Backup</h3>
                 </div>
 
-                <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                  <label style={{ flex: 1, padding: "10px 14px", border: "1px dashed var(--border)", borderRadius: 6, cursor: "pointer", textAlign: "center", fontSize: 13, color: "var(--text-secondary)", transition: "0.2s" }} className="file-upload">
+                <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+                  <label style={{ flex: 1, minWidth: 200, padding: "10px 14px", border: "1px dashed var(--border)", borderRadius: 6, cursor: "pointer", textAlign: "center", fontSize: 13, color: "var(--text-secondary)", transition: "0.2s" }} className="file-upload">
                     {file ? file.name : "Click to select backup .zip file"}
                     <input type="file" accept=".zip" onChange={handleFileChange} style={{ display: "none" }} />
                   </label>
-                  <button onClick={() => requestOtp("restore")} disabled={!file || uploading} style={{ background: !file || uploading ? "rgba(234,179,8,0.1)" : "#eab308", color: !file || uploading ? "var(--text-muted)" : "#000", border: "none", padding: "10px 20px", borderRadius: 6, fontWeight: 600, fontSize: 14, cursor: !file || uploading ? "not-allowed" : "pointer", display: "inline-flex", gap: 8, alignItems: "center" }}>
+                  <button onClick={() => requestOtp("restore")} disabled={!file || uploading} style={{ background: !file || uploading ? "rgba(234,179,8,0.1)" : "#eab308", color: !file || uploading ? "var(--text-muted)" : "#000", border: "none", padding: "10px 20px", borderRadius: 6, fontWeight: 600, fontSize: 14, cursor: !file || uploading ? "not-allowed" : "pointer", display: "inline-flex", gap: 8, alignItems: "center", whiteSpace: "nowrap" }}>
                     {uploading ? <Loader2 size={16} className="spin" /> : <Upload size={16} />}
                     Restore Backup
                   </button>
