@@ -23,6 +23,11 @@ export async function PATCH(
   if (body.resetOnboarding) {
     updateData.policyAcknowledgedAt = null;
     updateData.onboardingCompleted = false;
+    
+    // Reset signed documents by deleting their signatures
+    await prisma.documentSignature.deleteMany({
+      where: { employeeId }
+    });
   }
   
   const emp = await prisma.employee.findUnique({ where: { id: employeeId } });

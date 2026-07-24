@@ -33,15 +33,6 @@ export async function POST(req: NextRequest) {
       data: { actorId: employee.id, actorType: "Employee", action: "LOGIN", metadata: JSON.stringify({ ip }) },
     }).catch(() => {});
 
-    // Automatically mark onboarding status as completed in the admin panel on first login,
-    // while keeping policyAcknowledgedAt null so the employee is still forced to see the wizard.
-    if (!employee.onboardingCompleted) {
-      await prisma.employee.update({
-        where: { id: employee.id },
-        data: { onboardingCompleted: true }
-      });
-    }
-
     // CORRECT: Set cookie directly on NextResponse in Route Handler
     const response = NextResponse.json({ 
       success: true, 
