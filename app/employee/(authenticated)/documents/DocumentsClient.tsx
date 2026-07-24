@@ -5,7 +5,6 @@ import { format } from "date-fns";
 import {
   Shield, FileText, Download, Award, Briefcase, FileSignature, Lock,
   CheckCircle2, AlertCircle, Send, Loader2, Check, X, UploadCloud, Clock,
-  Star, Flag, Sparkles
   Star, Flag, Sparkles, Eye
 } from "lucide-react";
 import toast from "react-hot-toast";
