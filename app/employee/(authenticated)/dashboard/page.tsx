@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import CompletionDialog from "./CompletionDialog";
-import NotificationBell from "@/components/NotificationBell";
 import React from "react";
 import DashboardGreeting from "@/components/DashboardGreeting";
 

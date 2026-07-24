@@ -6,14 +6,15 @@ import {
   Shield, FileText, Download, Award, Briefcase, FileSignature, Lock,
   CheckCircle2, AlertCircle, Send, Loader2, Check, X, UploadCloud, Clock,
   Star, Flag, Sparkles
+  Star, Flag, Sparkles, Eye
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import confetti from "canvas-confetti";
 import jsPDF from "jspdf";
 
-// Helper to view/download Base64 correctly (Chrome blocks data URLs on target=_blank)
-const handleDownloadBase64 = (url: string, title: string) => {
+// Helper to view Base64 correctly in a new tab
+const handleViewBase64 = (url: string, title: string) => {
   if (url.startsWith("data:")) {
     const arr = url.split(',');
     const mimeMatch = arr[0].match(/:(.*?);/);
@@ -24,13 +25,9 @@ const handleDownloadBase64 = (url: string, title: string) => {
     while (n--) u8arr[n] = bstr.charCodeAt(n);
     const blob = new Blob([u8arr], { type: mime });
     const blobUrl = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = blobUrl;
-    a.download = `${title.replace(/\s+/g, '_')}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(blobUrl);
+    window.open(blobUrl, "_blank");
+    // Optionally revoke after a short delay since opening might take a moment
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
   } else {
     // Normal URL
     window.open(url, '_blank');
@@ -266,8 +263,8 @@ export default function DocumentsClient({
         {/* Actions */}
         <div className="flex items-center gap-2 flex-shrink-0 mt-3 sm:mt-0">
           {fileUrl && (
-            <button onClick={() => handleDownloadBase64(fileUrl, def.title)} className="doc-btn doc-btn-secondary">
-              <Download size={13} /> Download
+            <button onClick={() => handleViewBase64(fileUrl, def.title)} className="doc-btn doc-btn-secondary">
+              <Eye size={13} /> View
             </button>
           )}
           {canRequest && (
@@ -492,8 +489,8 @@ export default function DocumentsClient({
                     </div>
                   </div>
                   {doc.fileUrl && (
-                    <button onClick={() => handleDownloadBase64(doc.fileUrl, doc.title)} className="doc-btn doc-btn-secondary mt-3 sm:mt-0">
-                      <Download size={13} /> Download
+                    <button onClick={() => handleViewBase64(doc.fileUrl, doc.title)} className="doc-btn doc-btn-secondary mt-3 sm:mt-0">
+                      <Eye size={13} /> View
                     </button>
                   )}
                 </div>

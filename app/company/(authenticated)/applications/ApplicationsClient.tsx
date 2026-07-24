@@ -126,6 +126,40 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
   };
 
   // ----- API Actions -----
+  const copyEmail = (e: React.MouseEvent, email: string) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(email);
+    toast.success("Email copied");
+  };
+
+  const handleViewBase64 = (url: string, title: string) => {
+    if (!url) return;
+    if (url.startsWith("data:")) {
+      try {
+        const parts = url.split(",");
+        const meta = parts[0];
+        const contentType = meta.split(":")[1].split(";")[0];
+        const base64Data = parts[1];
+        
+        const byteCharacters = atob(base64Data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: contentType });
+        const blobUrl = URL.createObjectURL(blob);
+        
+        window.open(blobUrl, "_blank");
+      } catch (e) {
+        console.error("Failed to parse base64 for viewing", e);
+        window.open(url, "_blank");
+      }
+    } else {
+      window.open(url, "_blank");
+    }
+  };
+
   const updateStatus = async (applicantId: string, status: string) => {
     setActionLoading(true); setActionMsg("");
     const res = await fetch(`/api/company/applications/${applicantId}/status`, {
@@ -559,10 +593,10 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
 
                 {/* Actions: CV + Close */}
                 <div className="cm-header-actions">
-                  <a href={`/api/files/${selected.id}/cv`} target="_blank" rel="noopener noreferrer" className="cm-cv-btn">
+                  <button onClick={() => handleViewBase64(selected.cvFileUrl || `/api/files/${selected.id}/cv`, "CV")} className="cm-cv-btn">
                     <FileText size={14} style={{ flexShrink: 0 }} />
                     <span>View CV</span>
-                  </a>
+                  </button>
                   <button className="cm-close-btn" onClick={closeModal}>
                     <X size={16} />
                   </button>

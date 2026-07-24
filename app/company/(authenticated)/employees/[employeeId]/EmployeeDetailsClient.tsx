@@ -5,15 +5,15 @@ import { format } from "date-fns";
 import {
   FileText, Download, UploadCloud, Loader2, ArrowLeft, Trash2,
   Shield, Award, Briefcase, CheckCircle2,
-  Clock, User, Mail, Badge, Building2, Lock, Star, Check, FileSignature, AlertCircle
+  Clock, User, Mail, Badge, Building2, Lock, Star, Check, FileSignature, AlertCircle, Eye
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
-// Helper to view/download Base64 correctly (Chrome blocks data URLs on target=_blank)
-const handleDownloadBase64 = (url: string, title: string) => {
+// Helper to view Base64 correctly in a new tab (Chrome blocks data URLs on target=_blank)
+const handleViewBase64 = (url: string, title: string) => {
   if (url.startsWith("data:")) {
     const arr = url.split(',');
     const mimeMatch = arr[0].match(/:(.*?);/);
@@ -24,13 +24,8 @@ const handleDownloadBase64 = (url: string, title: string) => {
     while (n--) u8arr[n] = bstr.charCodeAt(n);
     const blob = new Blob([u8arr], { type: mime });
     const blobUrl = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = blobUrl;
-    a.download = `${title.replace(/\s+/g, '_')}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(blobUrl);
+    window.open(blobUrl, "_blank");
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
   } else {
     // Normal URL
     window.open(url, '_blank');
@@ -274,8 +269,8 @@ export default function EmployeeDetailsClient({ employee }: { employee: any }) {
         <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
           {fileUrl ? (
             <>
-              <button onClick={() => handleDownloadBase64(fileUrl, slot.title)} className="btn btn-secondary btn-sm" style={{ gap: 5 }}>
-                <Download size={13} /> View
+              <button onClick={() => handleViewBase64(fileUrl, slot.title)} className="btn btn-secondary btn-sm" style={{ gap: 5 }}>
+                <Eye size={13} /> View
               </button>
               {/* Allow re-upload for company-issued docs */}
               {canUpload && (
@@ -390,7 +385,7 @@ export default function EmployeeDetailsClient({ employee }: { employee: any }) {
         {(cvLink || linkedInLink) && (
           <div style={{ marginTop: 24, paddingTop: 16, borderTop: "1px solid rgba(168,85,247,0.1)", display: "flex", gap: 12, flexWrap: "wrap" }}>
             {cvLink && (
-              <button onClick={() => handleDownloadBase64(cvLink, `${employee.name}_CV`)} className="btn btn-secondary btn-sm" style={{ fontWeight: 600, gap: 6 }}>
+              <button onClick={() => handleViewBase64(cvLink, `${employee.name}_CV`)} className="btn btn-secondary btn-sm" style={{ fontWeight: 600, gap: 6 }}>
                 <FileText size={14} color="var(--purple)" /> View Resume / CV
               </button>
             )}
@@ -450,8 +445,8 @@ export default function EmployeeDetailsClient({ employee }: { employee: any }) {
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
                   {doc.fileUrl && (
-                    <button onClick={() => handleDownloadBase64(doc.fileUrl, doc.title)} className="btn btn-secondary btn-sm" style={{ gap: 5 }}>
-                      <Download size={13} /> View
+                    <button onClick={() => handleViewBase64(doc.fileUrl, doc.title)} className="btn btn-secondary btn-sm" style={{ gap: 5 }}>
+                      <Eye size={13} /> View
                     </button>
                   )}
                   <button className="btn btn-danger btn-sm" onClick={() => handleDelete(doc.id, doc.title)} disabled={deleting === doc.id} style={{ padding: "0 10px" }}>

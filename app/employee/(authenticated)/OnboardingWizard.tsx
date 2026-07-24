@@ -88,6 +88,10 @@ export default function OnboardingWizard({ employee }: { employee: Employee }) {
   useEffect(() => {
     setMounted(true);
     fetchDocs();
+    // Clear the small tour flag so it triggers exactly once after this big wizard finishes
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("hasSeenEmployeeTour");
+    }
   }, []);
 
   const pendingCount = dbDocs.filter(d => !d.isSigned).length;

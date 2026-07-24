@@ -8,7 +8,6 @@ import {
   LayoutDashboard, User, Briefcase, Users, LogOut,
   Calendar, CalendarDays, Sparkles
 } from "lucide-react";
-import NotificationBell from "@/components/NotificationBell";
 import AttendanceTracker from "@/components/AttendanceTracker";
 import EmployeeTour from "@/components/EmployeeTour";
 

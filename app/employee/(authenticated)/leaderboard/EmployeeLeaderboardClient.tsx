@@ -43,28 +43,41 @@ export default function EmployeeLeaderboardClient({
     return ["All", ...Array.from(t)] as string[];
   }, [employees]);
 
-  const sortedEmployees = useMemo(() => {
-    let filtered = employees;
-    if (search) {
-      filtered = filtered.filter(e => e.name.toLowerCase().includes(search.toLowerCase()));
-    }
-    if (teamFilter !== "All") {
-      filtered = filtered.filter(e => e.team?.name === teamFilter);
-    }
-
-    return filtered.sort((a, b) => {
+  const overallSorted = useMemo(() => {
+    return [...employees].sort((a, b) => {
       const pA = timeframe === "monthly" ? a.monthlyPoints : a.points;
       const pB = timeframe === "monthly" ? b.monthlyPoints : b.points;
       return pB - pA;
     });
-  }, [employees, timeframe, search, teamFilter]);
+  }, [employees, timeframe]);
 
-  const isFiltering = search.length > 0 || teamFilter !== "All";
-  const top3 = isFiltering ? [] : sortedEmployees.slice(0, 3);
-  const rest = isFiltering ? sortedEmployees : sortedEmployees.slice(3);
+  const employeeRanks = useMemo(() => {
+    const ranks: Record<string, number> = {};
+    overallSorted.forEach((e, i) => ranks[e.id] = i + 1);
+    return ranks;
+  }, [overallSorted]);
+
+  const filteredEmployees = useMemo(() => {
+    let filtered = overallSorted;
+    if (search) {
+      const q = search.trim().toLowerCase();
+      filtered = filtered.filter(e => 
+        e.name.toLowerCase().includes(q) || 
+        (e.employeeCode && e.employeeCode.toLowerCase().includes(q))
+      );
+    }
+    if (teamFilter !== "All") {
+      filtered = filtered.filter(e => e.team?.name === teamFilter);
+    }
+    return filtered;
+  }, [overallSorted, search, teamFilter]);
+
+  const isFiltering = search.trim().length > 0 || teamFilter !== "All";
+  const top3 = isFiltering ? [] : filteredEmployees.slice(0, 3);
+  const rest = isFiltering ? filteredEmployees : filteredEmployees.slice(3);
 
   const getPoints = (e: Employee) => timeframe === "monthly" ? e.monthlyPoints : e.points;
-  const maxPoints = sortedEmployees.length > 0 ? getPoints(sortedEmployees[0]) : 1;
+  const maxPoints = overallSorted.length > 0 ? getPoints(overallSorted[0]) : 1;
 
   const PodiumAvatar = ({ e, place }: { e: Employee; place: 1 | 2 | 3 }) => {
     if (!e) return <div style={{ width: 100, height: 100, flexShrink: 0 }} />;
@@ -247,7 +260,7 @@ export default function EmployeeLeaderboardClient({
 
         <div>
           {rest.map((e, idx) => {
-            const rank = idx + 4;
+            const rank = employeeRanks[e.id] || 0;
             const isMe = e.id === myEmployeeId;
             const pts = getPoints(e);
             const percent = maxPoints > 0 ? (pts / maxPoints) * 100 : 0;

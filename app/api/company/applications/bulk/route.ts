@@ -128,6 +128,64 @@ export async function POST(req: NextRequest) {
         }
       }
 
+      // Create employee records if status is Hired
+      if (moveToStatus === "Hired") {
+        const { default: crypto } = await import("crypto");
+        const { default: bcrypt } = await import("bcryptjs");
+        const { sendEmployeeCredentials } = await import("@/lib/email");
+        
+        for (const app of applicants) {
+          const existingEmployee = await prisma.employee.findUnique({ where: { applicantId: app.id } });
+          if (!existingEmployee) {
+            const year = new Date().getFullYear();
+            const code = \`CL-\${year}-\${crypto.randomBytes(2).toString("hex").toUpperCase()}\`;
+            const rawPassword = crypto.randomBytes(4).toString("hex");
+            const passwordHash = await bcrypt.hash(rawPassword, 10);
+            
+            const employee = await prisma.employee.create({
+              data: {
+                email: app.email,
+                name: app.fullName,
+                designation: app.jobPosting?.title || "New Hire",
+                employeeCode: code,
+                status: "Active",
+                startDate: new Date(),
+                employmentType: "Intern", // Default for bulk hires
+                passwordHash,
+                mustResetPassword: true,
+                applicantId: app.id,
+                cvUrl: app.cvFileUrl,
+              }
+            });
+            
+            if (app.cvFileUrl) {
+              await prisma.employeeDocument.create({
+                data: {
+                  employeeId: employee.id,
+                  title: "Resume / CV",
+                  type: "Resume / CV",
+                  fileUrl: app.cvFileUrl,
+                  status: "Available",
+                  uploadedBy: auth.sub
+                }
+              });
+            }
+            
+            await prisma.activityLog.create({
+              data: {
+                actorId: null,
+                actorType: "Admin",
+                action: "EMPLOYEE_HIRED",
+                metadata: JSON.stringify({ employeeId: employee.id, applicantId: app.id, employeeCode: code })
+              }
+            }).catch(() => {});
+            
+            const portalUrl = "https://cyberlabsec.tech/employee/login";
+            await sendEmployeeCredentials(app.email, app.fullName, code, rawPassword, portalUrl, "", "").catch(console.error);
+          }
+        }
+      }
+
       await prisma.activityLog.create({
         data: { actorId: null, actorType: "Admin", action: "BULK_MOVE", metadata: JSON.stringify({ count: applicantIds.length, moveToStatus }) },
       }).catch(() => {});
