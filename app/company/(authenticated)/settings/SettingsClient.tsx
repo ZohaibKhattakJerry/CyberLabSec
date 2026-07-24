@@ -125,7 +125,6 @@ export default function SettingsClient() {
   const msgColor = msgType === "success" ? "var(--green)" : "var(--red)";
 
   return (
-  return (
     <div className="settings-container">
       <style>{`
         .settings-container {

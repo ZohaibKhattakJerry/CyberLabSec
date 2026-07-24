@@ -6,8 +6,9 @@ import { format } from "date-fns";
 import {
   Search, X, UserCheck, Loader2, FileText, Check, AlertTriangle, Clock,
   Star, CheckSquare, Square, Mail, Phone, MapPin, Link as LinkIcon, Code,
-  Briefcase, GraduationCap, Calendar, Award, Trash2, ChevronRight, Eye,
+  Briefcase, GraduationCap, Calendar, Award, Trash2, ChevronRight, Eye, Download,
 } from "lucide-react";
+import toast from "react-hot-toast";
 import confetti from "canvas-confetti";
 
 type Applicant = {
@@ -19,7 +20,7 @@ type Applicant = {
   internalRating: number | null; privateNotes: string | null;
   motivation: string | null; semester: string | null; degree: string | null;
   cgpa: string | null; bugBounty: string | null; certifications: string | null;
-  cnic: string | null;
+  cnic: string | null; cvFileUrl?: string | null;
   jobPosting: { id: string; title: string; type: string };
   interviewSession: {
     id: string; totalScore: number | null; result: string | null;
@@ -593,10 +594,14 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
 
                 {/* Actions: CV + Close */}
                 <div className="cm-header-actions">
-                  <button onClick={() => handleViewBase64(selected.cvFileUrl || `/api/files/${selected.id}/cv`, "CV")} className="cm-cv-btn">
-                    <FileText size={14} style={{ flexShrink: 0 }} />
+                  <button onClick={() => handleViewBase64(selected.cvFileUrl || `/api/files/${selected.id}/cv`, "CV")} className="cm-cv-btn" style={{ background: "rgba(59,130,246,0.15)", color: "#60a5fa", border: "1px solid rgba(59,130,246,0.3)" }}>
+                    <Eye size={14} style={{ flexShrink: 0 }} />
                     <span>View CV</span>
                   </button>
+                  <a href={selected.cvFileUrl || `/api/files/${selected.id}/cv`} download={`CV_${selected.fullName.replace(/\\s+/g, "_")}.pdf`} className="cm-cv-btn" style={{ background: "rgba(168,85,247,0.15)", color: "#c084fc", border: "1px solid rgba(168,85,247,0.3)", textDecoration: "none" }}>
+                    <Download size={14} style={{ flexShrink: 0 }} />
+                    <span>Download</span>
+                  </a>
                   <button className="cm-close-btn" onClick={closeModal}>
                     <X size={16} />
                   </button>

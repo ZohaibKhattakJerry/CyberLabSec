@@ -19,18 +19,22 @@ export default async function ApplicationsPage() {
     },
   });
 
-  const serialized = applicants.map((a: any) => ({
-    ...a,
-    createdAt: a.createdAt.toISOString(),
-    updatedAt: a.updatedAt.toISOString(),
-    jobPosting: a.jobPosting,
-    employeeRecord: a.employeeRecord || null,
-    interviewSession: a.interviewSession ? {
-      ...a.interviewSession,
-      startedAt: a.interviewSession.startedAt?.toISOString() ?? null,
-      completedAt: a.interviewSession.completedAt?.toISOString() ?? null,
-    } : null,
-  }));
+  const serialized = applicants.map((a: any) => {
+    // Exclude large base64 strings from the initial payload to prevent Next.js page data size crashes
+    const { cvFileUrl, photoUrl, ...rest } = a;
+    return {
+      ...rest,
+      createdAt: a.createdAt.toISOString(),
+      updatedAt: a.updatedAt.toISOString(),
+      jobPosting: a.jobPosting,
+      employeeRecord: a.employeeRecord || null,
+      interviewSession: a.interviewSession ? {
+        ...a.interviewSession,
+        startedAt: a.interviewSession.startedAt?.toISOString() ?? null,
+        completedAt: a.interviewSession.completedAt?.toISOString() ?? null,
+      } : null,
+    };
+  });
 
   return <ApplicationsClient applicants={serialized} postings={postings} />;
 }
