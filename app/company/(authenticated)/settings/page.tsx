@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState("profile");
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [clearing, setClearing] = useState(false);
@@ -209,174 +208,72 @@ export default function SettingsPage() {
     }
   };
 
-  const navItems = [
-    { id: "profile", label: "Company Profile", icon: Building },
-    { id: "security", label: "Security", icon: ShieldCheck },
-    { id: "notifications", label: "Notifications", icon: Bell },
-    { id: "data", label: "Data Management", icon: Database },
-    { id: "danger", label: "Danger Zone", icon: AlertTriangle },
-  ];
-
   return (
-    <div className="settings-layout" style={{ minHeight: "80vh", background: "var(--bg-base)", color: "var(--text-primary)", borderRadius: 12, overflow: "hidden", border: "1px solid var(--border)", boxShadow: "0 4px 24px rgba(0,0,0,0.2)" }}>
-      <style>{`
-        .settings-layout {
-          display: flex;
-          flex-direction: row;
-        }
-        .settings-sidebar {
-          width: 240px;
-          flex-shrink: 0;
-          background: var(--bg-card);
-          border-right: 1px solid var(--border);
-          padding: 24px 0;
-        }
-        .settings-content {
-          flex: 1;
-          padding: 40px;
-          overflow-y: auto;
-        }
-        .settings-nav-list {
-          display: flex;
-          flex-direction: column;
-        }
-        .form-grid-2 {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 16px;
-        }
-        
-        @media (max-width: 800px) {
-          .settings-layout {
-            flex-direction: column;
-          }
-          .settings-sidebar {
-            width: 100%;
-            border-right: none;
-            border-bottom: 1px solid var(--border);
-            padding: 16px 0;
-          }
-          .settings-nav-list {
-            flex-direction: row;
-            overflow-x: auto;
-            padding: 0 16px;
-            scrollbar-width: none;
-            -webkit-overflow-scrolling: touch;
-          }
-          .settings-nav-list::-webkit-scrollbar { display: none; }
-          .settings-content {
-            padding: 20px 16px;
-          }
-          .nav-item {
-            white-space: nowrap;
-            margin: 0 4px;
-            padding: 10px 14px;
-          }
-          .form-grid-2 {
-            grid-template-columns: 1fr;
-          }
-        }
-        @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
-        .tab-content { animation: fadeIn 0.3s ease-out forwards; }
-        .nav-item { display: flex; align-items: center; gap: 10px; padding: 12px 16px; margin: 4px 8px; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-size: 14px; font-weight: 500; color: var(--text-secondary); border-left: 3px solid transparent; }
-        .nav-item:hover { background: rgba(255,255,255,0.03); color: var(--text-primary); }
-        .nav-item.active { background: rgba(168,85,247,0.15); color: #a855f7; border-left-color: #a855f7; }
-        .nav-item.danger.active { background: rgba(239,68,68,0.15); color: #ef4444; border-left-color: #ef4444; }
-        .input-dark { width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; color: var(--text-primary); font-size: 14px; transition: border-color 0.2s, box-shadow 0.2s; outline: none; }
-        .input-dark:focus { border-color: #a855f7; box-shadow: 0 0 0 2px rgba(168,85,247,0.2); }
-        .label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .btn-primary { background: #a855f7; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn-primary:hover { background: #9333ea; }
-        .btn-secondary { background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--border); padding: 10px 20px; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn-secondary:hover { background: rgba(255,255,255,0.1); }
-        .toggle { appearance: none; width: 40px; height: 22px; background: rgba(255,255,255,0.1); border-radius: 20px; position: relative; cursor: pointer; outline: none; transition: 0.3s; }
-        .toggle:checked { background: #a855f7; }
-        .toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; background: white; border-radius: 50%; transition: 0.3s; }
-        .toggle:checked::after { transform: translateX(18px); }
-        .spin { animation: spin 1s linear infinite; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-      `}</style>
-
-      {/* LEFT SIDEBAR */}
-      <div className="settings-sidebar">
-        <h2 style={{ padding: "0 24px", fontSize: 13, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 16 }}>Settings</h2>
-        <div className="settings-nav-list">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isDanger = item.id === "danger";
-            const isActive = activeTab === item.id;
-            return (
-              <div
-                key={item.id}
-                className={`nav-item ${isActive ? "active" : ""} ${isDanger && isActive ? "danger" : ""}`}
-                onClick={() => setActiveTab(item.id)}
-              >
-                <Icon size={18} />
-                {item.label}
-              </div>
-            );
-          })}
+    <div className="animate-fade-up">
+      <div style={{ marginBottom: 32, display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
+        <div>
+          <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 6 }}>Company Settings</h1>
+          <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>Manage your organization's configuration, security, and data.</p>
         </div>
       </div>
 
-      {/* RIGHT CONTENT */}
-      <div className="settings-content">
-        {message && (
-          <div style={{ padding: "12px 16px", borderRadius: 8, marginBottom: 24, fontSize: 13, fontWeight: 500, background: message.type === "success" ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)", color: message.type === "success" ? "#22c55e" : "#ef4444", border: `1px solid \${message.type === "success" ? "rgba(34,197,94,0.2)" : "rgba(239,68,68,0.2)"}`, display: "flex", alignItems: "center", gap: 10 }}>
-            <AlertTriangle size={16} />
-            {message.text}
-          </div>
-        )}
+      {message && (
+        <div style={{ padding: "12px 16px", borderRadius: 8, marginBottom: 24, fontSize: 13, fontWeight: 500, background: message.type === "success" ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)", color: message.type === "success" ? "#22c55e" : "#ef4444", border: `1px solid ${message.type === "success" ? "rgba(34,197,94,0.2)" : "rgba(239,68,68,0.2)"}`, display: "flex", alignItems: "center", gap: 10 }}>
+          <AlertTriangle size={16} />
+          {message.text}
+        </div>
+      )}
 
-        {/* 1. COMPANY PROFILE */}
-        {activeTab === "profile" && (
-          <div className="tab-content" style={{ maxWidth: 640 }}>
-            <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>Company Profile</h1>
-            <p style={{ color: "var(--text-secondary)", marginBottom: 32, fontSize: 14 }}>Manage your organization's public details and branding.</p>
-            
-            <div style={{ display: "grid", gap: 24 }}>
-              <div className="form-grid-2">
-                <div>
-                  <label className="label">Company Name</label>
-                  <input className="input-dark" value={companyName} onChange={e => setCompanyName(e.target.value)} />
-                </div>
-                <div>
-                  <label className="label">Tagline</label>
-                  <input className="input-dark" value={companyTagline} onChange={e => setCompanyTagline(e.target.value)} />
-                </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 340px), 1fr))", gap: 24, alignItems: "start" }}>
+        
+        {/* Left Column */}
+        <div style={{ display: "grid", gap: 24 }}>
+          
+          {/* 1. COMPANY PROFILE */}
+          <div className="card" style={{ padding: 24 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20, display: "flex", alignItems: "center", gap: 8, color: "var(--text-primary)" }}>
+              <Building size={16} color="var(--blue)" /> Company Profile
+            </h2>
+            <div style={{ display: "grid", gap: 16 }}>
+              <div>
+                <label className="label">Company Name</label>
+                <input className="input" value={companyName} onChange={e => setCompanyName(e.target.value)} style={{ borderRadius: 8 }} />
               </div>
-
+              <div>
+                <label className="label">Tagline</label>
+                <input className="input" value={companyTagline} onChange={e => setCompanyTagline(e.target.value)} style={{ borderRadius: 8 }} />
+              </div>
               <div>
                 <label className="label">Description</label>
-                <textarea className="input-dark" rows={4} value={companyDesc} onChange={e => setCompanyDesc(e.target.value)} />
+                <textarea className="input" rows={3} value={companyDesc} onChange={e => setCompanyDesc(e.target.value)} style={{ borderRadius: 8, minHeight: 80 }} />
               </div>
 
-              <div className="form-grid-2">
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 <div>
                   <label className="label">LinkedIn URL</label>
-                  <input className="input-dark" value={linkedinUrl} onChange={e => setLinkedinUrl(e.target.value)} />
+                  <input className="input" value={linkedinUrl} onChange={e => setLinkedinUrl(e.target.value)} style={{ borderRadius: 8 }} />
                 </div>
                 <div>
                   <label className="label">Website</label>
-                  <input className="input-dark" value={website} onChange={e => setWebsite(e.target.value)} />
+                  <input className="input" value={website} onChange={e => setWebsite(e.target.value)} style={{ borderRadius: 8 }} />
                 </div>
               </div>
 
-              <div className="form-grid-2">
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 <div>
                   <label className="label">Contact Email</label>
-                  <input className="input-dark" value={contactEmail} onChange={e => setContactEmail(e.target.value)} placeholder="hello@company.com" />
+                  <input className="input" value={contactEmail} onChange={e => setContactEmail(e.target.value)} placeholder="hello@company.com" style={{ borderRadius: 8 }} />
                 </div>
                 <div>
                   <label className="label">Founded Year</label>
-                  <input className="input-dark" value={foundedYear} onChange={e => setFoundedYear(e.target.value)} placeholder="2020" />
+                  <input className="input" value={foundedYear} onChange={e => setFoundedYear(e.target.value)} placeholder="2020" style={{ borderRadius: 8 }} />
                 </div>
               </div>
 
-              <div className="form-grid-2">
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 <div>
                   <label className="label">Team Size</label>
-                  <select className="input-dark" value={teamSize} onChange={e => setTeamSize(e.target.value)}>
+                  <select className="input" value={teamSize} onChange={e => setTeamSize(e.target.value)} style={{ borderRadius: 8 }}>
                     <option value="1-10">1-10 employees</option>
                     <option value="11-50">11-50 employees</option>
                     <option value="51-200">51-200 employees</option>
@@ -384,43 +281,65 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <label className="label">Industry</label>
-                  <input className="input-dark" value={industry} onChange={e => setIndustry(e.target.value)} />
+                  <input className="input" value={industry} onChange={e => setIndustry(e.target.value)} style={{ borderRadius: 8 }} />
                 </div>
               </div>
 
-              <div style={{ marginTop: 16 }}>
-                <button className="btn-primary" onClick={() => requestOtp("settings")} disabled={saving}>
-                  {saving ? <Loader2 size={16} className="spin" /> : "Save Profile"}
-                </button>
-              </div>
+              <button className="btn btn-primary" onClick={() => requestOtp("settings")} disabled={saving} style={{ marginTop: 8, height: 40, transition: "all 0.2s" }}>
+                {saving ? <><Loader2 size={16} className="spin" /> Saving...</> : "Save Profile"}
+              </button>
             </div>
           </div>
-        )}
 
-        {/* 2. SECURITY */}
-        {activeTab === "security" && (
-          <div className="tab-content" style={{ maxWidth: 640 }}>
-            <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>Security & Access</h1>
-            <p style={{ color: "var(--text-secondary)", marginBottom: 32, fontSize: 14 }}>Control session settings and authentication policies.</p>
-            
-            <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-              <div style={{ background: "rgba(0,0,0,0.2)", border: "1px solid var(--border)", borderRadius: 12, padding: 20 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+          {/* 3. NOTIFICATIONS */}
+          <div className="card" style={{ padding: 24 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20, display: "flex", alignItems: "center", gap: 8, color: "var(--text-primary)" }}>
+              <Bell size={16} color="var(--amber)" /> Notification Preferences
+            </h2>
+            <div style={{ display: "grid", gap: 12 }}>
+              {[
+                { title: "New Applications", desc: "Notify when a candidate applies", state: notifApp, setter: setNotifApp },
+                { title: "Task Submissions", desc: "Notify on completed assignments", state: notifTasks, setter: setNotifTasks },
+                { title: "Support Tickets", desc: "Notify when a new ticket is opened", state: notifSupport, setter: setNotifSupport },
+                { title: "Leave Requests", desc: "Notify when an employee requests time off", state: notifLeave, setter: setNotifLeave },
+              ].map((item, idx) => (
+                <div key={idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px", background: "rgba(255,255,255,0.02)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.03)" }}>
                   <div>
-                    <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>Two-Factor Authentication</h3>
-                    <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>Require 2FA for all admin accounts.</p>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>{item.title}</div>
+                    <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{item.desc}</div>
                   </div>
-                  <span style={{ fontSize: 11, fontWeight: 700, background: "rgba(168,85,247,0.15)", color: "#a855f7", padding: "4px 8px", borderRadius: 4, textTransform: "uppercase" }}>Coming Soon</span>
+                  <input type="checkbox" className="toggle" checked={item.state} onChange={() => item.setter(!item.state)} />
                 </div>
-                <input type="checkbox" className="toggle" disabled />
-              </div>
+              ))}
+              <button className="btn btn-secondary" onClick={() => setMessage({ type: "success", text: "✅ Notification preferences securely saved." })} style={{ marginTop: 8, height: 40 }}>Save Preferences</button>
+            </div>
+          </div>
 
-              <div style={{ background: "rgba(0,0,0,0.2)", border: "1px solid var(--border)", borderRadius: 12, padding: 20 }}>
-                <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>Session Policies</h3>
-                <div style={{ display: "grid", gap: 16 }}>
+        </div>
+
+        {/* Right Column */}
+        <div style={{ display: "grid", gap: 24, alignContent: "start" }}>
+          
+          {/* 2. SECURITY */}
+          <div className="card" style={{ padding: 24 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20, display: "flex", alignItems: "center", gap: 8, color: "var(--text-primary)" }}>
+              <ShieldCheck size={16} color="var(--green)" /> Security & Access
+            </h2>
+            <div style={{ display: "grid", gap: 16 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px", background: "rgba(255,255,255,0.02)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.03)" }}>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>Two-Factor Authentication</div>
+                  <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>Require 2FA for all admin accounts.</div>
+                </div>
+                <span className="badge badge-purple" style={{ marginLeft: 12 }}>Coming Soon</span>
+              </div>
+              
+              <div style={{ padding: "16px", background: "rgba(255,255,255,0.02)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.03)" }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", marginBottom: 12 }}>Session Policies</div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                   <div>
                     <label className="label">Session Timeout</label>
-                    <select className="input-dark" defaultValue="8h">
+                    <select className="input" defaultValue="8h" style={{ borderRadius: 8 }}>
                       <option value="4h">4 hours</option>
                       <option value="8h">8 hours</option>
                       <option value="24h">24 hours</option>
@@ -428,124 +347,79 @@ export default function SettingsPage() {
                   </div>
                   <div>
                     <label className="label">Login Attempt Limit</label>
-                    <div className="input-dark" style={{ opacity: 0.7 }}>Locked to 5 attempts before cooldown</div>
+                    <div className="input" style={{ opacity: 0.7, borderRadius: 8, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>Locked to 5 attempts</div>
                   </div>
                 </div>
               </div>
 
-              <div style={{ background: "rgba(0,0,0,0.2)", border: "1px solid var(--border)", borderRadius: 12, padding: 20 }}>
-                <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>Active Status</h3>
-                <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", background: "rgba(34,197,94,0.05)", border: "1px solid rgba(34,197,94,0.15)", borderRadius: 8 }}>
-                  <ShieldCheck size={20} color="#22c55e" />
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: "#22c55e" }}>AES-256 Encryption Active</div>
-                    <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>Data is currently encrypted at rest.</div>
-                  </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "16px", background: "rgba(34,197,94,0.05)", border: "1px solid rgba(34,197,94,0.15)", borderRadius: 12 }}>
+                <ShieldCheck size={24} color="#22c55e" flexShrink={0} />
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "#22c55e" }}>AES-256 Encryption Active</div>
+                  <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>Data is currently encrypted at rest.</div>
                 </div>
               </div>
             </div>
           </div>
-        )}
 
-        {/* 3. NOTIFICATIONS */}
-        {activeTab === "notifications" && (
-          <div className="tab-content" style={{ maxWidth: 640 }}>
-            <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>Notification Preferences</h1>
-            <p style={{ color: "var(--text-secondary)", marginBottom: 32, fontSize: 14 }}>Manage when and how the platform sends automated emails.</p>
-
-            <div style={{ background: "rgba(0,0,0,0.2)", border: "1px solid var(--border)", borderRadius: 12 }}>
-              {[
-                { title: "New Applications", desc: "Notify when a candidate applies", state: notifApp, setter: setNotifApp },
-                { title: "Task Submissions", desc: "Notify on completed assignments", state: notifTasks, setter: setNotifTasks },
-                { title: "Support Tickets", desc: "Notify when a new ticket is opened", state: notifSupport, setter: setNotifSupport },
-                { title: "Leave Requests", desc: "Notify when an employee requests time off", state: notifLeave, setter: setNotifLeave },
-              ].map((item, idx, arr) => (
-                <div key={idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px", borderBottom: idx < arr.length - 1 ? "1px solid var(--border)" : "none" }}>
-                  <div>
-                    <h3 style={{ fontSize: 15, fontWeight: 500, marginBottom: 4 }}>{item.title}</h3>
-                    <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>{item.desc}</p>
-                  </div>
-                  <input type="checkbox" className="toggle" checked={item.state} onChange={() => item.setter(!item.state)} />
-                </div>
-              ))}
-            </div>
-
-            <div style={{ marginTop: 24 }}>
-              <button className="btn-primary" onClick={() => setMessage({ type: "success", text: "✅ Notification preferences securely saved." })}>Save Preferences</button>
-            </div>
-          </div>
-        )}
-
-        {/* 4. DATA MANAGEMENT */}
-        {activeTab === "data" && (
-          <div className="tab-content" style={{ maxWidth: 640 }}>
-            <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>Data Management</h1>
-            <p style={{ color: "var(--text-secondary)", marginBottom: 32, fontSize: 14 }}>Backup and restore platform data. Backup includes: Employees, Teams, Jobs, Applicants, Interviews, Tasks, Announcements, Attendance, Leave, Badges, Support Tickets, and all other platform data.</p>
-            
-            <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-              
+          {/* 4. DATA MANAGEMENT */}
+          <div className="card" style={{ padding: 24 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20, display: "flex", alignItems: "center", gap: 8, color: "var(--text-primary)" }}>
+              <Database size={16} color="var(--purple)" /> Data Management
+            </h2>
+            <div style={{ display: "grid", gap: 16 }}>
               {/* BACKUP */}
-              <div style={{ background: "rgba(168,85,247,0.05)", border: "1px solid rgba(168,85,247,0.2)", borderRadius: 12, padding: 24 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-                  <div style={{ background: "rgba(168,85,247,0.1)", padding: 8, borderRadius: 8 }}><Download color="#a855f7" size={20} /></div>
-                  <h3 style={{ fontSize: 18, fontWeight: 600 }}>Download Encrypted Backup</h3>
+              <div style={{ background: "rgba(168,85,247,0.05)", border: "1px solid rgba(168,85,247,0.2)", borderRadius: 12, padding: 16 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+                  <div style={{ background: "rgba(168,85,247,0.1)", padding: 6, borderRadius: 8 }}><Download color="#a855f7" size={16} /></div>
+                  <div style={{ fontSize: 15, fontWeight: 600 }}>Encrypted Backup</div>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <p style={{ color: "var(--text-secondary)", fontSize: 13 }}>
-                    Backups are transparently encrypted by the system. Download requires email verification.
-                  </p>
-                  <button onClick={() => requestOtp("backup")} disabled={downloading} className="btn-primary" style={{ flexShrink: 0 }}>
-                    {downloading ? <Loader2 size={16} className="spin" /> : <Download size={16} />}
-                    Download Backup
-                  </button>
+                <div style={{ color: "var(--text-secondary)", fontSize: 12, marginBottom: 16 }}>
+                  Backups are transparently encrypted by the system. Download requires email verification.
                 </div>
+                <button onClick={() => requestOtp("backup")} disabled={downloading} className="btn btn-primary w-full" style={{ width: "100%", justifyContent: "center" }}>
+                  {downloading ? <><Loader2 size={16} className="spin" /> Processing...</> : <><Download size={16} /> Download Backup</>}
+                </button>
               </div>
 
               {/* RESTORE */}
-              <div style={{ background: "rgba(234,179,8,0.05)", border: "1px solid rgba(234,179,8,0.2)", borderRadius: 12, padding: 24 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-                  <div style={{ background: "rgba(234,179,8,0.1)", padding: 8, borderRadius: 8 }}><Upload color="#eab308" size={20} /></div>
-                  <h3 style={{ fontSize: 18, fontWeight: 600 }}>Restore from Backup</h3>
+              <div style={{ background: "rgba(234,179,8,0.05)", border: "1px solid rgba(234,179,8,0.2)", borderRadius: 12, padding: 16 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+                  <div style={{ background: "rgba(234,179,8,0.1)", padding: 6, borderRadius: 8 }}><Upload color="#eab308" size={16} /></div>
+                  <div style={{ fontSize: 15, fontWeight: 600 }}>Restore from Backup</div>
                 </div>
-
-                <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-                  <label style={{ flex: 1, minWidth: 200, padding: "10px 14px", border: "1px dashed var(--border)", borderRadius: 6, cursor: "pointer", textAlign: "center", fontSize: 13, color: "var(--text-secondary)", transition: "0.2s" }} className="file-upload">
-                    {file ? file.name : "Click to select backup .zip file"}
-                    <input type="file" accept=".zip" onChange={handleFileChange} style={{ display: "none" }} />
-                  </label>
-                  <button onClick={() => requestOtp("restore")} disabled={!file || uploading} style={{ background: !file || uploading ? "rgba(234,179,8,0.1)" : "#eab308", color: !file || uploading ? "var(--text-muted)" : "#000", border: "none", padding: "10px 20px", borderRadius: 6, fontWeight: 600, fontSize: 14, cursor: !file || uploading ? "not-allowed" : "pointer", display: "inline-flex", gap: 8, alignItems: "center", whiteSpace: "nowrap" }}>
-                    {uploading ? <Loader2 size={16} className="spin" /> : <Upload size={16} />}
-                    Restore Backup
-                  </button>
-                </div>
-                <p style={{ color: "#ef4444", fontSize: 12, marginTop: 12, fontWeight: 500 }}>
-                  WARNING: Restoring will overwrite and replace ALL existing platform data.
-                </p>
+                <label style={{ display: "block", padding: "10px", border: "1px dashed rgba(234,179,8,0.4)", borderRadius: 8, cursor: "pointer", textAlign: "center", fontSize: 12, color: "var(--text-secondary)", transition: "0.2s", marginBottom: 12, background: "rgba(255,255,255,0.02)" }} className="hover:bg-white/5">
+                  {file ? file.name : "Click to select backup .zip file"}
+                  <input type="file" accept=".zip" onChange={handleFileChange} style={{ display: "none" }} />
+                </label>
+                <button onClick={() => requestOtp("restore")} disabled={!file || uploading} style={{ width: "100%", background: !file || uploading ? "rgba(234,179,8,0.1)" : "#eab308", color: !file || uploading ? "var(--text-muted)" : "#000", border: "none", padding: "10px 20px", borderRadius: 8, fontWeight: 600, fontSize: 14, cursor: !file || uploading ? "not-allowed" : "pointer", display: "inline-flex", gap: 8, alignItems: "center", justifyContent: "center" }}>
+                  {uploading ? <><Loader2 size={16} className="spin" /> Restoring...</> : <><Upload size={16} /> Restore Backup</>}
+                </button>
               </div>
-
             </div>
           </div>
-        )}
 
-        {/* 5. DANGER ZONE */}
-        {activeTab === "danger" && (
-          <div className="tab-content" style={{ maxWidth: 640 }}>
-            <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8, color: "#ef4444" }}>Danger Zone</h1>
-            <p style={{ color: "var(--text-secondary)", marginBottom: 32, fontSize: 14 }}>Irreversible destructive actions. Proceed with extreme caution.</p>
-
-            <div style={{ border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.05)", borderRadius: 12, padding: 24 }}>
-              <h3 style={{ fontSize: 18, fontWeight: 600, color: "#ef4444", marginBottom: 8 }}>Clear All Database Data</h3>
-              <p style={{ fontSize: 14, color: "var(--text-secondary)", marginBottom: 20 }}>
-                Permanently deletes every record — Employees, Applicants, Tasks, Announcements, everything. The platform becomes completely empty. You cannot undo this.
-              </p>
-              
-              <button onClick={() => requestOtp("clear_data")} disabled={clearing} style={{ background: clearing ? "rgba(239,68,68,0.1)" : "#ef4444", color: clearing ? "#ef4444" : "white", border: clearing ? "1px solid rgba(239,68,68,0.2)" : "none", padding: "10px 20px", borderRadius: 6, fontWeight: 600, fontSize: 14, cursor: clearing ? "not-allowed" : "pointer", display: "inline-flex", gap: 8, alignItems: "center" }}>
-                {clearing ? <Loader2 size={16} className="spin" /> : <Trash2 size={16} />}
-                {clearing ? "Clearing..." : "Delete All Data"}
+          {/* 5. DANGER ZONE */}
+          <div className="card" style={{ padding: 24, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.02)" }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, display: "flex", alignItems: "center", gap: 8, color: "#ef4444" }}>
+              <AlertTriangle size={16} color="#ef4444" /> Danger Zone
+            </h2>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 0" }}>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 600 }}>Clear All Database Data</div>
+                <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>Irreversible deletion of all platform records.</div>
+              </div>
+              <button
+                className="btn btn-danger btn-sm"
+                onClick={() => requestOtp("clear_data")} disabled={clearing}
+                style={{ gap: 6, flexShrink: 0, marginLeft: 12 }}
+              >
+                {clearing ? <><Loader2 size={13} className="spin" /> Clearing...</> : <><Trash2 size={13} /> Delete All</>}
               </button>
             </div>
           </div>
-        )}
+
+        </div>
       </div>
 
       {showOtpModal && (
@@ -556,20 +430,20 @@ export default function SettingsPage() {
               <h2 style={{ fontSize: 18, fontWeight: 700 }}>Security Verification</h2>
             </div>
             <p style={{ fontSize: 14, color: "var(--text-secondary)", marginBottom: 24, lineHeight: 1.5 }}>
-              To save these profile changes, please enter the 6-digit OTP sent to your admin email.
+              To proceed with this administrative action, please enter the 6-digit OTP sent to your admin email.
             </p>
             <input 
               autoFocus 
-              className="input-dark" 
+              className="input" 
               placeholder="000000" 
               maxLength={6} 
               value={otpCode} 
               onChange={e => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))} 
-              style={{ fontSize: 24, letterSpacing: "0.2em", textAlign: "center", fontWeight: 600, padding: "16px", marginBottom: 24 }} 
+              style={{ fontSize: 24, letterSpacing: "0.2em", textAlign: "center", fontWeight: 600, padding: "16px", marginBottom: 24, borderRadius: 12 }} 
             />
             <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
-              <button className="btn-secondary" onClick={() => setShowOtpModal(false)} disabled={otpLoading || downloading || uploading || clearing}>Cancel</button>
-              <button className="btn-primary" onClick={handleOtpSubmit} disabled={otpLoading || otpCode.length !== 6 || downloading || uploading || clearing}>
+              <button className="btn btn-secondary" onClick={() => setShowOtpModal(false)} disabled={otpLoading || downloading || uploading || clearing}>Cancel</button>
+              <button className="btn btn-primary" onClick={handleOtpSubmit} disabled={otpLoading || otpCode.length !== 6 || downloading || uploading || clearing}>
                 {otpLoading || downloading || uploading || clearing ? <Loader2 size={16} className="spin" /> : "Verify Action"}
               </button>
             </div>
