@@ -115,25 +115,32 @@ export async function POST(req: NextRequest) {
       nextAnswers = variant.applicantAnswers;
     }
 
-    await prisma.interviewSession.update({
-      where: { id: sessionId },
-      data: {
-        attempts: newAttempts,
-        tokenUsed: false,
-        answers: JSON.stringify(nextAnswers),
-        questions: JSON.stringify(nextQuestions),
-        perQuestionScore: "[]",
-        cheatingSignals: "{}",
-        result: null,
-        totalScore: null,
-        startedAt: null,
-      },
-    });
+    try {
+      await prisma.$transaction(async (tx) => {
+        await tx.interviewSession.update({
+          where: { id: sessionId },
+          data: {
+            attempts: newAttempts,
+            tokenUsed: false,
+            answers: JSON.stringify(nextAnswers),
+            questions: JSON.stringify(nextQuestions),
+            perQuestionScore: "[]",
+            cheatingSignals: "{}",
+            result: null,
+            totalScore: null,
+            startedAt: null,
+          },
+        });
 
-    await prisma.applicant.update({
-      where: { id: session.applicantId },
-      data: { status: "Invited for Interview" }
-    });
+        await tx.applicant.update({
+          where: { id: session.applicantId },
+          data: { status: "Invited for Interview" }
+        });
+      });
+    } catch (error: any) {
+      console.error("[Interview Submit] Retry Error:", error);
+      // We still return Retry so the frontend doesn't crash and show "Interview Failed"
+    }
 
     // We do NOT send an email on intermediate retries per user request.
     // The UI handles showing the retry state to the user.
