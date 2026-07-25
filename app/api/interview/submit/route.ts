@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
   const gradePromises = questions.map(async (q: any) => {
     const answer = answers[q.id] || "";
     const keyEntry = sessionAnswerKey.find((k: any) => k.questionId === q.id) || {};
-    const points = Number(q.points) || 0;
+    const points = 10; // OVERRIDE: User requested exactly 10 points for ALL questions regardless of old data
     
     if (q.type === "mcq") {
       const correct = parseInt(answer) === Number(keyEntry.correctOption);
@@ -59,24 +59,23 @@ export async function POST(req: NextRequest) {
 
   const gradedResults = await Promise.all(gradePromises);
 
-  for (const res of gradedResults) {
-    maxPossibleScore += res.maxPoints;
-    totalScore += res.score;
-    if (res.type === "open") {
-      aiLikelihoodTotal += res.aiLikelihood;
+  gradedResults.forEach((r) => {
+    totalScore += r.score;
+    maxPossibleScore += r.maxPoints;
+    if (r.type === "open" && r.aiLikelihood) {
+      aiLikelihoodTotal += r.aiLikelihood;
       openAnswerCount++;
-      perQuestionScore.push({ questionId: res.questionId, score: res.score, maxPoints: res.maxPoints, aiLikelihood: res.aiLikelihood });
-    } else {
-      perQuestionScore.push({ questionId: res.questionId, score: res.score, maxPoints: res.maxPoints });
     }
-  }
+    perQuestionScore.push(r);
+  });
 
-  // Normalize score to 100 for display purposes only
-  const normalizedScore = maxPossibleScore > 0 ? Math.round((totalScore / maxPossibleScore) * 100) : 0;
   const avgAiLikelihood = openAnswerCount > 0 ? aiLikelihoodTotal / openAnswerCount : 0;
+  
+  const normalizedScore = maxPossibleScore > 0 ? (totalScore / maxPossibleScore) * 100 : 0;
 
-  const suspicionScore =
-    (cheatingSignals.pasteAttempts * 35) +
+  // Strict cheating rule
+  const suspicionScore = 
+    (cheatingSignals.pasteAttempts * 20) +
     (cheatingSignals.tabBlurCount * 15) +
     (suspicionFlag ? 50 : 0) +
     (avgAiLikelihood > 0.8 ? 60 : 0);
@@ -100,19 +99,25 @@ export async function POST(req: NextRequest) {
   const hasMoreAttempts = isFail && newAttempts < session.maxAttempts;
 
   if (isFail && hasMoreAttempts) {
-    // Generate new questions for the next attempt
-    const bank = session.applicant.jobPosting.assessmentBank ? JSON.parse(session.applicant.jobPosting.assessmentBank) : [];
-    const answerKey = session.applicant.jobPosting.answerKey ? JSON.parse(session.applicant.jobPosting.answerKey) : [];
-    const settings = session.applicant.jobPosting.assessmentSettings ? JSON.parse(session.applicant.jobPosting.assessmentSettings) : { mcqCount: 10, openCount: 5 };
+    let nextQuestions: any[] = questions; // Fallback
+    let nextAnswers: any[] = sessionAnswerKey; // Fallback
     
-    let nextQuestions: any[] = [];
-    let nextAnswers: any[] = [];
-    
-    if (bank.length > 0) {
-      const { generateApplicantVariant } = await import("@/lib/assessmentEngine");
-      const variant = generateApplicantVariant(bank, answerKey, settings);
-      nextQuestions = variant.applicantQuestions;
-      nextAnswers = variant.applicantAnswers;
+    try {
+      // Generate new questions for the next attempt
+      const bank = session.applicant.jobPosting.assessmentBank ? JSON.parse(session.applicant.jobPosting.assessmentBank) : [];
+      const answerKey = session.applicant.jobPosting.answerKey ? JSON.parse(session.applicant.jobPosting.answerKey) : [];
+      const settings = session.applicant.jobPosting.assessmentSettings ? JSON.parse(session.applicant.jobPosting.assessmentSettings) : { mcqCount: 10, openCount: 5 };
+      
+      if (bank.length > 0) {
+        const { generateApplicantVariant } = await import("@/lib/assessmentEngine");
+        const variant = generateApplicantVariant(bank, answerKey, settings);
+        if (variant.applicantQuestions.length > 0) {
+          nextQuestions = variant.applicantQuestions;
+          nextAnswers = variant.applicantAnswers;
+        }
+      }
+    } catch (err) {
+      console.error("[Interview Submit] Error generating new variant:", err);
     }
 
     try {

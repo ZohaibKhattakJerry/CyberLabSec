@@ -193,7 +193,7 @@ export function generateAssessmentBank(
       difficulty: q.diff as any,
       prompt: q.prompt,
       options: q.options,
-      points: q.diff === "Hard" ? 5 : q.diff === "Medium" ? 3 : 2
+      points: 10 // ALL questions are exactly 10 points per user request
     });
 
     answerKey.push({
@@ -212,7 +212,7 @@ export function generateAssessmentBank(
       category: s.category.toUpperCase(),
       difficulty: s.diff as any,
       prompt: s.prompt,
-      points: s.diff === "Hard" ? 20 : s.diff === "Medium" ? 15 : 10
+      points: 10 // ALL questions are exactly 10 points per user request
     });
 
     answerKey.push({
