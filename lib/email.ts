@@ -165,9 +165,10 @@ export async function sendInterviewInvite(toEmail: string, applicantName: string
             ${infoRow("Role", `<strong>${jobTitle}</strong>`)}
             ${infoRow("Format", `<strong>AI-Proctored Technical Challenge</strong>`)}
             ${infoRow("Link Expires", `<strong>Strictly in ${expiryHours} hours</strong>`)}
-            ${infoRow("Max Attempts", `3 attempts available`)}
+            ${infoRow("Max Attempts", `<strong>Strictly 3 attempts allowed</strong>`)}
           </table>
         `, 'info')}
+        ${paragraph(`<strong>Important Notice:</strong> You have exactly <strong>3 attempts</strong> to pass this assessment. If you fail to meet the passing criteria after 3 attempts, or if the system detects any integrity violations, the link will permanently expire and your application will be marked as unsuccessful.`)}
         ${paragraph(`Please ensure you are in a quiet environment with a stable internet connection before beginning. You will not be able to pause the assessment once started.`)}
         ${btn("Begin Technical Assessment", interviewLink)}
         ${paragraph(`We are excited to see what you can do. Best of luck!<br/><br/>Warm regards,<br/><strong>The CyberLabSec Talent Acquisition Team</strong>`)}

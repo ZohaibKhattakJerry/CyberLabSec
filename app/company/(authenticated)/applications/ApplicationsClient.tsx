@@ -441,9 +441,6 @@ export default function ApplicationsClient({ applicants, postings, teams = [] }:
           {/* INVITED FOR INTERVIEW */}
           {selectedStage === "Invited for Interview" && (
             <>
-              <button className="btn btn-sm btn-primary" onClick={() => { setActionTarget("bulk"); setShowResendModal(true); }} disabled={actionLoading}>
-                <Mail size={13} /> Resend Interview Email
-              </button>
               <button className="btn btn-sm btn-secondary" onClick={() => { setActionTarget("bulk"); setShowRejectModal(true); }} disabled={actionLoading}>
                 <X size={13} /> Reject
               </button>
@@ -516,14 +513,8 @@ export default function ApplicationsClient({ applicants, postings, teams = [] }:
             {/* INVITED FOR INTERVIEW */}
             {s === "Invited for Interview" && (
               <>
-                <button className="btn btn-primary" onClick={() => { closeModal(); setActionTarget("single"); setSelectedIds([selected.id]); setShowResendModal(true); }} disabled={actionLoading} style={{ flex: 1 }}>
-                  <Mail size={15} /> Resend Email
-                </button>
                 <button className="btn btn-secondary" onClick={() => { setActionTarget("single"); setShowRejectModal(true); }} disabled={actionLoading} style={{ flex: 1 }}>
                   <X size={15} /> Reject
-                </button>
-                <button className="btn btn-danger" onClick={handleSingleDelete} disabled={actionLoading} style={{ flex: 1 }}>
-                  {actionLoading ? <Loader2 size={15} className="spin" /> : <Trash2 size={15} />} Delete
                 </button>
               </>
             )}
@@ -761,9 +752,6 @@ export default function ApplicationsClient({ applicants, postings, teams = [] }:
                   {/* INVITED FOR INTERVIEW */}
                   {selected.status === "Invited for Interview" && (
                     <div className="cm-footer-actions">
-                      <button className="btn btn-primary" onClick={() => { closeModal(); setActionTarget("single"); setSelectedIds([selected.id]); setShowResendModal(true); }} disabled={actionLoading}>
-                        <Mail size={15} /> Resend Email
-                      </button>
                       <button className="btn btn-secondary" onClick={() => { setActionTarget("single"); setShowRejectModal(true); }} disabled={actionLoading}>
                         <X size={15} /> Reject
                       </button>

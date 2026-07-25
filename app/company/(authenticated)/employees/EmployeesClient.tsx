@@ -373,7 +373,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
       </div>
 
       {/* ── High-Impact Stats Bar ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 16, marginBottom: 24 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12, marginBottom: 24 }}>
         {[
           { label: "Total", count: employees.length, color: "#fff", bg: "rgba(255,255,255,0.03)", border: "rgba(255,255,255,0.1)", icon: <Users size={16} color="#9ca3af" /> },
           { label: "Active", count: employees.filter(e => e.status === "Active").length, color: "var(--green)", bg: "rgba(16,185,129,0.05)", border: "rgba(16,185,129,0.2)", icon: <CheckCircle size={16} color="var(--green)" /> },
@@ -381,7 +381,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
           { label: "Employees", count: employees.filter(e => e.employmentType === "Employee" || e.employmentType === "Full-Time").length, color: "var(--purple)", bg: "rgba(168,85,247,0.05)", border: "rgba(168,85,247,0.2)", icon: <Briefcase size={16} color="var(--purple)" /> },
           { label: "Pending Onboard", count: employees.filter(e => !e.onboardingCompleted).length, color: "#60a5fa", bg: "rgba(96,165,250,0.05)", border: "rgba(96,165,250,0.2)", icon: <RotateCw size={16} color="#60a5fa" /> },
         ].map(stat => (
-          <div key={stat.label} style={{ background: stat.bg, border: `1px solid ${stat.border}`, borderRadius: 16, padding: "20px 24px", display: "flex", flexDirection: "column", gap: 8, transition: "transform 0.2s" }} onMouseEnter={e => e.currentTarget.style.transform = "translateY(-2px)"} onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}>
+          <div key={stat.label} style={{ background: stat.bg, border: `1px solid ${stat.border}`, borderRadius: 16, padding: "16px", display: "flex", flexDirection: "column", gap: 8, transition: "transform 0.2s" }} onMouseEnter={e => e.currentTarget.style.transform = "translateY(-2px)"} onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span style={{ fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-secondary)" }}>{stat.label}</span>
               {stat.icon}
