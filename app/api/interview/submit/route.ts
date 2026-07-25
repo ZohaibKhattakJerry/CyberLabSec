@@ -34,24 +34,25 @@ export async function POST(req: NextRequest) {
   let openAnswerCount = 0;
 
   // Grade each question in parallel
-  const passMark = session.applicant.jobPosting.passMark;
+  const passMark = Number(session.applicant.jobPosting.passMark) || 0;
   
   const sessionAnswerKey = JSON.parse(session.answers as string) || [];
   
   const gradePromises = questions.map(async (q: any) => {
     const answer = answers[q.id] || "";
     const keyEntry = sessionAnswerKey.find((k: any) => k.questionId === q.id) || {};
+    const points = Number(q.points) || 0;
     
     if (q.type === "mcq") {
-      const correct = parseInt(answer) === keyEntry.correctOption;
-      const score = correct ? q.points : 0;
-      return { type: "mcq", questionId: q.id, score, maxPoints: q.points, aiLikelihood: 0 };
+      const correct = parseInt(answer) === Number(keyEntry.correctOption);
+      const score = correct ? points : 0;
+      return { type: "mcq", questionId: q.id, score, maxPoints: points, aiLikelihood: 0 };
     } else {
       try {
-        const grade = await gradeOpenAnswer(q.prompt, keyEntry.rubric || "", answer, q.points, passMark);
-        return { type: "open", questionId: q.id, score: grade.score, maxPoints: q.points, aiLikelihood: grade.aiLikelihood };
+        const grade = await gradeOpenAnswer(q.prompt, keyEntry.rubric || "", answer, points, passMark);
+        return { type: "open", questionId: q.id, score: grade.score, maxPoints: points, aiLikelihood: grade.aiLikelihood };
       } catch {
-        return { type: "open", questionId: q.id, score: 0, maxPoints: q.points, aiLikelihood: 0 };
+        return { type: "open", questionId: q.id, score: 0, maxPoints: points, aiLikelihood: 0 };
       }
     }
   });
