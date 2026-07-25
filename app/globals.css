@@ -1172,6 +1172,9 @@ select.input option {
   align-items: center;
   flex-shrink: 0;
 }
+.cm-header-actions::-webkit-scrollbar {
+  display: none;
+}
 
 .cm-cv-btn {
   display: flex;
@@ -1459,8 +1462,14 @@ select.input option {
 }
 
 @media (max-width: 768px) {
-  .cm-footer-actions > button {
-    flex: 1;
+  .cm-footer-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .cm-footer-actions > button,
+  .cm-footer-actions > a {
+    width: 100%;
+    justify-content: center;
   }
 }
 

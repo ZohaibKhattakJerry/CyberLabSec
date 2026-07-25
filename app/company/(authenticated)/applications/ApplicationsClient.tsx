@@ -560,10 +560,13 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
           className="candidate-modal-overlay"
           onClick={e => { if (e.target === e.currentTarget) closeModal(); }}
         >
-          <div className="candidate-modal-card">
+          <div className="candidate-modal-card" style={{ position: "relative" }}>
+            <button className="cm-close-btn" onClick={closeModal} style={{ position: "absolute", top: 16, right: 16, background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 8, zIndex: 10 }}>
+              <X size={20} />
+            </button>
 
             {/* ---- HEADER ---- */}
-            <div className="cm-header">
+            <div className="cm-header" style={{ paddingRight: 48 }}>
               <div className="cm-header-row">
                 <div className="cm-header-left">
                   {/* Name + Status Badge */}
@@ -593,18 +596,15 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
                 </div>
 
                 {/* Actions: CV + Close */}
-                <div className="cm-header-actions">
+                <div className="cm-header-actions" style={{ overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none", msOverflowStyle: "none" }}>
                   <button onClick={() => handleViewBase64(selected.cvFileUrl || `/api/files/${selected.id}/cv`, "CV")} className="cm-cv-btn" style={{ background: "rgba(59,130,246,0.15)", color: "#60a5fa", border: "1px solid rgba(59,130,246,0.3)" }}>
                     <Eye size={14} style={{ flexShrink: 0 }} />
                     <span>View CV</span>
                   </button>
                   <a href={selected.cvFileUrl || `/api/files/${selected.id}/cv`} download={`CV_${selected.fullName.replace(/\\s+/g, "_")}.pdf`} className="cm-cv-btn" style={{ background: "rgba(168,85,247,0.15)", color: "#c084fc", border: "1px solid rgba(168,85,247,0.3)", textDecoration: "none" }}>
                     <Download size={14} style={{ flexShrink: 0 }} />
-                    <span>Download</span>
+                    <span>Download CV</span>
                   </a>
-                  <button className="cm-close-btn" onClick={closeModal}>
-                    <X size={16} />
-                  </button>
                 </div>
               </div>
             </div>
