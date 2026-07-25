@@ -49,21 +49,16 @@ export default function EmployeeTasksClient({ tasks, hasTeam }: { tasks: any[]; 
   };
 
   return (
-    <div style={{ paddingBottom: 60, animation: "fadeIn 0.5s ease" }}>
+    <div className="applications-page-container" style={{ paddingBottom: 0, animation: "fadeIn 0.5s ease" }}>
       <style>{`
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .kanban-col { border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 14px; transition: all 0.3s; }
-        .kanban-card { background: var(--bg-card); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 18px; cursor: pointer; transition: all 0.25s cubic-bezier(0.4,0,0.2,1); position: relative; overflow: hidden; }
+        .kanban-card { background: var(--bg-card); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 18px; cursor: pointer; transition: all 0.25s cubic-bezier(0.4,0,0.2,1); position: relative; overflow: hidden; flex-shrink: 0; }
         .kanban-card:hover { transform: translateY(-4px) scale(1.01); box-shadow: 0 12px 32px rgba(0,0,0,0.4); border-color: rgba(168,85,247,0.4); }
         .kanban-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; transition: 0.3s; }
         .kanban-card:hover::before { box-shadow: 0 0 15px currentColor; }
-        .kanban-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; flex-wrap: wrap; gap: 16px; }
+        .kanban-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; flex-shrink: 0; }
         .search-bar { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 10px 16px 10px 40px; color: #fff; width: 100%; max-width: 300px; outline: none; transition: 0.2s; }
         .search-bar:focus { border-color: #a855f7; box-shadow: 0 0 0 2px rgba(168,85,247,0.2); }
-        .kanban-board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; padding-bottom: 20px; width: 100%; }
-        @media (max-width: 768px) {
-          .kanban-board { grid-template-columns: 1fr; }
-        }
       `}</style>
 
       {/* HEADER */}
@@ -109,13 +104,13 @@ export default function EmployeeTasksClient({ tasks, hasTeam }: { tasks: any[]; 
           </p>
         </div>
       ) : (
-        <div className="kanban-board">
+        <div className="kanban-scroll-container">
           {(Object.keys(cols) as Array<keyof typeof cols>).map((colName) => {
             const columnTasks = cols[colName];
             const cfg = COL_CONFIG[colName];
             return (
-              <div key={colName} className="kanban-col" style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, boxShadow: `inset 0 10px 40px ${cfg.glow}` }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6, padding: "0 4px" }}>
+              <div key={colName} className="kanban-column" style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, boxShadow: `inset 0 10px 40px ${cfg.glow}` }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, padding: "0 4px", flexShrink: 0 }}>
                   <h3 style={{ fontSize: 14, fontWeight: 800, color: "#e5e7eb", textTransform: "uppercase", letterSpacing: "0.05em", display: "flex", alignItems: "center", gap: 8 }}>
                     <div style={{ width: 8, height: 8, borderRadius: "50%", background: cfg.color, boxShadow: `0 0 10px ${cfg.color}` }} />
                     {colName}
@@ -125,7 +120,7 @@ export default function EmployeeTasksClient({ tasks, hasTeam }: { tasks: any[]; 
                   </div>
                 </div>
 
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 12, overflowY: "auto", flex: 1, paddingRight: 4, scrollbarWidth: "thin" }}>
                   {columnTasks.length === 0 ? (
                     <div style={{ padding: "30px 20px", textAlign: "center", color: "#6b7280", fontSize: 13, background: "rgba(0,0,0,0.1)", borderRadius: 12, border: "1px dashed rgba(255,255,255,0.05)" }}>
                       Empty
