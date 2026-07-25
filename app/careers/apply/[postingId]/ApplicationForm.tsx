@@ -51,6 +51,12 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
   const cvRef = useRef<HTMLInputElement>(null);
   const photoRef = useRef<HTMLInputElement>(null);
 
+  // OTP state
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
+  const [otpLoading, setOtpLoading] = useState(false);
+
   // Status state
   const [status, setStatus] = useState<ScreeningStatus>("idle");
   const [statusMsg, setStatusMsg] = useState("");
@@ -75,6 +81,52 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
     setIsLoaded(true);
   }, [posting.id]);
 
+  const sendOtp = async () => {
+    if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      toast.error("Please enter a valid email address first.");
+      return;
+    }
+    setOtpLoading(true);
+    try {
+      const res = await fetch("/api/applications/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: form.email })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setOtpSent(true);
+        toast.success("Verification code sent to your email");
+      } else {
+        toast.error(data.error || "Failed to send code. Try again.");
+      }
+    } catch {
+      toast.error("Network error");
+    }
+    setOtpLoading(false);
+  };
+
+  const verifyOtp = async () => {
+    if (!otpCode || otpCode.length < 6) return;
+    setOtpLoading(true);
+    try {
+      const res = await fetch("/api/applications/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: form.email, code: otpCode })
+      });
+      if (res.ok) {
+        setOtpVerified(true);
+        toast.success("Email verified successfully!");
+      } else {
+        toast.error("Invalid or expired code");
+      }
+    } catch {
+      toast.error("Network error");
+    }
+    setOtpLoading(false);
+  };
+
   const validateStep1 = () => {
     const e: typeof errors = {};
     if (!form.fullName.trim()) e.fullName = "Required";
@@ -82,6 +134,10 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
     if (!form.phone.trim()) e.phone = "Required";
     if (!form.city.trim()) e.city = "Required";
     setErrors(e);
+    if (!otpVerified) {
+      toast.error("Please verify your email to continue");
+      return false;
+    }
     return Object.keys(e).length === 0;
   };
 
@@ -118,6 +174,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
     try {
       const fd = new FormData();
       fd.append("postingId", posting.id);
+      fd.append("emailVerified", otpVerified ? "true" : "false");
       Object.entries(form).forEach(([k, v]) => fd.append(k, String(v)));
       
       if (cvFile) fd.append("cv", cvFile);
@@ -247,8 +304,28 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                   </Field>
                   
                   <Field label="Email Address" required error={errors.email}>
-                    <input className={`input${errors.email ? " input-error" : ""}`} type="email" value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="you@example.com" />
+                    <div style={{ display: "flex", gap: 10 }}>
+                      <input className={`input${errors.email ? " input-error" : ""}`} type="email" value={form.email} onChange={(e) => { set("email", e.target.value); setOtpSent(false); setOtpVerified(false); }} placeholder="you@example.com" disabled={otpVerified} />
+                      {!otpVerified && (
+                        <button className="btn btn-secondary" onClick={sendOtp} disabled={otpLoading || otpSent || !form.email}>
+                          {otpLoading ? <Loader2 size={16} className="spinner" /> : otpSent ? "Sent" : "Verify"}
+                        </button>
+                      )}
+                    </div>
                   </Field>
+                  
+                  {otpSent && !otpVerified && (
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}>
+                      <Field label="Verification Code" required>
+                        <div style={{ display: "flex", gap: 10 }}>
+                          <input className="input" value={otpCode} onChange={e => setOtpCode(e.target.value)} placeholder="6-digit code" maxLength={6} />
+                          <button className="btn btn-primary" onClick={verifyOtp} disabled={otpLoading || otpCode.length < 6}>
+                            {otpLoading ? <Loader2 size={16} className="spinner" /> : "Confirm"}
+                          </button>
+                        </div>
+                      </Field>
+                    </motion.div>
+                  )}
 
 
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
