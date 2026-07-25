@@ -245,6 +245,9 @@ export default function TeamsClient({
         .ws-stat-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: inset 0 2px 4px rgba(255,255,255,0.1); }
         .ws-stat-val { font-size: 28px; font-weight: 900; color: #fff; line-height: 1; letter-spacing: -0.02em; margin-top: auto; }
         .ws-stat-lbl { font-size: 12px; color: #9ca3af; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; line-height: 1.3; padding-right: 8px; }
+        .ws-stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+        @media (max-width: 1100px) { .ws-stats-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 768px) { .ws-stats-grid { grid-template-columns: repeat(2, 1fr); } }
 
         /* Tab nav */
         .ws-tabs { display: flex; gap: 6px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; padding: 6px; margin-bottom: 28px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; flex-wrap: wrap; }
@@ -371,7 +374,7 @@ export default function TeamsClient({
           </div>
 
           {/* Stats row */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12 }}>
+          <div className="ws-stats-grid" style={{ marginBottom: 24 }}>
             {[
               { icon: <Users size={16} style={{ color: "#818cf8" }} />, bg: "rgba(99,102,241,0.12)", val: teams.length, lbl: "Active Teams" },
               { icon: <Shield size={16} style={{ color: "#f59e0b" }} />, bg: "rgba(245,158,11,0.12)", val: totalMembers, lbl: "Team Members" },
