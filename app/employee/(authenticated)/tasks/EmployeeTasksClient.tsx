@@ -52,7 +52,7 @@ export default function EmployeeTasksClient({ tasks, hasTeam }: { tasks: any[]; 
     <div style={{ paddingBottom: 60, animation: "fadeIn 0.5s ease" }}>
       <style>{`
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .kanban-col { flex: 1; min-width: 280px; border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 14px; transition: all 0.3s; }
+        .kanban-col { border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 14px; transition: all 0.3s; }
         .kanban-card { background: var(--bg-card); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 18px; cursor: pointer; transition: all 0.25s cubic-bezier(0.4,0,0.2,1); position: relative; overflow: hidden; }
         .kanban-card:hover { transform: translateY(-4px) scale(1.01); box-shadow: 0 12px 32px rgba(0,0,0,0.4); border-color: rgba(168,85,247,0.4); }
         .kanban-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; transition: 0.3s; }
@@ -60,9 +60,12 @@ export default function EmployeeTasksClient({ tasks, hasTeam }: { tasks: any[]; 
         .kanban-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; flex-wrap: wrap; gap: 16px; }
         .search-bar { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 10px 16px 10px 40px; color: #fff; width: 100%; max-width: 300px; outline: none; transition: 0.2s; }
         .search-bar:focus { border-color: #a855f7; box-shadow: 0 0 0 2px rgba(168,85,247,0.2); }
-        .kanban-board { display: flex; gap: 20px; padding-bottom: 20px; min-height: 600px; overflow-x: auto; }
+        .kanban-board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; padding-bottom: 20px; min-height: 600px; }
+        @media (max-width: 1100px) {
+          .kanban-board { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
         @media (max-width: 768px) {
-          .kanban-board { flex-direction: column; overflow-x: visible; }
+          .kanban-board { grid-template-columns: minmax(0, 1fr); }
         }
       `}</style>
 
