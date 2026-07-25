@@ -35,17 +35,17 @@ export default function EmployeeTasksClient({ tasks, hasTeam }: { tasks: any[]; 
   }, [tasks, search]);
 
   const cols = {
-    "Pending": filteredTasks.filter(t => getStatus(t) === "Pending" || getStatus(t) === "Overdue"),
-    "In Review": filteredTasks.filter(t => getStatus(t) === "In Review"),
-    "Revision": filteredTasks.filter(t => getStatus(t) === "Revision"),
-    "Done": filteredTasks.filter(t => getStatus(t) === "Done"),
+    "In Progress": filteredTasks.filter(t => getStatus(t) === "Pending" || getStatus(t) === "Overdue"),
+    "Needs Revision": filteredTasks.filter(t => getStatus(t) === "Revision"),
+    "Under Review": filteredTasks.filter(t => getStatus(t) === "In Review"),
+    "Completed": filteredTasks.filter(t => getStatus(t) === "Done"),
   };
 
   const COL_CONFIG: Record<string, { color: string; bg: string; border: string; glow: string }> = {
-    "Pending": { color: "#9ca3af", bg: "rgba(255,255,255,0.02)", border: "rgba(255,255,255,0.06)", glow: "rgba(255,255,255,0.05)" },
-    "In Review": { color: "#f59e0b", bg: "rgba(245,158,11,0.03)", border: "rgba(245,158,11,0.15)", glow: "rgba(245,158,11,0.1)" },
-    "Revision": { color: "#ef4444", bg: "rgba(239,68,68,0.03)", border: "rgba(239,68,68,0.15)", glow: "rgba(239,68,68,0.1)" },
-    "Done": { color: "#34d399", bg: "rgba(52,211,153,0.03)", border: "rgba(52,211,153,0.15)", glow: "rgba(52,211,153,0.1)" },
+    "In Progress": { color: "#3b82f6", bg: "rgba(59,130,246,0.03)", border: "rgba(59,130,246,0.15)", glow: "rgba(59,130,246,0.1)" },
+    "Needs Revision": { color: "#f97316", bg: "rgba(249,115,22,0.03)", border: "rgba(249,115,22,0.15)", glow: "rgba(249,115,22,0.1)" },
+    "Under Review": { color: "#a855f7", bg: "rgba(168,85,247,0.03)", border: "rgba(168,85,247,0.15)", glow: "rgba(168,85,247,0.1)" },
+    "Completed": { color: "#22c55e", bg: "rgba(34,197,94,0.03)", border: "rgba(34,197,94,0.15)", glow: "rgba(34,197,94,0.1)" },
   };
 
   return (

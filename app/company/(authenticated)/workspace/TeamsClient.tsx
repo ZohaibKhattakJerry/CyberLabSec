@@ -41,11 +41,10 @@ const STATUS: Record<string, { label: string; color: string; bg: string }> = {
 
 // ─── Kanban Columns ──────────────────────────────────────────────────────
 const KANBAN_COLS = [
-  { id: "todo",     label: "To Do",       statuses: ["Assigned"],                                    color: "#6b7280", icon: "📋" },
-  { id: "progress", label: "In Progress", statuses: ["In Progress"],                                  color: "#60a5fa", icon: "⚡" },
-  { id: "review",   label: "Under Review",statuses: ["Submitted", "Under Review"],                   color: "#a78bfa", icon: "🔍" },
-  { id: "revision", label: "Revisions",   statuses: ["Need more information", "ChangesRequested"],   color: "#fb923c", icon: "🔄" },
-  { id: "done",     label: "Completed",   statuses: ["Completed"],                                    color: "#34d399", icon: "✅" },
+  { id: "progress", label: "In Progress", statuses: ["Assigned", "In Progress", "Paused"], color: "#3b82f6", icon: "⚡" },
+  { id: "revisions",label: "Needs Revision", statuses: ["Needs Revision", "Need more information"], color: "#f97316", icon: "🔄" },
+  { id: "review",   label: "Under Review",statuses: ["Under Review", "Pending", "Submitted", "Awaiting Review"], color: "#a855f7", icon: "🔍" },
+  { id: "done",     label: "Completed",   statuses: ["Completed", "Approved", "Done"], color: "#22c55e", icon: "✅" },
 ];
 
 export default function TeamsClient({
@@ -245,8 +244,8 @@ export default function TeamsClient({
         .ws-stat-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: inset 0 2px 4px rgba(255,255,255,0.1); }
         .ws-stat-val { font-size: 28px; font-weight: 900; color: #fff; line-height: 1; letter-spacing: -0.02em; margin-top: auto; }
         .ws-stat-lbl { font-size: 12px; color: #9ca3af; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; line-height: 1.3; padding-right: 8px; }
-        .ws-stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
-        @media (max-width: 1100px) { .ws-stats-grid { grid-template-columns: repeat(3, 1fr); } }
+        .ws-stats-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+        @media (max-width: 1300px) { .ws-stats-grid { grid-template-columns: repeat(3, 1fr); } }
         @media (max-width: 768px) { .ws-stats-grid { grid-template-columns: repeat(2, 1fr); } }
 
         /* Tab nav */
@@ -381,6 +380,7 @@ export default function TeamsClient({
               { icon: <ClipboardList size={16} style={{ color: "#34d399" }} />, bg: "rgba(52,211,153,0.12)", val: completedTasks, lbl: "Completed Tasks" },
               { icon: <AlertTriangle size={16} style={{ color: "#f87171" }} />, bg: "rgba(248,113,113,0.12)", val: overdueTasks, lbl: "Overdue" },
               { icon: <Eye size={16} style={{ color: "#a78bfa" }} />, bg: "rgba(167,139,250,0.12)", val: pendingReview, lbl: "Pending Review" },
+              { icon: <CalendarDays size={16} style={{ color: "#ec4899" }} />, bg: "rgba(236,72,153,0.12)", val: initialLeaves.filter(l => l.status === "Pending").length, lbl: "Pending Leaves" },
             ].map((s, i) => (
               <div key={i} className="ws-stat">
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
