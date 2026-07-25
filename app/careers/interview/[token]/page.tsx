@@ -18,8 +18,8 @@ export default async function InterviewPage({
 
   if (!session) notFound();
 
-  // Token already used or expired
-  if (session.tokenUsed || session.tokenExpiry < new Date()) {
+  // Token already used, expired, or out of attempts
+  if (session.tokenUsed || session.tokenExpiry < new Date() || session.attempts >= session.maxAttempts) {
     return (
       <div style={{ minHeight: "100vh", background: "var(--bg-primary)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
         <div style={{ textAlign: "center", maxWidth: 480 }}>

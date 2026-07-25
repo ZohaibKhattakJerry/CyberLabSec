@@ -93,8 +93,8 @@ export async function POST(req: NextRequest) {
 
   // Pass fail based purely on raw points
   const isFail = terminated || totalScore < passMark;
-  
-  const newAttempts = session.attempts + 1;
+  // Attempt was already incremented when they clicked start.
+  const newAttempts = session.attempts;
   const hasMoreAttempts = isFail && newAttempts < session.maxAttempts;
 
   if (isFail && hasMoreAttempts) {

@@ -113,6 +113,24 @@ export default function InterviewClient({ sessionId, _token, applicantName, _app
     };
   }, [phase]);
 
+  const handleStartInterview = async () => {
+    try {
+      const res = await fetch("/api/interview/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId })
+      });
+      if (res.ok) {
+        setPhase("interview");
+      } else {
+        window.location.reload();
+      }
+    } catch (e) {
+      console.error(e);
+      setPhase("interview");
+    }
+  };
+
   // Feature 1: Visibility change detection — only logs, doesn't immediately terminate
   useEffect(() => {
     if (phase !== "interview") return;
@@ -213,7 +231,7 @@ export default function InterviewClient({ sessionId, _token, applicantName, _app
   // ── INTRO PHASE ──
   if (phase === "intro") {
     return (
-      <IntroPhase applicantName={applicantName} jobTitle={jobTitle} questions={questions} attempts={attempts} maxAttempts={maxAttempts} onStart={() => setPhase("interview")} />
+      <IntroPhase applicantName={applicantName} jobTitle={jobTitle} questions={questions} attempts={attempts} maxAttempts={maxAttempts} onStart={handleStartInterview} />
     );
   }
 
