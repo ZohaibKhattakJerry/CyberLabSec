@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Users, Briefcase, FileText, CheckCircle, AlertTriangle, Clock, Star, Plus, UserPlus, Megaphone, ArrowRight, TrendingUp, Activity, Award, BarChart2 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
+import NotificationBell from "@/components/NotificationBell";
 
 interface DashboardData {
   stats: { employees: number; openPostings: number; newApplications: number; activeTasks: number; overdueTasks: number; pendingApprovals: number; pendingReviews: number; totalTasks: number; totalCompletedTasks: number; totalHired: number; totalApplicants: number };
@@ -285,6 +286,10 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
           transition: background 0.2s ease;
         }
         .co-activity-content:hover { background: rgba(255,255,255,0.04); }
+        .dash-desktop-bell { display: block; margin-left: 8px; }
+        @media (max-width: 768px) {
+          .dash-desktop-bell { display: none !important; }
+        }
       `}} />
 
       <div style={{ display: "grid", gap: 20, paddingBottom: 40 }}>
@@ -299,9 +304,12 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
             <Link href="/company/postings" className="co-hdr-btn" style={{ background: "rgba(255,255,255,0.05)", color: "var(--text-primary)", border: "1px solid rgba(255,255,255,0.1)" }}>
               <Plus size={15} /> Post Job
             </Link>
-            <Link href="/company/announcements" className="co-hdr-btn" style={{ background: "linear-gradient(135deg, rgba(168,85,247,0.9), rgba(99,102,241,0.9))", color: "#fff", border: "none", boxShadow: "0 4px 16px rgba(168,85,247,0.3)" }}>
+            <Link href="/company/announcements" className="co-hdr-btn" style={{ background: "linear-gradient(135deg, var(--purple), var(--blue))", color: "#fff", boxShadow: "0 4px 15px rgba(168,85,247,0.2)" }}>
               <Megaphone size={15} /> Announcement
             </Link>
+            <div className="dash-desktop-bell">
+              <NotificationBell isAdmin={true} placement="top-right" />
+            </div>
           </div>
         </div>
 

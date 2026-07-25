@@ -60,10 +60,7 @@ export default function EmployeeTasksClient({ tasks, hasTeam }: { tasks: any[]; 
         .kanban-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; flex-wrap: wrap; gap: 16px; }
         .search-bar { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 10px 16px 10px 40px; color: #fff; width: 100%; max-width: 300px; outline: none; transition: 0.2s; }
         .search-bar:focus { border-color: #a855f7; box-shadow: 0 0 0 2px rgba(168,85,247,0.2); }
-        .kanban-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding-bottom: 20px; min-height: 600px; width: 100%; }
-        @media (max-width: 1200px) {
-          .kanban-board { grid-template-columns: repeat(2, 1fr); }
-        }
+        .kanban-board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; padding-bottom: 20px; width: 100%; }
         @media (max-width: 768px) {
           .kanban-board { grid-template-columns: 1fr; }
         }

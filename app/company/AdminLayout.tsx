@@ -333,18 +333,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Main content */}
       <div className="main-content">
-        {/* Desktop topbar */}
-        <div
-          className="desktop-topbar"
-          style={{
-            alignItems: "center", justifyContent: "flex-end",
-            padding: "0 24px", height: 56, borderBottom: "1px solid rgba(255,255,255,0.05)",
-            background: "rgba(8,6,15,0.9)", backdropFilter: "blur(20px)",
-            position: "sticky", top: 0, zIndex: 50, gap: 12,
-          }}
-        >
-          <NotificationBell isAdmin={true} placement="top-right" />
-        </div>
+        {/* Desktop topbar removed - NotificationBell moved to DashboardClient */}
 
         {/* Mobile topbar */}
         <div
