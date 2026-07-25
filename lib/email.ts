@@ -151,23 +151,26 @@ export async function sendInterviewInvite(toEmail: string, applicantName: string
   const firstName = applicantName.split(" ")[0];
   await transporter.sendMail({
     from: FROM, to: toEmail,
-    subject: `You've Been Shortlisted — Technical Interview for ${jobTitle} | CyberLabSec`,
+    subject: `You've Been Shortlisted! Technical Assessment for ${jobTitle} | CyberLabSec`,
     html: `
       ${HTML_START}
       ${WRAP_START}
       ${headerSection("Technical Assessment Invitation")}
       ${BODY_START}
-        ${heading1(`Congratulations, ${firstName}!`)}
-        ${paragraph(`Your application for the <strong>${jobTitle}</strong> role has been reviewed — and you've been selected to proceed to our technical assessment stage.`)}
+        ${heading1(`Congratulations, ${firstName}! 🎉`)}
+        ${paragraph(`Your application for the <strong>${jobTitle}</strong> role truly stood out to our hiring team. We were highly impressed by your background and are thrilled to invite you to the next stage of our elite selection process.`)}
+        ${paragraph(`At CyberLabSec, we pride ourselves on technical excellence. To help us better understand your practical skills and problem-solving abilities, we have prepared a specialized AI-proctored technical assessment for you.`)}
         ${callout("Assessment Details", `
           <table style="width: 100%; border-collapse: collapse;">
             ${infoRow("Role", `<strong>${jobTitle}</strong>`)}
-            ${infoRow("Format", `<strong>AI-Proctored Technical Screening</strong>`)}
-            ${infoRow("Link Expires", `<strong>In ${expiryHours} hours</strong>`)}
+            ${infoRow("Format", `<strong>AI-Proctored Technical Challenge</strong>`)}
+            ${infoRow("Link Expires", `<strong>Strictly in ${expiryHours} hours</strong>`)}
             ${infoRow("Max Attempts", `3 attempts available`)}
           </table>
         `, 'info')}
+        ${paragraph(`Please ensure you are in a quiet environment with a stable internet connection before beginning. You will not be able to pause the assessment once started.`)}
         ${btn("Begin Technical Assessment", interviewLink)}
+        ${paragraph(`We are excited to see what you can do. Best of luck!<br/><br/>Warm regards,<br/><strong>The CyberLabSec Talent Acquisition Team</strong>`)}
       ${BODY_END}
       ${footerSection()}
       ${WRAP_END}
@@ -202,19 +205,24 @@ export async function sendDeclineEmail(toEmail: string, applicantName: string, j
 export async function sendEmployeeCredentials(toEmail: string, employeeName: string, employeeCode: string, temporaryPassword: string, portalUrl: string, offerLetterPdfBase64?: string, customMessage?: string) {
   const firstName = employeeName.split(" ")[0];
   await transporter.sendMail({
-    from: FROM, to: toEmail, subject: `Welcome to the Team, ${firstName}! — Your CyberLabSec Offer and Next Steps`,
+    from: FROM, to: toEmail, subject: `Welcome to the Team, ${firstName}! 🚀 — Your CyberLabSec Offer and Next Steps`,
     html: `
       ${HTML_START}
       ${WRAP_START}
       ${headerSection("Welcome to CyberLabSec")}
       ${BODY_START}
-        ${heading1(`Welcome Aboard, ${firstName}!`)}
-        ${paragraph(`Congratulations! We are absolutely thrilled to officially welcome you to the CyberLabSec team. After reviewing your impressive background and technical performance, we are confident that you will be a tremendous addition to our organization.`)}
-        ${paragraph(`Please find your <strong>Official Offer Letter</strong> attached to this email. We encourage you to review the details closely as it outlines your role, compensation, and upcoming responsibilities.`)}
-        ${customMessage ? callout("Personal Message", customMessage, "success") : ""}
+        ${heading1(`Welcome Aboard, ${firstName}! 🌟`)}
+        ${paragraph(`Congratulations! We are absolutely thrilled to officially welcome you to the CyberLabSec family. Out of all the exceptional candidates we evaluated, your technical brilliance, passion for cybersecurity, and alignment with our core values made you the clear choice.`)}
+        ${paragraph(`You are joining an elite team of professionals dedicated to offensive security and cutting-edge threat defense. We cannot wait to see the incredible impact you will make here.`)}
+        
+        ${callout("Official Offer Enclosed", `
+          Please find your <strong>Official Offer Letter</strong> attached to this email as a PDF. We encourage you to review the details closely as it outlines your role, competitive compensation, and upcoming responsibilities.
+        `, 'success')}
+        
+        ${customMessage ? callout("A Personal Note", customMessage, "info") : ""}
         
         ${callout("Your Secure Portal Access", `
-          To proceed, please access our employee portal using the credentials provisioned below. You will be required to update your security password immediately upon logging in.
+          To finalize your onboarding, please access our internal employee portal using the secure credentials provisioned below. <strong>You will be required to update your temporary password immediately upon your first login.</strong>
           <br/><br/>
           <table style="width: 100%; border-collapse: collapse;">
             ${infoRow("Employee ID", `<code class="code-box">${employeeCode}</code>`)}
@@ -223,17 +231,17 @@ export async function sendEmployeeCredentials(toEmail: string, employeeName: str
         `, 'info')}
         
         ${callout("Next Steps", `
-          <ul style="margin: 0; padding-left: 20px;">
-            <li>Log in using the credentials provided above.</li>
-            <li>Review and sign your digital Offer Letter within the portal.</li>
-            <li>Complete your profile and await your official onboarding schedule.</li>
+          <ul style="margin: 0; padding-left: 20px; line-height: 1.8;">
+            <li>Log in using the secure credentials provided above.</li>
+            <li>Review and digitally sign your Offer Letter within the portal.</li>
+            <li>Complete your profile to unlock your official onboarding schedule.</li>
           </ul>
         `, 'info')}
 
         ${btn("Initialize Portal Access", portalUrl)}
         
-        ${paragraph(`If you have any questions before your start date, please do not hesitate to reach out to our team.`)}
-        ${paragraph(`Welcome to CyberLabSec — we look forward to achieving great things together.<br/><br/>Best Regards,<br/><strong>The CyberLabSec Leadership Team</strong>`)}
+        ${paragraph(`If you have any questions or need assistance before your official start date, please do not hesitate to reach out to our HR department.`)}
+        ${paragraph(`Once again, welcome to CyberLabSec. Let's achieve great things together!<br/><br/>Warmly,<br/><strong>The CyberLabSec Leadership Team</strong>`)}
       ${BODY_END}
       ${footerSection()}
       ${WRAP_END}
@@ -337,15 +345,18 @@ export async function sendApplicationReceivedEmail(toEmail: string, applicantNam
       ${WRAP_START}
       ${headerSection("Application Received")}
       ${BODY_START}
-        ${heading1(`We've Got Your Application, ${firstName}!`)}
-        ${paragraph(`Thank you for applying to the <strong>${jobTitle}</strong> position.`)}
+        ${heading1(`We've Got Your Application, ${firstName}! 🚀`)}
+        ${paragraph(`Thank you for applying to the <strong>${jobTitle}</strong> position at CyberLabSec. We know that applying for jobs takes time and effort, and we sincerely appreciate your interest in joining our mission to advance offensive security.`)}
+        ${paragraph(`Our elite recruitment team is currently reviewing your profile, resume, and credentials. We are always looking for passionate individuals who push the boundaries of cybersecurity, and we are excited to see what you bring to the table.`)}
         ${pipeline('Reviewing')}
         ${callout("Application Summary", `
           <table style="width: 100%; border-collapse: collapse;">
+            ${infoRow("Role", `<strong>${jobTitle}</strong>`)}
             ${infoRow("Reference ID", `<code class="code-box">${referenceId}</code>`)}
             ${infoRow("Status", `<strong>Awaiting Review</strong>`)}
           </table>
         `, 'info')}
+        ${paragraph(`You will be notified via email as soon as there is an update on your candidacy. In the meantime, you can track your application status live through our secure applicant portal.`)}
         ${btn("Track Application Status", trackingUrl)}
       ${BODY_END}
       ${footerSection()}
