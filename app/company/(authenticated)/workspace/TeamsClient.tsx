@@ -240,11 +240,11 @@ export default function TeamsClient({
         }
 
         /* Stat cards */
-        .ws-stat { display: flex; align-items: center; gap: 16px; padding: 18px 22px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 18px; flex: 1; min-width: 160px; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+        .ws-stat { display: flex; flex-direction: column; padding: 16px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
         .ws-stat:hover { background: rgba(255,255,255,0.03); transform: translateY(-3px); box-shadow: 0 12px 24px rgba(0,0,0,0.3); border-color: rgba(255,255,255,0.1); }
-        .ws-stat-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: inset 0 2px 4px rgba(255,255,255,0.1); }
-        .ws-stat-val { font-size: 26px; font-weight: 900; color: #fff; line-height: 1; letter-spacing: -0.02em; }
-        .ws-stat-lbl { font-size: 12px; color: #9ca3af; font-weight: 600; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .ws-stat-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: inset 0 2px 4px rgba(255,255,255,0.1); }
+        .ws-stat-val { font-size: 28px; font-weight: 900; color: #fff; line-height: 1; letter-spacing: -0.02em; margin-top: auto; }
+        .ws-stat-lbl { font-size: 12px; color: #9ca3af; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; line-height: 1.3; padding-right: 8px; }
 
         /* Tab nav */
         .ws-tabs { display: flex; gap: 6px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; padding: 6px; margin-bottom: 28px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; flex-wrap: wrap; }
@@ -372,7 +372,7 @@ export default function TeamsClient({
           </div>
 
           {/* Stats row */}
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12 }}>
             {[
               { icon: <Users size={16} style={{ color: "#818cf8" }} />, bg: "rgba(99,102,241,0.12)", val: teams.length, lbl: "Active Teams" },
               { icon: <Shield size={16} style={{ color: "#f59e0b" }} />, bg: "rgba(245,158,11,0.12)", val: totalMembers, lbl: "Team Members" },
@@ -380,12 +380,12 @@ export default function TeamsClient({
               { icon: <AlertTriangle size={16} style={{ color: "#f87171" }} />, bg: "rgba(248,113,113,0.12)", val: overdueTasks, lbl: "Overdue" },
               { icon: <Eye size={16} style={{ color: "#a78bfa" }} />, bg: "rgba(167,139,250,0.12)", val: pendingReview, lbl: "Pending Review" },
             ].map((s, i) => (
-              <div key={i} className="ws-stat" style={{ minWidth: 110 }}>
-                <div className="ws-stat-icon" style={{ background: s.bg }}>{s.icon}</div>
-                <div>
-                  <div className="ws-stat-val">{s.val}</div>
+              <div key={i} className="ws-stat">
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
                   <div className="ws-stat-lbl">{s.lbl}</div>
+                  <div className="ws-stat-icon" style={{ background: s.bg }}>{s.icon}</div>
                 </div>
+                <div className="ws-stat-val">{s.val}</div>
               </div>
             ))}
           </div>
