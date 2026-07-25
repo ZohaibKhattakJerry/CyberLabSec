@@ -879,19 +879,8 @@ export default function ApplicationsClient({ applicants, postings, teams = [] }:
               <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0, color: "var(--text-primary)" }}>Move to Interview Stage</h3>
             </div>
             <p style={{ fontSize: 14, color: "var(--text-secondary)", marginBottom: 20, lineHeight: 1.6 }}>
-              This will move {selectedIds.length} candidate(s) to the <strong style={{ color: "var(--purple-light)" }}>Invited for Interview</strong> stage and send them an interview invitation email.
+              This will move {selectedIds.length} candidate(s) to the <strong style={{ color: "var(--purple-light)" }}>Invited for Interview</strong> stage and send them an automated technical assessment invitation.
             </p>
-            <div style={{ marginBottom: 24 }}>
-              <label className="label">Meeting Link & Details (Optional)</label>
-              <textarea 
-                className="input" 
-                rows={4} 
-                placeholder="e.g. Google Meet Link, Date, Time, and any special instructions..."
-                value={interviewDetails}
-                onChange={e => setInterviewDetails(e.target.value)}
-                style={{ width: "100%", resize: "vertical" }}
-              />
-            </div>
             <div style={{ display: "flex", gap: 12 }}>
               <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setShowMoveModal(false)} disabled={actionLoading}>Cancel</button>
               <button className="btn btn-primary" style={{ flex: 1 }} disabled={actionLoading} onClick={() => confirmBulkAction("move")}>
@@ -913,22 +902,11 @@ export default function ApplicationsClient({ applicants, postings, teams = [] }:
               <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0, color: "var(--text-primary)" }}>Resend Interview Details</h3>
             </div>
             <p style={{ fontSize: 14, color: "var(--text-secondary)", marginBottom: 20, lineHeight: 1.6 }}>
-              This will send a follow-up interview email to {selectedIds.length} candidate(s). Use this to provide meeting links or updated times.
+              This will generate new secure technical assessment links and send a follow-up interview email to {selectedIds.length} candidate(s). Previous links will be invalidated.
             </p>
-            <div style={{ marginBottom: 24 }}>
-              <label className="label">Meeting Link & Details</label>
-              <textarea 
-                className="input" 
-                rows={4} 
-                placeholder="e.g. Google Meet Link, Date, Time, and any special instructions..."
-                value={interviewDetails}
-                onChange={e => setInterviewDetails(e.target.value)}
-                style={{ width: "100%", resize: "vertical" }}
-              />
-            </div>
             <div style={{ display: "flex", gap: 12 }}>
               <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setShowResendModal(false)} disabled={actionLoading}>Cancel</button>
-              <button className="btn btn-primary" style={{ flex: 1 }} disabled={actionLoading || !interviewDetails.trim()} onClick={() => confirmBulkAction("resend_interview")}>
+              <button className="btn btn-primary" style={{ flex: 1 }} disabled={actionLoading} onClick={() => confirmBulkAction("resend_interview")}>
                 {actionLoading ? <Loader2 size={14} className="spin" /> : <Mail size={14} />} Resend Email
               </button>
             </div>

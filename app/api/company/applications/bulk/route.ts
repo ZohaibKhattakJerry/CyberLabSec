@@ -109,23 +109,21 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "None of the selected candidates are in the Interview stage." }, { status: 400 });
       }
 
-      for (const app of applicants) {
-        const detailsHtml = interviewDetails?.trim() 
-          ? `<div style="background: #f3f4f6; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #a855f7;">
-               <h3 style="margin-top: 0; color: #374151;">Interview Details</h3>
-               <p style="white-space: pre-wrap; color: #4b5563; margin-bottom: 0;">${interviewDetails}</p>
-             </div>`
-          : `<p>Our team will be in touch shortly with further details about your interview schedule.</p>`;
+      const { default: crypto } = await import("crypto");
+      const { sendInterviewInvite } = await import("@/lib/email");
 
-        const html = `
-          <h2>Interview Invitation – ${app.jobPosting.title}</h2>
-          <p>Dear ${app.fullName},</p>
-          <p>Congratulations! We are pleased to invite you to the next stage of our selection process for the <strong>${app.jobPosting.title}</strong> position at CyberLabSec.</p>
-          ${detailsHtml}
-          <br/>
-          <p>Best regards,<br/>The CyberLabSec Hiring Team</p>
-        `;
-        await sendEmail({ to: app.email, subject: `Interview Invitation – ${app.jobPosting.title}`, html });
+      for (const app of applicants) {
+        const token = crypto.randomBytes(32).toString('hex');
+        const tokenExpiry = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 hours
+
+        await prisma.interviewSession.upsert({
+          where: { applicantId: app.id },
+          update: { token, tokenExpiry, tokenUsed: false, attempts: 0 },
+          create: { applicantId: app.id, token, tokenExpiry, tokenUsed: false, attempts: 0 }
+        });
+
+        const interviewLink = `${process.env.NEXT_PUBLIC_APP_URL || 'https://cyberlabsec.tech'}/interview/${token}`;
+        await sendInterviewInvite(app.email, app.fullName, app.jobPosting.title, interviewLink, 48);
       }
 
       await prisma.activityLog.create({
@@ -150,23 +148,21 @@ export async function POST(req: NextRequest) {
 
       // Send interview invitation emails when moving to interview stage
       if (moveToStatus === "Invited for Interview") {
-        for (const app of applicants) {
-          const detailsHtml = interviewDetails?.trim() 
-            ? `<div style="background: #f3f4f6; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #a855f7;">
-                 <h3 style="margin-top: 0; color: #374151;">Interview Details</h3>
-                 <p style="white-space: pre-wrap; color: #4b5563; margin-bottom: 0;">${interviewDetails}</p>
-               </div>`
-            : `<p>Our team will be in touch shortly with further details about your interview schedule.</p>`;
+        const { default: crypto } = await import("crypto");
+        const { sendInterviewInvite } = await import("@/lib/email");
 
-          const html = `
-            <h2>Interview Invitation – ${app.jobPosting.title}</h2>
-            <p>Dear ${app.fullName},</p>
-            <p>Congratulations! We are pleased to invite you to the next stage of our selection process for the <strong>${app.jobPosting.title}</strong> position at CyberLabSec.</p>
-            ${detailsHtml}
-            <br/>
-            <p>Best regards,<br/>The CyberLabSec Hiring Team</p>
-          `;
-          await sendEmail({ to: app.email, subject: `Interview Invitation – ${app.jobPosting.title}`, html });
+        for (const app of applicants) {
+          const token = crypto.randomBytes(32).toString('hex');
+          const tokenExpiry = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 hours
+
+          await prisma.interviewSession.upsert({
+            where: { applicantId: app.id },
+            update: { token, tokenExpiry, tokenUsed: false, attempts: 0 },
+            create: { applicantId: app.id, token, tokenExpiry, tokenUsed: false, attempts: 0 }
+          });
+
+          const interviewLink = `${process.env.NEXT_PUBLIC_APP_URL || 'https://cyberlabsec.tech'}/interview/${token}`;
+          await sendInterviewInvite(app.email, app.fullName, app.jobPosting.title, interviewLink, 48);
         }
       }
 
