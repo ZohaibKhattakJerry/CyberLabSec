@@ -320,15 +320,24 @@ export async function sendCombinedShortlistEmail(toEmail: string, applicantName:
       ${WRAP_START}
       ${headerSection("Technical Assessment Invitation")}
       ${BODY_START}
-        ${heading1(`Amazing news, ${firstName}!`)}
-        ${paragraph(`Your profile has been reviewed and you have been <strong>shortlisted</strong> for the technical assessment for the <strong>${jobTitle}</strong> role.`)}
+        ${heading1(`Congratulations, ${firstName}! 🎉`)}
+        ${paragraph(`Your application for the <strong>${jobTitle}</strong> role truly stood out to our executive hiring team. We were highly impressed by your background and are thrilled to invite you to the next stage of our elite selection process.`)}
+        ${paragraph(`At CyberLabSec, we pride ourselves on technical excellence. To help us better understand your practical skills and problem-solving abilities, we have prepared a specialized AI-proctored technical assessment for you.`)}
+        
         ${callout("Assessment Details", `
           <table style="width: 100%; border-collapse: collapse;">
             ${infoRow("Role", `<strong>${jobTitle}</strong>`)}
-            ${infoRow("Link Expires", `<strong>In ${expiryHours} hours</strong>`)}
+            ${infoRow("Format", `<strong>AI-Proctored Technical Challenge</strong>`)}
+            ${infoRow("Link Expires", `<strong>Strictly in ${expiryHours} hours</strong>`)}
+            ${infoRow("Max Attempts", `<strong>3 attempts available</strong>`)}
           </table>
         `, 'info')}
+        
+        ${paragraph(`Please ensure you are in a quiet environment with a stable internet connection before beginning. You will not be able to pause the assessment once started.`)}
+        
         ${btn("Begin Technical Assessment", interviewLink)}
+        
+        ${paragraph(`We are excited to see what you can do. Best of luck!`)}
       ${BODY_END}
       ${footerSection()}
       ${WRAP_END}
