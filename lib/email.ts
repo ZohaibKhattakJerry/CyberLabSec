@@ -182,11 +182,11 @@ export async function sendInterviewInvite(toEmail: string, applicantName: string
 export async function sendDeclineEmail(toEmail: string, applicantName: string, jobTitle: string) {
   const firstName = applicantName;
   await transporter.sendMail({
-    from: FROM, to: toEmail, subject: `CyberLabSec — Update on Your Application for ${jobTitle}`,
+    from: FROM, to: toEmail, subject: `Application Update: ${jobTitle} | CyberLabSec`,
     html: `
       ${HTML_START}
       ${WRAP_START}
-      ${headerSection("Application Update")}
+      ${headerSection("Candidacy Update" )}
       ${BODY_START}
         ${heading1(`Update on your Application`)}
         ${paragraph(`Dear ${firstName},`)}
@@ -254,11 +254,11 @@ export async function sendEmployeeCredentials(toEmail: string, employeeName: str
 export async function sendTerminationLetter(toEmail: string, employeeName: string, terminationLetterPdfBase64: string) {
   const firstName = employeeName;
   await transporter.sendMail({
-    from: FROM, to: toEmail, subject: `CyberLabSec — Employment Status Notification`,
+    from: FROM, to: toEmail, subject: `Confidential: Employment Status Notification | CyberLabSec`,
     html: `
       ${HTML_START}
       ${WRAP_START}
-      ${headerSection("Employment Update")}
+      ${headerSection("Official Notice")}
       ${BODY_START}
         ${heading1(`Employment Status Notification`)}
         ${paragraph(`Dear ${firstName},`)}
@@ -281,7 +281,7 @@ export async function sendAnnouncement(toEmails: string[], subject: string, mess
     html: `
       ${HTML_START}
       ${WRAP_START}
-      ${headerSection("Internal Broadcast")}
+      ${headerSection("Internal Communication")}
       ${BODY_START}
         ${heading1(subject)}
         ${callout("", `<div style="white-space: pre-wrap;">${message}</div>`, 'info')}
@@ -339,11 +339,11 @@ export async function sendCombinedShortlistEmail(toEmail: string, applicantName:
 export async function sendApplicationReceivedEmail(toEmail: string, applicantName: string, jobTitle: string, referenceId: string, trackingUrl: string) {
   const firstName = applicantName;
   await transporter.sendMail({
-    from: FROM, to: toEmail, subject: `Application Received — ${jobTitle} at CyberLabSec`,
+    from: FROM, to: toEmail, subject: `Application Confirmed: ${jobTitle} | CyberLabSec`,
     html: `
       ${HTML_START}
       ${WRAP_START}
-      ${headerSection("Application Received")}
+      ${headerSection("Application Confirmation")}
       ${BODY_START}
         ${heading1(`We've Got Your Application, ${firstName}! 🚀`)}
         ${paragraph(`Thank you for applying to the <strong>${jobTitle}</strong> position at CyberLabSec. We know that applying for jobs takes time and effort, and we sincerely appreciate your interest in joining our mission to advance offensive security.`)}
@@ -373,11 +373,11 @@ export async function sendStatusUpdateEmail(toEmail: string, applicantName: stri
   else if (status.includes('Interview')) pipelineStage = 'Interview';
 
   await transporter.sendMail({
-    from: FROM, to: toEmail, subject: `Status Update on your Application for ${jobTitle}`,
+    from: FROM, to: toEmail, subject: `Status Notification: ${jobTitle} | CyberLabSec`,
     html: `
       ${HTML_START}
       ${WRAP_START}
-      ${headerSection("Application Update")}
+      ${headerSection("Candidacy Update" )}
       ${BODY_START}
         ${heading1(`Update on your Application, ${firstName}`)}
         ${paragraph(`There has been an update regarding your application for the <strong>${jobTitle}</strong> position.`)}
@@ -414,7 +414,7 @@ export async function sendInterviewCompleteEmail(toEmail: string, applicantName:
         : paragraph(`Thank you for completing the technical assessment for the <strong>${jobTitle}</strong> role. Unfortunately, after utilizing all available attempts, your score did not meet our passing criteria for this specific position.`));
 
   await transporter.sendMail({
-    from: FROM, to: toEmail, subject: isPass ? `Interview Passed — Final Review for ${jobTitle} | CyberLabSec` : `Interview Results — ${jobTitle} | CyberLabSec`,
+    from: FROM, to: toEmail, subject: isPass ? `Action Required: Final Review for ${jobTitle} | CyberLabSec` : `Technical Assessment Results: ${jobTitle} | CyberLabSec`,
     html: `
       ${HTML_START}
       ${WRAP_START}
@@ -444,7 +444,7 @@ export async function sendInterviewRetryEmail(toEmail: string, applicantName: st
     html: `
       ${HTML_START}
       ${WRAP_START}
-      ${headerSection("Interview Retry Available")}
+      ${headerSection("Assessment Retry")}
       ${BODY_START}
         ${pipeline('Interview')}
         ${heading1(`Keep Going, ${firstName}`)}
@@ -473,7 +473,7 @@ export async function sendMeetingInvite(toEmail: string, participantName: string
     html: `
       ${HTML_START}
       ${WRAP_START}
-      ${headerSection("Meeting Scheduled")}
+      ${headerSection("Secure Meeting Details")}
       ${BODY_START}
         ${heading1(`Hello ${firstName},`)}
         ${callout("Meeting Details", `
@@ -498,7 +498,7 @@ export async function sendTaskAssigned(toEmail: string, assigneeName: string, ta
     html: `
       ${HTML_START}
       ${WRAP_START}
-      ${headerSection("Task Assignment")}
+      ${headerSection("Task Delegation")}
       ${BODY_START}
         ${heading1(`Task Assigned: ${firstName}`)}
         ${callout("Task Details", `
@@ -519,11 +519,11 @@ export async function sendTaskAssigned(toEmail: string, assigneeName: string, ta
 export async function sendVerificationEmail(toEmail: string, userName: string, verificationCode: string, verificationUrl: string) {
   const firstName = userName;
   await transporter.sendMail({
-    from: FROM, to: toEmail, subject: `Security Alert: Verify Your CyberLabSec Account`,
+    from: FROM, to: toEmail, subject: `Action Required: Verify Your CyberLabSec Identity`,
     html: `
       ${HTML_START}
       ${WRAP_START}
-      ${headerSection("Identity Verification")}
+      ${headerSection("Security Clearance")}
       ${BODY_START}
         ${heading1(`Identity Verification Required`)}
         ${paragraph(`Hello ${firstName}, a request to authenticate your identity was recently made.`)}
@@ -539,11 +539,11 @@ export async function sendVerificationEmail(toEmail: string, userName: string, v
 
 export async function sendApplicantOTPEmail(toEmail: string, verificationCode: string) {
   await transporter.sendMail({
-    from: FROM, to: toEmail, subject: `CyberLabSec Application - Verification Code`,
+    from: FROM, to: toEmail, subject: `Secure Authentication Code | CyberLabSec`,
     html: `
       ${HTML_START}
       ${WRAP_START}
-      ${headerSection("Identity Verification")}
+      ${headerSection("Security Clearance")}
       ${BODY_START}
         ${heading1(`Verification Code`)}
         ${paragraph(`Please use the code below to verify your email address.`)}
@@ -563,7 +563,7 @@ export async function sendOfferLetter(toEmail: string, applicantName: string, jo
     html: `
       ${HTML_START}
       ${WRAP_START}
-      ${headerSection("Official Offer Letter")}
+      ${headerSection("Official Documentation")}
       ${BODY_START}
         ${heading1(`Congratulations, ${firstName}!`)}
         ${paragraph(`After a rigorous selection process and technical evaluation, we are exceptionally pleased to formally extend an offer for the <strong>${jobTitle}</strong> position at CyberLabSec.`)}
@@ -599,7 +599,7 @@ export async function sendHiredEmail(toEmail: string, applicantName: string, job
     html: `
       ${HTML_START}
       ${WRAP_START}
-      ${headerSection("Welcome Aboard")}
+      ${headerSection("Welcome to the Team")}
       ${BODY_START}
         ${pipeline('Decision')}
         ${heading1(`Congratulations, ${firstName}! 🎉`)}
