@@ -476,7 +476,7 @@ export default function InterviewClient({ sessionId, _token, applicantName, _app
           <AlertTriangle size={48} color="var(--amber)" style={{ margin: "0 auto 20px" }} />
           <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12 }}>Attempt Failed</h2>
           <p style={{ color: "var(--text-secondary)", lineHeight: 1.7, marginBottom: 24 }}>
-            Your score did not meet the passing criteria for this role. You have {maxAttempts - attempts - 1} attempts remaining. A new set of questions will be generated.
+            Your score did not meet the passing criteria for this role. You have {maxAttempts - attempts} attempts remaining. A new set of questions will be generated.
           </p>
           <button className="btn btn-primary" onClick={() => window.location.reload()} style={{ width: "100%" }}>
             Start Next Attempt <ChevronRight size={16} />
