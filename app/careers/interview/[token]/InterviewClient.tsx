@@ -131,17 +131,6 @@ export default function InterviewClient({ sessionId, _token, applicantName, _app
     }
   };
 
-  // Feature 1: Visibility change detection — only logs, doesn't immediately terminate
-  useEffect(() => {
-    if (phase !== "interview") return;
-    const handleVisibility = () => {
-      if (!document.hidden) return;
-      tabBlurCount.current += 1;
-    };
-    document.addEventListener("visibilitychange", handleVisibility);
-    return () => document.removeEventListener("visibilitychange", handleVisibility);
-  }, [phase]);
-
   // Clear cached question timers on intro phase so 2nd attempt starts fresh
   useEffect(() => {
     if (phase !== 'intro') return;
@@ -153,14 +142,6 @@ export default function InterviewClient({ sessionId, _token, applicantName, _app
   const currentAnswer = answers[questions[currentQ]?.id] || "";
   const setAnswer = (val: string) => {
     setAnswers((a) => ({ ...a, [questions[currentQ].id]: val }));
-  };
-
-  const handlePaste = (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    pasteAttempts.current += 1;
-    // Feature 2: Show paste warning
-    setPasteWarning(true);
-    setTimeout(() => setPasteWarning(false), 3000);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -218,6 +199,25 @@ export default function InterviewClient({ sessionId, _token, applicantName, _app
       setPhase("done_failed_final");
     }
   }, [answers, sessionId, totalTime, checkSuspicion]);
+
+  // STRICT INTEGRITY: Instantly terminate on visibility change or paste
+  useEffect(() => {
+    if (phase !== "interview") return;
+    const handleVisibility = () => {
+      if (!document.hidden) return;
+      tabBlurCount.current = 10; // Instantly marks as cheating
+      submitInterview();
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [phase, submitInterview]);
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    pasteAttempts.current = 10; // Instantly marks as cheating
+    setPasteWarning(true);
+    submitInterview();
+  };
 
   const handleNext = useCallback(async () => {
     // Check cheating after last open-ended answer
