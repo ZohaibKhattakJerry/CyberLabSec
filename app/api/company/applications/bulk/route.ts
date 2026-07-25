@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
   if (!auth || auth.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await req.json();
-  const { action, applicantIds, status: targetStatus } = body;
+  const { action, applicantIds, status: targetStatus, interviewDetails } = body;
 
   if (!action || !applicantIds || !Array.isArray(applicantIds) || applicantIds.length === 0) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
@@ -99,6 +99,41 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({ success: true });
 
+    } else if (action === "resend_interview") {
+      const applicants = await prisma.applicant.findMany({
+        where: { id: { in: applicantIds }, status: "Invited for Interview" },
+        include: { jobPosting: true },
+      });
+
+      if (applicants.length === 0) {
+        return NextResponse.json({ error: "None of the selected candidates are in the Interview stage." }, { status: 400 });
+      }
+
+      for (const app of applicants) {
+        const detailsHtml = interviewDetails?.trim() 
+          ? `<div style="background: #f3f4f6; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #a855f7;">
+               <h3 style="margin-top: 0; color: #374151;">Interview Details</h3>
+               <p style="white-space: pre-wrap; color: #4b5563; margin-bottom: 0;">${interviewDetails}</p>
+             </div>`
+          : `<p>Our team will be in touch shortly with further details about your interview schedule.</p>`;
+
+        const html = `
+          <h2>Interview Details – ${app.jobPosting.title}</h2>
+          <p>Dear ${app.fullName},</p>
+          <p>This is a follow-up regarding your upcoming interview for the <strong>${app.jobPosting.title}</strong> position.</p>
+          ${detailsHtml}
+          <br/>
+          <p>Best regards,<br/>The CyberLabSec Hiring Team</p>
+        `;
+        await sendEmail({ to: app.email, subject: `Interview Details – ${app.jobPosting.title}`, html });
+      }
+
+      await prisma.activityLog.create({
+        data: { actorId: null, actorType: "Admin", action: "RESEND_INTERVIEW", metadata: JSON.stringify({ count: applicantIds.length }) },
+      }).catch(() => {});
+
+      return NextResponse.json({ success: true });
+
     } else if (action === "move") {
       // Move all applicants to a target status (default: Invited for Interview)
       const moveToStatus = targetStatus || "Invited for Interview";
@@ -116,11 +151,18 @@ export async function POST(req: NextRequest) {
       // Send interview invitation emails when moving to interview stage
       if (moveToStatus === "Invited for Interview") {
         for (const app of applicants) {
+          const detailsHtml = interviewDetails?.trim() 
+            ? `<div style="background: #f3f4f6; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #a855f7;">
+                 <h3 style="margin-top: 0; color: #374151;">Interview Details</h3>
+                 <p style="white-space: pre-wrap; color: #4b5563; margin-bottom: 0;">${interviewDetails}</p>
+               </div>`
+            : `<p>Our team will be in touch shortly with further details about your interview schedule.</p>`;
+
           const html = `
             <h2>Interview Invitation – ${app.jobPosting.title}</h2>
             <p>Dear ${app.fullName},</p>
             <p>Congratulations! We are pleased to invite you to the next stage of our selection process for the <strong>${app.jobPosting.title}</strong> position at CyberLabSec.</p>
-            <p>Our team will be in touch shortly with further details about your interview schedule.</p>
+            ${detailsHtml}
             <br/>
             <p>Best regards,<br/>The CyberLabSec Hiring Team</p>
           `;

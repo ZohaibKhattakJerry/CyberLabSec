@@ -84,8 +84,10 @@ export default function ApplicationsClient({ applicants, postings, teams = [] }:
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showMoveModal, setShowMoveModal] = useState(false);
+  const [showResendModal, setShowResendModal] = useState(false);
   const [showBulkHireModal, setShowBulkHireModal] = useState(false);
   const [actionTarget, setActionTarget] = useState<"bulk" | "single" | null>(null);
+  const [interviewDetails, setInterviewDetails] = useState("");
 
   const [hireForm, setHireForm] = useState({
     offerLetterBase64: "",
@@ -201,18 +203,18 @@ export default function ApplicationsClient({ applicants, postings, teams = [] }:
     return true;
   };
 
-  const confirmBulkAction = async (action: "reject" | "delete" | "move") => {
-    setShowRejectModal(false); setShowDeleteModal(false); setShowMoveModal(false);
+    setShowRejectModal(false); setShowDeleteModal(false); setShowMoveModal(false); setShowResendModal(false);
     setActionLoading(true); setActionMsg("");
-    if (action === "move") {
+    if (action === "move" || action === "resend_interview") {
       const res = await fetch("/api/company/applications/bulk", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "move", status: "Invited for Interview", applicantIds: selectedIds }),
+        body: JSON.stringify({ action, status: "Invited for Interview", applicantIds: selectedIds, interviewDetails }),
       });
       const data = await res.json();
       setActionLoading(false);
       if (!res.ok) { setActionMsg(data.error || "Failed"); return; }
-      setActionMsg(`Shortlisted ${selectedIds.length} candidate(s) and sent interview invitations.`);
+      setActionMsg(action === "move" ? `Shortlisted ${selectedIds.length} candidate(s) and sent interview invitations.` : `Resent interview details to ${selectedIds.length} candidate(s).`);
+      setInterviewDetails("");
     } else {
       const res = await fetch("/api/company/applications/bulk", {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -429,6 +431,9 @@ export default function ApplicationsClient({ applicants, postings, teams = [] }:
           {/* INVITED FOR INTERVIEW */}
           {selectedStage === "Invited for Interview" && (
             <>
+              <button className="btn btn-sm btn-primary" onClick={() => { setActionTarget("bulk"); setShowResendModal(true); }} disabled={actionLoading}>
+                <Mail size={13} /> Resend Interview Email
+              </button>
               <button className="btn btn-sm btn-secondary" onClick={() => { setActionTarget("bulk"); setShowRejectModal(true); }} disabled={actionLoading}>
                 <X size={13} /> Reject
               </button>
@@ -486,7 +491,7 @@ export default function ApplicationsClient({ applicants, postings, teams = [] }:
             {/* REVIEWING */}
             {s === "Reviewing" && (
               <>
-                <button className="btn btn-primary" onClick={() => updateStatus(selected.id, "Invited for Interview")} disabled={actionLoading} style={{ flex: 1 }}>
+                <button className="btn btn-primary" onClick={() => { closeModal(); setActionTarget("single"); setSelectedIds([selected.id]); setShowMoveModal(true); }} disabled={actionLoading} style={{ flex: 1 }}>
                   {actionLoading ? <Loader2 size={15} className="spin" /> : <UserCheck size={15} />} Shortlist & Invite
                 </button>
                 <button className="btn btn-secondary" onClick={() => { setActionTarget("single"); setShowRejectModal(true); }} disabled={actionLoading} style={{ flex: 1 }}>
@@ -501,6 +506,9 @@ export default function ApplicationsClient({ applicants, postings, teams = [] }:
             {/* INVITED FOR INTERVIEW */}
             {s === "Invited for Interview" && (
               <>
+                <button className="btn btn-primary" onClick={() => { closeModal(); setActionTarget("single"); setSelectedIds([selected.id]); setShowResendModal(true); }} disabled={actionLoading} style={{ flex: 1 }}>
+                  <Mail size={15} /> Resend Email
+                </button>
                 <button className="btn btn-secondary" onClick={() => { setActionTarget("single"); setShowRejectModal(true); }} disabled={actionLoading} style={{ flex: 1 }}>
                   <X size={15} /> Reject
                 </button>
@@ -732,7 +740,7 @@ export default function ApplicationsClient({ applicants, postings, teams = [] }:
                   {/* REVIEWING */}
                   {selected.status === "Reviewing" && (
                     <div className="cm-footer-actions">
-                      <button className="btn btn-primary" onClick={() => updateStatus(selected.id, "Invited for Interview")} disabled={actionLoading}>
+                      <button className="btn btn-primary" onClick={() => { closeModal(); setActionTarget("single"); setSelectedIds([selected.id]); setShowMoveModal(true); }} disabled={actionLoading}>
                         {actionLoading ? <Loader2 size={15} className="spin" /> : <UserCheck size={15} />} Shortlist & Invite
                       </button>
                       <button className="btn btn-secondary" onClick={() => { setActionTarget("single"); setShowRejectModal(true); }} disabled={actionLoading}>
@@ -746,6 +754,9 @@ export default function ApplicationsClient({ applicants, postings, teams = [] }:
                   {/* INVITED FOR INTERVIEW */}
                   {selected.status === "Invited for Interview" && (
                     <div className="cm-footer-actions">
+                      <button className="btn btn-primary" onClick={() => { closeModal(); setActionTarget("single"); setSelectedIds([selected.id]); setShowResendModal(true); }} disabled={actionLoading}>
+                        <Mail size={15} /> Resend Email
+                      </button>
                       <button className="btn btn-secondary" onClick={() => { setActionTarget("single"); setShowRejectModal(true); }} disabled={actionLoading}>
                         <X size={15} /> Reject
                       </button>
@@ -859,20 +870,65 @@ export default function ApplicationsClient({ applicants, postings, teams = [] }:
       {/* ====== MOVE TO INTERVIEW CONFIRMATION MODAL ====== */}
       {showMoveModal && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.88)", backdropFilter: "blur(6px)", zIndex: 10001, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-          <div className="card" style={{ maxWidth: 420, width: "100%", padding: 32 }}>
+          <div className="card" style={{ maxWidth: 480, width: "100%", padding: 32 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
               <div style={{ width: 44, height: 44, borderRadius: 10, background: "rgba(168,85,247,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <ChevronRight size={22} color="#a855f7" />
               </div>
               <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0, color: "var(--text-primary)" }}>Move to Interview Stage</h3>
             </div>
-            <p style={{ fontSize: 14, color: "var(--text-secondary)", marginBottom: 24, lineHeight: 1.6 }}>
+            <p style={{ fontSize: 14, color: "var(--text-secondary)", marginBottom: 20, lineHeight: 1.6 }}>
               This will move {selectedIds.length} candidate(s) to the <strong style={{ color: "var(--purple-light)" }}>Invited for Interview</strong> stage and send them an interview invitation email.
             </p>
+            <div style={{ marginBottom: 24 }}>
+              <label className="label">Meeting Link & Details (Optional)</label>
+              <textarea 
+                className="input" 
+                rows={4} 
+                placeholder="e.g. Google Meet Link, Date, Time, and any special instructions..."
+                value={interviewDetails}
+                onChange={e => setInterviewDetails(e.target.value)}
+                style={{ width: "100%", resize: "vertical" }}
+              />
+            </div>
             <div style={{ display: "flex", gap: 12 }}>
               <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setShowMoveModal(false)} disabled={actionLoading}>Cancel</button>
               <button className="btn btn-primary" style={{ flex: 1 }} disabled={actionLoading} onClick={() => confirmBulkAction("move")}>
                 {actionLoading ? <Loader2 size={14} className="spin" /> : <ChevronRight size={14} />} Confirm & Invite
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ====== RESEND INTERVIEW MODAL ====== */}
+      {showResendModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.88)", backdropFilter: "blur(6px)", zIndex: 10001, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div className="card" style={{ maxWidth: 480, width: "100%", padding: 32 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 10, background: "rgba(59,130,246,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Mail size={22} color="#3b82f6" />
+              </div>
+              <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0, color: "var(--text-primary)" }}>Resend Interview Details</h3>
+            </div>
+            <p style={{ fontSize: 14, color: "var(--text-secondary)", marginBottom: 20, lineHeight: 1.6 }}>
+              This will send a follow-up interview email to {selectedIds.length} candidate(s). Use this to provide meeting links or updated times.
+            </p>
+            <div style={{ marginBottom: 24 }}>
+              <label className="label">Meeting Link & Details</label>
+              <textarea 
+                className="input" 
+                rows={4} 
+                placeholder="e.g. Google Meet Link, Date, Time, and any special instructions..."
+                value={interviewDetails}
+                onChange={e => setInterviewDetails(e.target.value)}
+                style={{ width: "100%", resize: "vertical" }}
+              />
+            </div>
+            <div style={{ display: "flex", gap: 12 }}>
+              <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setShowResendModal(false)} disabled={actionLoading}>Cancel</button>
+              <button className="btn btn-primary" style={{ flex: 1 }} disabled={actionLoading || !interviewDetails.trim()} onClick={() => confirmBulkAction("resend_interview")}>
+                {actionLoading ? <Loader2 size={14} className="spin" /> : <Mail size={14} />} Resend Email
               </button>
             </div>
           </div>
