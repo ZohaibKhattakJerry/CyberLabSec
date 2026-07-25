@@ -789,9 +789,6 @@ export default function ApplicationsClient({ applicants, postings, teams = [] }:
                       <button className="btn btn-secondary" onClick={() => { setActionTarget("single"); setShowRejectModal(true); }} disabled={actionLoading}>
                         <X size={15} /> Reject
                       </button>
-                      <button className="btn btn-danger" onClick={handleSingleDelete} disabled={actionLoading}>
-                        {actionLoading ? <Loader2 size={15} className="spin" /> : <Trash2 size={15} />} Delete
-                      </button>
                     </div>
                   )}
                   {/* HIRED */}
