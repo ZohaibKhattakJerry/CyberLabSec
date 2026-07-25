@@ -155,10 +155,11 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Send Application Received email
-    const trackingUrl = `https://cyberlabsec.tech/careers/track`;
-    waitUntil(sendApplicationReceivedEmail(email, fullName, posting.title, referenceId, trackingUrl));
-
+    // Send Application Received email only if auto-shortlist is OFF
+    if (!posting.autoShortlist) {
+      const trackingUrl = `https://cyberlabsec.tech/careers/track`;
+      waitUntil(sendApplicationReceivedEmail(email, fullName, posting.title, referenceId, trackingUrl));
+    }
     // Notify Admin
     waitUntil(
       prisma.notification.create({
