@@ -42,7 +42,7 @@ const STATUS: Record<string, { label: string; color: string; bg: string }> = {
 // ─── Kanban Columns ──────────────────────────────────────────────────────
 const KANBAN_COLS = [
   { id: "progress", label: "In Progress", statuses: ["Assigned", "In Progress", "Paused"], color: "#3b82f6", icon: "⚡" },
-  { id: "revisions",label: "Needs Revision", statuses: ["Needs Revision", "Need more information"], color: "#f97316", icon: "🔄" },
+  { id: "revisions",label: "Needs Revision", statuses: ["Needs Revision", "Need more information", "ChangesRequested"], color: "#f97316", icon: "🔄" },
   { id: "review",   label: "Under Review",statuses: ["Under Review", "Pending", "Submitted", "Awaiting Review"], color: "#a855f7", icon: "🔍" },
   { id: "done",     label: "Completed",   statuses: ["Completed", "Approved", "Done"], color: "#22c55e", icon: "✅" },
 ];
