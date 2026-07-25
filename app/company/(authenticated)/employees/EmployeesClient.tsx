@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { format } from "date-fns";
-import { Search, UserX, UserCheck, Edit2, X, Loader2, Shield, Award, UserPlus, FileSignature, CheckCircle, UserMinus, Download, Star, Users, UploadCloud, RotateCw } from "lucide-react";
+import { Search, UserX, UserCheck, Edit2, X, Loader2, Shield, Award, UserPlus, FileSignature, CheckCircle, UserMinus, Download, Star, Users, UploadCloud, RotateCw, GraduationCap, Briefcase } from "lucide-react";
 import confetti from "canvas-confetti";
 
 type Employee = {
@@ -361,72 +361,71 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
 
   return (
     <div>
-      <div className="flex-mobile-col" style={{ marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 16 }}>
+      {/* ── Header & Direct Hire ── */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24, flexWrap: "wrap", gap: 16 }}>
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 4 }}>Employees & Teams</h1>
-          <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>{employees.length} total employees</p>
+          <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em", margin: 0, background: "linear-gradient(90deg, #fff, #a855f7)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Employees & Teams</h1>
+          <p style={{ color: "var(--text-secondary)", fontSize: 14, margin: "4px 0 0" }}>Manage your workforce and team assignments seamlessly.</p>
         </div>
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <button className="btn btn-primary" onClick={() => { setShowDirectHire(true); setMsg(""); }} title="Create employee directly without application">
-            <UserPlus size={14} /> Direct Hire
-          </button>
-        </div>
-      </div>
-
-      <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
-        <div style={{ position: "relative", flex: 1, minWidth: 200 }}>
-          <Search size={14} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)", pointerEvents: "none" }} />
-          <input className="input" style={{ paddingLeft: 36 }} placeholder="Search employees..." value={search} onChange={e => setSearch(e.target.value)} />
-        </div>
-        <select className="input" style={{ width: 160 }} value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
-          <option value="All">All Statuses</option>
-          <option value="Active">Active</option>
-          <option value="Terminated">Terminated</option>
-        </select>
-        <select className="input" style={{ width: 140 }} value={filterTeam} onChange={e => setFilterTeam(e.target.value)}>
-          <option value="All">All Teams</option>
-          {teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-        </select>
-        <select className="input" style={{ width: 140 }} value={filterDesignation} onChange={e => setFilterDesignation(e.target.value)}>
-          <option value="All">All Roles</option>
-          {uniqueDesignations.map(d => <option key={d} value={d}>{d}</option>)}
-        </select>
-        <select className="input" style={{ width: 140 }} value={filterType} onChange={e => setFilterType(e.target.value)}>
-          <option value="All">All Types</option>
-          {uniqueTypes.map(t => <option key={t} value={t}>{t}</option>)}
-        </select>
-        <select className="input" style={{ width: 140 }} value={filterSource} onChange={e => setFilterSource(e.target.value)}>
-          <option value="All">All Sources</option>
-          <option value="Direct Hire">Direct Hire</option>
-          <option value="Application">Application</option>
-        </select>
-        <button className="btn btn-secondary btn-sm" onClick={exportCSV} style={{ alignSelf: "center", gap: 5 }}>
-          <Download size={13} /> Export CSV
+        <button className="btn btn-primary" onClick={() => { setShowDirectHire(true); setMsg(""); }} style={{ padding: "0 24px", height: 44, borderRadius: 12, boxShadow: "0 4px 15px rgba(168,85,247,0.3)" }}>
+          <UserPlus size={16} /> Direct Hire
         </button>
       </div>
 
-      {/* ── Stats Bar ── */}
-      <div className="emp-stats-row">
-        <div className="emp-stat-chip">
-          <span className="emp-stat-num">{employees.length}</span>
-          <span className="emp-stat-label">Total</span>
+      {/* ── High-Impact Stats Bar ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 16, marginBottom: 24 }}>
+        {[
+          { label: "Total", count: employees.length, color: "#fff", bg: "rgba(255,255,255,0.03)", border: "rgba(255,255,255,0.1)", icon: <Users size={16} color="#9ca3af" /> },
+          { label: "Active", count: employees.filter(e => e.status === "Active").length, color: "var(--green)", bg: "rgba(16,185,129,0.05)", border: "rgba(16,185,129,0.2)", icon: <CheckCircle size={16} color="var(--green)" /> },
+          { label: "Interns", count: employees.filter(e => e.employmentType === "Intern").length, color: "var(--amber)", bg: "rgba(245,158,11,0.05)", border: "rgba(245,158,11,0.2)", icon: <GraduationCap size={16} color="var(--amber)" /> },
+          { label: "Employees", count: employees.filter(e => e.employmentType === "Employee" || e.employmentType === "Full-Time").length, color: "var(--purple)", bg: "rgba(168,85,247,0.05)", border: "rgba(168,85,247,0.2)", icon: <Briefcase size={16} color="var(--purple)" /> },
+          { label: "Pending Onboard", count: employees.filter(e => !e.onboardingCompleted).length, color: "#60a5fa", bg: "rgba(96,165,250,0.05)", border: "rgba(96,165,250,0.2)", icon: <RotateCw size={16} color="#60a5fa" /> },
+        ].map(stat => (
+          <div key={stat.label} style={{ background: stat.bg, border: `1px solid ${stat.border}`, borderRadius: 16, padding: "20px 24px", display: "flex", flexDirection: "column", gap: 8, transition: "transform 0.2s" }} onMouseEnter={e => e.currentTarget.style.transform = "translateY(-2px)"} onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-secondary)" }}>{stat.label}</span>
+              {stat.icon}
+            </div>
+            <span style={{ fontSize: 32, fontWeight: 800, color: stat.color, lineHeight: 1 }}>{stat.count}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Filters Toolbar ── */}
+      <div style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: 16, marginBottom: 28, display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center" }}>
+        <div style={{ position: "relative", flex: "1 1 260px" }}>
+          <Search size={16} style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />
+          <input className="input" style={{ paddingLeft: 44, height: 46, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, width: "100%" }} placeholder="Search employees..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
-        <div className="emp-stat-chip">
-          <span className="emp-stat-num" style={{ color: "var(--green)" }}>{employees.filter(e => e.status === "Active").length}</span>
-          <span className="emp-stat-label">Active</span>
+        
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", flex: "1 1 auto" }}>
+          <select className="input" style={{ flex: 1, minWidth: 140, height: 46, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12 }} value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
+            <option value="All">All Statuses</option>
+            <option value="Active">Active</option>
+            <option value="Terminated">Terminated</option>
+          </select>
+          <select className="input" style={{ flex: 1, minWidth: 140, height: 46, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12 }} value={filterTeam} onChange={e => setFilterTeam(e.target.value)}>
+            <option value="All">All Teams</option>
+            {teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+          </select>
+          <select className="input" style={{ flex: 1, minWidth: 140, height: 46, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12 }} value={filterDesignation} onChange={e => setFilterDesignation(e.target.value)}>
+            <option value="All">All Roles</option>
+            {uniqueDesignations.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+          <select className="input" style={{ flex: 1, minWidth: 140, height: 46, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12 }} value={filterType} onChange={e => setFilterType(e.target.value)}>
+            <option value="All">All Types</option>
+            {uniqueTypes.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+          <select className="input" style={{ flex: 1, minWidth: 140, height: 46, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12 }} value={filterSource} onChange={e => setFilterSource(e.target.value)}>
+            <option value="All">All Sources</option>
+            <option value="Direct Hire">Direct Hire</option>
+            <option value="Application">Application</option>
+          </select>
         </div>
-        <div className="emp-stat-chip">
-          <span className="emp-stat-num" style={{ color: "var(--amber)" }}>{employees.filter(e => e.employmentType === "Intern").length}</span>
-          <span className="emp-stat-label">Interns</span>
-        </div>
-        <div className="emp-stat-chip">
-          <span className="emp-stat-num" style={{ color: "var(--purple)" }}>{employees.filter(e => e.employmentType === "Employee" || e.employmentType === "Full-Time").length}</span>
-          <span className="emp-stat-label">Employees</span>
-        </div>
-        <div className="emp-stat-chip">
-          <span className="emp-stat-num" style={{ color: "#60a5fa" }}>{employees.filter(e => !e.onboardingCompleted).length}</span>
-          <span className="emp-stat-label">Pending Onboard</span>
-        </div>
+        
+        <button className="btn btn-secondary" onClick={exportCSV} style={{ height: 46, padding: "0 20px", borderRadius: 12 }}>
+          <Download size={15} /> Export
+        </button>
       </div>
 
       {/* ── Employee Card Grid ── */}

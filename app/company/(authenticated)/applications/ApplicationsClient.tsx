@@ -203,6 +203,7 @@ export default function ApplicationsClient({ applicants, postings, teams = [] }:
     return true;
   };
 
+  const confirmBulkAction = async (action: "reject" | "delete" | "move" | "resend_interview") => {
     setShowRejectModal(false); setShowDeleteModal(false); setShowMoveModal(false); setShowResendModal(false);
     setActionLoading(true); setActionMsg("");
     if (action === "move" || action === "resend_interview") {

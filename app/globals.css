@@ -970,16 +970,11 @@ select.input option {
 /* Action Tray */
 .emp-card-actions {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 8px;
   padding-top: 12px;
   padding-bottom: 4px;
   border-top: 1px solid rgba(255,255,255,0.05);
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  -ms-overflow-style: none;
-  scrollbar-width: none;
 }
 .emp-card-actions::-webkit-scrollbar {
   display: none;
