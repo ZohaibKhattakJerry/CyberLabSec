@@ -202,7 +202,8 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
         setPhase("done_failed_final");
       }
     } else {
-      setPhase("done_failed_final");
+      toast.error("Network error submitting interview. Please check your connection and try again.");
+      setPhase("interview"); // Go back to interview phase so they can click submit again
     }
   }, [answers, sessionId, totalTime, checkSuspicion]);
 
