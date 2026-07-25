@@ -366,13 +366,14 @@ export default function PortalLayout({ children, employee }: { children: React.R
         <div
           className="desktop-topbar"
           style={{
-            alignItems: "center", justifyContent: "flex-end",
-            padding: "0 24px", height: 56, borderBottom: "1px solid rgba(255,255,255,0.05)",
+            height: 56, borderBottom: "1px solid rgba(255,255,255,0.05)",
             background: "rgba(7,5,15,0.9)", backdropFilter: "blur(20px)",
-            position: "sticky", top: 0, zIndex: 50, gap: 12,
+            position: "sticky", top: 0, zIndex: 50,
           }}
         >
-          <NotificationBell isAdmin={false} placement="top-right" />
+          <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 20px", height: "100%", display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
+            <NotificationBell isAdmin={false} placement="top-right" />
+          </div>
         </div>
 
         {/* Mobile topbar */}
