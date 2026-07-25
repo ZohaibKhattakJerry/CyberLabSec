@@ -87,6 +87,15 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
   const [showBulkHireModal, setShowBulkHireModal] = useState(false);
   const [actionTarget, setActionTarget] = useState<"bulk" | "single" | null>(null);
 
+  const [hireForm, setHireForm] = useState({
+    offerLetterBase64: "",
+    customMessage: "",
+    startingSalary: "",
+    expectedJoinDate: "",
+    durationMonths: "",
+    employmentType: "Intern"
+  });
+
   const openModal = (a: Applicant) => {
     setSelected(a);
     setNotesDraft(a.privateNotes || "");
@@ -124,6 +133,15 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
   const safeFormatDate = (dateStr: string | null | undefined, fmt: string) => {
     try { if (!dateStr) return "N/A"; return format(new Date(dateStr), fmt); }
     catch { return "N/A"; }
+  };
+
+  const handleOfferUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { toast.error("File size must be < 5MB"); return; }
+    const reader = new FileReader();
+    reader.onload = () => setHireForm(prev => ({ ...prev, offerLetterBase64: reader.result as string }));
+    reader.readAsDataURL(file);
   };
 
   // ----- API Actions -----
@@ -207,29 +225,35 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
     startTransition(() => { router.refresh(); });
   };
 
-  const confirmBulkHire = async () => {
-    const targetIds = actionTarget === "bulk" ? selectedIds : (selected ? [selected.id] : []);
-    if (targetIds.length === 0) return;
-
-    setShowBulkHireModal(false);
-    setActionLoading(true); setActionMsg("");
-    const res = await fetch("/api/company/applications/bulk", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "move", status: "Hired", applicantIds: targetIds }),
-    });
-    const data = await res.json();
-    setActionLoading(false);
-    if (!res.ok) { setActionMsg(data.error || "Failed to hire candidates"); return; }
-    confetti({ particleCount: 200, spread: 90, origin: { y: 0.5 }, zIndex: 9999 });
+  const submitHire = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!hireForm.offerLetterBase64) { toast.error("Please upload the offer letter."); return; }
     
-    if (actionTarget === "bulk") {
-      setActionMsg(`${targetIds.length} candidate(s) approved and hired successfully!`);
-      setSelectedIds([]);
-    } else {
-      setActionMsg("Candidate successfully hired! 🎉");
+    setActionLoading(true);
+    try {
+      const targetIds = actionTarget === "bulk" ? selectedIds : (selected ? [selected.id] : []);
+      for (const id of targetIds) {
+        const res = await fetch(`/api/company/applications/${id}/hire`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(hireForm)
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || "Failed to hire candidate");
+        }
+      }
+      toast.success("Successfully hired candidate(s)!");
+      confetti({ particleCount: 200, spread: 90, origin: { y: 0.5 }, zIndex: 9999 });
+      setShowBulkHireModal(false);
       closeModal();
+      router.refresh();
+      if (actionTarget === "bulk") setSelectedIds([]);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to hire candidate(s).");
+    } finally {
+      setActionLoading(false);
     }
-    startTransition(() => { router.refresh(); });
   };
 
   const handleSingleDelete = () => { setActionTarget("single"); setShowDeleteModal(true); };
@@ -853,33 +877,70 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
         </div>
       )}
 
-      {/* ====== BULK APPROVE & HIRE CONFIRMATION MODAL ====== */}
+      {/* ====== HIRE & OFFER MODAL ====== */}
       {showBulkHireModal && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.9)", backdropFilter: "blur(6px)", zIndex: 10001, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-          <div className="card" style={{ maxWidth: 440, width: "100%", padding: 32 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 10, background: "rgba(34,197,94,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <UserCheck size={22} color="#22c55e" />
-              </div>
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(6px)", zIndex: 10001, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div className="card" style={{ position: "relative", maxWidth: 500, width: "100%", maxHeight: "90vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+            <button onClick={() => setShowBulkHireModal(false)} style={{ position: "absolute", top: 24, right: 24, background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: 4, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.2s", zIndex: 10 }}>
+              <X size={18} />
+            </button>
+            <div style={{ padding: 24, borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0, paddingRight: 48 }}>
+              <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
+                <UserCheck size={18} color="var(--green)" /> 
+                {actionTarget === "bulk" ? `Approve & Hire ${selectedIds.length} Candidate(s)` : "Approve & Hire Candidate"}
+              </h2>
+            </div>
+            
+            <form onSubmit={submitHire} style={{ overflowY: "auto", padding: 24, display: "grid", gap: 16 }}>
+              <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0 }}>
+                This will officially hire the candidate(s), generate employee credentials, and send them an Offer Letter via email.
+              </p>
+              
               <div>
-                <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0, color: "var(--text-primary)" }}>
-                  {actionTarget === "bulk" ? `Approve & Hire ${selectedIds.length} Candidate(s)` : "Approve & Hire Candidate"}
-                </h3>
-                <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>This will move to Hired status</p>
+                <label className="label label-required">Offer Letter (PDF)</label>
+                <input type="file" accept="application/pdf" className="input" onChange={handleOfferUpload} required style={{ padding: "8px 12px", width: "100%" }} />
+                <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 6 }}>This PDF will be sent to the candidate.</p>
               </div>
-            </div>
-            <p style={{ fontSize: 14, color: "var(--text-secondary)", marginBottom: 24, lineHeight: 1.6 }}>
-              {actionTarget === "bulk" 
-                ? <><strong style={{ color: "#4ade80" }}>{selectedIds.length}</strong> selected candidate(s) will be approved</> 
-                : <>This candidate will be approved</>
-              } and transitioned to <strong style={{ color: "#4ade80" }}>Hired</strong> status. This action will reflect immediately across the platform.
-            </p>
-            <div style={{ display: "flex", gap: 12 }}>
-              <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setShowBulkHireModal(false)} disabled={actionLoading}>Cancel</button>
-              <button className="btn btn-primary" style={{ flex: 1 }} disabled={actionLoading} onClick={confirmBulkHire}>
-                {actionLoading ? <Loader2 size={14} className="spin" /> : <UserCheck size={14} />} Confirm Hire
-              </button>
-            </div>
+              
+              <div className="flex-mobile-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                <div>
+                  <label className="label">Employment Type</label>
+                  <select className="input" value={hireForm.employmentType} onChange={e => setHireForm({...hireForm, employmentType: e.target.value})} style={{ width: "100%" }}>
+                    <option value="Intern">Intern</option>
+                    <option value="Full-Time">Full-Time</option>
+                    <option value="Contract">Contract</option>
+                    <option value="Part-Time">Part-Time</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="label">Starting Salary</label>
+                  <input type="text" className="input" placeholder="e.g. $5,000 / month" value={hireForm.startingSalary} onChange={e => setHireForm({...hireForm, startingSalary: e.target.value})} style={{ width: "100%" }} />
+                </div>
+              </div>
+
+              <div className="flex-mobile-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                <div>
+                  <label className="label">Expected Start Date</label>
+                  <input type="date" className="input" value={hireForm.expectedJoinDate} onChange={e => setHireForm({...hireForm, expectedJoinDate: e.target.value})} style={{ width: "100%" }} />
+                </div>
+                <div>
+                  <label className="label">Duration (Months)</label>
+                  <input type="number" min="1" max="60" className="input" placeholder="e.g. 6" value={hireForm.durationMonths} onChange={e => setHireForm({...hireForm, durationMonths: e.target.value})} style={{ width: "100%" }} />
+                </div>
+              </div>
+
+              <div>
+                <label className="label">Custom Welcome Message (Optional)</label>
+                <textarea className="input" rows={3} placeholder="Add a personal note to the offer email..." value={hireForm.customMessage} onChange={e => setHireForm({...hireForm, customMessage: e.target.value})} style={{ width: "100%" }} />
+              </div>
+
+              <div className="flex-mobile-col" style={{ display: "flex", gap: 12, marginTop: 12 }}>
+                <button type="button" className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setShowBulkHireModal(false)} disabled={actionLoading}>Cancel</button>
+                <button type="submit" className="btn btn-primary" style={{ flex: 1 }} disabled={actionLoading || !hireForm.offerLetterBase64}>
+                  {actionLoading ? <Loader2 size={14} className="spin" /> : <UserCheck size={14} />} Confirm & Hire
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
