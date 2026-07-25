@@ -678,13 +678,15 @@ function ScreeningScreen({ status, message, referenceId }: { status: ScreeningSt
       <motion.div 
         className="card" 
         style={{ 
-          maxWidth: 520, width: "100%", padding: "clamp(32px, 6vw, 48px) clamp(20px, 5vw, 32px)", 
+          maxWidth: 480, width: "100%", padding: "clamp(32px, 6vw, 48px) clamp(20px, 5vw, 32px)", 
           textAlign: "center", position: "relative", zIndex: 1,
-          background: "rgba(10, 10, 14, 0.7)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
-          border: "1px solid rgba(255, 255, 255, 0.06)",
-          boxShadow: "0 24px 48px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08)"
+          background: "linear-gradient(180deg, rgba(16, 16, 24, 0.8) 0%, rgba(10, 10, 14, 0.9) 100%)", 
+          backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
+          border: "1px solid rgba(168, 85, 247, 0.15)",
+          borderRadius: 24,
+          boxShadow: "0 32px 64px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 40px rgba(168, 85, 247, 0.05)"
         }} 
-        initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        initial={{ opacity: 0, scale: 0.95, y: 15 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
       >
         {/* Animated AI Core */}
         <div className="ai-core-container">
@@ -701,28 +703,28 @@ function ScreeningScreen({ status, message, referenceId }: { status: ScreeningSt
             transition={{ duration: isDone ? 1 : 3, repeat: isDone ? 0 : Infinity }}
             style={{ 
               width: 64, height: 64, borderRadius: "50%", 
-              background: isDone ? (isShortlisted ? "linear-gradient(135deg, #22c55e, #16a34a)" : "linear-gradient(135deg, #a78bfa, #7c3aed)") : "linear-gradient(135deg, #1e1e1e, #2a2a2a)",
+              background: isDone ? (isShortlisted ? "linear-gradient(135deg, #22c55e, #16a34a)" : "linear-gradient(135deg, #a78bfa, #7c3aed)") : "linear-gradient(135deg, #2a1b3d, #1a1a2e)",
               display: "flex", alignItems: "center", justifyContent: "center",
-              boxShadow: isDone ? `0 0 40px ${isShortlisted ? "rgba(34,197,94,0.4)" : "rgba(168,85,247,0.4)"}` : "0 0 24px rgba(168,85,247,0.2), inset 0 2px 4px rgba(255,255,255,0.05)",
-              border: `1px solid ${isDone ? "transparent" : "rgba(168,85,247,0.3)"}`,
+              boxShadow: isDone ? `0 0 40px ${isShortlisted ? "rgba(34,197,94,0.4)" : "rgba(168,85,247,0.4)"}` : "0 0 30px rgba(168,85,247,0.3), inset 0 2px 4px rgba(255,255,255,0.1)",
+              border: `1px solid ${isDone ? "transparent" : "rgba(168,85,247,0.4)"}`,
               zIndex: 10,
               willChange: "transform"
             }}
           >
             {isDone ? (isShortlisted ? <CheckCircle size={32} color="white" /> : <Shield size={32} color="white" />) : (
-              <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 2, repeat: Infinity }} style={{ willChange: "opacity" }}>
-                <div style={{ width: 22, height: 22, background: "white", borderRadius: "50%", boxShadow: "0 0 16px white" }} />
+              <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity }} style={{ willChange: "opacity" }}>
+                <div style={{ width: 22, height: 22, background: "white", borderRadius: "50%", boxShadow: "0 0 20px white" }} />
               </motion.div>
             )}
           </motion.div>
         </div>
 
         {/* Premium Typography */}
-        <h2 style={{ fontSize: "clamp(24px, 5vw, 28px)", fontWeight: 800, marginBottom: 12, letterSpacing: "-0.02em", background: "linear-gradient(to right, #fff, #a1a1aa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+        <h2 style={{ fontSize: "clamp(24px, 5vw, 28px)", fontWeight: 800, marginBottom: 12, letterSpacing: "-0.02em", background: "linear-gradient(to right, #ffffff, #d4d4d8)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
           {status === "uploading" ? "Uploading..." : isDone ? (isShortlisted ? "You're Shortlisted!" : "Application Received") : "Review in Progress"}
         </h2>
         
-        <p style={{ color: "var(--text-secondary)", fontSize: 15, lineHeight: 1.6, marginBottom: 36, maxWidth: 400, margin: "0 auto 36px" }}>
+        <p style={{ color: "var(--text-secondary)", fontSize: 15, lineHeight: 1.6, marginBottom: 36, maxWidth: 360, margin: "0 auto 36px" }}>
           {isDone
             ? isShortlisted
               ? "Our AI has completed the review. Your interview link has been sent to your email."
@@ -763,18 +765,18 @@ function ScreeningScreen({ status, message, referenceId }: { status: ScreeningSt
         {/* Progress Percentage */}
         {!isDone && status === "screening" && (
           <div style={{ marginBottom: 32 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 10, padding: "0 4px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, fontWeight: 700, color: "var(--text-secondary)", marginBottom: 12, padding: "0 4px" }}>
               <span>Processing...</span>
               <span style={{ color: "var(--purple-light)" }}>{Math.floor(progress)}%</span>
             </div>
-            <div style={{ height: 8, background: "rgba(255,255,255,0.06)", borderRadius: 6, overflow: "hidden", position: "relative" }}>
+            <div style={{ height: 6, background: "rgba(255,255,255,0.04)", borderRadius: 6, overflow: "hidden", position: "relative", border: "1px solid rgba(255,255,255,0.05)", boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5)" }}>
               <motion.div 
-                style={{ position: "absolute", top: 0, left: 0, bottom: 0, background: "linear-gradient(90deg, #7c3aed, #3b82f6)", width: `${progress}%` }}
+                style={{ position: "absolute", top: 0, left: 0, bottom: 0, background: "linear-gradient(90deg, #7c3aed, #a855f7, #60a5fa)", width: `${progress}%`, boxShadow: "0 0 10px rgba(168,85,247,0.5)" }}
                 initial={{ width: 0 }}
                 animate={{ width: `${progress}%` }}
                 transition={{ type: "tween", ease: "linear" }}
               >
-                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)", animation: "shimmer 2s infinite" }} />
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent)", animation: "shimmer 1.5s infinite" }} />
               </motion.div>
             </div>
           </div>
@@ -782,44 +784,46 @@ function ScreeningScreen({ status, message, referenceId }: { status: ScreeningSt
 
         {/* Premium Timeline */}
         {!isDone && (
-          <div style={{ textAlign: "left", background: "rgba(255,255,255,0.02)", padding: "24px", borderRadius: 16, border: "1px solid rgba(255,255,255,0.04)", position: "relative" }}>
-            {steps.map((step, i) => {
-              const isPast = currentStep > i;
-              const isActive = currentStep === i;
-              const isFuture = currentStep < i;
-              
-              return (
-                <div key={i} style={{ display: "flex", gap: 16, position: "relative", paddingBottom: i === steps.length - 1 ? 0 : 22, opacity: isFuture ? 0.3 : 1, transition: "opacity 0.4s ease" }}>
-                  {/* Connecting Line */}
-                  {i < steps.length - 1 && (
-                    <div style={{ position: "absolute", left: 11, top: 26, bottom: 0, width: 2, background: isPast ? "var(--purple-light)" : "rgba(255,255,255,0.08)", transition: "background 0.5s ease" }} />
-                  )}
-                  
-                  {/* Step Indicator */}
-                  <div style={{ position: "relative", zIndex: 2 }}>
-                    {isPast ? (
-                      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} style={{ width: 24, height: 24, borderRadius: "50%", background: "var(--purple)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 12px rgba(168,85,247,0.4)" }}>
-                        <Check size={13} color="white" strokeWidth={3} />
-                      </motion.div>
-                    ) : isActive ? (
-                      <div style={{ width: 24, height: 24, borderRadius: "50%", border: "2px solid var(--purple-light)", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(168,85,247,0.1)", boxShadow: "0 0 18px rgba(168,85,247,0.25)" }}>
-                        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }} style={{ position: "absolute", inset: -3, borderRadius: "50%", border: "2px solid transparent", borderTopColor: "var(--purple)" }} />
-                        <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--purple-light)", boxShadow: "0 0 8px var(--purple-light)" }} />
-                      </div>
-                    ) : (
-                      <div style={{ width: 24, height: 24, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.1)", background: "var(--bg-primary)" }} />
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <div style={{ textAlign: "left", display: "inline-block", background: "linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)", padding: "28px 36px 28px 24px", borderRadius: 20, border: "1px solid rgba(255,255,255,0.05)", boxShadow: "0 10px 30px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.05)" }}>
+              {steps.map((step, i) => {
+                const isPast = currentStep > i;
+                const isActive = currentStep === i;
+                const isFuture = currentStep < i;
+                
+                return (
+                  <div key={i} style={{ display: "flex", gap: 18, position: "relative", paddingBottom: i === steps.length - 1 ? 0 : 28, opacity: isFuture ? 0.35 : 1, transition: "opacity 0.4s ease" }}>
+                    {/* Connecting Line */}
+                    {i < steps.length - 1 && (
+                      <div style={{ position: "absolute", left: 11, top: 28, bottom: 0, width: 2, background: isPast ? "var(--purple)" : isActive ? "linear-gradient(to bottom, var(--purple-light), rgba(255,255,255,0.05))" : "rgba(255,255,255,0.06)", transition: "background 0.5s ease" }} />
                     )}
+                    
+                    {/* Step Indicator */}
+                    <div style={{ position: "relative", zIndex: 2, marginTop: 2 }}>
+                      {isPast ? (
+                        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} style={{ width: 24, height: 24, borderRadius: "50%", background: "var(--purple)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 16px rgba(168,85,247,0.5)" }}>
+                          <Check size={14} color="white" strokeWidth={3.5} />
+                        </motion.div>
+                      ) : isActive ? (
+                        <div style={{ width: 24, height: 24, borderRadius: "50%", border: "2px solid var(--purple-light)", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(168,85,247,0.15)", boxShadow: "0 0 20px rgba(168,85,247,0.4)" }}>
+                          <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }} style={{ position: "absolute", inset: -4, borderRadius: "50%", border: "2px solid transparent", borderTopColor: "var(--purple-light)" }} />
+                          <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 1.5, repeat: Infinity }} style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--purple-light)", boxShadow: "0 0 10px var(--purple-light)" }} />
+                        </div>
+                      ) : (
+                        <div style={{ width: 24, height: 24, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.15)", background: "rgba(0,0,0,0.3)" }} />
+                      )}
+                    </div>
+                    
+                    {/* Step Text */}
+                    <div style={{ paddingTop: 3 }}>
+                      <span style={{ fontSize: 15, fontWeight: isActive ? 600 : 500, letterSpacing: "-0.01em", color: isPast ? "var(--text-primary)" : isActive ? "white" : "var(--text-secondary)", transition: "color 0.3s ease", textShadow: isActive ? "0 0 12px rgba(168,85,247,0.5)" : "none" }}>
+                        {step}
+                      </span>
+                    </div>
                   </div>
-                  
-                  {/* Step Text */}
-                  <div style={{ paddingTop: 2 }}>
-                    <span style={{ fontSize: 14, fontWeight: isActive ? 600 : 500, color: isPast ? "var(--text-primary)" : isActive ? "var(--purple-light)" : "var(--text-secondary)", transition: "color 0.3s ease" }}>
-                      {step}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         )}
 
