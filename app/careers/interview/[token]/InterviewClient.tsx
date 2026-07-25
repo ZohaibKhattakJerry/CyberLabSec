@@ -113,7 +113,11 @@ export default function InterviewClient({ sessionId, _token, applicantName, _app
     };
   }, [phase]);
 
+  const [isStarting, setIsStarting] = useState(false);
+
   const handleStartInterview = async () => {
+    if (isStarting) return;
+    setIsStarting(true);
     try {
       const res = await fetch("/api/interview/start", {
         method: "POST",
@@ -128,6 +132,8 @@ export default function InterviewClient({ sessionId, _token, applicantName, _app
     } catch (e) {
       console.error(e);
       setPhase("interview");
+    } finally {
+      setIsStarting(false);
     }
   };
 
@@ -231,7 +237,7 @@ export default function InterviewClient({ sessionId, _token, applicantName, _app
   // ── INTRO PHASE ──
   if (phase === "intro") {
     return (
-      <IntroPhase applicantName={applicantName} jobTitle={jobTitle} questions={questions} attempts={attempts} maxAttempts={maxAttempts} onStart={handleStartInterview} />
+      <IntroPhase applicantName={applicantName} jobTitle={jobTitle} questions={questions} attempts={attempts} maxAttempts={maxAttempts} onStart={handleStartInterview} isStarting={isStarting} />
     );
   }
 
@@ -591,7 +597,7 @@ export default function InterviewClient({ sessionId, _token, applicantName, _app
 
 import { ClipboardList, RefreshCw } from "lucide-react";
 
-function IntroPhase({ applicantName, jobTitle, questions, attempts, maxAttempts, onStart }: { applicantName: string; jobTitle: string; questions: Question[]; attempts: number; maxAttempts: number; onStart: () => void }) {
+function IntroPhase({ applicantName, jobTitle, questions, attempts, maxAttempts, onStart, isStarting }: { applicantName: string; jobTitle: string; questions: Question[]; attempts: number; maxAttempts: number; onStart: () => void; isStarting?: boolean }) {
   const [consent, setConsent] = useState(false);
   
   return (
@@ -643,8 +649,8 @@ function IntroPhase({ applicantName, jobTitle, questions, attempts, maxAttempts,
           </span>
         </label>
 
-        <button className="btn btn-primary btn-lg" style={{ width: "100%", padding: 16, fontSize: 15 }} onClick={onStart} disabled={!consent}>
-          Acknowledge & Start Interview <ChevronRight size={18} style={{ marginLeft: 4 }} />
+        <button className="btn btn-primary btn-lg" style={{ width: "100%", padding: 16, fontSize: 15 }} onClick={onStart} disabled={!consent || isStarting}>
+          {isStarting ? "Starting..." : <>Acknowledge & Start Interview <ChevronRight size={18} style={{ marginLeft: 4 }} /></>}
         </button>
       </motion.div>
     </Layout>
