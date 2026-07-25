@@ -579,7 +579,7 @@ function IntroPhase({ applicantName, jobTitle, questions, attempts, maxAttempts,
   return (
     <Layout>
       <motion.div className="card" style={{ maxWidth: 680, width: "100%", padding: 48, border: "1px solid var(--border-subtle)" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 12, letterSpacing: "-0.02em", color: "var(--text-primary)" }}>Welcome, {applicantName.split(" ")[0]}</h1>
+        <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 12, letterSpacing: "-0.02em", color: "var(--text-primary)" }}>Welcome, {applicantName}</h1>
         <p style={{ color: "var(--text-secondary)", marginBottom: 36, fontSize: 15, lineHeight: 1.6 }}>You are about to begin your technical interview for the <strong style={{ color: "var(--text-primary)", fontWeight: 600 }}>{jobTitle}</strong> position.</p>
         
         <div className="grid-mobile-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 32 }}>

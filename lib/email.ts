@@ -148,7 +148,7 @@ const pipeline = (activeStage: 'Reviewing' | 'Interview' | 'Decision') => {
 
 // ─── Shared Exports ────────────────────────────────────────────────────────
 export async function sendInterviewInvite(toEmail: string, applicantName: string, jobTitle: string, interviewLink: string, expiryHours: number = 48) {
-  const firstName = applicantName.split(" ")[0];
+  const firstName = applicantName;
   await transporter.sendMail({
     from: FROM, to: toEmail,
     subject: `You've Been Shortlisted! Technical Assessment for ${jobTitle} | CyberLabSec`,
@@ -180,7 +180,7 @@ export async function sendInterviewInvite(toEmail: string, applicantName: string
 }
 
 export async function sendDeclineEmail(toEmail: string, applicantName: string, jobTitle: string) {
-  const firstName = applicantName.split(" ")[0];
+  const firstName = applicantName;
   await transporter.sendMail({
     from: FROM, to: toEmail, subject: `CyberLabSec — Update on Your Application for ${jobTitle}`,
     html: `
@@ -203,7 +203,7 @@ export async function sendDeclineEmail(toEmail: string, applicantName: string, j
 }
 
 export async function sendEmployeeCredentials(toEmail: string, employeeName: string, employeeCode: string, temporaryPassword: string, portalUrl: string, offerLetterPdfBase64?: string, customMessage?: string) {
-  const firstName = employeeName.split(" ")[0];
+  const firstName = employeeName;
   await transporter.sendMail({
     from: FROM, to: toEmail, subject: `Welcome to the Team, ${firstName}! 🚀 — Your CyberLabSec Offer and Next Steps`,
     html: `
@@ -252,7 +252,7 @@ export async function sendEmployeeCredentials(toEmail: string, employeeName: str
 }
 
 export async function sendTerminationLetter(toEmail: string, employeeName: string, terminationLetterPdfBase64: string) {
-  const firstName = employeeName.split(" ")[0];
+  const firstName = employeeName;
   await transporter.sendMail({
     from: FROM, to: toEmail, subject: `CyberLabSec — Employment Status Notification`,
     html: `
@@ -310,7 +310,7 @@ export async function sendEmail({ to, subject, html, attachments }: { to: string
 }
 
 export async function sendCombinedShortlistEmail(toEmail: string, applicantName: string, jobTitle: string, referenceId: string, interviewLink: string, expiryHours: number = 48) {
-  const firstName = applicantName.split(" ")[0];
+  const firstName = applicantName;
   await transporter.sendMail({
     from: FROM, to: toEmail,
     subject: `Application Shortlisted — Technical Interview for ${jobTitle} | CyberLabSec`,
@@ -337,7 +337,7 @@ export async function sendCombinedShortlistEmail(toEmail: string, applicantName:
 }
 
 export async function sendApplicationReceivedEmail(toEmail: string, applicantName: string, jobTitle: string, referenceId: string, trackingUrl: string) {
-  const firstName = applicantName.split(" ")[0];
+  const firstName = applicantName;
   await transporter.sendMail({
     from: FROM, to: toEmail, subject: `Application Received — ${jobTitle} at CyberLabSec`,
     html: `
@@ -367,7 +367,7 @@ export async function sendApplicationReceivedEmail(toEmail: string, applicantNam
 }
 
 export async function sendStatusUpdateEmail(toEmail: string, applicantName: string, jobTitle: string, status: string, trackingUrl: string) {
-  const firstName = applicantName.split(" ")[0];
+  const firstName = applicantName;
   let pipelineStage: 'Reviewing' | 'Interview' | 'Decision' = 'Decision';
   if (status === 'Reviewing') pipelineStage = 'Reviewing';
   else if (status.includes('Interview')) pipelineStage = 'Interview';
@@ -398,7 +398,7 @@ export async function sendStatusUpdateEmail(toEmail: string, applicantName: stri
 }
 
 export async function sendInterviewCompleteEmail(toEmail: string, applicantName: string, jobTitle: string, status: string) {
-  const firstName = applicantName.split(" ")[0];
+  const firstName = applicantName;
   const isPass = status === "Selected – Waiting for Approval";
   const isCheat = status === "Cheating" || status === "Rejected";
   
@@ -438,7 +438,7 @@ export async function sendInterviewCompleteEmail(toEmail: string, applicantName:
 }
 
 export async function sendInterviewRetryEmail(toEmail: string, applicantName: string, jobTitle: string, score: number, attemptsLeft: number) {
-  const firstName = applicantName.split(" ")[0];
+  const firstName = applicantName;
   await transporter.sendMail({
     from: FROM, to: toEmail, subject: `Interview Attempt Failed — Retry Available | CyberLabSec`,
     html: `
@@ -467,7 +467,7 @@ export async function sendInterviewRetryEmail(toEmail: string, applicantName: st
 }
 
 export async function sendMeetingInvite(toEmail: string, participantName: string, meetingTitle: string, meetingTime: string, meetingLink: string) {
-  const firstName = participantName.split(" ")[0];
+  const firstName = participantName;
   await transporter.sendMail({
     from: FROM, to: toEmail, subject: `Meeting Scheduled: ${meetingTitle} | CyberLabSec`,
     html: `
@@ -492,7 +492,7 @@ export async function sendMeetingInvite(toEmail: string, participantName: string
 }
 
 export async function sendTaskAssigned(toEmail: string, assigneeName: string, taskTitle: string, priority: string, taskUrl: string) {
-  const firstName = assigneeName.split(" ")[0];
+  const firstName = assigneeName;
   await transporter.sendMail({
     from: FROM, to: toEmail, subject: `New Task Assigned: ${taskTitle} | CyberLabSec`,
     html: `
@@ -517,7 +517,7 @@ export async function sendTaskAssigned(toEmail: string, assigneeName: string, ta
 }
 
 export async function sendVerificationEmail(toEmail: string, userName: string, verificationCode: string, verificationUrl: string) {
-  const firstName = userName.split(" ")[0];
+  const firstName = userName;
   await transporter.sendMail({
     from: FROM, to: toEmail, subject: `Security Alert: Verify Your CyberLabSec Account`,
     html: `
@@ -557,7 +557,7 @@ export async function sendApplicantOTPEmail(toEmail: string, verificationCode: s
 }
 
 export async function sendOfferLetter(toEmail: string, applicantName: string, jobTitle: string, offerUrl: string, expiresInDays: number) {
-  const firstName = applicantName.split(" ")[0];
+  const firstName = applicantName;
   await transporter.sendMail({
     from: FROM, to: toEmail, subject: `Official Job Offer: ${jobTitle} | CyberLabSec`,
     html: `
@@ -593,7 +593,7 @@ export async function sendOfferLetter(toEmail: string, applicantName: string, jo
 }
 
 export async function sendHiredEmail(toEmail: string, applicantName: string, jobTitle: string) {
-  const firstName = applicantName.split(" ")[0];
+  const firstName = applicantName;
   await transporter.sendMail({
     from: FROM, to: toEmail, subject: `Welcome to CyberLabSec! You're Hired — ${jobTitle}`,
     html: `
