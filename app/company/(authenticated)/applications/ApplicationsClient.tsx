@@ -460,7 +460,7 @@ export default function ApplicationsClient({ applicants, postings, teams = [] }:
           {/* SELECTED – WAITING FOR APPROVAL */}
           {selectedStage === "Selected \u2013 Waiting for Approval" && (
             <>
-              <button className="btn btn-sm btn-primary" onClick={() => setShowBulkHireModal(true)} disabled={actionLoading}>
+              <button className="btn btn-sm btn-primary" onClick={() => { setActionTarget("bulk"); setShowBulkHireModal(true); }} disabled={actionLoading}>
                 <UserCheck size={13} /> Approve & Hire
               </button>
               <button className="btn btn-sm btn-secondary" onClick={() => { setActionTarget("bulk"); setShowRejectModal(true); }} disabled={actionLoading}>
@@ -734,7 +734,7 @@ export default function ApplicationsClient({ applicants, postings, teams = [] }:
                   <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
                     <div className="cm-section-label" style={{ marginBottom: 12 }}>Why CyberLabSec?</div>
                     <div style={{ padding: "24px", background: "rgba(168,85,247,0.04)", borderRadius: 12, border: "1px solid rgba(168,85,247,0.1)", flex: 1, overflowY: "auto" }}>
-                      <div className="cm-motivation" style={{ margin: 0, whiteSpace: "pre-wrap", lineHeight: 1.7, fontSize: 15, color: "var(--text-secondary)" }}>{selected.motivation}</div>
+                      <div className="cm-motivation" style={{ margin: 0, whiteSpace: "pre-wrap", wordBreak: "break-word", lineHeight: 1.7, fontSize: 15, color: "var(--text-secondary)" }}>{selected.motivation}</div>
                     </div>
                   </div>
                 )}
