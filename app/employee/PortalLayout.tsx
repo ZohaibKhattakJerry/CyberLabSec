@@ -288,10 +288,6 @@ export default function PortalLayout({ children, employee }: { children: React.R
               {employee.employeeCode}
             </div>
           </div>
-          
-          <div style={{ marginLeft: "auto" }}>
-            <NotificationBell isAdmin={false} placement="bottom-left" />
-          </div>
         </div>
         {employee.team && (
           <div className="emp-team-badge">
@@ -366,6 +362,19 @@ export default function PortalLayout({ children, employee }: { children: React.R
       {/* Main content */}
       <div className="main-content" style={{ position: "relative" }}>
         
+        {/* Desktop topbar */}
+        <div
+          className="desktop-topbar"
+          style={{
+            alignItems: "center", justifyContent: "flex-end",
+            padding: "0 24px", height: 56, borderBottom: "1px solid rgba(255,255,255,0.05)",
+            background: "rgba(7,5,15,0.9)", backdropFilter: "blur(20px)",
+            position: "sticky", top: 0, zIndex: 50, gap: 12,
+          }}
+        >
+          <NotificationBell isAdmin={false} placement="top-right" />
+        </div>
+
         {/* Mobile topbar */}
         <div
           className="mobile-topbar"
