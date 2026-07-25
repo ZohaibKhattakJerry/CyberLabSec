@@ -732,9 +732,9 @@ export default function ApplicationsClient({ applicants, postings, teams = [] }:
                 {/* Motivation Text (Spans height natively) */}
                 {selected.motivation && (
                   <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-                    <div className="cm-section-label">Why CyberLabSec?</div>
-                    <div style={{ padding: "20px", background: "rgba(168,85,247,0.04)", borderRadius: 12, border: "1px solid rgba(168,85,247,0.1)", flex: 1 }}>
-                      <p className="cm-motivation" style={{ margin: 0 }}>{selected.motivation}</p>
+                    <div className="cm-section-label" style={{ marginBottom: 12 }}>Why CyberLabSec?</div>
+                    <div style={{ padding: "24px", background: "rgba(168,85,247,0.04)", borderRadius: 12, border: "1px solid rgba(168,85,247,0.1)", flex: 1, overflowY: "auto" }}>
+                      <div className="cm-motivation" style={{ margin: 0, whiteSpace: "pre-wrap", lineHeight: 1.7, fontSize: 15, color: "var(--text-secondary)" }}>{selected.motivation}</div>
                     </div>
                   </div>
                 )}
@@ -755,9 +755,6 @@ export default function ApplicationsClient({ applicants, postings, teams = [] }:
                       </button>
                       <button className="btn btn-secondary" onClick={() => { setActionTarget("single"); setShowRejectModal(true); }} disabled={actionLoading}>
                         <X size={15} /> Reject
-                      </button>
-                      <button className="btn btn-danger" onClick={handleSingleDelete} disabled={actionLoading}>
-                        {actionLoading ? <Loader2 size={15} className="spin" /> : <Trash2 size={15} />} Delete
                       </button>
                     </div>
                   )}
