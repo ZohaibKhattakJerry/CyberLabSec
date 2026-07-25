@@ -297,18 +297,19 @@ export default function PostingsClient({ postings }: { postings: Posting[] }) {
       {/* Create / Edit Modal (2-Step Wizard) */}
       {showForm && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 24, overflowY: "auto" }}>
-          <div className="card" style={{ maxWidth: step === 1 ? 620 : 1000, width: "100%", padding: 32, margin: "auto", transition: "max-width 0.3s ease" }}>
+          <div className="card" style={{ position: "relative", maxWidth: step === 1 ? 620 : 1000, width: "100%", padding: 32, margin: "auto", transition: "max-width 0.3s ease" }}>
             
-            <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24, borderBottom: "1px solid var(--border)", paddingBottom: 16 }}>
-              <div>
-                <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--purple)", marginBottom: 4 }}>
-                  {step === 1 ? "Step 1: Job Details" : "Step 2: Jobs Bank"}
-                </h2>
-                <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>
-                  {step === 1 ? "Provide the fundamental details about this job posting." : "Manage MCQs and Scenario questions before publishing."}
-                </p>
-              </div>
-              <button onClick={() => setShowForm(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}><X size={20} /></button>
+            <button onClick={() => setShowForm(false)} style={{ position: "absolute", top: 24, right: 24, background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: 4, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.2s" }} onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.05)"} onMouseLeave={e => e.currentTarget.style.background = "none"}>
+              <X size={20} />
+            </button>
+
+            <div style={{ marginBottom: 24, borderBottom: "1px solid var(--border)", paddingBottom: 16, paddingRight: 32 }}>
+              <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--purple)", marginBottom: 4 }}>
+                {step === 1 ? "Step 1: Job Details" : "Step 2: Jobs Bank"}
+              </h2>
+              <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+                {step === 1 ? "Provide the fundamental details about this job posting." : "Manage MCQs and Scenario questions before publishing."}
+              </p>
             </div>
 
             {msg && <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#ef4444", padding: "10px 14px", borderRadius: 8, marginBottom: 20, fontSize: 14 }}>{msg}</div>}

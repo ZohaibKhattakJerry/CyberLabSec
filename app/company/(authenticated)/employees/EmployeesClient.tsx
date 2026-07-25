@@ -548,10 +548,12 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
       {/* Terminate Employee Modal */}
       {terminateEmployee && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 10000, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-          <div className="card" style={{ maxWidth: 500, width: "100%", padding: 32 }}>
-            <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+          <div className="card" style={{ position: "relative", maxWidth: 500, width: "100%", padding: 32 }}>
+            <button onClick={() => setTerminateEmployee(null)} style={{ position: "absolute", top: 24, right: 24, background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: 4, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.2s" }} onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.05)"} onMouseLeave={e => e.currentTarget.style.background = "none"}>
+              <X size={18} />
+            </button>
+            <div style={{ marginBottom: 24, paddingRight: 32 }}>
               <h2 style={{ fontSize: 18, fontWeight: 700, color: "var(--red)" }}>Confirm Termination</h2>
-              <button onClick={() => setTerminateEmployee(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}><X size={18} /></button>
             </div>
             
             <div style={{ marginBottom: 16 }}>
@@ -586,10 +588,12 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
       {/* Direct Hire Modal */}
       {showDirectHire && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-          <div className="card" style={{ maxWidth: 500, width: "100%", maxHeight: "90vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <div style={{ padding: 24, borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
+          <div className="card" style={{ position: "relative", maxWidth: 500, width: "100%", maxHeight: "90vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+            <button onClick={() => setShowDirectHire(false)} style={{ position: "absolute", top: 24, right: 24, background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: 4, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.2s", zIndex: 10 }} onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.05)"} onMouseLeave={e => e.currentTarget.style.background = "none"}>
+              <X size={18} />
+            </button>
+            <div style={{ padding: 24, borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0, paddingRight: 48 }}>
               <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Direct Hire</h2>
-              <button onClick={() => setShowDirectHire(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: 0 }}><X size={18} /></button>
             </div>
             
             <form onSubmit={submitDirectHire} style={{ overflowY: "auto", padding: 24, display: "grid", gap: 16 }}>
@@ -701,10 +705,12 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
       {/* Edit Modal */}
       {editEmployee && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-          <div className="card" style={{ maxWidth: 480, width: "100%", padding: 32, maxHeight: "90vh", overflowY: "auto" }}>
-            <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+          <div className="card" style={{ position: "relative", maxWidth: 480, width: "100%", padding: 32, maxHeight: "90vh", overflowY: "auto" }}>
+            <button onClick={() => setEditEmployee(null)} style={{ position: "absolute", top: 24, right: 24, background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: 4, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.2s" }} onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.05)"} onMouseLeave={e => e.currentTarget.style.background = "none"}>
+              <X size={18} />
+            </button>
+            <div style={{ marginBottom: 24, paddingRight: 32 }}>
               <h2 style={{ fontSize: 16, fontWeight: 700 }}>Edit Employee — {editEmployee.name}</h2>
-              <button onClick={() => setEditEmployee(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}><X size={18} /></button>
             </div>
             <div style={{ display: "grid", gap: 16 }}>
               <div>
@@ -779,10 +785,12 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
       {/* Analytics Modal */}
       {analyticsEmployee && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-          <div className="card" style={{ maxWidth: 600, width: "100%", padding: 32, maxHeight: "90vh", overflowY: "auto" }}>
-            <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+          <div className="card" style={{ position: "relative", maxWidth: 600, width: "100%", padding: 32, maxHeight: "90vh", overflowY: "auto" }}>
+            <button onClick={() => setAnalyticsEmployee(null)} style={{ position: "absolute", top: 24, right: 24, background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: 4, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.2s" }} onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.05)"} onMouseLeave={e => e.currentTarget.style.background = "none"}>
+              <X size={18} />
+            </button>
+            <div style={{ marginBottom: 24, paddingRight: 32 }}>
               <h2 style={{ fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", gap: 8 }}><Award size={18} color="var(--purple)" /> Performance Analytics</h2>
-              <button onClick={() => setAnalyticsEmployee(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}><X size={18} /></button>
             </div>
             
             <div style={{ marginBottom: 24 }}>
@@ -845,12 +853,14 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
       {/* Offboarding Modal */}
       {offboardEmployee && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-          <div className="card" style={{ maxWidth: 520, width: "100%", padding: 32 }}>
-            <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <div className="card" style={{ position: "relative", maxWidth: 520, width: "100%", padding: 32 }}>
+            <button onClick={() => setOffboardEmployee(null)} style={{ position: "absolute", top: 24, right: 24, background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: 4, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.2s" }} onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.05)"} onMouseLeave={e => e.currentTarget.style.background = "none"}>
+              <X size={18} />
+            </button>
+            <div style={{ marginBottom: 20, paddingRight: 32 }}>
               <h2 style={{ fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", gap: 8 }}>
                 <UserMinus size={18} color="var(--red)" /> Offboard Employee
               </h2>
-              <button onClick={() => setOffboardEmployee(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}><X size={18} /></button>
             </div>
 
             <div style={{ padding: "12px 16px", background: "rgba(168,85,247,0.06)", borderRadius: 8, border: "1px solid rgba(168,85,247,0.15)", marginBottom: 20, fontSize: 13, color: "var(--text-secondary)" }}>
@@ -955,12 +965,14 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
       {/* Award Badge Modal */}
       {badgeEmployee && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-          <div className="card" style={{ maxWidth: 480, width: "100%", padding: 32 }}>
-            <div className="flex-mobile-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+          <div className="card" style={{ position: "relative", maxWidth: 480, width: "100%", padding: 32 }}>
+            <button onClick={() => setBadgeEmployee(null)} style={{ position: "absolute", top: 24, right: 24, background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: 4, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.2s" }} onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.05)"} onMouseLeave={e => e.currentTarget.style.background = "none"}>
+              <X size={18} />
+            </button>
+            <div style={{ marginBottom: 24, paddingRight: 32 }}>
               <h2 style={{ fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", gap: 8 }}>
                 <Star size={18} color="var(--amber)" /> Award Badge to {badgeEmployee.name}
               </h2>
-              <button onClick={() => setBadgeEmployee(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}><X size={18} /></button>
             </div>
             
             <form onSubmit={submitAwardBadge} style={{ display: "grid", gap: 16 }}>
