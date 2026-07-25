@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Normalize score to 100
+  // Normalize score to 100 for display purposes only
   const normalizedScore = maxPossibleScore > 0 ? Math.round((totalScore / maxPossibleScore) * 100) : 0;
   const avgAiLikelihood = openAnswerCount > 0 ? aiLikelihoodTotal / openAnswerCount : 0;
 
@@ -88,13 +88,13 @@ export async function POST(req: NextRequest) {
     earnedPoints: totalScore,
     normalizedScore,
     passMark,
-    decision: (terminated || normalizedScore < passMark) ? "FAIL" : "PASS",
+    decision: (terminated || totalScore < passMark) ? "FAIL" : "PASS",
     suspicionScore, terminated,
     attempts: session.attempts, maxAttempts: session.maxAttempts
   });
 
-  // Pass fail based on normalized percentage score as requested by user
-  const isFail = terminated || normalizedScore < passMark;
+  // Pass fail based on RAW points as explicitly requested by user
+  const isFail = terminated || totalScore < passMark;
   // Attempt was already incremented when they clicked start.
   const newAttempts = session.attempts;
   const hasMoreAttempts = isFail && newAttempts < session.maxAttempts;
@@ -138,11 +138,11 @@ export async function POST(req: NextRequest) {
     // We do NOT send an email on intermediate retries per user request.
     // The UI handles showing the retry state to the user.
 
-    return NextResponse.json({ result: "Retry", score: normalizedScore, terminated });
+    return NextResponse.json({ result: "Retry", score: totalScore, terminated });
   }
 
   // Final submission (Passed, or Failed out of attempts)
-  const result = terminated ? "Cheating" : normalizedScore >= passMark ? "Passed" : "Failed";
+  const result = terminated ? "Cheating" : totalScore >= passMark ? "Passed" : "Failed";
   const newStatus = result === "Passed" ? "Selected – Waiting for Approval" : "Interview Failed";
 
   try {
@@ -155,7 +155,7 @@ export async function POST(req: NextRequest) {
           answers: JSON.stringify(answers),
           perQuestionScore: JSON.stringify(perQuestionScore),
           cheatingSignals: JSON.stringify({ ...cheatingSignals, avgAiLikelihood, suspicionScore }),
-          totalScore: normalizedScore, // Save normalized score as the final score
+          totalScore: totalScore, // Save raw score as requested by user
           result,
           completedAt: new Date(),
         },
@@ -170,7 +170,7 @@ export async function POST(req: NextRequest) {
         data: {
           userId: "admin",
           title: "Interview Completed",
-          message: `${session.applicant.fullName} scored ${normalizedScore}% for ${session.applicant.jobPosting.title}`,
+          message: `${session.applicant.fullName} scored ${totalScore} pts for ${session.applicant.jobPosting.title}`,
           type: "Interview",
           link: "/company/applications"
         }
@@ -182,7 +182,7 @@ export async function POST(req: NextRequest) {
     // Just try to update the session and applicant at minimum
     await prisma.interviewSession.update({
       where: { id: sessionId },
-      data: { result, totalScore: normalizedScore, completedAt: new Date(), attempts: newAttempts, tokenUsed: true }
+      data: { result, totalScore: totalScore, completedAt: new Date(), attempts: newAttempts, tokenUsed: true }
     });
     await prisma.applicant.update({
       where: { id: session.applicantId },
@@ -190,5 +190,5 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  return NextResponse.json({ result, score: normalizedScore, terminated });
+  return NextResponse.json({ result, score: totalScore, terminated });
 }
