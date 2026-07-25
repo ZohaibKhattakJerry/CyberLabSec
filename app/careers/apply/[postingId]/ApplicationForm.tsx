@@ -395,6 +395,7 @@ export default function ApplicationForm({ posting }: { posting: Posting }) {
                           <button onClick={(e) => { e.stopPropagation(); setCvFile(null); }} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}><X size={16} /></button>
                         </div>
                       ) : (
+                        <>
                           <Upload size={28} style={{ margin: "0 auto 10px", color: "var(--text-muted)" }} />
                           <p style={{ fontSize: 14, color: "var(--text-secondary)", margin: 0 }}>Drop CV here or click to browse</p>
                           <p style={{ fontSize: 13, color: "var(--purple)", marginTop: 8, fontWeight: 600 }}>Accepted Formats: PDF, DOC, DOCX (Max: 5MB)</p>
