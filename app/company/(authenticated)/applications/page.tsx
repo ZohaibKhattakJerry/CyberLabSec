@@ -19,8 +19,12 @@ export default async function ApplicationsPage() {
     },
   });
 
+  const teams = await prisma.team.findMany({
+    select: { id: true, name: true },
+    orderBy: { name: "asc" }
+  });
+
   const serialized = applicants.map((a: any) => {
-    // Exclude large base64 strings from the initial payload to prevent Next.js page data size crashes
     const { cvFileUrl, photoUrl, ...rest } = a;
     return {
       ...rest,
@@ -36,5 +40,5 @@ export default async function ApplicationsPage() {
     };
   });
 
-  return <ApplicationsClient applicants={serialized} postings={postings} />;
+  return <ApplicationsClient applicants={serialized} postings={postings} teams={teams} />;
 }

@@ -66,7 +66,7 @@ const STATUS_ACCENT: Record<string, string> = {
 // Which stages allow checkbox selection
 const SELECTABLE_STAGES = ["Reviewing", "Invited for Interview", "Interview Failed", "Selected \u2013 Waiting for Approval", "Rejected"];
 
-export default function ApplicationsClient({ applicants, postings }: { applicants: Applicant[]; postings: Posting[] }) {
+export default function ApplicationsClient({ applicants, postings, teams = [] }: { applicants: Applicant[]; postings: Posting[]; teams?: {id: string, name: string}[] }) {
   const router = useRouter();
   const [_isPending, startTransition] = useTransition();
   const [search, setSearch] = useState("");
@@ -93,7 +93,9 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
     startingSalary: "",
     expectedJoinDate: "",
     durationMonths: "",
-    employmentType: "Intern"
+    employmentType: "Intern",
+    tier: "Standard",
+    teamId: ""
   });
 
   const openModal = (a: Applicant) => {
@@ -880,67 +882,90 @@ export default function ApplicationsClient({ applicants, postings }: { applicant
       {/* ====== HIRE & OFFER MODAL ====== */}
       {showBulkHireModal && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(6px)", zIndex: 10001, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-          <div className="card" style={{ position: "relative", maxWidth: 500, width: "100%", maxHeight: "90vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <button onClick={() => setShowBulkHireModal(false)} style={{ position: "absolute", top: 24, right: 24, background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: 4, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.2s", zIndex: 10 }}>
+          <div className="card" style={{ position: "relative", maxWidth: 500, width: "100%", maxHeight: "95vh", display: "flex", flexDirection: "column", overflow: "hidden", padding: 0 }}>
+            <button onClick={() => setShowBulkHireModal(false)} style={{ position: "absolute", top: 20, right: 20, background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: 4, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.2s", zIndex: 10 }}>
               <X size={18} />
             </button>
-            <div style={{ padding: 24, borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0, paddingRight: 48 }}>
+            
+            <div style={{ padding: "24px 24px 20px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0, paddingRight: 48 }}>
               <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
                 <UserCheck size={18} color="var(--green)" /> 
                 {actionTarget === "bulk" ? `Approve & Hire ${selectedIds.length} Candidate(s)` : "Approve & Hire Candidate"}
               </h2>
             </div>
             
-            <form onSubmit={submitHire} style={{ overflowY: "auto", padding: 24, display: "grid", gap: 16 }}>
-              <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0 }}>
-                This will officially hire the candidate(s), generate employee credentials, and send them an Offer Letter via email.
-              </p>
-              
-              <div>
-                <label className="label label-required">Offer Letter (PDF)</label>
-                <input type="file" accept="application/pdf" className="input" onChange={handleOfferUpload} required style={{ padding: "8px 12px", width: "100%" }} />
-                <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 6 }}>This PDF will be sent to the candidate.</p>
-              </div>
-              
-              <div className="flex-mobile-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <div style={{ flex: 1, overflowY: "auto", padding: "0" }}>
+              <form id="hireForm" onSubmit={submitHire} style={{ display: "grid", gap: 20, padding: 24, margin: 0 }}>
+                <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0 }}>
+                  This will officially hire the candidate(s), generate employee credentials, and send them an Offer Letter via email.
+                </p>
+                
                 <div>
-                  <label className="label">Employment Type</label>
-                  <select className="input" value={hireForm.employmentType} onChange={e => setHireForm({...hireForm, employmentType: e.target.value})} style={{ width: "100%" }}>
-                    <option value="Intern">Intern</option>
-                    <option value="Full-Time">Full-Time</option>
-                    <option value="Contract">Contract</option>
-                    <option value="Part-Time">Part-Time</option>
-                  </select>
+                  <label className="label label-required">Offer Letter (PDF)</label>
+                  <input type="file" accept="application/pdf" className="input" onChange={handleOfferUpload} required style={{ padding: "8px 12px", width: "100%" }} />
+                  <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 6 }}>This PDF will be sent to the candidate.</p>
                 </div>
-                <div>
-                  <label className="label">Starting Salary</label>
-                  <input type="text" className="input" placeholder="e.g. $5,000 / month" value={hireForm.startingSalary} onChange={e => setHireForm({...hireForm, startingSalary: e.target.value})} style={{ width: "100%" }} />
+                
+                <div className="flex-mobile-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                  <div>
+                    <label className="label">Employment Type</label>
+                    <select className="input" value={hireForm.employmentType} onChange={e => setHireForm({...hireForm, employmentType: e.target.value})} style={{ width: "100%" }}>
+                      <option value="Employee">Employee</option>
+                      <option value="Intern">Intern</option>
+                      <option value="Contract">Contract</option>
+                      <option value="Part-Time">Part-Time</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="label">Starting Salary</label>
+                    <input type="text" className="input" placeholder="e.g. $5,000 / month" value={hireForm.startingSalary} onChange={e => setHireForm({...hireForm, startingSalary: e.target.value})} style={{ width: "100%" }} />
+                  </div>
                 </div>
-              </div>
 
-              <div className="flex-mobile-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                <div>
-                  <label className="label">Expected Start Date</label>
-                  <input type="date" className="input" value={hireForm.expectedJoinDate} onChange={e => setHireForm({...hireForm, expectedJoinDate: e.target.value})} style={{ width: "100%" }} />
+                <div className="flex-mobile-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                  <div>
+                    <label className="label label-required">Expected Start Date</label>
+                    <input type="date" required className="input" value={hireForm.expectedJoinDate} onChange={e => setHireForm({...hireForm, expectedJoinDate: e.target.value})} style={{ width: "100%" }} />
+                  </div>
+                  <div>
+                    <label className="label label-required">Duration (Months)</label>
+                    <input type="number" required min="1" max="60" className="input" placeholder="e.g. 6" value={hireForm.durationMonths} onChange={e => setHireForm({...hireForm, durationMonths: e.target.value})} style={{ width: "100%" }} />
+                  </div>
                 </div>
-                <div>
-                  <label className="label">Duration (Months)</label>
-                  <input type="number" min="1" max="60" className="input" placeholder="e.g. 6" value={hireForm.durationMonths} onChange={e => setHireForm({...hireForm, durationMonths: e.target.value})} style={{ width: "100%" }} />
+
+                <div className="flex-mobile-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                  <div>
+                    <label className="label">Tier</label>
+                    <select className="input" value={hireForm.tier} onChange={e => setHireForm({...hireForm, tier: e.target.value})} style={{ width: "100%" }}>
+                      <option value="Standard">Standard</option>
+                      <option value="Lead">Lead</option>
+                      <option value="Executive">Executive</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="label">Team Assignment</label>
+                    <select className="input" value={hireForm.teamId} onChange={e => setHireForm({...hireForm, teamId: e.target.value})} style={{ width: "100%" }}>
+                      <option value="">Unassigned</option>
+                      {teams.map(t => (
+                        <option key={t.id} value={t.id}>{t.name}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <label className="label">Custom Welcome Message (Optional)</label>
-                <textarea className="input" rows={3} placeholder="Add a personal note to the offer email..." value={hireForm.customMessage} onChange={e => setHireForm({...hireForm, customMessage: e.target.value})} style={{ width: "100%" }} />
-              </div>
-
-              <div className="flex-mobile-col" style={{ display: "flex", gap: 12, marginTop: 12 }}>
-                <button type="button" className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setShowBulkHireModal(false)} disabled={actionLoading}>Cancel</button>
-                <button type="submit" className="btn btn-primary" style={{ flex: 1 }} disabled={actionLoading || !hireForm.offerLetterBase64}>
-                  {actionLoading ? <Loader2 size={14} className="spin" /> : <UserCheck size={14} />} Confirm & Hire
-                </button>
-              </div>
-            </form>
+                <div>
+                  <label className="label">Custom Welcome Message (Optional)</label>
+                  <textarea className="input" rows={3} placeholder="Add a personal note to the offer email..." value={hireForm.customMessage} onChange={e => setHireForm({...hireForm, customMessage: e.target.value})} style={{ width: "100%", resize: "none" }} />
+                </div>
+              </form>
+            </div>
+            
+            <div style={{ padding: "16px 24px", borderTop: "1px solid var(--border)", display: "flex", gap: 12, backgroundColor: "var(--background-secondary)" }}>
+              <button type="button" className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setShowBulkHireModal(false)} disabled={actionLoading}>Cancel</button>
+              <button type="submit" form="hireForm" className="btn btn-primary" style={{ flex: 1 }} disabled={actionLoading || !hireForm.offerLetterBase64}>
+                {actionLoading ? <Loader2 size={14} className="spin" /> : <UserCheck size={14} />} Confirm & Hire
+              </button>
+            </div>
           </div>
         </div>
       )}
