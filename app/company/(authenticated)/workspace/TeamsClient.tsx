@@ -267,12 +267,11 @@ export default function TeamsClient({
         .ws-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, rgba(99,102,241,0.3), rgba(168,85,247,0.3)); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #c4b5fd; border: 2px solid rgba(99,102,241,0.2); flex-shrink: 0; }
 
         /* Kanban */
-        .ws-kanban { display: grid; grid-template-columns: repeat(5, minmax(210px, 1fr)); gap: 14px; overflow-x: auto; padding-bottom: 20px; }
-        @media (max-width: 1100px) { .ws-kanban { grid-template-columns: repeat(3, minmax(210px, 1fr)); } }
-        @media (max-width: 700px) { .ws-kanban { grid-template-columns: repeat(2, minmax(180px, 1fr)); } }
-        @media (max-width: 480px) { .ws-kanban { grid-template-columns: 1fr; } }
-
-        .ws-kanban-col { background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.07); border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 10px; min-height: 300px; }
+        .ws-kanban { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 20px; scroll-snap-type: x mandatory; scrollbar-width: none; -ms-overflow-style: none; align-items: flex-start; }
+        .ws-kanban::-webkit-scrollbar { display: none; }
+        .ws-kanban-col { background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.07); border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 10px; min-height: 300px; flex: 0 0 calc(20% - 12px); min-width: 260px; scroll-snap-align: start; }
+        @media (max-width: 1400px) { .ws-kanban-col { flex: 0 0 300px; } }
+        @media (max-width: 768px) { .ws-kanban-col { flex: 0 0 85%; min-width: 280px; } }
         .ws-kanban-col-header { display: flex; align-items: center; justify-content: space-between; padding: 0 2px 10px; border-bottom: 1px solid rgba(255,255,255,0.06); }
 
         /* Task card */
