@@ -146,8 +146,8 @@ export default function ProfileClient({ employee, activityLogs }: { employee: Em
             </div>
             
             <div style={{ padding: "50px 24px 24px 24px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
-                <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24, flexWrap: "wrap", gap: 16 }}>
+                <div style={{ minWidth: 200 }}>
                   <div style={{ fontSize: 22, fontWeight: 800, color: "var(--text-primary)" }}>{employee.name}</div>
                   <div style={{ fontSize: 14, color: "var(--purple)", fontWeight: 600, marginTop: 4 }}>{employee.designation}</div>
                 </div>
@@ -168,9 +168,9 @@ export default function ProfileClient({ employee, activityLogs }: { employee: Em
                     <div style={{ width: 28, height: 28, borderRadius: 8, background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)", flexShrink: 0 }}>
                       {r.icon}
                     </div>
-                    <div style={{ flex: 1, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <span style={{ fontSize: 13, color: "var(--text-muted)" }}>{r.label}</span>
-                      <span style={{ fontSize: 14, color: "var(--text-primary)", fontWeight: 500 }}>{r.value}</span>
+                    <div style={{ flex: 1, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+                      <span style={{ fontSize: 13, color: "var(--text-muted)", flexShrink: 0 }}>{r.label}</span>
+                      <span style={{ fontSize: 14, color: "var(--text-primary)", fontWeight: 500, wordBreak: "break-all", textAlign: "right" }}>{r.value}</span>
                     </div>
                   </div>
                 ))}

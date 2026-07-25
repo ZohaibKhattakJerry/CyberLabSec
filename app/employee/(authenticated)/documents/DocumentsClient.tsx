@@ -260,7 +260,7 @@ export default function DocumentsClient({
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-2 flex-shrink-0 mt-3 sm:mt-0">
+        <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-end">
           {fileUrl && (
             <button onClick={() => handleViewBase64(fileUrl, (def as any).title)} className="doc-btn doc-btn-secondary">
               <Eye size={13} /> View
@@ -366,16 +366,13 @@ export default function DocumentsClient({
         .doc-cards-list { display: flex; flex-direction: column; gap: 10px; }
 
         .doc-card {
-          display: flex; align-items: flex-start;
-          flex-direction: column; gap: 0;
-          padding: 16px 20px;
+          display: flex; align-items: center; justify-content: space-between;
+          flex-wrap: wrap; gap: 14px;
+          padding: 16px;
           background: rgba(255,255,255,0.02);
           border: 1px solid rgba(255,255,255,0.07);
           border-radius: 16px;
           transition: background 0.2s, border-color 0.2s;
-        }
-        @media (min-width: 640px) {
-          .doc-card { flex-direction: row; align-items: center; }
         }
         .doc-card:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.12); }
 

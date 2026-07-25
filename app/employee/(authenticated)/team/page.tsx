@@ -65,9 +65,9 @@ export default async function TeamPage() {
   };
 
   return (
-    <div>
-      <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 24 }}>My Team</h1>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 24, alignItems: "start" }}>
+    <div className="animate-fade-up">
+      <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 24, background: "linear-gradient(to right, #fff, var(--purple))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>My Team</h1>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 400px), 1fr))", gap: 24, alignItems: "start" }}>
         <TeamChatClient messages={serializedTeam.messages} currentUserId={employee.id} />
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           <MeetingClient initialMeetings={[]} currentUser={employee.id} />

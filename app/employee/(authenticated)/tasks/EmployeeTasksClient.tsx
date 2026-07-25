@@ -60,6 +60,10 @@ export default function EmployeeTasksClient({ tasks, hasTeam }: { tasks: any[]; 
         .kanban-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; flex-wrap: wrap; gap: 16px; }
         .search-bar { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 10px 16px 10px 40px; color: #fff; width: 100%; max-width: 300px; outline: none; transition: 0.2s; }
         .search-bar:focus { border-color: #a855f7; box-shadow: 0 0 0 2px rgba(168,85,247,0.2); }
+        .kanban-board { display: flex; gap: 20px; padding-bottom: 20px; min-height: 600px; overflow-x: auto; }
+        @media (max-width: 768px) {
+          .kanban-board { flex-direction: column; overflow-x: visible; }
+        }
       `}</style>
 
       {/* HEADER */}
@@ -105,7 +109,7 @@ export default function EmployeeTasksClient({ tasks, hasTeam }: { tasks: any[]; 
           </p>
         </div>
       ) : (
-        <div style={{ display: "flex", gap: 20, overflowX: "auto", paddingBottom: 20, minHeight: 600 }}>
+        <div className="kanban-board">
           {(Object.keys(cols) as Array<keyof typeof cols>).map((colName) => {
             const columnTasks = cols[colName];
             const cfg = COL_CONFIG[colName];
