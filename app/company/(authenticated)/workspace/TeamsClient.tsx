@@ -293,6 +293,20 @@ export default function TeamsClient({
 
         .ws-input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 11px 14px; color: #fff; font-size: 14px; transition: all 0.2s; outline: none; }
         .ws-input:focus { border-color: rgba(99,102,241,0.5); background: rgba(99,102,241,0.06); box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+        select.ws-input {
+          appearance: none;
+          background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23A1A1AA%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+          background-repeat: no-repeat;
+          background-position: right 14px center;
+          background-size: 10px auto;
+          padding-right: 36px;
+          color-scheme: dark;
+        }
+        select.ws-input option {
+          background-color: #121217;
+          color: #ffffff;
+          font-weight: 500;
+        }
         .ws-label { font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 7px; display: block; }
         .ws-label-req::after { content: ' *'; color: #a78bfa; }
 
