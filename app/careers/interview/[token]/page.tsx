@@ -20,6 +20,20 @@ export default async function InterviewPage({
 
   // Token already used, expired, or out of attempts
   if (session.tokenUsed || session.tokenExpiry < new Date() || session.attempts >= session.maxAttempts) {
+    
+    // Automatically fail them if they wasted attempts or expired without passing
+    if (session.result !== "Passed" && session.applicant.status === "Invited for Interview") {
+      await prisma.applicant.update({
+        where: { id: session.applicantId },
+        data: { status: "Interview Failed" }
+      });
+      // Optionally update the session to explicitly record the failure
+      await prisma.interviewSession.update({
+        where: { id: session.id },
+        data: { result: "Failed" }
+      });
+    }
+
     return (
       <div style={{ minHeight: "100vh", background: "var(--bg-primary)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
         <div style={{ textAlign: "center", maxWidth: 480 }}>
