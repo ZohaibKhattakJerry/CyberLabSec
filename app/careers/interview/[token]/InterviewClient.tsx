@@ -170,40 +170,46 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
     const suspicious = checkSuspicion();
     setPhase("submitting");
 
-    const res = await fetch("/api/interview/submit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        sessionId,
-        answers,
-        cheatingSignals: {
-          pasteAttempts: pasteAttempts.current,
-          tabBlurCount: tabBlurCount.current,
-          totalTimeSeconds: totalTime,
-        },
-        suspicionFlag: suspicious,
-      }),
-    });
+    try {
+      const res = await fetch("/api/interview/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId,
+          answers,
+          cheatingSignals: {
+            pasteAttempts: pasteAttempts.current,
+            tabBlurCount: tabBlurCount.current,
+            totalTimeSeconds: totalTime,
+          },
+          suspicionFlag: suspicious,
+        }),
+      });
 
-    if (res.ok) {
-      const data = await res.json();
-      if (data.result === "Retry") {
-        if (data.terminated) {
-          setPhase("terminated");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.result === "Retry") {
+          if (data.terminated) {
+            setPhase("terminated");
+          } else {
+            setPhase("failed_retry");
+          }
+        } else if (data.terminated) {
+          setPhase("terminated_final");
+        } else if (data.result === "Passed") {
+          setPhase("done_passed");
+          confetti({ particleCount: 150, spread: 80, origin: { y: 0.5 }, colors: ["#22c55e", "#a855f7", "#3b82f6"] });
         } else {
-          setPhase("failed_retry");
+          setPhase("done_failed_final");
         }
-      } else if (data.terminated) {
-        setPhase("terminated_final");
-      } else if (data.result === "Passed") {
-        setPhase("done_passed");
-        confetti({ particleCount: 150, spread: 80, origin: { y: 0.5 }, colors: ["#22c55e", "#a855f7", "#3b82f6"] });
       } else {
-        setPhase("done_failed_final");
+        toast.error("Network error submitting interview. Please check your connection and try again.");
+        setPhase("interview");
       }
-    } else {
-      toast.error("Network error submitting interview. Please check your connection and try again.");
-      setPhase("interview"); // Go back to interview phase so they can click submit again
+    } catch (err) {
+      console.error("Submit error:", err);
+      toast.error("Failed to connect to the server. Please try again.");
+      setPhase("interview");
     }
   }, [answers, sessionId, totalTime, checkSuspicion]);
 
