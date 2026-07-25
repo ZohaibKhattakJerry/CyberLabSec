@@ -227,29 +227,32 @@ export default function TeamsClient({
 
         /* Header */
         .ws-header {
-          background: linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(168,85,247,0.04) 50%, transparent 100%);
-          border: 1px solid rgba(99,102,241,0.15); border-radius: 24px;
-          padding: clamp(20px,4vw,32px); margin-bottom: 28px; position: relative; overflow: hidden;
+          background: linear-gradient(135deg, rgba(20,20,30,0.8) 0%, rgba(30,20,40,0.8) 100%);
+          border: 1px solid rgba(255,255,255,0.06); border-radius: 24px;
+          padding: clamp(24px, 4vw, 36px); margin-bottom: 32px; position: relative; overflow: hidden;
+          box-shadow: 0 20px 40px rgba(0,0,0,0.4);
         }
         .ws-header::before {
-          content: ''; position: absolute; top: -40px; right: -40px;
-          width: 200px; height: 200px; border-radius: 50%;
-          background: radial-gradient(circle, rgba(168,85,247,0.08) 0%, transparent 70%);
-          pointer-events: none;
+          content: ''; position: absolute; top: -50px; right: -50px;
+          width: 300px; height: 300px; border-radius: 50%;
+          background: radial-gradient(circle, rgba(168,85,247,0.15) 0%, transparent 70%);
+          pointer-events: none; filter: blur(30px);
         }
 
         /* Stat cards */
-        .ws-stat { display: flex; align-items: center; gap: 12px; padding: 14px 18px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; min-width: 0; flex: 1; }
-        .ws-stat-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .ws-stat-val { font-size: 22px; font-weight: 900; color: #fff; line-height: 1; }
-        .ws-stat-lbl { font-size: 11px; color: #6b7280; font-weight: 500; margin-top: 2px; }
+        .ws-stat { display: flex; align-items: center; gap: 16px; padding: 18px 22px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 18px; flex: 1; min-width: 160px; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+        .ws-stat:hover { background: rgba(255,255,255,0.03); transform: translateY(-3px); box-shadow: 0 12px 24px rgba(0,0,0,0.3); border-color: rgba(255,255,255,0.1); }
+        .ws-stat-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: inset 0 2px 4px rgba(255,255,255,0.1); }
+        .ws-stat-val { font-size: 26px; font-weight: 900; color: #fff; line-height: 1; letter-spacing: -0.02em; }
+        .ws-stat-lbl { font-size: 12px; color: #9ca3af; font-weight: 600; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
 
         /* Tab nav */
-        .ws-tabs { display: flex; gap: 4px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 5px; margin-bottom: 24px; overflow-x: auto; }
-        .ws-tab { display: flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 12px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; white-space: nowrap; }
-        .ws-tab-active { background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(168,85,247,0.2)); color: #a5b4fc; box-shadow: 0 2px 8px rgba(99,102,241,0.2); }
-        .ws-tab-inactive { background: transparent; color: #6b7280; }
-        .ws-tab-inactive:hover { background: rgba(255,255,255,0.06); color: #9ca3af; }
+        .ws-tabs { display: flex; gap: 6px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; padding: 6px; margin-bottom: 28px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; flex-wrap: wrap; }
+        .ws-tabs::-webkit-scrollbar { display: none; }
+        .ws-tab { display: flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 14px; border: none; cursor: pointer; font-size: 14px; font-weight: 700; transition: all 0.2s; white-space: nowrap; flex: 1; justify-content: center; min-width: 120px; }
+        .ws-tab-active { background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(168,85,247,0.25)); color: #e0e7ff; box-shadow: 0 4px 15px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1); border: 1px solid rgba(168,85,247,0.3); }
+        .ws-tab-inactive { background: transparent; color: #8b92a5; border: 1px solid transparent; }
+        .ws-tab-inactive:hover { background: rgba(255,255,255,0.04); color: #c0c6d4; }
 
         /* Team cards */
         .ws-team-card {
@@ -420,11 +423,11 @@ export default function TeamsClient({
               <>
                 {/* Unassigned employees alert */}
                 {unassignedEmployees.length > 0 && (
-                  <div style={{ padding: "12px 18px", background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: 14, marginBottom: 20, display: "flex", alignItems: "center", gap: 12 }}>
-                    <AlertCircle size={16} style={{ color: "#f59e0b", flexShrink: 0 }} />
-                    <span style={{ fontSize: 13, color: "#d1d5db" }}>
-                      <strong style={{ color: "#fbbf24" }}>{unassignedEmployees.length} employee{unassignedEmployees.length > 1 ? "s" : ""}</strong> not assigned to any team:&nbsp;
-                      {unassignedEmployees.slice(0, 3).map(e => e.name).join(", ")}{unassignedEmployees.length > 3 ? ` +${unassignedEmployees.length - 3} more` : ""}
+                  <div style={{ padding: "16px 20px", background: "linear-gradient(90deg, rgba(245,158,11,0.1), rgba(245,158,11,0.03))", border: "1px solid rgba(245,158,11,0.2)", borderLeft: "4px solid #f59e0b", borderRadius: 12, marginBottom: 24, display: "flex", alignItems: "center", gap: 16, boxShadow: "0 4px 15px rgba(0,0,0,0.1)" }}>
+                    <div style={{ background: "rgba(245,158,11,0.2)", padding: 8, borderRadius: 50 }}><AlertCircle size={20} style={{ color: "#fbbf24" }} /></div>
+                    <span style={{ fontSize: 14, color: "#d1d5db", lineHeight: 1.5 }}>
+                      <strong style={{ color: "#fbbf24", fontWeight: 800 }}>{unassignedEmployees.length} employee{unassignedEmployees.length > 1 ? "s" : ""}</strong> currently not assigned to any team: 
+                      <span style={{ color: "#9ca3af", marginLeft: 6 }}>{unassignedEmployees.slice(0, 3).map(e => e.name).join(", ")}{unassignedEmployees.length > 3 ? ` and ${unassignedEmployees.length - 3} more` : ""}</span>
                     </span>
                   </div>
                 )}
@@ -552,61 +555,59 @@ export default function TeamsClient({
                   <h2 style={{ fontSize: 17, fontWeight: 800, color: "#fff", margin: 0 }}>Deploy New Task</h2>
                 </div>
                 <form onSubmit={handleCreateTask}>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16, marginBottom: 16 }}>
-                    <div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 20, marginBottom: 20 }}>
+                    <div style={{ flex: "1 1 300px" }}>
                       <label className="ws-label ws-label-req">Task Title</label>
                       <input className="ws-input" value={taskForm.title} onChange={e => setTaskForm({ ...taskForm, title: e.target.value })} placeholder="e.g. Initial Recon Report" required />
                     </div>
-                    <div style={{ display: "flex", gap: 10 }}>
-                      <div style={{ flex: 1 }}>
-                        <label className="ws-label ws-label-req">Assign To</label>
-                        <select className="ws-input" value={taskForm.assignType} onChange={e => setTaskForm({ ...taskForm, assignType: e.target.value })}>
-                          <option value="Team">Team</option>
-                          <option value="Individual">Individual</option>
-                        </select>
-                      </div>
-                      <div style={{ flex: 2 }}>
-                        <label className="ws-label ws-label-req">{taskForm.assignType === "Team" ? "Team" : "Employee"}</label>
-                        {taskForm.assignType === "Team" ? (
-                          <select className="ws-input" value={taskForm.teamId} onChange={e => setTaskForm({ ...taskForm, teamId: e.target.value })} required>
-                            <option value="" disabled>Select team...</option>
-                            {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                          </select>
-                        ) : (
-                          <select className="ws-input" value={taskForm.assigneeId} onChange={e => setTaskForm({ ...taskForm, assigneeId: e.target.value })} required>
-                            <option value="" disabled>Select employee...</option>
-                            {employees.map(e => <option key={e.id} value={e.id}>{e.name} ({e.employeeCode})</option>)}
-                          </select>
-                        )}
-                      </div>
+                    <div style={{ flex: "0 1 160px" }}>
+                      <label className="ws-label ws-label-req">Assign Type</label>
+                      <select className="ws-input" value={taskForm.assignType} onChange={e => setTaskForm({ ...taskForm, assignType: e.target.value })}>
+                        <option value="Team">Team</option>
+                        <option value="Individual">Individual</option>
+                      </select>
                     </div>
-                    <div>
+                    <div style={{ flex: "1 1 200px" }}>
+                      <label className="ws-label ws-label-req">{taskForm.assignType === "Team" ? "Select Team" : "Select Employee"}</label>
+                      {taskForm.assignType === "Team" ? (
+                        <select className="ws-input" value={taskForm.teamId} onChange={e => setTaskForm({ ...taskForm, teamId: e.target.value })} required>
+                          <option value="" disabled>Select team...</option>
+                          {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                        </select>
+                      ) : (
+                        <select className="ws-input" value={taskForm.assigneeId} onChange={e => setTaskForm({ ...taskForm, assigneeId: e.target.value })} required>
+                          <option value="" disabled>Select employee...</option>
+                          {employees.map(e => <option key={e.id} value={e.id}>{e.name} ({e.employeeCode})</option>)}
+                        </select>
+                      )}
+                    </div>
+                    <div style={{ flex: "0 1 160px" }}>
                       <label className="ws-label ws-label-req">Priority</label>
                       <select className="ws-input" value={taskForm.priority} onChange={e => setTaskForm({ ...taskForm, priority: e.target.value })}>
                         {Object.entries(PRIORITY).map(([k]) => <option key={k} value={k}>{k}</option>)}
                       </select>
                     </div>
-                    <div>
+                    <div style={{ flex: "1 1 200px" }}>
                       <label className="ws-label ws-label-req">Deadline</label>
                       <input type="datetime-local" className="ws-input" value={taskForm.deadline} onChange={e => setTaskForm({ ...taskForm, deadline: e.target.value })} required />
                     </div>
                   </div>
 
-                  <div style={{ marginBottom: 16 }}>
+                  <div style={{ marginBottom: 20 }}>
                     <label className="ws-label">Operational Briefing</label>
-                    <textarea className="ws-input" rows={3} value={taskForm.brief} onChange={e => setTaskForm({ ...taskForm, brief: e.target.value })} placeholder="Detailed objectives, deliverables, and expected outcomes..." style={{ resize: "vertical" }} />
+                    <textarea className="ws-input" rows={4} value={taskForm.brief} onChange={e => setTaskForm({ ...taskForm, brief: e.target.value })} placeholder="Detailed objectives, deliverables, and expected outcomes..." style={{ resize: "vertical" }} />
                   </div>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16, marginBottom: 16 }}>
-                    <div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 20, marginBottom: 20 }}>
+                    <div style={{ flex: "1 1 300px" }}>
                       <label className="ws-label">Target URL (optional)</label>
                       <input className="ws-input" value={taskForm.targetUrl} onChange={e => setTaskForm({ ...taskForm, targetUrl: e.target.value })} placeholder="https://target.example.com" />
                     </div>
-                    <div>
+                    <div style={{ flex: "1 1 300px" }}>
                       <label className="ws-label">Vulnerability Focus (optional)</label>
                       <input className="ws-input" value={taskForm.vulnFocus} onChange={e => setTaskForm({ ...taskForm, vulnFocus: e.target.value })} placeholder="e.g. SQLi, XSS, IDOR" />
                     </div>
-                    <div style={{ gridColumn: "1 / -1" }}>
+                    <div style={{ flex: "1 1 100%" }}>
                       <label className="ws-label">Scope & Rules of Engagement (optional)</label>
                       <textarea className="ws-input" rows={2} value={taskForm.scopeRules} onChange={e => setTaskForm({ ...taskForm, scopeRules: e.target.value })} placeholder="In-scope: *.target.com\nOut-of-scope: admin.target.com" style={{ resize: "vertical" }} />
                     </div>
