@@ -118,14 +118,14 @@ export async function POST(req: NextRequest) {
           : `<p>Our team will be in touch shortly with further details about your interview schedule.</p>`;
 
         const html = `
-          <h2>Interview Details – ${app.jobPosting.title}</h2>
+          <h2>Interview Invitation – ${app.jobPosting.title}</h2>
           <p>Dear ${app.fullName},</p>
-          <p>This is a follow-up regarding your upcoming interview for the <strong>${app.jobPosting.title}</strong> position.</p>
+          <p>Congratulations! We are pleased to invite you to the next stage of our selection process for the <strong>${app.jobPosting.title}</strong> position at CyberLabSec.</p>
           ${detailsHtml}
           <br/>
           <p>Best regards,<br/>The CyberLabSec Hiring Team</p>
         `;
-        await sendEmail({ to: app.email, subject: `Interview Details – ${app.jobPosting.title}`, html });
+        await sendEmail({ to: app.email, subject: `Interview Invitation – ${app.jobPosting.title}`, html });
       }
 
       await prisma.activityLog.create({
