@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
           create: { applicantId: app.id, token, tokenExpiry, tokenUsed: false, attempts: 0 }
         });
 
-        const interviewLink = `${process.env.NEXT_PUBLIC_APP_URL || 'https://cyberlabsec.tech'}/interview/${token}`;
+        const interviewLink = `${process.env.NEXT_PUBLIC_APP_URL || 'https://cyberlabsec.tech'}/careers/interview/${token}`;
         await sendInterviewInvite(app.email, app.fullName, app.jobPosting.title, interviewLink, 48);
       }
 
@@ -161,7 +161,7 @@ export async function POST(req: NextRequest) {
             create: { applicantId: app.id, token, tokenExpiry, tokenUsed: false, attempts: 0 }
           });
 
-          const interviewLink = `${process.env.NEXT_PUBLIC_APP_URL || 'https://cyberlabsec.tech'}/interview/${token}`;
+            const interviewLink = `${process.env.NEXT_PUBLIC_APP_URL || 'https://cyberlabsec.tech'}/careers/interview/${token}`;
           await sendInterviewInvite(app.email, app.fullName, app.jobPosting.title, interviewLink, 48);
         }
       }
