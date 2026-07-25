@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const FROM = "CyberLabSec Systems <contact@cyberlabsec.tech>";
+const FROM = "CyberLabSec <contact@cyberlabsec.tech>";
 
 const GLOBAL_HEAD = `
   <head>
@@ -27,7 +27,7 @@ const GLOBAL_HEAD = `
       .body-cell { background-color: #ffffff; padding: 45px 40px; color: #3f3f46; }
       .footer-cell { background-color: #fafafa; border-top: 1px solid #e4e4e7; padding: 30px 40px; border-radius: 0 0 12px 12px; }
       .footer-text { color: #71717a; font-size: 12px; margin: 0 0 12px 0; line-height: 1.6; }
-      h1 { color: #ffffff; font-size: 26px; font-weight: 800; margin: 0 0 16px 0; letter-spacing: -0.02em; }
+      h1 { color: #18181b; font-size: 26px; font-weight: 800; margin: 0 0 16px 0; letter-spacing: -0.02em; }
       p { color: #3f3f46; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0; }
       .info-label { color: #71717a; border-bottom: 1px solid #f4f4f5; padding: 14px 0; font-size: 14px; font-weight: 600; width: 140px; vertical-align: top; }
       .info-value { color: #18181b; border-bottom: 1px solid #f4f4f5; padding: 14px 0; font-size: 14px; vertical-align: top; }
@@ -357,7 +357,7 @@ export async function sendApplicationReceivedEmail(toEmail: string, applicantNam
           </table>
         `, 'info')}
         ${paragraph(`You will be notified via email as soon as there is an update on your candidacy. In the meantime, you can track your application status live through our secure applicant portal.`)}
-        ${btn("Track Application Status", trackingUrl)}
+        ${btn("Track Application Status", "https://cyberlabsec.tech/careers")}
       ${BODY_END}
       ${footerSection()}
       ${WRAP_END}
@@ -388,7 +388,7 @@ export async function sendStatusUpdateEmail(toEmail: string, applicantName: stri
             ${infoRow("Status", `<strong>${status}</strong>`)}
           </table>
         `, ['rejected', 'failed', 'interview failed'].includes(status.toLowerCase()) ? 'danger' : 'success')}
-        ${btn("Track Application Status", trackingUrl)}
+        ${btn("Track Application Status", "https://cyberlabsec.tech/careers")}
       ${BODY_END}
       ${footerSection()}
       ${WRAP_END}
@@ -457,7 +457,7 @@ export async function sendInterviewRetryEmail(toEmail: string, applicantName: st
           </table>
         `, 'danger')}
         ${paragraph(`Please log in with your Reference ID to retry the assessment. A new set of questions will be dynamically generated for you.`)}
-        ${btn("Retry Technical Interview", "https://cyberlabsec.tech/careers/status")}
+        ${btn("Retry Technical Interview", "https://cyberlabsec.tech/careers")}
       ${BODY_END}
       ${footerSection()}
       ${WRAP_END}
