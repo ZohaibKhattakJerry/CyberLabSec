@@ -11,6 +11,7 @@ import Link from "next/link";
 import CompletionDialog from "./CompletionDialog";
 import React from "react";
 import DashboardGreeting from "@/components/DashboardGreeting";
+import NotificationBell from "@/components/NotificationBell";
 
 export const dynamic = "force-dynamic";
 
@@ -167,6 +168,10 @@ export default async function Dashboard() {
           -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 100%);
         }
         .dash-hero-content { position: relative; z-index: 2; }
+        .dash-desktop-bell { display: block; margin-left: 8px; }
+        @media (max-width: 768px) {
+          .dash-desktop-bell { display: none !important; }
+        }
 
         /* === STAT CARDS === */
         .stat-card {
@@ -432,7 +437,10 @@ export default async function Dashboard() {
                 </div>
               </div>
 
-
+              {/* Desktop-only Notification Bell inside Dashboard Banner */}
+              <div className="dash-desktop-bell">
+                <NotificationBell isAdmin={false} placement="top-right" />
+              </div>
             </div>
           </div>
         </div>
