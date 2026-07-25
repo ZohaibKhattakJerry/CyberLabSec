@@ -113,15 +113,13 @@ export default function OnboardingWizard({ employee }: { employee: Employee }) {
     try {
       const res = await fetch("/api/employee/onboarding", { method: "POST" });
       if (res.ok) {
-        toast.success("Welcome aboard!");
-        router.refresh();
+        confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 }, zIndex: 9999 });
+        toast.success("Welcome to CyberLabSec! 🎉");
+        window.location.href = "/employee/dashboard";
+        return;
       } else {
         throw new Error("Failed to complete onboarding.");
       }
-      confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 }, zIndex: 9999 });
-      toast.success("Welcome to CyberLabSec! 🎉");
-      router.push("/employee/dashboard");
-      router.refresh();
     } catch {
       toast.error("Error completing onboarding.");
       setLoading(false);
@@ -268,9 +266,9 @@ export default function OnboardingWizard({ employee }: { employee: Employee }) {
 
       case "overview":
         return (
-          <div className="ob-step-fade py-2 sm:py-4">
+          <div className="ob-step-fade py-2">
             <h2 className="ob-section-title"><Info className="ob-icon-purple" size={22} /> Our Mission & Your Role</h2>
-            <div className="grid md:grid-cols-2 gap-5">
+            <div className="grid md:grid-cols-2 gap-3 sm:gap-4">
               <div className="ob-card ob-card-hover">
                 <div className="ob-icon-box ob-icon-blue mb-4"><Shield size={20} /></div>
                 <h3 className="text-white font-bold text-lg mb-2">Our Mission</h3>
@@ -391,8 +389,8 @@ export default function OnboardingWizard({ employee }: { employee: Employee }) {
                     <p className="text-gray-400 text-xs">Issued upon hire — review before signing</p>
                   </div>
                   {offerLetter.fileUrl && (
-                    <a href={offerLetter.fileUrl} target="_blank" rel="noreferrer" className="ob-btn-secondary ob-btn-sm flex-shrink-0">
-                      <Download size={12} /> View
+                    <a href={offerLetter.fileUrl} download="CyberLabSec_Offer_Letter.pdf" className="ob-btn-secondary ob-btn-sm flex-shrink-0">
+                      <Download size={12} /> Download
                     </a>
                   )}
                 </div>
@@ -615,7 +613,7 @@ export default function OnboardingWizard({ employee }: { employee: Employee }) {
         .ob-card {
           background: rgba(255,255,255,0.04);
           border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 20px; padding: clamp(20px, 4vw, 32px);
+          border-radius: 20px; padding: clamp(14px, 3vw, 24px);
           backdrop-filter: blur(12px);
         }
         .ob-card-hover { transition: background 0.2s, border-color 0.2s; }
@@ -693,9 +691,10 @@ export default function OnboardingWizard({ employee }: { employee: Employee }) {
 
         .ob-doc-body {
           background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06);
-          border-radius: 12px; padding: 20px; max-height: 350px;
+          border-radius: 12px; padding: 16px; max-height: 200px;
           overflow-y: auto;
         }
+        @media (min-height: 700px) { .ob-doc-body { max-height: 250px; } }
         .ob-sig-input {
           width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
           border-radius: 12px; padding: 12px 16px; color: #fff;
