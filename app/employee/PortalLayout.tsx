@@ -290,7 +290,7 @@ export default function PortalLayout({ children, employee }: { children: React.R
           </div>
           
           <div style={{ marginLeft: "auto" }}>
-            <NotificationBell isAdmin={false} placement="top-right" />
+            <NotificationBell isAdmin={false} placement="bottom-left" />
           </div>
         </div>
         {employee.team && (

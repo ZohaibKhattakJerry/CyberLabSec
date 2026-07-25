@@ -343,7 +343,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             position: "sticky", top: 0, zIndex: 50, gap: 12,
           }}
         >
-          <NotificationBell isAdmin={true} placement="bottom-left" />
+          <NotificationBell isAdmin={true} placement="top-right" />
         </div>
 
         {/* Mobile topbar */}
