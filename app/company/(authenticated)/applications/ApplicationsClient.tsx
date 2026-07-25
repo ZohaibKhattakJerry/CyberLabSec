@@ -204,30 +204,39 @@ export default function ApplicationsClient({ applicants, postings, teams = [] }:
   };
 
   const confirmBulkAction = async (action: "reject" | "delete" | "move" | "resend_interview") => {
-    setShowRejectModal(false); setShowDeleteModal(false); setShowMoveModal(false); setShowResendModal(false);
     setActionLoading(true); setActionMsg("");
-    if (action === "move" || action === "resend_interview") {
-      const res = await fetch("/api/company/applications/bulk", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, status: "Invited for Interview", applicantIds: selectedIds, interviewDetails }),
-      });
-      const data = await res.json();
+    try {
+      if (action === "move" || action === "resend_interview") {
+        const res = await fetch("/api/company/applications/bulk", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action, status: "Invited for Interview", applicantIds: selectedIds, interviewDetails }),
+        });
+        const data = await res.json();
+        if (!res.ok) { setActionMsg(data.error || "Failed"); toast.error(data.error || "Failed to process request"); return; }
+        
+        const successMsg = action === "move" ? `Shortlisted ${selectedIds.length} candidate(s) and sent interview invitations! 📩` : `Resent secure interview links to ${selectedIds.length} candidate(s)! 🚀`;
+        setActionMsg(successMsg);
+        toast.success(successMsg, { duration: 4000, position: "top-center" });
+        setInterviewDetails("");
+      } else {
+        const res = await fetch("/api/company/applications/bulk", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action, applicantIds: selectedIds }),
+        });
+        const data = await res.json();
+        if (!res.ok) { setActionMsg(data.error || "Failed"); toast.error(data.error || "Failed to process request"); return; }
+        
+        const successMsg = `Successfully ${action === "reject" ? "rejected" : "deleted"} ${selectedIds.length} application(s).`;
+        setActionMsg(successMsg);
+        toast.success(successMsg);
+      }
+      
+      setSelectedIds([]);
+      startTransition(() => { router.refresh(); });
+    } finally {
       setActionLoading(false);
-      if (!res.ok) { setActionMsg(data.error || "Failed"); return; }
-      setActionMsg(action === "move" ? `Shortlisted ${selectedIds.length} candidate(s) and sent interview invitations.` : `Resent interview details to ${selectedIds.length} candidate(s).`);
-      setInterviewDetails("");
-    } else {
-      const res = await fetch("/api/company/applications/bulk", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, applicantIds: selectedIds }),
-      });
-      const data = await res.json();
-      setActionLoading(false);
-      if (!res.ok) { setActionMsg(data.error || "Failed"); return; }
-      setActionMsg(`Successfully ${action === "reject" ? "rejected" : "deleted"} ${selectedIds.length} application(s).`);
+      setShowRejectModal(false); setShowDeleteModal(false); setShowMoveModal(false); setShowResendModal(false);
     }
-    setSelectedIds([]);
-    startTransition(() => { router.refresh(); });
   };
 
   const submitHire = async (e: React.FormEvent) => {
