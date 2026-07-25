@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Shield, Clock, AlertTriangle, CheckCircle, Loader2, ChevronRight } from "lucide-react";
 
 import confetti from "canvas-confetti";
+import toast from "react-hot-toast";
 
 interface Question {
   id: string; type: "open" | "mcq"; prompt: string;
