@@ -472,11 +472,11 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
   if (phase === "failed_retry") {
     return (
       <Layout>
-        <div className="card" style={{ maxWidth: 520, width: "100%", padding: 48, textAlign: "center" }}>
-          <AlertTriangle size={48} color="var(--amber)" style={{ margin: "0 auto 20px" }} />
-          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12 }}>Attempt Failed</h2>
-          <p style={{ color: "var(--text-secondary)", lineHeight: 1.7, marginBottom: 24 }}>
-            Your score did not meet the passing criteria for this role. You have {maxAttempts - attempts} attempts remaining. A new set of questions will be generated.
+        <div className="card" style={{ maxWidth: 520, width: "100%", padding: 48, textAlign: "center", borderColor: "var(--border-accent)" }}>
+          <AlertTriangle size={52} color="var(--amber)" style={{ margin: "0 auto 20px" }} />
+          <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 16 }}>Attempt Failed</h2>
+          <p style={{ color: "var(--text-secondary)", lineHeight: 1.75, marginBottom: 28 }}>
+            Your score did not meet the passing criteria for this role. You have {maxAttempts - attempts - 1} attempts remaining. A new set of questions will be generated.
           </p>
           <button className="btn btn-primary" onClick={() => window.location.reload()} style={{ width: "100%" }}>
             Start Next Attempt <ChevronRight size={16} />
