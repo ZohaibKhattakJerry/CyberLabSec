@@ -156,7 +156,7 @@ export default function NotificationBell({ isAdmin = false, placement = "top-rig
         <div className="card animate-fade-up notification-dropdown" style={{ 
           position: "absolute", 
           ...(placement === "top-right" ? { top: "calc(100% + 8px)", right: 0 } : { bottom: "calc(100% + 8px)", left: 0 }),
-          width: 380, maxWidth: "calc(100vw - 40px)", maxHeight: "400px", display: "flex", flexDirection: "column", zIndex: 99999, overflow: "hidden", boxShadow: "0 12px 40px rgba(0,0,0,0.35)", borderRadius: 16, background: "rgba(15,20,35,0.75)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: "1px solid rgba(255,255,255,0.08)"
+          width: 380, maxWidth: "calc(100vw - 40px)", maxHeight: "400px", display: "flex", flexDirection: "column", zIndex: 99999, overflow: "hidden", boxShadow: "0 20px 50px rgba(0,0,0,0.7)", borderRadius: 16, background: "rgba(10, 12, 20, 0.97)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.12)"
         }}>
           <div style={{ padding: "16px 20px", borderBottom: "1px solid rgba(255,255,255,0.08)", display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(0,0,0,0.2)" }}>
             <h3 style={{ fontSize: 14, fontWeight: 700 }}>Notifications</h3>

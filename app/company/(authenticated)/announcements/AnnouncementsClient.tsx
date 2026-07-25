@@ -188,12 +188,30 @@ export default function AnnouncementsClient({
 
         @keyframes annFade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .ann-fade { animation: annFade 0.35s ease both; }
+
+        /* Responsive Fixes */
+        .ann-header-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+        .ann-filter-scroll { margin-left: auto; display: flex; gap: 6px; align-items: center; flex-wrap: nowrap; }
+        .ann-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+
+        @media (max-width: 640px) {
+          .ann-header-top { flex-direction: column; width: 100%; }
+          .ann-btn-primary { width: 100%; justify-content: center; }
+          .ann-tabs { flex-wrap: wrap; border-radius: 18px; padding: 6px; }
+          .ann-tab { flex: 1; justify-content: center; }
+          .ann-filter-scroll { width: 100%; margin-left: 0; overflow-x: auto; padding-bottom: 8px; margin-top: 8px; justify-content: flex-start; }
+          .ann-filter-scroll::-webkit-scrollbar { height: 4px; }
+          .ann-filter-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+          .ann-card-top { flex-direction: column; width: 100%; }
+          .ann-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
+          .ann-btn-icon { justify-content: center; }
+        }
       `}</style>
 
       <div className="ann-page ann-fade">
         {/* Header */}
         <div className="ann-header">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, marginBottom: 16, flexWrap: "wrap" }}>
+          <div className="ann-header-top">
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 5 }}>
                 <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg, rgba(99,102,241,0.3), rgba(168,85,247,0.3))", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -238,11 +256,11 @@ export default function AnnouncementsClient({
           ))}
 
           {activeTab === "announcements" && (
-            <div style={{ marginLeft: "auto", display: "flex", gap: 6, alignItems: "center" }}>
-              <Filter size={13} style={{ color: "#6b7280" }} />
+            <div className="ann-filter-scroll">
+              <Filter size={13} style={{ color: "#6b7280", flexShrink: 0 }} />
               {["All", "Company", "Team", "Individual"].map(s => (
                 <button key={s} onClick={() => setFilterScope(s)}
-                  style={{ padding: "5px 12px", borderRadius: 20, border: "1px solid", fontSize: 11, fontWeight: 700, cursor: "pointer", transition: "all 0.2s", background: filterScope === s ? (SCOPE_CONFIG[s as keyof typeof SCOPE_CONFIG]?.bg || "rgba(99,102,241,0.2)") : "transparent", color: filterScope === s ? (SCOPE_CONFIG[s as keyof typeof SCOPE_CONFIG]?.color || "#a5b4fc") : "#6b7280", borderColor: filterScope === s ? (SCOPE_CONFIG[s as keyof typeof SCOPE_CONFIG]?.border || "rgba(99,102,241,0.3)") : "transparent" }}>
+                  style={{ flexShrink: 0, padding: "5px 12px", borderRadius: 20, border: "1px solid", fontSize: 11, fontWeight: 700, cursor: "pointer", transition: "all 0.2s", background: filterScope === s ? (SCOPE_CONFIG[s as keyof typeof SCOPE_CONFIG]?.bg || "rgba(99,102,241,0.2)") : "transparent", color: filterScope === s ? (SCOPE_CONFIG[s as keyof typeof SCOPE_CONFIG]?.color || "#a5b4fc") : "#6b7280", borderColor: filterScope === s ? (SCOPE_CONFIG[s as keyof typeof SCOPE_CONFIG]?.border || "rgba(99,102,241,0.3)") : "transparent" }}>
                   {s}
                 </button>
               ))}
@@ -423,20 +441,20 @@ function AnnouncementCard({
       )}
       <div className="ann-body">
         {/* Top row */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div className="ann-card-top">
+          <div style={{ display: "flex", alignItems: "center", gap: 10, width: "100%" }}>
             <div style={{ width: 40, height: 40, borderRadius: 12, background: cfg.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0, border: `1px solid ${cfg.border}` }}>
               {cfg.icon}
             </div>
-            <div>
+            <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                 <span className="ann-scope-badge" style={{ color: cfg.color, background: cfg.bg, borderColor: cfg.border }}>
                   {a.scope === "Company" ? <Building2 size={10} /> : <Users size={10} />}
                   {cfg.label}
                 </span>
-                <span style={{ fontSize: 12, color: "#6b7280" }}>{target}</span>
-                {a.isPinned && <span style={{ fontSize: 10, fontWeight: 800, color: "#f59e0b", background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.25)", borderRadius: 20, padding: "2px 7px" }}>PINNED</span>}
-                {a.expiresAt && <span style={{ fontSize: 10, fontWeight: 700, color: "#f87171", background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.25)", borderRadius: 20, padding: "2px 7px" }}>Expires {format(new Date(a.expiresAt), "MMM d")}</span>}
+                <span style={{ fontSize: 12, color: "#6b7280", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "150px" }}>{target}</span>
+                {a.isPinned && <span style={{ fontSize: 10, fontWeight: 800, color: "#f59e0b", background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.25)", borderRadius: 20, padding: "2px 7px", flexShrink: 0 }}>PINNED</span>}
+                {a.expiresAt && <span style={{ fontSize: 10, fontWeight: 700, color: "#f87171", background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.25)", borderRadius: 20, padding: "2px 7px", flexShrink: 0 }}>Expires {format(new Date(a.expiresAt), "MMM d")}</span>}
               </div>
               <div suppressHydrationWarning style={{ fontSize: 11, color: "#4b5563", marginTop: 3 }}>
                 {a.sentBy?.name || "System"} · {formatDistanceToNow(new Date(a.sentAt), { addSuffix: true })}
