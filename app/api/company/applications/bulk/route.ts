@@ -118,7 +118,7 @@ export async function POST(req: NextRequest) {
 
         await prisma.interviewSession.upsert({
           where: { applicantId: app.id },
-          update: { token, tokenExpiry, tokenUsed: false, attempts: 0 },
+          update: { token, tokenExpiry, tokenUsed: false },
           create: { applicantId: app.id, token, tokenExpiry, tokenUsed: false, attempts: 0 }
         });
 
@@ -157,7 +157,7 @@ export async function POST(req: NextRequest) {
 
           await prisma.interviewSession.upsert({
             where: { applicantId: app.id },
-            update: { token, tokenExpiry, tokenUsed: false, attempts: 0 },
+            update: { token, tokenExpiry, tokenUsed: false },
             create: { applicantId: app.id, token, tokenExpiry, tokenUsed: false, attempts: 0 }
           });
 
