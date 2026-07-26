@@ -32,6 +32,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
   
   // Edit State
   const [editEmployee, setEditEmployee] = useState<Employee | null>(null);
+  const [editName, setEditName] = useState("");
   const [editTeam, setEditTeam] = useState("");
   const [editDesignation, setEditDesignation] = useState("");
   const [editTier, setEditTier] = useState("Standard");
@@ -140,6 +141,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
 
   const openEdit = (e: Employee) => {
     setEditEmployee(e); 
+    setEditName(e.name || "");
     setEditTeam(e.teamId || ""); 
     setEditDesignation(e.designation); 
     setEditTier(e.tier || "Standard"); 
@@ -155,6 +157,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ 
+        name: editName,
         teamId: editTeam || null, 
         designation: editDesignation, 
         tier: editTier,
@@ -709,7 +712,7 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
               <X size={18} />
             </button>
             <div style={{ marginBottom: 24, paddingRight: 32 }}>
-              <h2 style={{ fontSize: 16, fontWeight: 700 }}>Edit Employee — {editEmployee.name}</h2>
+              <h2 style={{ fontSize: 16, fontWeight: 700 }}>Edit Employee — {editName || editEmployee.name}</h2>
             </div>
             <div style={{ display: "grid", gap: 16 }}>
               <div>
@@ -729,6 +732,10 @@ export default function EmployeesClient({ employees, teams }: { employees: Emplo
                 </div>
               </div>
               <div style={{ height: 16 }}></div>
+              <div>
+                <label className="label">Employee Full Name</label>
+                <input className="input" value={editName} onChange={e => setEditName(e.target.value)} placeholder="Full Name" />
+              </div>
               <div>
                 <label className="label">Designation / Role</label>
                 <input className="input" value={editDesignation} onChange={e => setEditDesignation(e.target.value)} />

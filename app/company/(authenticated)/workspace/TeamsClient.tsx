@@ -7,7 +7,7 @@ import {
   ChevronRight, Shield, Star, Crown, UserPlus, Settings,
   Target, TrendingUp, CheckCircle2, Clock, AlertTriangle,
   LayoutGrid, Sparkles, ArrowRight, Filter, Search, Eye,
-  ExternalLink, FileText, CheckCircle, AlertCircle
+  ExternalLink, FileText, CheckCircle, AlertCircle, Edit2
 } from "lucide-react";
 import { format, isPast, formatDistanceToNow } from "date-fns";
 import toast from "react-hot-toast";
@@ -94,6 +94,32 @@ export default function TeamsClient({
       startTransition(() => router.refresh());
     } catch { toast.error("Failed to create team"); }
     finally { setLoading(false); }
+  };
+
+  const [editingTeamId, setEditingTeamId] = useState<string | null>(null);
+  const [editingTeamName, setEditingTeamName] = useState<string>("");
+
+  const saveTeamName = async (teamId: string) => {
+    if (!editingTeamName.trim()) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/company/teams/${teamId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editingTeamName.trim() }),
+      });
+      if (!res.ok) {
+        toast.error("Failed to update team name");
+        return;
+      }
+      toast.success("Team name updated successfully!");
+      setEditingTeamId(null);
+      startTransition(() => router.refresh());
+    } catch {
+      toast.error("Failed to update team name");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const deleteTeam = async (id: string, name: string) => {
@@ -444,12 +470,38 @@ export default function TeamsClient({
                         {/* Card header */}
                         <div className="ws-team-card-header">
                           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1 }}>
                               <div style={{ width: 44, height: 44, borderRadius: 14, background: "linear-gradient(135deg, rgba(99,102,241,0.25), rgba(168,85,247,0.2))", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>
                                 🛡️
                               </div>
-                              <div>
-                                <h3 style={{ fontSize: 16, fontWeight: 800, color: "#fff", marginBottom: 2 }}>{team.name}</h3>
+                              <div style={{ flex: 1 }}>
+                                {editingTeamId === team.id ? (
+                                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                                    <input
+                                      className="ws-input"
+                                      value={editingTeamName}
+                                      onChange={e => setEditingTeamName(e.target.value)}
+                                      style={{ fontSize: 14, padding: "4px 8px", width: "100%", maxWidth: 220 }}
+                                      autoFocus
+                                    />
+                                    <button
+                                      className="ws-btn-primary"
+                                      style={{ padding: "4px 8px", fontSize: 11 }}
+                                      onClick={() => saveTeamName(team.id)}
+                                    >
+                                      Save
+                                    </button>
+                                    <button
+                                      className="ws-btn-secondary"
+                                      style={{ padding: "4px 8px", fontSize: 11 }}
+                                      onClick={() => setEditingTeamId(null)}
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <h3 style={{ fontSize: 16, fontWeight: 800, color: "#fff", marginBottom: 2 }}>{team.name}</h3>
+                                )}
                                 <div style={{ display: "flex", gap: 12, fontSize: 11, color: "#6b7280" }}>
                                   <span>{team.members.length} member{team.members.length !== 1 ? "s" : ""}</span>
                                   <span>·</span>
@@ -458,9 +510,22 @@ export default function TeamsClient({
                                 </div>
                               </div>
                             </div>
-                            <button className="ws-btn-danger" style={{ padding: "6px 10px" }} onClick={() => deleteTeam(team.id, team.name)} title="Delete team">
-                              <Trash2 size={13} />
-                            </button>
+                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                              <button
+                                className="ws-btn-secondary"
+                                style={{ padding: "6px 10px", borderColor: "rgba(255,255,255,0.1)" }}
+                                onClick={() => {
+                                  setEditingTeamId(team.id);
+                                  setEditingTeamName(team.name);
+                                }}
+                                title="Edit team name"
+                              >
+                                <Edit2 size={13} />
+                              </button>
+                              <button className="ws-btn-danger" style={{ padding: "6px 10px" }} onClick={() => deleteTeam(team.id, team.name)} title="Delete team">
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
                           </div>
 
                           {/* Lead selector */}

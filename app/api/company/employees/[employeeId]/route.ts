@@ -12,9 +12,12 @@ export async function PATCH(
 
   const { employeeId } = await params;
   const body = await req.json();
-  const { teamId, designation, status, customMessage, terminationFileBase64, startDate, endDate, tier } = body;
+  const { name, teamId, designation, status, customMessage, terminationFileBase64, startDate, endDate, tier } = body;
 
   const updateData: Record<string, unknown> = {};
+  if (name !== undefined && typeof name === "string" && name.trim() !== "") {
+    updateData.name = name.trim();
+  }
   if (teamId !== undefined) updateData.teamId = teamId || null;
   if (designation !== undefined) updateData.designation = designation;
   if (tier !== undefined) updateData.tier = tier;
@@ -80,6 +83,13 @@ export async function PATCH(
     where: { id: employeeId },
     data: updateData,
   });
+
+  if (updateData.name) {
+    await prisma.applicant.updateMany({
+      where: { email: emp.email },
+      data: { fullName: updateData.name as string },
+    }).catch(() => {});
+  }
 
   await prisma.activityLog.create({
     data: {
