@@ -18,37 +18,83 @@ export default async function InterviewPage({
 
   if (!session) notFound();
 
-  // Token already used, expired, or out of attempts
-  if (session.tokenUsed || session.tokenExpiry < new Date() || session.attempts >= session.maxAttempts) {
-    
-    // Automatically fail them if they wasted attempts or expired without passing
-    if (session.result !== "Passed" && session.applicant.status === "Invited for Interview") {
-      await prisma.applicant.update({
-        where: { id: session.applicantId },
-        data: { status: "Interview Failed" }
-      });
-      // Optionally update the session to explicitly record the failure
-      await prisma.interviewSession.update({
-        where: { id: session.id },
-        data: { result: "Failed" }
-      });
-    }
-
+  // 1. Check if token is strictly expired by time (48 hours / 7 days)
+  if (session.tokenExpiry < new Date()) {
     return (
       <div style={{ minHeight: "100vh", background: "var(--bg-primary)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
         <div style={{ textAlign: "center", maxWidth: 480 }}>
           <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 12, color: "var(--purple)" }}>Link Expired</h1>
           <p style={{ color: "var(--text-secondary)" }}>
-            This interview link has already been used or has expired. Interview links are valid for 48 hours and can only be used once.
+            This interview link has expired. Interview links are valid for 48 hours and can only be used once.
           </p>
-          <p style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 16 }}>If you believe this is an error, please contact us at contact@cyberlabsec.tech</p>
+          <p style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 16 }}>If you believe this is an error, please contact us at careers@cyberlabsec.tech</p>
         </div>
       </div>
     );
   }
 
-  const questions = JSON.parse(session.questions as string);
-  const initialAnswers = JSON.parse(session.answers as string || "{}");
+  // 2. If the applicant already passed, show them the Passed screen when they revisit
+  if (session.result === "Passed" || session.applicant.status === "Selected – Waiting for Approval") {
+    return (
+      <InterviewClient
+        sessionId={session.id}
+        token={token}
+        applicantName={session.applicant.fullName}
+        applicantEmail={session.applicant.email}
+        jobTitle={session.applicant.jobPosting.title}
+        questions={[]}
+        initialAnswers={{}}
+        passMark={Number(session.applicant.jobPosting.passMark) || 0}
+        emailVerified={true}
+        attempts={session.attempts}
+        maxAttempts={session.maxAttempts}
+        initialPhaseOverride="done_passed"
+      />
+    );
+  }
+
+  // 3. If they already failed on 3rd attempt OR wasted all 3 attempts (session.attempts >= session.maxAttempts OR result === "Failed" OR result === "Cheating" OR tokenUsed)
+  if (session.result === "Failed" || session.result === "Cheating" || session.attempts >= session.maxAttempts || session.tokenUsed) {
+    if (session.result !== "Passed" && session.applicant.status === "Invited for Interview") {
+      await prisma.applicant.update({
+        where: { id: session.applicantId },
+        data: { status: "Interview Failed" }
+      });
+      await prisma.interviewSession.update({
+        where: { id: session.id },
+        data: { result: "Failed", tokenUsed: true }
+      });
+    }
+
+    return (
+      <InterviewClient
+        sessionId={session.id}
+        token={token}
+        applicantName={session.applicant.fullName}
+        applicantEmail={session.applicant.email}
+        jobTitle={session.applicant.jobPosting.title}
+        questions={[]}
+        initialAnswers={{}}
+        passMark={Number(session.applicant.jobPosting.passMark) || 0}
+        emailVerified={true}
+        attempts={session.attempts}
+        maxAttempts={session.maxAttempts}
+        initialPhaseOverride="done_failed_final"
+      />
+    );
+  }
+
+  let questions: any[] = [];
+  try {
+    const parsedQ = JSON.parse(session.questions as string);
+    if (Array.isArray(parsedQ)) questions = parsedQ;
+  } catch {}
+
+  let initialAnswers: Record<string, string> = {};
+  try {
+    const parsedA = JSON.parse(session.answers as string || "{}");
+    if (typeof parsedA === "object" && !Array.isArray(parsedA)) initialAnswers = parsedA;
+  } catch {}
 
   return (
     <InterviewClient
@@ -59,7 +105,7 @@ export default async function InterviewPage({
       jobTitle={session.applicant.jobPosting.title}
       questions={questions}
       initialAnswers={initialAnswers}
-      passMark={session.applicant.jobPosting.passMark}
+      passMark={Number(session.applicant.jobPosting.passMark) || 0}
       emailVerified={session.emailVerified}
       attempts={session.attempts}
       maxAttempts={session.maxAttempts}

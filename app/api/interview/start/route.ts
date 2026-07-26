@@ -19,11 +19,18 @@ export async function POST(req: NextRequest) {
 
     // Increment attempt count on start. This consumes 1 attempt instantly.
     // So if the user refreshes or closes the page without submitting, they lose that attempt.
+    // Prevent double-click attempt consumption within 10 seconds of startedAt
+    const now = new Date();
+    const lastStarted = session.startedAt ? new Date(session.startedAt) : null;
+    const recentlyStarted = lastStarted && (now.getTime() - lastStarted.getTime()) < 10000;
+    
+    const newAttempts = recentlyStarted ? session.attempts : session.attempts + 1;
+
     await prisma.interviewSession.update({
       where: { id: sessionId },
       data: { 
-        attempts: session.attempts + 1,
-        startedAt: session.startedAt || new Date()
+        attempts: newAttempts,
+        startedAt: session.startedAt || now
       }
     });
 

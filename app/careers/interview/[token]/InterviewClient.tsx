@@ -16,13 +16,13 @@ interface Question {
 interface Props {
   sessionId: string; token: string; applicantName: string; applicantEmail: string;
   jobTitle: string; questions: Question[]; initialAnswers?: Record<string, string>; passMark: number; emailVerified: boolean;
-  attempts: number; maxAttempts: number;
+  attempts: number; maxAttempts: number; initialPhaseOverride?: Phase;
 }
 
 type Phase = "intro" | "interview" | "submitting" | "done_passed" | "done_failed_final" | "terminated" | "failed_retry" | "terminated_final";
 
-export default function InterviewClient({ sessionId, token, applicantName, applicantEmail, jobTitle, questions, initialAnswers = {}, passMark, emailVerified, attempts, maxAttempts }: Props) {
-  const [phase, setPhase] = useState<Phase>("intro");
+export default function InterviewClient({ sessionId, token, applicantName, applicantEmail, jobTitle, questions, initialAnswers = {}, passMark, emailVerified, attempts, maxAttempts, initialPhaseOverride }: Props) {
+  const [phase, setPhase] = useState<Phase>(initialPhaseOverride || "intro");
   
   // Calculate starting question index based on existing answers
   const initialQIndex = questions.findIndex(q => !initialAnswers[q.id]);
@@ -466,7 +466,7 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
           <AlertTriangle size={48} color="var(--purple)" style={{ margin: "0 auto 20px" }} />
           <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: "var(--purple)" }}>Attempt Terminated</h2>
           <p style={{ color: "var(--text-secondary)", lineHeight: 1.7, marginBottom: 24 }}>
-            Irregular activity was detected — your submission shows signs of an AI-generated or copied answer. This attempt has been recorded as failed. You have {maxAttempts - attempts - 1} attempts remaining.
+            Irregular activity was detected — your submission shows signs of an AI-generated or copied answer. This attempt has been recorded as failed. You have {Math.max(0, maxAttempts - attempts)} attempts remaining.
           </p>
           <button className="btn btn-primary" onClick={() => window.location.reload()} style={{ width: "100%" }}>
             Start Next Attempt <ChevronRight size={16} />
@@ -484,7 +484,7 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
           <AlertTriangle size={52} color="var(--amber)" style={{ margin: "0 auto 20px" }} />
           <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 16 }}>Attempt Failed</h2>
           <p style={{ color: "var(--text-secondary)", lineHeight: 1.75, marginBottom: 28 }}>
-            Your score did not meet the passing criteria for this role. You have {maxAttempts - attempts - 1} attempts remaining. A new set of questions will be generated.
+            Your score did not meet the passing criteria for this role. You have {Math.max(0, maxAttempts - attempts)} attempts remaining. A new set of questions will be generated.
           </p>
           <button className="btn btn-primary" onClick={() => window.location.reload()} style={{ width: "100%" }}>
             Start Next Attempt <ChevronRight size={16} />
