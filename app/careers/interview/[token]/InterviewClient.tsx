@@ -23,6 +23,7 @@ type Phase = "intro" | "interview" | "submitting" | "done_passed" | "done_failed
 
 export default function InterviewClient({ sessionId, token, applicantName, applicantEmail, jobTitle, questions, initialAnswers = {}, passMark, emailVerified, attempts, maxAttempts, initialPhaseOverride }: Props) {
   const [phase, setPhase] = useState<Phase>(initialPhaseOverride || "intro");
+  const [currentAttempts, setCurrentAttempts] = useState<number>(attempts);
   
   // Calculate starting question index based on existing answers
   const initialQIndex = questions.findIndex(q => !initialAnswers[q.id]);
@@ -126,6 +127,12 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
         body: JSON.stringify({ sessionId })
       });
       if (res.ok) {
+        const data = await res.json();
+        if (typeof data.attempts === "number") {
+          setCurrentAttempts(data.attempts);
+        } else {
+          setCurrentAttempts(prev => prev + 1);
+        }
         setPhase("interview");
       } else {
         window.location.reload();
@@ -189,6 +196,9 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
 
       if (res.ok) {
         const data = await res.json();
+        if (typeof data.attempts === "number") {
+          setCurrentAttempts(data.attempts);
+        }
         if (data.result === "Retry") {
           if (data.terminated) {
             setPhase("terminated");
@@ -245,7 +255,7 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
   // ── INTRO PHASE ──
   if (phase === "intro") {
     return (
-      <IntroPhase applicantName={applicantName} jobTitle={jobTitle} questions={questions} attempts={attempts} maxAttempts={maxAttempts} onStart={handleStartInterview} isStarting={isStarting} />
+      <IntroPhase applicantName={applicantName} jobTitle={jobTitle} questions={questions} attempts={currentAttempts} maxAttempts={maxAttempts} onStart={handleStartInterview} isStarting={isStarting} />
     );
   }
 
@@ -466,7 +476,7 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
           <AlertTriangle size={48} color="var(--purple)" style={{ margin: "0 auto 20px" }} />
           <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: "var(--purple)" }}>Attempt Terminated</h2>
           <p style={{ color: "var(--text-secondary)", lineHeight: 1.7, marginBottom: 24 }}>
-            Irregular activity was detected — your submission shows signs of an AI-generated or copied answer. This attempt has been recorded as failed. You have {Math.max(0, maxAttempts - attempts)} attempts remaining.
+            Irregular activity was detected — your submission shows signs of an AI-generated or copied answer. This attempt has been recorded as failed. You have {Math.max(0, maxAttempts - currentAttempts)} attempts remaining.
           </p>
           <button className="btn btn-primary" onClick={() => window.location.reload()} style={{ width: "100%" }}>
             Start Next Attempt <ChevronRight size={16} />
@@ -484,7 +494,7 @@ export default function InterviewClient({ sessionId, token, applicantName, appli
           <AlertTriangle size={52} color="var(--amber)" style={{ margin: "0 auto 20px" }} />
           <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 16 }}>Attempt Failed</h2>
           <p style={{ color: "var(--text-secondary)", lineHeight: 1.75, marginBottom: 28 }}>
-            Your score did not meet the passing criteria for this role. You have {Math.max(0, maxAttempts - attempts)} attempts remaining. A new set of questions will be generated.
+            Your score did not meet the passing criteria for this role. You have {Math.max(0, maxAttempts - currentAttempts)} attempts remaining. A new set of questions will be generated.
           </p>
           <button className="btn btn-primary" onClick={() => window.location.reload()} style={{ width: "100%" }}>
             Start Next Attempt <ChevronRight size={16} />

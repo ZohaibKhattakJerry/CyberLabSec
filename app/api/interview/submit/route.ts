@@ -176,7 +176,13 @@ export async function POST(req: NextRequest) {
     // We do NOT send an email on intermediate retries per user request.
     // The UI handles showing the retry state to the user.
 
-    return NextResponse.json({ result: "Retry", score: totalScore, terminated });
+    return NextResponse.json({ 
+      result: "Retry", 
+      score: totalScore, 
+      terminated,
+      attempts: newAttempts,
+      attemptsRemaining: Math.max(0, session.maxAttempts - newAttempts)
+    });
   }
 
   // Final submission (Passed, or Failed out of attempts)
