@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   Shield, CheckCircle, Info, BookOpen, AlertTriangle, FileSignature, X,
   Loader2, Check, ArrowRight, LayoutDashboard, FileText, CheckSquare,
-  Users, Trophy, ChevronDown, ChevronUp, Download, Lock
+  Users, Trophy, ChevronDown, ChevronUp, Download, Lock, Eye
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { format } from "date-fns";
@@ -37,6 +37,24 @@ const PORTAL_TABS = [
   { icon: <Users size={18} />, title: "Team", color: "from-rose-500 to-pink-500", desc: "Communicate securely with your squad and team lead. Propose meetings, vote on time slots, and stay in sync with real-time team chat.", tips: ["Use team chat for updates", "Propose meetings here", "View team members"] },
   { icon: <Trophy size={18} />, title: "Leaderboard", color: "from-amber-500 to-orange-400", desc: "Earn points by completing tasks and climbing the global leaderboard. Your performance score directly impacts your tier and future opportunities at CyberLabSec.", tips: ["Higher score = better tier", "Monthly resets", "Top 3 get recognition"] },
 ];
+
+const handleViewBase64 = (url: string, title: string) => {
+  if (url.startsWith("data:")) {
+    const arr = url.split(',');
+    const mimeMatch = arr[0].match(/:(.*?);/);
+    const mime = mimeMatch ? mimeMatch[1] : 'application/pdf';
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) u8arr[n] = bstr.charCodeAt(n);
+    const blob = new Blob([u8arr], { type: mime });
+    const blobUrl = URL.createObjectURL(blob);
+    window.open(blobUrl, "_blank");
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+  } else {
+    window.open(url, '_blank');
+  }
+};
 
 export default function OnboardingWizard({ employee }: { employee: Employee }) {
   const [currentStep, setCurrentStep] = useState(0);
@@ -74,7 +92,10 @@ export default function OnboardingWizard({ employee }: { employee: Employee }) {
       if (myDocsRes.ok) {
         const myData = await myDocsRes.json();
         const ol = (myData.documents || []).find((d: any) =>
-          ["Offer Letter", "Job Offer Letter", "Internship Offer Letter", "Initial Offer Letter", "Contract Offer Letter"].some(t => d.title?.includes(t))
+          d.title === "Offer Letter" ||
+          d.type === "Offer Letter" ||
+          ["Offer Letter", "Job Offer Letter", "Internship Offer Letter", "Initial Offer Letter", "Contract Offer Letter"].some(t => d.title?.includes(t)) ||
+          d.title?.toLowerCase().includes("offer")
         );
         setOfferLetter(ol || null);
       }
@@ -386,12 +407,20 @@ export default function OnboardingWizard({ employee }: { employee: Employee }) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-white font-semibold text-sm">Your Offer Letter</p>
-                    <p className="text-gray-400 text-xs">Issued upon hire — review before signing</p>
+                    <p className="text-gray-400 text-xs">Official Offer Letter issued upon hire (PDF)</p>
                   </div>
                   {offerLetter.fileUrl && (
-                    <a href={offerLetter.fileUrl} download="CyberLabSec_Offer_Letter.pdf" className="ob-btn-secondary ob-btn-sm flex-shrink-0">
-                      <Download size={12} /> Download
-                    </a>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <button
+                        onClick={() => handleViewBase64(offerLetter.fileUrl, "Offer Letter")}
+                        className="ob-btn-secondary ob-btn-sm"
+                      >
+                        <Eye size={12} /> View
+                      </button>
+                      <a href={offerLetter.fileUrl} download="CyberLabSec_Offer_Letter.pdf" className="ob-btn-secondary ob-btn-sm" style={{ textDecoration: "none" }}>
+                        <Download size={12} /> Download
+                      </a>
+                    </div>
                   )}
                 </div>
               </div>

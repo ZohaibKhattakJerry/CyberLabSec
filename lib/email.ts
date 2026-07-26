@@ -248,7 +248,14 @@ export async function sendEmployeeCredentials(toEmail: string, employeeName: str
       ${WRAP_END}
       ${HTML_END}
     `,
-    attachments: offerLetterPdfBase64 ? [{ filename: "CyberLabSec_Offer_Letter.pdf", content: Buffer.from(offerLetterPdfBase64, "base64"), contentType: "application/pdf" }] : [],
+    attachments: offerLetterPdfBase64 ? [{
+      filename: "CyberLabSec_Offer_Letter.pdf",
+      content: Buffer.from(
+        offerLetterPdfBase64.includes(",") ? offerLetterPdfBase64.split(",")[1] : offerLetterPdfBase64,
+        "base64"
+      ),
+      contentType: "application/pdf"
+    }] : [],
   });
 }
 
@@ -272,7 +279,14 @@ export async function sendTerminationLetter(toEmail: string, employeeName: strin
       ${WRAP_END}
       ${HTML_END}
     `,
-    attachments: [{ filename: "CyberLabSec_Employment_Status.pdf", content: Buffer.from(terminationLetterPdfBase64, "base64"), contentType: "application/pdf" }],
+    attachments: [{
+      filename: "CyberLabSec_Employment_Status.pdf",
+      content: Buffer.from(
+        terminationLetterPdfBase64.includes(",") ? terminationLetterPdfBase64.split(",")[1] : terminationLetterPdfBase64,
+        "base64"
+      ),
+      contentType: "application/pdf"
+    }],
   });
 }
 

@@ -765,8 +765,8 @@ export default function ApplicationsClient({ applicants, postings, teams = [] }:
                       </button>
                     </div>
                   )}
-                  {/* SELECTED – WAITING FOR APPROVAL */}
-                  {selected.status === "Selected \u2013 Waiting for Approval" && (
+                  {/* SELECTED – WAITING FOR APPROVAL / OFFER */}
+                  {(selected.status === "Selected \u2013 Waiting for Approval" || selected.status === "Offer") && (
                     <div className="cm-footer-actions">
                       <button className="btn btn-primary" onClick={() => { setActionTarget("single"); setShowBulkHireModal(true); }} disabled={actionLoading}>
                         {actionLoading ? <Loader2 size={15} className="spin" /> : <UserCheck size={15} />} Approve & Hire

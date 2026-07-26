@@ -9,7 +9,7 @@ export const maxDuration = 120;
 
 export async function POST(req: NextRequest) {
   const ip = getIpFromRequest(req);
-  const { blocked, resetAt } = await checkRateLimit(`interview-submit-ip:${ip}`, 3, 15);
+  const { blocked, resetAt } = await checkRateLimit(`interview-submit-ip:${ip}`, 60, 60);
   if (blocked) return rateLimitResponse(resetAt);
 
   const { sessionId, answers, cheatingSignals, suspicionFlag } = await req.json();
@@ -26,7 +26,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Already submitted" }, { status: 409 });
   }
 
-  const questions = JSON.parse(session.questions as string);
+  let questions: any[] = [];
+  try {
+    const parsedQ = JSON.parse(session.questions as string);
+    if (Array.isArray(parsedQ)) questions = parsedQ;
+  } catch {}
+
   const perQuestionScore: Array<{ questionId: string; score: number; maxPoints: number; aiLikelihood?: number }> = [];
   let totalScore = 0;
   let maxPossibleScore = 0;
@@ -36,20 +41,41 @@ export async function POST(req: NextRequest) {
   // Grade each question in parallel
   const passMark = Number(session.applicant.jobPosting.passMark) || 0;
   
-  const sessionAnswerKey = JSON.parse(session.answers as string) || [];
+  let sessionAnswerKey: any[] = [];
+  try {
+    const parsed = JSON.parse(session.answers as string);
+    if (Array.isArray(parsed)) {
+      sessionAnswerKey = parsed;
+    }
+  } catch {}
+
+  if (!Array.isArray(sessionAnswerKey) || sessionAnswerKey.length === 0) {
+    if (session.applicant?.jobPosting?.answerKey) {
+      try {
+        const parsedJobKey = JSON.parse(session.applicant.jobPosting.answerKey);
+        if (Array.isArray(parsedJobKey)) {
+          sessionAnswerKey = parsedJobKey;
+        }
+      } catch {}
+    }
+  }
   
-  const gradePromises = questions.map(async (q: any) => {
+  const gradePromises = questions.map(async (q: any, idx: number) => {
     const answer = answers[q.id] || "";
-    const keyEntry = sessionAnswerKey.find((k: any) => k.questionId === q.id) || {};
+    let keyEntry = (Array.isArray(sessionAnswerKey) ? sessionAnswerKey.find((k: any) => k.questionId === q.id) : null) || {};
+    if (!keyEntry.questionId && sessionAnswerKey[idx]) {
+      keyEntry = sessionAnswerKey[idx];
+    }
     const points = 10; // OVERRIDE: User requested exactly 10 points for ALL questions regardless of old data
     
     if (q.type === "mcq") {
-      const correct = parseInt(answer) === Number(keyEntry.correctOption);
+      const targetCorrect = typeof keyEntry.correctOption !== "undefined" ? Number(keyEntry.correctOption) : (typeof q.correctOption !== "undefined" ? Number(q.correctOption) : (typeof q.correct !== "undefined" ? Number(q.correct) : 0));
+      const correct = parseInt(answer) === targetCorrect;
       const score = correct ? points : 0;
       return { type: "mcq", questionId: q.id, score, maxPoints: points, aiLikelihood: 0 };
     } else {
       try {
-        const grade = await gradeOpenAnswer(q.prompt, keyEntry.rubric || "", answer, points, passMark);
+        const grade = await gradeOpenAnswer(q.prompt, keyEntry.rubric || q.rubric || "", answer, points, passMark);
         return { type: "open", questionId: q.id, score: grade.score, maxPoints: points, aiLikelihood: grade.aiLikelihood };
       } catch {
         return { type: "open", questionId: q.id, score: 0, maxPoints: points, aiLikelihood: 0 };

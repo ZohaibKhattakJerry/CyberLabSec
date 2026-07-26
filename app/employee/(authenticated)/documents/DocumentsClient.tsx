@@ -61,7 +61,7 @@ function getDocDefs(empType: string): DocDefinition[] {
   const isIntern = empType === "Intern";
 
   const preDocs: DocDefinition[] = [
-    { key: "Offer Letter",       label: "Offer Letter",       desc: "Generated upon hire and emailed to you", phase: "pre", action: "download_only" },
+    { key: "Offer Letter",       label: "Offer Letter",       desc: "Official Offer Letter issued upon hire (PDF)", phase: "pre", action: "download_only" },
     ...(isIntern ? [
       { key: "Internship Agreement", label: "Internship Agreement", desc: "Formal internship engagement agreement", phase: "pre" as const, action: "sign" as const },
     ] : [
@@ -123,7 +123,12 @@ export default function DocumentsClient({
   // ── Helpers ──────────────────────────────────────────────────────────────
   const findDbDoc = (key: string) => dbDocs.find(d =>
     d.title === key ||
-    (key === "Offer Letter" && ["Job Offer Letter", "Internship Offer Letter", "Initial Offer Letter", "Contract Offer Letter", "Offer Letter"].some(t => d.title?.includes(t)))
+    (key === "Offer Letter" && (
+      d.title === "Offer Letter" ||
+      d.type === "Offer Letter" ||
+      ["Job Offer Letter", "Internship Offer Letter", "Initial Offer Letter", "Contract Offer Letter", "Offer Letter"].some(t => d.title?.includes(t)) ||
+      d.title?.toLowerCase().includes("offer")
+    ))
   );
 
   const findSig = (key: string) => signatures.find(s => {
@@ -262,9 +267,14 @@ export default function DocumentsClient({
         {/* Actions */}
         <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-end">
           {fileUrl && (
-            <button onClick={() => handleViewBase64(fileUrl, (def as any).title)} className="doc-btn doc-btn-secondary">
-              <Eye size={13} /> View
-            </button>
+            <>
+              <button onClick={() => handleViewBase64(fileUrl, def.label)} className="doc-btn doc-btn-secondary">
+                <Eye size={13} /> View
+              </button>
+              <a href={fileUrl} download={`CyberLabSec_${def.label.replace(/\s+/g, "_")}.pdf`} className="doc-btn doc-btn-secondary" style={{ textDecoration: "none" }}>
+                <Download size={13} /> Download
+              </a>
+            </>
           )}
           {canRequest && (
             <button

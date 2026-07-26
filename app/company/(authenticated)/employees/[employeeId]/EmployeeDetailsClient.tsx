@@ -128,7 +128,12 @@ export default function EmployeeDetailsClient({ employee }: { employee: any }) {
   // ── Lookups ────────────────────────────────────────────────────────────────
   const findDoc = (title: string) => {
     if (title === "Offer Letter") {
-      return documents.find(d => offerVariants.some(v => d.title?.includes(v)));
+      return documents.find(d =>
+        d.title === "Offer Letter" ||
+        d.type === "Offer Letter" ||
+        offerVariants.some(v => d.title?.includes(v)) ||
+        d.title?.toLowerCase().includes("offer")
+      );
     }
     return documents.find(d => d.title === title);
   };

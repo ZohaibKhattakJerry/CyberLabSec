@@ -6,7 +6,7 @@ import { checkRateLimit, getIpFromRequest, rateLimitResponse } from "@/lib/rateL
 
 export async function POST(req: NextRequest) {
   const ip = getIpFromRequest(req);
-  const { blocked, resetAt } = await checkRateLimit(`interview-verify-ip:${ip}`, 5, 15);
+  const { blocked, resetAt } = await checkRateLimit(`interview-verify-ip:${ip}`, 30, 60);
   if (blocked) return rateLimitResponse(resetAt);
 
   const { token, email, cnic } = await req.json();

@@ -4,7 +4,7 @@ import { checkRateLimit, getIpFromRequest, rateLimitResponse } from "@/lib/rateL
 
 export async function POST(req: Request) {
   const ip = getIpFromRequest(req);
-  const { blocked, resetAt } = await checkRateLimit(`interview-autosave-ip:${ip}`, 30, 1);
+  const { blocked, resetAt } = await checkRateLimit(`interview-autosave-ip:${ip}`, 120, 60);
   if (blocked) return rateLimitResponse(resetAt);
   try {
     const { sessionId, answers } = await bodyParse(req);
@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     await prisma.interviewSession.update({
       where: { id: sessionId },
       data: {
-        answers: JSON.stringify(answers),
+        reviewerNotes: JSON.stringify(answers),
       },
     });
 

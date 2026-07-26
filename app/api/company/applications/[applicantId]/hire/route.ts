@@ -69,7 +69,7 @@ export async function POST(
     await prisma.employeeDocument.create({
       data: {
         employeeId: employee.id,
-        title: "Initial Offer Letter",
+        title: "Offer Letter",
         type: "Offer Letter",
         fileUrl: offerLetterBase64,
         status: "Approved",
