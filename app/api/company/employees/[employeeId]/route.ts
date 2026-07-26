@@ -103,6 +103,16 @@ export async function DELETE(
   try {
     const empToDelete = await prisma.employee.findUnique({ where: { id: employeeId } });
 
+    const matchingApplicants = empToDelete ? await prisma.applicant.findMany({
+      where: {
+        OR: [
+          empToDelete.applicantId ? { id: empToDelete.applicantId } : undefined,
+          { email: { equals: empToDelete.email, mode: "insensitive" } },
+          { fullName: { equals: empToDelete.name, mode: "insensitive" } },
+        ].filter(Boolean) as any,
+      },
+    }) : [];
+
     const transactions: any[] = [
       prisma.team.updateMany({ where: { leadEmployeeId: employeeId }, data: { leadEmployeeId: null } }),
       prisma.activityLog.deleteMany({ where: { actorId: employeeId } }),
@@ -116,12 +126,12 @@ export async function DELETE(
       prisma.employee.delete({ where: { id: employeeId } }),
     ];
 
-    if (empToDelete?.applicantId) {
+    for (const app of matchingApplicants) {
       transactions.push(
-        prisma.interviewSession.deleteMany({ where: { applicantId: empToDelete.applicantId } }),
-        prisma.offerLetter.deleteMany({ where: { applicantId: empToDelete.applicantId } }),
-        prisma.cEOReview.deleteMany({ where: { applicantId: empToDelete.applicantId } }),
-        prisma.applicant.delete({ where: { id: empToDelete.applicantId } })
+        prisma.interviewSession.deleteMany({ where: { applicantId: app.id } }),
+        prisma.offerLetter.deleteMany({ where: { applicantId: app.id } }),
+        prisma.cEOReview.deleteMany({ where: { applicantId: app.id } }),
+        prisma.applicant.deleteMany({ where: { id: app.id } })
       );
     }
 
